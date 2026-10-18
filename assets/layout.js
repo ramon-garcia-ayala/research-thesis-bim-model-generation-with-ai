@@ -22,16 +22,19 @@ const step = (r) => 2 * Math.asin(Math.min(1, SLOT / (2 * r)))
 
 /**
  * Places `count` items in the sector [a0, a1], ring after ring; returns their centres. Each ring takes as many as fit,
- * spread evenly, so a sector's cards stay inside it.
+ * one step apart and gathered at the sector's middle, so a group stays together and its cards stay inside the sector
+ * (`here` steps fit in it, so the outer cards keep half a step to its edges).
  */
 function fill(count, a0, a1) {
   const out = []
+  const mid = (a0 + a1) / 2
   let r = FIRST_RING
   while (out.length < count) {
-    const fit = Math.floor((a1 - a0) / step(r))
+    const s = step(r)
+    const fit = Math.floor((a1 - a0) / s)
     const here = Math.min(fit, count - out.length)
     for (let i = 0; i < here; i++) {
-      const a = a0 + ((i + 0.5) * (a1 - a0)) / here
+      const a = mid + (i - (here - 1) / 2) * s
       out.push({ x: Math.round(r * Math.cos(a)), y: Math.round(r * Math.sin(a)) })
     }
     r += SLOT
