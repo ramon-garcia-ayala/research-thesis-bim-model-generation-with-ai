@@ -5,6 +5,7 @@
 import { boxOf, layout, linkPath } from './layout.js'
 import { isNew, linkKey, validate } from './model.js'
 import { parseNote, renderMarkdown } from './notes.js'
+import { effectiveTheme, toggleTheme } from './theme.js'
 
 const SVG = 'http://www.w3.org/2000/svg'
 const XHTML = 'http://www.w3.org/1999/xhtml'
@@ -56,6 +57,7 @@ export function createView(root, map, notes) {
         <button type="button" data-zoom="fit">Fit</button>
         <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
       </span>
+      <button type="button" class="theme" aria-label="Dark mode"></button>
     </header>
     <div class="stage">
       <svg class="canvas" xmlns="${SVG}"><g class="world"><g class="links"></g><g class="cards"></g></g></svg>
@@ -352,6 +354,19 @@ export function createView(root, map, notes) {
     e.currentTarget.setAttribute('aria-pressed', String(state.onlyNew))
     paint()
   })
+  // The button names the theme it switches to; pressed = dark is showing.
+  const win = root.ownerDocument.defaultView
+  const themeButton = $('.theme')
+  const showTheme = () => {
+    const dark = effectiveTheme(root.ownerDocument, win) === 'dark'
+    themeButton.textContent = dark ? 'Light' : 'Dark'
+    themeButton.setAttribute('aria-pressed', String(dark))
+  }
+  themeButton.addEventListener('click', () => {
+    toggleTheme(root.ownerDocument, win)
+    showTheme()
+  })
+  showTheme()
   root.ownerDocument.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') select(null)
     if (e.key === '/' && root.ownerDocument.activeElement?.tagName !== 'INPUT') {

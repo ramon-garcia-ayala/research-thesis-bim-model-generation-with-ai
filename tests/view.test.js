@@ -114,8 +114,9 @@ describe('the viewer', () => {
     expect(root.querySelectorAll('.card.node')).toHaveLength(9)
   })
 
-  it('the empty real map draws the centre with its placeholders', async () => {
-    await start(root, { load: fromDisk })
+  it('an empty map draws the centre with its placeholders', async () => {
+    const empty = { version: 1, lastPresentation: null, centre: { question: [], hypothesis: [] }, groups: [], nodes: [], links: [] }
+    await start(root, { load: async (path) => (path === 'map.json' ? JSON.stringify(empty) : null) })
     expect(root.querySelector('.card.centre').textContent).toContain('No question yet')
     expect(root.querySelector('.new').textContent).toContain('everything')
   })
