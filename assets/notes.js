@@ -42,7 +42,16 @@ function inline(text) {
   return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[Number(i)]}</code>`)
 }
 
-/** Paragraphs, `-` lists, **bold**, *italic*, `code` and [links](url); everything else is text. */
+const cells = (line) => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => inline(c.trim()))
+
+/** A block of `|` rows whose second row is dashes: a table, the first row its head. */
+function table(lines) {
+  if (lines.length < 2 || !lines.every((l) => /^\s*\|.*\|\s*$/.test(l)) || !/^[\s|:-]+$/.test(lines[1])) return null
+  const row = (tag) => (line) => `<tr>${cells(line).map((c) => `<${tag}>${c}</${tag}>`).join('')}</tr>`
+  return `<table><thead>${row('th')(lines[0])}</thead><tbody>${lines.slice(2).map(row('td')).join('')}</tbody></table>`
+}
+
+/** Paragraphs, `-` lists, `|` tables, **bold**, *italic*, `code` and [links](url); everything else is text. */
 export function renderMarkdown(body) {
   return body
     .replace(/\r\n?/g, '\n')
@@ -53,6 +62,8 @@ export function renderMarkdown(body) {
       const lines = block.split('\n')
       if (lines.every((l) => /^\s*- /.test(l)))
         return `<ul>${lines.map((l) => `<li>${inline(l.replace(/^\s*- /, ''))}</li>`).join('')}</ul>`
+      const t = table(lines)
+      if (t) return t
       return `<p>${inline(lines.map((l) => l.trim()).join(' '))}</p>`
     })
     .join('')

@@ -50,6 +50,17 @@ describe('renderMarkdown', () => {
     expect(renderMarkdown('[pdf](files/a.pdf)')).toContain('href="files/a.pdf"')
   })
 
+  it('a pipe table becomes a table: the first row is the head, the dashes row is dropped', () => {
+    expect(renderMarkdown('| Step | **Manual** |\n|---|---|\n| Site | `x<y` |\n| Brief | |')).toBe(
+      '<table><thead><tr><th>Step</th><th><strong>Manual</strong></th></tr></thead>' +
+        '<tbody><tr><td>Site</td><td><code>x&lt;y</code></td></tr><tr><td>Brief</td><td></td></tr></tbody></table>',
+    )
+  })
+
+  it('pipes without a dashes row are a paragraph', () => {
+    expect(renderMarkdown('| a | b |\n| c | d |')).toBe('<p>| a | b | | c | d |</p>')
+  })
+
   it('bold inside code stays literal', () => {
     expect(renderMarkdown('`**x**`')).toBe('<p><code>**x**</code></p>')
   })
