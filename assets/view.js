@@ -1,10 +1,13 @@
 /*
  * The viewer: draws the map on a dotted canvas (pan, zoom, fit), shows a node's or link's detail in the side panel,
- * and dims what a search or the "new since" filter leaves out. It only reads: Claude writes map.json and notes/.
+ * dims what a search or the "new since" filter leaves out, and lights what the slide shown in the presentations viewer
+ * uses. It only reads: Claude writes map.json and notes/.
  */
 import { boxOf, layout, linkPath } from './layout.js'
 import { isNew, linkKey, validate } from './model.js'
 import { parseNote, renderMarkdown } from './notes.js'
+import { loadIndex, slidesUsing } from './presentations.js'
+import { mountPresentations } from './presentations-ui.js'
 import { effectiveTheme, toggleTheme } from './theme.js'
 
 const SVG = 'http://www.w3.org/2000/svg'
@@ -17,8 +20,11 @@ const groupVar = (colour) => `var(--group-${colour?.slice(1) ?? 8})`
 /** Reads a file of the map folder over HTTP; null when it is missing. */
 const fetchText = (path) => fetch(path).then((r) => (r.ok ? r.text() : null)).catch(() => null)
 
-/** Loads map.json and every node's note (from the folder `dir`, default the map's own), then draws it into `root`. */
-export async function start(root, { load = fetchText, dir = '' } = {}) {
+/**
+ * Loads map.json and every node's note (from the folder `dir`, default the map's own), then draws it into `root`.
+ * The presentations (menu, viewer, highlight) come with the map's own folder only; `index` replaces what is loaded.
+ */
+export async function start(root, { load = fetchText, dir = '', index } = {}) {
   if (dir !== '' && !/^[\w./-]+\/$/.test(dir)) dir = ''
   const read = (path) => load(dir + path)
   const text = await read('map.json')
@@ -35,14 +41,19 @@ export async function start(root, { load = fetchText, dir = '' } = {}) {
       notes[n.id] = parseNote((await read(`notes/${n.id}.md`)) ?? '')
     }),
   )
-  return createView(root, map, notes)
+  const presentations = index ?? (dir === '' ? await loadIndex(load).catch(() => null) : null)
+  return createView(root, map, notes, { index: presentations })
 }
 
-/** Draws `map` with its parsed notes into `root`; returns the verbs the toolbar and tests use. */
-export function createView(root, map, notes) {
+/**
+ * Draws `map` with its parsed notes into `root`; returns the verbs the toolbar and tests use. With a presentations
+ * `index` (from `loadIndex`) it also mounts the menu and the viewer.
+ */
+export function createView(root, map, notes, { index = null } = {}) {
   const problems = validate(map)
   const fresh = isNew(map, notes)
-  const state = { collapsed: new Set(), selected: null, query: '', onlyNew: false, view: { x: 0, y: 0, k: 1 } }
+  // `lit`: the ids the slide shown uses (null = none). `manual`: the author moved the view since the last fit.
+  const state = { collapsed: new Set(), selected: null, query: '', onlyNew: false, lit: null, manual: false, view: { x: 0, y: 0, k: 1 } }
 
   root.classList.add('map')
   root.innerHTML = `
@@ -52,6 +63,7 @@ export function createView(root, map, notes) {
       <button type="button" class="new" aria-pressed="false">${
         map.lastPresentation ? `New since ${esc(map.lastPresentation)}` : 'New: everything (no thesis presentation yet)'
       }</button>
+      ${index ? '<button type="button" class="presentations" aria-pressed="false">Presentations</button>' : ''}
       <span class="zoom">
         <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
         <button type="button" data-zoom="fit">Fit</button>
@@ -176,26 +188,74 @@ export function createView(root, map, notes) {
   const shown = (id) => matches(id) && (!state.onlyNew || fresh.has(id))
 
   function paint() {
+    const lit = state.lit
+    // A group that holds a lit node keeps its context, so the lit node does not float without its label.
+    const holdsLit = (gid) => lit !== null && map.nodes.some((n) => n.group === gid && lit.has(n.id))
     const centre = root.querySelector('.card.centre')
-    centre?.classList.toggle('dim', state.onlyNew && !fresh.has('question') && !fresh.has('hypothesis'))
+    centre?.classList.toggle(
+      'dim',
+      (state.onlyNew && !fresh.has('question') && !fresh.has('hypothesis')) ||
+        (lit !== null && !lit.has('question') && !lit.has('hypothesis')),
+    )
     for (const el of root.querySelectorAll('.card.node, .card.group')) {
-      el.classList.toggle('dim', !shown(el.dataset.id))
-      el.classList.toggle('selected', el.dataset.id === state.selected)
+      const id = el.dataset.id
+      const visible = shown(id)
+      const keep = lit === null || lit.has(id) || (el.classList.contains('group') && holdsLit(id))
+      el.classList.toggle('dim', !visible || !keep)
+      el.classList.toggle('lit', lit !== null && visible && lit.has(id))
+      el.classList.toggle('selected', id === state.selected)
     }
-    for (const part of root.querySelectorAll('.card.centre .part'))
+    for (const part of root.querySelectorAll('.card.centre .part')) {
       part.classList.toggle('selected', part.dataset.id === state.selected)
+      part.classList.toggle('lit', lit !== null && lit.has(part.dataset.id))
+    }
     for (const el of root.querySelectorAll('.link')) {
       const l = map.links.find((x) => linkKey(x) === el.dataset.key)
       const ends = [l.from, l.to]
-      const dim = (state.query.trim() !== '' && !ends.every((e) => matches(e))) || (state.onlyNew && !fresh.has(el.dataset.key))
+      const bothLit = lit !== null && ends.every((e) => lit.has(e))
+      const dim =
+        (state.query.trim() !== '' && !ends.every((e) => matches(e))) ||
+        (state.onlyNew && !fresh.has(el.dataset.key)) ||
+        (lit !== null && !bothLit)
       el.classList.toggle('dim', dim)
+      el.classList.toggle('lit', bothLit)
       el.classList.toggle('on', el.dataset.key === state.selected || ends.includes(state.selected))
     }
+  }
+
+  /** Lights the ids a slide uses (nodes, groups, `question`, `hypothesis`); null, or ids the map lacks, lights nothing. */
+  function setLit(ids) {
+    const known = (id) => id === 'question' || id === 'hypothesis' || Boolean(nodeById[id] ?? groupById[id])
+    const list = (ids ?? []).filter(known)
+    state.lit = list.length ? new Set(list) : null
+    // A node inside a collapsed group is only visible once the group is open.
+    let reopened = false
+    for (const id of list) {
+      const group = nodeById[id]?.group
+      if (group && state.collapsed.delete(group)) reopened = true
+    }
+    if (reopened) draw()
+    else paint()
+    if (!state.manual) fit(state.lit ? [...state.lit] : null)
   }
 
   // ---- The panel ----
 
   const close = `<button type="button" class="close" aria-label="Close">×</button>`
+
+  /** The slides that use `id`, as a panel section. */
+  function usedIn(id) {
+    const hits = ui ? slidesUsing(index, id) : []
+    if (!hits.length) return ''
+    const lang = ui.lang()
+    const items = hits
+      .map(
+        (h) =>
+          `<li><button type="button" data-open="${esc(h.track)}|${esc(h.presentation)}|${h.n}">${esc(ui.trackName(h.track))} ${esc(h.presentation.replace(/^presentacion-/, ''))} · ${h.n}. ${esc(h.title[lang])}</button></li>`,
+      )
+      .join('')
+    return `<h3 class="section">In presentations</h3><ul class="related">${items}</ul>`
+  }
 
   function nodePanel(n) {
     const group = groupById[n.group]
@@ -223,7 +283,8 @@ export function createView(root, map, notes) {
       ${n.cite ? `<p class="cite">${esc(n.cite)}</p>` : ''}
       ${source}
       ${entries || '<p class="empty">No note yet.</p>'}
-      ${links ? `<h3 class="section">Links</h3><ul class="related">${links}</ul>` : ''}`
+      ${links ? `<h3 class="section">Links</h3><ul class="related">${links}</ul>` : ''}
+      ${usedIn(n.id)}`
   }
 
   function linkPanel(l) {
@@ -245,7 +306,8 @@ export function createView(root, map, notes) {
               .map((v, i) => `<article class="${i === 0 ? 'now' : 'earlier'}"><h3>${esc(v.date)}${i === 0 ? ' · current' : ''}</h3><p>${esc(v.text)}</p></article>`)
               .join('')
           : '<p class="empty">Not written yet.</p>'
-      }`
+      }
+      ${usedIn(part)}`
   }
 
   function select(id) {
@@ -258,6 +320,8 @@ export function createView(root, map, notes) {
     else if (groupById[id]) return toggleGroup(id)
     if (id !== null) panel.hidden = false
     paint()
+    // The panel (and the viewer beside it) changes the free space: keep the lit cards clear of both.
+    if (state.lit && !state.manual) fit([...state.lit])
   }
 
   function toggleGroup(id) {
@@ -281,24 +345,39 @@ export function createView(root, map, notes) {
     v.x = px - ((px - v.x) * k) / v.k
     v.y = py - ((py - v.y) * k) / v.k
     v.k = k
+    state.manual = true
     place()
   }
 
-  function fit() {
+  /** Frames `ids` (cards, a lit slide's) or, with none, the whole map; clear of the toolbar, the menu, the viewer and the panel. */
+  function fit(ids = null) {
     const w = stage.clientWidth
     const h = stage.clientHeight
     if (!w || !h || !picture) return
-    const all = [picture.centre, ...picture.groups, ...picture.nodes]
+    const lit = ids ? ids.map((id) => boxOf(picture, map, id)).filter(Boolean) : []
+    const all = lit.length ? lit : [picture.centre, ...picture.groups, ...picture.nodes]
     const x0 = Math.min(...all.map((b) => b.x - b.w / 2))
     const x1 = Math.max(...all.map((b) => b.x + b.w / 2))
     const y0 = Math.min(...all.map((b) => b.y - b.h / 2))
     const y1 = Math.max(...all.map((b) => b.y + b.h / 2))
-    // Keep the cards clear of the toolbar above and the panel, when open, to the right.
     const pad = 48
     const top = ($('.toolbar').offsetHeight || 0) + 32
     const right = panel.hidden ? 0 : panel.offsetWidth + 16
-    const k = Math.min(1.2, (w - right - 2 * pad) / (x1 - x0), (h - top - 2 * pad) / (y1 - y0))
-    state.view = { k, x: (w - right) / 2 - ((x0 + x1) / 2) * k, y: top + (h - top) / 2 - ((y0 + y1) / 2) * k }
+    const { left, viewer } = ui?.insets() ?? { left: 0, viewer: null }
+    // The viewer sits bottom right: leave its column or its row clear, whichever keeps the cards larger.
+    const frames = (viewer ? [{ r: viewer.w, b: 0 }, { r: 0, b: viewer.h }] : [{ r: 0, b: 0 }]).map(({ r, b }) => {
+      const aw = w - left - right - r
+      const ah = h - top - b
+      return { aw, ah, r, k: Math.min(1.2, (aw - 2 * pad) / (x1 - x0), (ah - 2 * pad) / (y1 - y0)) }
+    })
+    const best = frames.reduce((a, c) => (c.k > a.k ? c : a))
+    const k = best.k
+    state.view = {
+      k,
+      x: left + best.aw / 2 - ((x0 + x1) / 2) * k,
+      y: top + best.ah / 2 - ((y0 + y1) / 2) * k,
+    }
+    state.manual = false
     place()
   }
 
@@ -306,6 +385,7 @@ export function createView(root, map, notes) {
   stage.addEventListener('pointerdown', (e) => {
     if (e.target.closest('.card, .link-hit')) return
     drag = { x: e.clientX - state.view.x, y: e.clientY - state.view.y }
+    state.manual = true
     stage.setPointerCapture?.(e.pointerId)
     stage.classList.add('dragging')
   })
@@ -336,10 +416,15 @@ export function createView(root, map, notes) {
   root.addEventListener('click', (e) => {
     const go = e.target.closest('[data-go]')
     if (go) return select(go.dataset.go)
+    const open = e.target.closest('.panel [data-open]')
+    if (open && ui) {
+      const [track, presentation, n] = open.dataset.open.split('|')
+      return ui.open({ track, presentation, n: Number(n) })
+    }
     if (e.target.closest('.close')) return select(null)
     const zoom = e.target.closest('[data-zoom]')
     if (zoom) {
-      if (zoom.dataset.zoom === 'fit') return fit()
+      if (zoom.dataset.zoom === 'fit') return fit(state.lit ? [...state.lit] : null)
       return zoomAt(zoom.dataset.zoom === 'in' ? 1.25 : 0.8, stage.clientWidth / 2, stage.clientHeight / 2)
     }
     const target = e.target.closest('.card [data-id], .card[data-id], .link-hit')
@@ -368,17 +453,36 @@ export function createView(root, map, notes) {
   })
   showTheme()
   root.ownerDocument.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') select(null)
+    if (e.key === 'Escape') {
+      // Esc closes the menu first; the next one closes the panel.
+      if (ui && !root.querySelector('.menu').hidden) return void toggleMenu(false)
+      select(null)
+    }
     if (e.key === '/' && root.ownerDocument.activeElement?.tagName !== 'INPUT') {
       e.preventDefault()
       $('.search').focus()
     }
   })
 
+  // ---- Presentations ----
+
+  const ui = index ? mountPresentations(root, index, { onLit: setLit }) : null
+  const presentationsButton = $('.presentations')
+  function toggleMenu(show) {
+    const open = ui.toggleMenu(show)
+    presentationsButton.setAttribute('aria-pressed', String(open))
+    if (!state.manual) fit(state.lit ? [...state.lit] : null)
+    return open
+  }
+  presentationsButton?.addEventListener('click', () => toggleMenu())
+  root.querySelector('.menu')?.addEventListener('click', (e) => {
+    if (e.target.closest('.menu__close')) presentationsButton.setAttribute('aria-pressed', 'false')
+  })
+
   draw()
   place()
   fit()
-  root.ownerDocument.defaultView?.addEventListener('resize', fit)
+  root.ownerDocument.defaultView?.addEventListener('resize', () => fit(state.lit ? [...state.lit] : null))
 
   return {
     select,
@@ -388,6 +492,7 @@ export function createView(root, map, notes) {
       paint()
     },
     toggleNew: () => $('.new').click(),
+    setLit,
     fit,
   }
 }

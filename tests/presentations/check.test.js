@@ -97,6 +97,24 @@ describe('checkSite', () => {
     expect((await checkSite(root)).join('\n')).toMatch(/no slides/i)
   })
 
+  it('passes a slide that cites ids the map has', async () => {
+    const root = site({ files: { 'leaders/presentacion-01/index.html': page('<section class="slide" data-map="question ifc"><h1><span lang="en">A</span><span lang="es">A</span></h1></section>') } })
+    expect(await checkSite(root, { mapIds: new Set(['question', 'ifc']) })).toEqual([])
+  })
+
+  it('fails a slide that cites an id the map does not have', async () => {
+    const root = site({ files: { 'leaders/presentacion-01/index.html': page('<section class="slide" data-map="ifc ghost"><h1><span lang="en">A</span><span lang="es">A</span></h1></section>') } })
+    const errors = await checkSite(root, { mapIds: new Set(['ifc']) })
+    expect(errors).toHaveLength(1)
+    expect(errors[0]).toMatch(/leaders\/presentacion-01\/index\.html/)
+    expect(errors[0]).toMatch(/slide 1.*"ghost"/)
+  })
+
+  it('does not check data-map when there is no map to check against', async () => {
+    const root = site({ files: { 'leaders/presentacion-01/index.html': page('<section class="slide" data-map="ghost"><h1><span lang="en">A</span><span lang="es">A</span></h1></section>') } })
+    expect(await checkSite(root, { mapIds: null })).toEqual([])
+  })
+
   it('checks the template gallery for both languages too', async () => {
     const root = site({ files: { 'templates/index.html': '<html><body><p lang="es">Solo español</p></body></html>' } })
     expect((await checkSite(root)).join('\n')).toMatch(/templates\/index\.html/)

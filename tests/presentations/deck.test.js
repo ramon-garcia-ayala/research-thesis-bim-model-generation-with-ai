@@ -97,7 +97,7 @@ describe('mountDeck', () => {
   it('the rail home goes back to the landing of the whole site, two levels up, and names the track', () => {
     const home = document.querySelector('nav.rail a.rail__home')
     expect(home.getAttribute('href')).toBe('../../')
-    expect(home.textContent).toContain('Thesis')
+    expect(home.textContent).toContain('IAAC')
   })
   it('a presentation without a date shows none', () => {
     const last = document.querySelectorAll('nav.rail a.rail__item')[2]
@@ -149,5 +149,57 @@ describe('watchIdle', () => {
     vi.advanceTimersByTime(IDLE_MS)
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
     expect(document.body.dataset.idle).toBe('')
+  })
+})
+
+describe('embed (the deck inside the map\'s viewer)', () => {
+  const posted = []
+  beforeEach(() => {
+    posted.length = 0
+    vi.spyOn(window.parent, 'postMessage').mockImplementation((data) => { posted.push(data) })
+    window.history.replaceState(null, '', '/?embed')
+    delete document.documentElement.dataset.embed
+    document.body.dataset.track = 'leaders'
+    document.body.dataset.presentation = 'presentacion-01'
+    document.body.innerHTML = `
+      <nav class="rail"></nav>
+      <main class="deck">
+        <section class="slide" data-map="question hypothesis">one</section>
+        <section class="slide">two</section>
+        <section class="slide" data-map="ifc">three</section>
+      </main>`
+    mountDeck(window, { presentations })
+  })
+  afterEach(() => {
+    vi.restoreAllMocks()
+    window.history.replaceState(null, '', '/')
+  })
+
+  const message = (data, origin = window.location.origin) =>
+    window.dispatchEvent(new MessageEvent('message', { data, origin, source: window }))
+  const shown = () => [...document.querySelectorAll('section.slide')].findIndex((s) => !s.hidden)
+
+  it('marks the page as embedded', () => {
+    expect(document.documentElement.dataset.embed).toBe('')
+  })
+  it('tells the parent the slide and the map ids it uses, on mount and on every change', () => {
+    expect(posted.at(-1)).toEqual({ type: 'slide', track: 'leaders', presentation: 'presentacion-01', index: 0, total: 3, map: ['question', 'hypothesis'] })
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+    expect(posted.at(-1)).toMatchObject({ index: 1, map: [] })
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+    expect(posted.at(-1)).toMatchObject({ index: 2, map: ['ifc'] })
+  })
+  it('goes to the slide the parent asks for', () => {
+    message({ type: 'goto', index: 2 })
+    expect(shown()).toBe(2)
+  })
+  it('ignores a message from another origin', () => {
+    message({ type: 'goto', index: 2 }, 'https://evil.example')
+    expect(shown()).toBe(0)
+  })
+  it('switches language when the parent asks', () => {
+    const other = document.documentElement.dataset.lang === 'es' ? 'en' : 'es'
+    message({ type: 'lang', lang: other })
+    expect(document.documentElement.dataset.lang).toBe(other)
   })
 })

@@ -5,6 +5,7 @@
 //   3. links relative; external URLs only from Google Fonts
 //   4. the app's name never typed into a page (it comes from APP_NAME)
 //   5. every listed presentation mounts: slides and a rail
+//   6. every `data-map` id of a slide is in the map (a node, a group, `question` or `hypothesis`)
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
@@ -46,7 +47,15 @@ function checkLinks(doc, file, errors) {
   }
 }
 
-function checkPage(root, path, appName, errors) {
+function checkMapIds(doc, file, mapIds, errors) {
+  if (!mapIds) return
+  doc.querySelectorAll('section.slide').forEach((slide, i) => {
+    for (const id of (slide.getAttribute('data-map') ?? '').split(/\s+/).filter(Boolean))
+      if (!mapIds.has(id)) errors.push(`${file}: slide ${i + 1} cites "${id}", which is not in map.json`)
+  })
+}
+
+function checkPage(root, path, appName, errors, mapIds = null) {
   const file = relative(root, path).replaceAll('\\', '/')
   const html = readFileSync(path, 'utf8')
   if (html.includes(appName) || /GFit/.test(html)) {
@@ -55,13 +64,22 @@ function checkPage(root, path, appName, errors) {
   const doc = new JSDOM(html).window.document
   checkLanguages(doc, file, errors)
   checkLinks(doc, file, errors)
+  checkMapIds(doc, file, mapIds, errors)
   return file
 }
 
 const dirs = (path) => (existsSync(path) ? readdirSync(path).filter((n) => statSync(join(path, n)).isDirectory()) : [])
 
 /** @returns {Promise<string[]>} the errors; empty when the site is fine */
-export async function checkSite(rootDir) {
+/** The ids a slide may cite: the map's nodes and groups, and the centre's `question` and `hypothesis`. null without a map. */
+export function readMapIds(root) {
+  const path = join(root, '..', 'map.json')
+  if (!existsSync(path)) return null
+  const map = JSON.parse(readFileSync(path, 'utf8'))
+  return new Set(['question', 'hypothesis', ...(map.groups ?? []).map((g) => g.id), ...(map.nodes ?? []).map((n) => n.id)])
+}
+
+export async function checkSite(rootDir, { mapIds = readMapIds(resolve(rootDir)) } = {}) {
   const root = resolve(rootDir)
   const errors = []
   const site = await import(pathToFileURL(join(root, 'assets', 'site.js')).href)
@@ -78,7 +96,7 @@ export async function checkSite(rootDir) {
         errors.push(`${track}/${id}: listed in PRESENTATIONS but has no folder with index.html`)
         continue
       }
-      const file = checkPage(root, path, site.APP_NAME, errors)
+      const file = checkPage(root, path, site.APP_NAME, errors, mapIds)
       const dom = new JSDOM(readFileSync(path, 'utf8'), { url: `http://localhost/${track}/${id}/` })
       mountDeck(dom.window)
       const doc = dom.window.document

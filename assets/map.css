@@ -110,6 +110,11 @@
   box-sizing: border-box;
 }
 
+/* `hidden` must win over any display a rule sets (the menu and the viewer are flex). */
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   margin: 0;
@@ -563,6 +568,247 @@ button {
   padding-left: 18px;
   font-family: var(--font-mono);
   font-size: 11px;
+}
+
+/* ---- Lit: what the slide shown in the viewer uses (the rest dims, see .dim) ---- */
+
+.card.lit {
+  box-shadow: 0 0 0 2px var(--group, var(--ink)), var(--shadow-panel), inset 3px 0 0 var(--group, var(--group-8));
+}
+
+.card.group.lit {
+  box-shadow: 0 0 0 2px var(--group, var(--ink));
+}
+
+.card.centre .part.lit {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.link.lit {
+  stroke: var(--ink);
+  stroke-width: 2.5;
+}
+
+/* ---- Presentations: the menu on the left and the viewer docked bottom right ---- */
+
+.toolbar .presentations[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--panel);
+}
+
+.menu {
+  position: absolute;
+  top: 78px;
+  left: 16px;
+  bottom: 16px;
+  z-index: 2;
+  width: min(300px, calc(100% - 32px));
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-panel);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
+}
+
+.menu__bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 10px 8px 16px;
+}
+
+.menu__bar h2 {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.menu__lang,
+.menu__close,
+.viewer__close {
+  height: 26px;
+  min-width: 26px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.menu__lang:hover,
+.menu__close:hover,
+.viewer__close:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+/* The list scrolls; the bar above it stays. */
+.menu__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 8px 14px;
+}
+
+.menu__track h3 {
+  margin: 14px 8px 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-tertiary);
+}
+
+.menu__item summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  list-style: none;
+}
+
+.menu__item summary::-webkit-details-marker {
+  display: none;
+}
+
+.menu__item summary:hover {
+  background: var(--hover);
+}
+
+.menu__item summary b {
+  font-variant-numeric: tabular-nums;
+}
+
+.menu__date {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-tertiary);
+}
+
+.menu__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-secondary);
+}
+
+.menu__item ol {
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.menu__slide {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu__slide:hover {
+  background: var(--hover);
+}
+
+.menu__slide[aria-current='true'] {
+  background: var(--fill);
+}
+
+.menu__n {
+  min-width: 1.4em;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.menu__t {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+/* A dot marks a slide that lights part of the map. */
+.menu__dot {
+  flex: none;
+  align-self: center;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.viewer {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2;
+  width: min(560px, 46vw);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
+}
+
+/* It steps aside for the node panel, which takes the right edge. */
+.map:has(.panel:not([hidden])) .viewer {
+  right: calc(min(420px, 100% - 32px) + 32px);
+}
+
+.viewer__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 14px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.viewer__title {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+
+.viewer__present {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-secondary);
+  text-decoration: none;
+}
+
+.viewer__present:hover {
+  color: var(--ink);
+}
+
+.viewer__frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 0;
+  background: var(--canvas);
 }
 
 @media (prefers-reduced-motion: reduce) {

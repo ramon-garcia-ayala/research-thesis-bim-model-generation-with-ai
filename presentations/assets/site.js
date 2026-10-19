@@ -5,8 +5,8 @@ export const APP_NAME = 'GFit: Generative Information Modeler'
 
 /** Two audiences, two decks: the Gensler leaders and the MaCAD thesis (IAAC). Each track numbers its own presentations. */
 export const TRACKS = {
-  leaders: { en: 'Leaders', es: 'Líderes' },
-  thesis: { en: 'Thesis', es: 'Tesis' },
+  leaders: { en: 'Gensler', es: 'Gensler' },
+  thesis: { en: 'IAAC', es: 'IAAC' },
 }
 
 /**

@@ -112,6 +112,9 @@ function renderRail(doc, rail, track, currentId, list) {
 export function mountDeck(win, opts = {}) {
   const doc = win.document
   const { track, presentation } = doc.body.dataset
+  // `?embed`: the deck inside the map's viewer, which has its own menu; it reports its slide to the parent.
+  const embed = new URLSearchParams(win.location.search).has('embed')
+  if (embed) doc.documentElement.dataset.embed = ''
   const list = opts.presentations ?? PRESENTATIONS[track] ?? []
   const storage = safeStorage(win)
   setLang(doc, storage, initialLang(storage, win.navigator.language))
@@ -154,10 +157,18 @@ export function mountDeck(win, opts = {}) {
   themeGlyph()
   theme.addEventListener('click', () => { toggleTheme(doc, win); themeGlyph() })
   const full = button(doc, '⤢', { en: 'Full screen (F)', es: 'Pantalla completa (F)' })
-  full.hidden = !doc.fullscreenEnabled
+  full.hidden = !doc.fullscreenEnabled || embed
   bar.append(prev, dots, next, count, lang, theme, full)
   doc.querySelector('main.deck')?.after(bar)
   watchIdle(win, doc)
+
+  /** Embedded: tells the parent which slide this is and which map ids it uses (`data-map`). */
+  const announce = () => {
+    if (!embed) return
+    const map = (slides[current]?.dataset.map ?? '').split(/\s+/).filter(Boolean)
+    const origin = win.location.origin === 'null' ? '*' : win.location.origin
+    win.parent.postMessage({ type: 'slide', track, presentation, index: current, total: slides.length, map }, origin)
+  }
 
   let current = 0
   const show = (i, writeHash = true) => {
@@ -166,6 +177,7 @@ export function mountDeck(win, opts = {}) {
     ;[...dots.children].forEach((d, k) => d.setAttribute('aria-current', k === current ? 'step' : 'false'))
     count.textContent = `${current + 1} / ${slides.length}`
     if (writeHash) win.history.replaceState(null, '', `#${current + 1}`)
+    announce()
   }
   slides.forEach((_, k) => {
     const d = doc.createElement('button')
@@ -177,6 +189,7 @@ export function mountDeck(win, opts = {}) {
   })
 
   const goPresentation = (dir) => {
+    if (embed) return
     const p = neighborPresentation(list, presentation, dir)
     if (p) win.location.assign(`../${p.id}/`)
   }
@@ -206,6 +219,13 @@ export function mountDeck(win, opts = {}) {
     e.preventDefault?.()
     act()
   })
+  if (embed) {
+    win.addEventListener('message', (e) => {
+      if (e.source !== win.parent || (win.location.origin !== 'null' && e.origin !== win.location.origin)) return
+      if (e.data?.type === 'goto' && Number.isInteger(e.data.index)) show(e.data.index)
+      if (e.data?.type === 'lang' && (e.data.lang === 'en' || e.data.lang === 'es')) setLang(doc, storage, e.data.lang)
+    })
+  }
   win.addEventListener('hashchange', () => show(slideFromHash(win.location.hash, slides.length), false))
 
   if (slides.length) show(slideFromHash(win.location.hash, slides.length))
