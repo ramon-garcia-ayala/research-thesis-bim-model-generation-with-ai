@@ -203,3 +203,44 @@ describe('embed (the deck inside the map\'s viewer)', () => {
     expect(document.documentElement.dataset.lang).toBe(other)
   })
 })
+
+describe('clips (looping videos on a slide)', () => {
+  let video
+  let play
+  let pause
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/')
+    document.body.dataset.track = 'leaders'
+    document.body.dataset.presentation = 'presentacion-01'
+    document.body.innerHTML = `
+      <nav class="rail"></nav>
+      <main class="deck">
+        <section class="slide">one</section>
+        <section class="slide"><video muted loop></video></section>
+      </main>`
+    // stubs on this deck's own video: decks mounted by earlier tests keep listening on the document
+    video = document.querySelector('video')
+    play = vi.fn(() => Promise.resolve())
+    pause = vi.fn()
+    video.play = play
+    video.pause = pause
+    mountDeck(window, { presentations })
+  })
+  const key = (k) => document.dispatchEvent(new KeyboardEvent('keydown', { key: k }))
+
+  it('does not play a clip on a slide that is not shown', () => {
+    expect(play).not.toHaveBeenCalled()
+    expect(pause).toHaveBeenCalled()
+  })
+  it('plays the clip when its slide comes up and pauses it when the slide goes', () => {
+    key('ArrowRight')
+    expect(play).toHaveBeenCalledTimes(1)
+    pause.mockClear()
+    key('ArrowLeft')
+    expect(pause).toHaveBeenCalled()
+  })
+  it('a play() the browser refuses is not an error', () => {
+    play.mockImplementation(() => Promise.reject(new DOMException('interrupted', 'AbortError')))
+    expect(() => key('ArrowRight')).not.toThrow()
+  })
+})

@@ -162,6 +162,17 @@ export function mountDeck(win, opts = {}) {
   doc.querySelector('main.deck')?.after(bar)
   watchIdle(win, doc)
 
+  /** Looping clips play on the slide shown only (a hidden slide's video would run on), and never for reduced motion. */
+  const reduce = () => win.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true
+  const syncClips = () => {
+    slides.forEach((slide, k) => {
+      for (const video of slide.querySelectorAll('video')) {
+        if (k === current && !reduce()) video.play?.()?.catch?.(() => {}) // a play() cut short is not a failure
+        else video.pause?.()
+      }
+    })
+  }
+
   /** Embedded: tells the parent which slide this is and which map ids it uses (`data-map`). */
   const announce = () => {
     if (!embed) return
@@ -177,6 +188,7 @@ export function mountDeck(win, opts = {}) {
     ;[...dots.children].forEach((d, k) => d.setAttribute('aria-current', k === current ? 'step' : 'false'))
     count.textContent = `${current + 1} / ${slides.length}`
     if (writeHash) win.history.replaceState(null, '', `#${current + 1}`)
+    syncClips()
     announce()
   }
   slides.forEach((_, k) => {

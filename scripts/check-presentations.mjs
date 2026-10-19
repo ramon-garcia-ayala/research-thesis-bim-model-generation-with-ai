@@ -98,7 +98,10 @@ export async function checkSite(rootDir, { mapIds = readMapIds(resolve(rootDir))
       }
       const file = checkPage(root, path, site.APP_NAME, errors, mapIds)
       const dom = new JSDOM(readFileSync(path, 'utf8'), { url: `http://localhost/${track}/${id}/` })
-      mountDeck(dom.window)
+      // jsdom has no media playback: stub it so a deck with clips mounts quietly
+    dom.window.HTMLMediaElement.prototype.play = () => Promise.resolve()
+    dom.window.HTMLMediaElement.prototype.pause = () => {}
+    mountDeck(dom.window)
       const doc = dom.window.document
       if (!doc.querySelectorAll('main.deck section.slide').length) errors.push(`${file}: no slides`)
       if (!doc.querySelector('nav.rail a.rail__item')) errors.push(`${file}: the rail did not render`)
