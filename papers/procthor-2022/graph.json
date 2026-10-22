@@ -1,0 +1,786 @@
+{
+  "version": 1,
+  "node": "procthor-2022",
+  "built": {
+    "date": "2026-10-22",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Vision and language models improve with massive datasets, but Embodied AI agents are trained in simulators with far fewer scenes. The paper asks how to give E-AI a comparable supply of training environments, since the best models overfit the few scenes and generalize poorly to unseen ones.",
+      "es": "Los modelos de visión y lenguaje mejoran con conjuntos de datos masivos, pero los agentes de IA corpórea se entrenan en simuladores con muchas menos escenas. El artículo pregunta cómo dar a la IA corpórea un suministro comparable de entornos de entrenamiento, porque los mejores modelos se sobreajustan a pocas escenas y generalizan mal a escenas nuevas.",
+      "blocks": [
+        "s0-p1",
+        "s1-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Existing E-AI environments are either designed by hand by 3D artists or reconstructed from 3D scans of real buildings. The paper says neither approach scales, and expanding scene repositories by orders of magnitude is not practical.",
+      "es": "Los entornos de IA corpórea existentes se diseñan a mano por artistas 3D o se reconstruyen a partir de escaneos 3D de edificios reales. El artículo dice que ninguno de los dos enfoques escala y que ampliar los repositorios de escenas en órdenes de magnitud no es práctico.",
+      "blocks": [
+        "s1-p2",
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "method",
+      "en": "ProcTHOR generates a house from a room specification by multi-stage conditional sampling. It iteratively generates a floor plan, builds the external wall structure, samples lighting and doors, then samples and places assets and picks colors and textures.",
+      "es": "ProcTHOR genera una casa a partir de una especificación de cuartos mediante muestreo condicional de varias etapas. De forma iterativa genera la planta, construye la estructura de muros exteriores, muestrea iluminación y puertas, y luego muestrea y coloca los objetos y elige colores y texturas.",
+      "blocks": [
+        "s1-p5",
+        "s3-p2",
+        "fig-2"
+      ],
+      "key": "procthor",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "A room spec is a manually specified tree that lists the rooms in a house, their relative size through growth weights, and which rooms must be connected by a path or avoid one. ProcTHOR uses 16 room specs of 1 to 10 rooms each, chosen by weighted sampling.",
+      "es": "Una especificación de cuartos (room spec) es un árbol definido a mano que lista los cuartos de una casa, su tamaño relativo mediante pesos de crecimiento, y qué cuartos deben conectarse por un camino o evitarlo. ProcTHOR usa 16 especificaciones de 1 a 10 cuartos cada una, elegidas por muestreo ponderado.",
+      "blocks": [
+        "app-b-p2",
+        "app-b-p3",
+        "app-b-p4",
+        "app-b-p5",
+        "fig-18"
+      ],
+      "key": "room-spec",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "The floor plan starts from a random integer-sized rectangle, and then up to 10 rectangular corner cuts turn it into a more complex polygon. The recursive layout algorithm of Lopes et al. divides it into rooms following the room spec tree, and the whole plan is scaled by s sampled from U(1.6, 2.2).",
+      "es": "La planta parte de un rectángulo aleatorio de dimensiones enteras, y hasta 10 recortes rectangulares en las esquinas lo convierten en un polígono más complejo. El algoritmo recursivo de distribución de Lopes et al. lo divide en cuartos siguiendo el árbol de la especificación, y toda la planta se escala con s muestreado de U(1.6, 2.2).",
+      "blocks": [
+        "s3-p4",
+        "app-b-p6",
+        "app-b-p7",
+        "app-b-p10",
+        "app-b-p11",
+        "fig-19",
+        "fig-21"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Doors between adjacent rooms are sampled subject to the room spec constraints, as a doorway, a door frame or an open connection. Open connections and door frames are only allowed between kitchen and living room, where the probabilities are 0.375 for open, 0.375 for door frame and 0.25 for doorway.",
+      "es": "Las puertas entre cuartos adyacentes se muestrean sujetas a las restricciones de la especificación, como vano con puerta, marco de puerta o conexión abierta. Las conexiones abiertas y los marcos solo se permiten entre cocina y sala, donde las probabilidades son 0.375 para abierta, 0.375 para marco y 0.25 para puerta.",
+      "blocks": [
+        "app-b-p12",
+        "app-b-p13",
+        "fig-22"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "dataset",
+      "en": "ProcTHOR populates houses from an asset database of 1633 interactive household assets across 108 object types. Most assets come from AI2-THOR, and the authors hand-built new windows, doors and counter tops.",
+      "es": "ProcTHOR puebla las casas con una base de datos de 1633 objetos domésticos interactivos de 108 tipos. La mayoría viene de AI2-THOR, y los autores construyeron a mano nuevas ventanas, puertas y cubiertas de cocina.",
+      "blocks": [
+        "s3-p5",
+        "app-b-p26",
+        "fig-12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Placement annotations are made per object type, not per asset: room weights from 0 to 3, whether it goes on an edge, corner or middle, and whether several can share a room. Assets of types with more than 5 instances are split about 2/3 train, 1/6 validation and 1/6 test.",
+      "es": "Las anotaciones de colocación se hacen por tipo de objeto, no por objeto: pesos por cuarto de 0 a 3, si va en un borde, esquina o centro, y si pueden coincidir varios en un cuarto. Los objetos de tipos con más de 5 instancias se dividen en aproximadamente 2/3 entrenamiento, 1/6 validación y 1/6 prueba.",
+      "blocks": [
+        "app-b-p27",
+        "app-b-p29",
+        "app-b-p30",
+        "fig-25"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "concept",
+      "en": "A Semantic Asset Group (SAG) is a group of assets that typically co-occur, such as a dining table with four chairs, sampled and placed together. Child samplers are anchored to a parent by anchor and pivot positions so they adapt to asset size, and rejection sampling resamples a group whose meshes clip.",
+      "es": "Un Grupo Semántico de Objetos (SAG) es un grupo de objetos que suelen aparecer juntos, como una mesa de comedor con cuatro sillas, que se muestrean y colocan en conjunto. Los muestreadores hijos se anclan a un padre con posiciones de ancla y pivote para adaptarse al tamaño del objeto, y el muestreo por rechazo vuelve a muestrear un grupo cuyas mallas se traslapan.",
+      "blocks": [
+        "s3-p7",
+        "app-b-p31",
+        "app-b-p32",
+        "app-b-p35",
+        "app-b-p36",
+        "fig-26",
+        "fig-28"
+      ],
+      "key": "semantic-asset-group",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Objects are placed in a fixed order: floor objects and SAGs first, then wall objects (windows, paintings, televisions), then surface objects. Floor placement repeatedly picks a free rectangle, places an object with a navigation margin and subtracts its bounding box, and objects on edges or corners have their backs to the wall.",
+      "es": "Los objetos se colocan en un orden fijo: primero los del piso y los SAG, luego los de pared (ventanas, cuadros, televisores) y al final los de superficie. La colocación en piso elige repetidamente un rectángulo libre, coloca un objeto con un margen de navegación y resta su caja envolvente, y los objetos en bordes o esquinas quedan con la espalda hacia el muro.",
+      "blocks": [
+        "s3-p7",
+        "app-b-p38",
+        "app-b-p41",
+        "app-b-p45",
+        "app-b-p46",
+        "app-b-p51",
+        "app-b-p59",
+        "fig-29",
+        "fig-30"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "Each generated house is checked automatically. Rejection sampling resamples SAGs whose meshes clip, and a validator runs a BFS on a 0.25 × 0.25 meter grid and requires at least 5 reachable positions in every room, otherwise it resamples a new house with the same room spec.",
+      "es": "Cada casa generada se revisa automáticamente. El muestreo por rechazo vuelve a muestrear los SAG cuyas mallas se traslapan, y un validador hace una búsqueda en anchura (BFS) sobre una cuadrícula de 0.25 × 0.25 metros y exige al menos 5 posiciones alcanzables en cada cuarto; si falla, muestrea otra casa con la misma especificación.",
+      "blocks": [
+        "app-b-p72",
+        "app-b-p36",
+        "fig-28",
+        "s4-p1"
+      ],
+      "key": "validator",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Appearance is randomized from limited sets: 40 solid wall colors, 122 wall textures, 55 floor materials, one directional light plus point lights, and skyboxes (16 midday, 5 golden hour, 1 blue hour). Object materials are randomized only within similar classes, and object states such as lamps on or off are randomized too.",
+      "es": "La apariencia se aleatoriza a partir de conjuntos limitados: 40 colores sólidos de muro, 122 texturas de muro, 55 materiales de piso, una luz direccional más luces puntuales, y cielos (16 de mediodía, 5 de hora dorada, 1 de hora azul). Los materiales de los objetos solo se aleatorizan dentro de clases similares, y también se aleatorizan estados como lámparas encendidas o apagadas.",
+      "blocks": [
+        "s3-p6",
+        "s3-p8",
+        "app-b-p23",
+        "app-b-p69",
+        "app-b-p70"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "concept",
+      "en": "ProcTHOR can be customized: with a few simple lines of specification one can generate scene types of interest, and the paper shows classrooms, libraries and offices.",
+      "es": "ProcTHOR es personalizable: con unas pocas líneas de especificación se pueden generar los tipos de escena que interesen, y el artículo muestra salones de clase, bibliotecas y oficinas.",
+      "blocks": [
+        "s3-p10",
+        "fig-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "concept",
+      "en": "Each house is stored as a JSON specification, typically several thousand lines long, that tells AI2-THOR how to build the scene at runtime. This keeps storage cheap, and the datasheet states there is no raw data behind the JSON files.",
+      "es": "Cada casa se guarda como una especificación JSON, normalmente de varios miles de líneas, que le indica a AI2-THOR cómo construir la escena en tiempo de ejecución. Esto abarata el almacenamiento, y la hoja de datos indica que no hay datos crudos detrás de los archivos JSON.",
+      "blocks": [
+        "s3-p11",
+        "app-c-p8",
+        "app-c-p14",
+        "app-c-p46"
+      ],
+      "key": "house-json",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "dataset",
+      "en": "PROCTHOR-10K is a sample of 10,000 interactive houses made from 16 room specs, with 1 to 10 rooms and objects from 95 categories, plus 1,000 validation and 1,000 testing houses. The 10K set was generated in 1 hour on a local workstation with 4 NVIDIA RTX A5000 GPUs.",
+      "es": "PROCTHOR-10K es una muestra de 10,000 casas interactivas hechas con 16 especificaciones de cuartos, de 1 a 10 cuartos y con objetos de 95 categorías, más 1,000 casas de validación y 1,000 de prueba. El conjunto de 10K se generó en 1 hora en una estación de trabajo local con 4 GPU NVIDIA RTX A5000.",
+      "blocks": [
+        "s4-p1",
+        "s4-p2",
+        "s4-p3",
+        "fig-10"
+      ],
+      "key": "procthor-10k",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "dataset",
+      "en": "ARCHITECTHOR is a set of 10 artist-designed, fully interactable houses (5 validation, 5 testing) used as a test-only environment. Building the 10 houses took approximately 320 hours of cumulative work by professional 3D artists, mostly kitchen assets and house structure.",
+      "es": "ARCHITECTHOR es un conjunto de 10 casas totalmente interactivas diseñadas por artistas (5 de validación y 5 de prueba) que se usa solo como entorno de evaluación. Construir las 10 casas tomó aproximadamente 320 horas de trabajo acumulado de artistas 3D profesionales, sobre todo en los objetos de cocina y la estructura de la casa.",
+      "blocks": [
+        "s1-p5",
+        "app-d-p10",
+        "app-d-p62",
+        "fig-38"
+      ],
+      "key": "architecthor",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "ProcTHOR reaches frame rates comparable to iTHOR and RoboTHOR even though its houses are larger. The paper says this is fast enough to train large models for hundreds of millions of steps in a reasonable time.",
+      "es": "ProcTHOR alcanza cuadros por segundo comparables a los de iTHOR y RoboTHOR aunque sus casas son más grandes. El artículo dice que es lo bastante rápido para entrenar modelos grandes durante cientos de millones de pasos en un tiempo razonable.",
+      "blocks": [
+        "s4-p4",
+        "tab-1",
+        "tab-11",
+        "app-g-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "All agents use a deliberately simple architecture, a CNN encoder plus a GRU, with RGB input only. The ObjectNav model was pre-trained for 423 million steps on 3 AWS g4dn.12xlarge machines in approximately 5 days, and had reached 90% of its peak performance by 200 million steps.",
+      "es": "Todos los agentes usan una arquitectura deliberadamente simple, un codificador CNN más una GRU, solo con entrada RGB. El modelo de ObjectNav se preentrenó durante 423 millones de pasos en 3 máquinas AWS g4dn.12xlarge en aproximadamente 5 días, y a los 200 millones de pasos ya había alcanzado el 90% de su desempeño máximo.",
+      "blocks": [
+        "s5-p2",
+        "app-f-p9",
+        "app-f-p10",
+        "app-f-p21"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "Models are evaluated zero-shot (pre-trained on PROCTHOR only) and after fine-tuning on each benchmark's training scenes. An ObjectNav episode succeeds if the agent issues DONE, the target is within 1 meter of the camera and is visible in the final frame, and SPL measures the efficiency of the path.",
+      "es": "Los modelos se evalúan sin ajuste (preentrenados solo en PROCTHOR) y tras ajustarse con las escenas de entrenamiento de cada prueba. Un episodio de ObjectNav es exitoso si el agente emite DONE, el objeto está a menos de 1 metro de la cámara y es visible en el último cuadro, y el SPL mide la eficiencia de la trayectoria.",
+      "blocks": [
+        "s5-p3",
+        "app-f-p3",
+        "app-f-p7"
+      ],
+      "key": "spl",
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Models trained only on PROCTHOR and evaluated zero-shot outperform previous SoTA models on 3 benchmarks. The paper stresses this is hard because the other environments differ in appearance, layout and object statistics.",
+      "es": "Los modelos entrenados solo en PROCTHOR y evaluados sin ajuste superan a los modelos previos de última generación en 3 pruebas. El artículo destaca que esto es difícil porque los otros entornos difieren en apariencia, distribución y estadísticas de objetos.",
+      "blocks": [
+        "s5-p4",
+        "s5-p5",
+        "s6-p1",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "After fine-tuning, the model reaches state-of-the-art results on all benchmarks. It ranked first on three public leaderboards as of 10am PT, June 14th 2022: Habitat 2022 ObjectNav, AI2-THOR Rearrangement 2022 and RoboTHOR ObjectNav.",
+      "es": "Tras el ajuste fino, el modelo alcanza resultados de última generación en todas las pruebas. Quedó en primer lugar en tres tablas de clasificación públicas a las 10am PT del 14 de junio de 2022: ObjectNav de Habitat 2022, Rearrangement de AI2-THOR 2022 y ObjectNav de RoboTHOR.",
+      "blocks": [
+        "s5-p6",
+        "s1-p6",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "Reported gains: an 8.8 point improvement in SPL over the previous SoTA on RoboTHOR ObjectNav, a >3 point SPL gain over the next best submission on Habitat ObjectNav 2022, and Prop Fixed Strict improving from 0.19 to 0.245 on 1-phase Rearrangement 2022. On AI2-iTHOR ObjectNav, fine-tuning gives a success rate of 77.5%.",
+      "es": "Mejoras reportadas: 8.8 puntos de SPL sobre el estado del arte previo en ObjectNav de RoboTHOR, una ganancia de >3 puntos de SPL sobre el siguiente mejor envío en ObjectNav de Habitat 2022, y Prop Fixed Strict que pasa de 0.19 a 0.245 en Rearrangement de 1 fase 2022. En ObjectNav de AI2-iTHOR, el ajuste fino da una tasa de éxito de 77.5%.",
+      "blocks": [
+        "s1-p6",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "On the artist-designed ARCHITECTHOR houses, ObjectNav success improves from 18.5% to 31.4%. ARCHITECTHOR has no training scenes, so it is used only to evaluate the PROCTHOR pre-trained model.",
+      "es": "En las casas diseñadas por artistas de ARCHITECTHOR, el éxito en ObjectNav mejora de 18.5% a 31.4%. ARCHITECTHOR no tiene escenas de entrenamiento, así que solo se usa para evaluar el modelo preentrenado en PROCTHOR.",
+      "blocks": [
+        "s1-p6",
+        "app-f-p32",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "In the scale ablation, models are trained on 10, 100, 1,000 and 10,000 houses without material augmentation, and test performance increases with the number of training houses. The paper takes this as evidence that even larger generated sets could help further.",
+      "es": "En la ablación de escala, los modelos se entrenan con 10, 100, 1,000 y 10,000 casas sin aumento de materiales, y el desempeño en prueba aumenta con el número de casas de entrenamiento. El artículo lo toma como evidencia de que conjuntos generados aún más grandes podrían ayudar más.",
+      "blocks": [
+        "s5-p7",
+        "tab-3",
+        "s1-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "claim",
+      "en": "The paper claims the diversity of generated layouts, assets, placements and lighting, rather than model complexity, drives its results. A simple RGB-only CNN+GRU with no explicit mapping and no human task supervision matches or beats systems that use depth, mapping or visual odometry.",
+      "es": "El artículo afirma que la diversidad de plantas, objetos, colocaciones e iluminación generados, y no la complejidad del modelo, impulsa sus resultados. Un modelo simple de CNN+GRU solo con RGB, sin mapeo explícito ni supervisión humana de la tarea, iguala o supera a sistemas que usan profundidad, mapeo u odometría visual.",
+      "blocks": [
+        "s0-p1",
+        "s3-p3",
+        "s5-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "claim",
+      "en": "Unlike scan-based datasets, ProcTHOR scenes are interactive: objects have states such as open or closed, can be moved by agents with arms, and a physics engine determines future states. The paper argues this lets it serve manipulation tasks and not only navigation.",
+      "es": "A diferencia de los conjuntos basados en escaneos, las escenas de ProcTHOR son interactivas: los objetos tienen estados como abierto o cerrado, los agentes con brazos pueden moverlos, y un motor de física determina los estados futuros. El artículo sostiene que esto permite usarlo en tareas de manipulación y no solo de navegación.",
+      "blocks": [
+        "s1-p5",
+        "s2-p2",
+        "s3-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "concept",
+      "en": "The 16 scene specifications can give over 100 billion layouts. The 18 Semantic Asset Groups and 1633 assets give roughly 20 million unique asset groups (19.3 million combinations in Section 4), before placements, scaling and lighting are varied.",
+      "es": "Las 16 especificaciones de escena pueden dar más de 100 mil millones de plantas. Los 18 Grupos Semánticos de Objetos y los 1633 objetos dan aproximadamente 20 millones de grupos de objetos únicos (19.3 millones de combinaciones en la Sección 4), antes de variar colocaciones, escala e iluminación.",
+      "blocks": [
+        "s3-p11",
+        "s4-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "claim",
+      "en": "The authors hypothesize that reasonable object placement is necessary to train efficient agents. If a toilet could appear anywhere the search would be harder, and a fridge facing the wall would be unusable for interaction.",
+      "es": "Los autores plantean la hipótesis de que una colocación razonable de objetos es necesaria para entrenar agentes eficientes. Si un inodoro pudiera aparecer en cualquier parte la búsqueda sería más difícil, y un refrigerador de frente a la pared sería inutilizable para la interacción.",
+      "blocks": [
+        "app-b-p24",
+        "app-b-p25"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "method",
+      "en": "Several generator parameters are set by hand from the empirical quality of the houses. These include the 2.2 upper bound of the plan scale, the receptacle biases and the object biases, and the room specs are themselves specified manually.",
+      "es": "Varios parámetros del generador se fijan a mano según la calidad empírica de las casas. Entre ellos están el límite superior de 2.2 para la escala de la planta, los sesgos por receptáculo y los sesgos por objeto, y las propias especificaciones de cuartos se definen manualmente.",
+      "blocks": [
+        "app-b-p11",
+        "app-b-p63",
+        "app-b-p64",
+        "app-b-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "method",
+      "en": "For surface objects, the probability that an object type sits on a receptacle type is estimated from the hand-modeled AI2-iTHOR and RoboTHOR rooms. It counts how often the object is on the receptacle and divides by how often the receptacle appears, then adds house, receptacle and object biases.",
+      "es": "Para los objetos de superficie, la probabilidad de que un tipo de objeto esté sobre un tipo de receptáculo se estima a partir de los cuartos modelados a mano de AI2-iTHOR y RoboTHOR. Se cuenta cuántas veces el objeto está sobre el receptáculo y se divide entre cuántas veces aparece el receptáculo, y luego se suman sesgos de casa, receptáculo y objeto.",
+      "blocks": [
+        "app-b-p60",
+        "app-b-p61",
+        "app-b-p62"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "result",
+      "en": "For ArmPointNav on AI2-iTHOR, the authors tried fine-tuning but none of the fine-tuned models performed better than the zero-shot model trained with PROCTHOR pre-training.",
+      "es": "En ArmPointNav sobre AI2-iTHOR, los autores intentaron el ajuste fino, pero ninguno de los modelos ajustados funcionó mejor que el modelo sin ajuste entrenado con el preentrenamiento de PROCTHOR.",
+      "blocks": [
+        "app-f-p35"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "method",
+      "en": "Changing the room specs changes the distribution of houses. For HM3D the authors built PROCTHORLARGE-10K, 10K houses of 4 to 10 rooms, to better match HM3D's larger houses.",
+      "es": "Cambiar las especificaciones de cuartos cambia la distribución de casas. Para HM3D los autores construyeron PROCTHORLARGE-10K, 10K casas de 4 a 10 cuartos, para ajustarse mejor a las casas más grandes de HM3D.",
+      "blocks": [
+        "s4-p2",
+        "app-f-p29",
+        "app-f-p30"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "concept",
+      "en": "The datasheet says PROCTHOR-10K was created to train simulated embodied agents in substantially more diverse environments. Instances carry no label or target, and the data and generation code are released under the Apache 2.0 license.",
+      "es": "La hoja de datos dice que PROCTHOR-10K se creó para entrenar agentes corpóreos simulados en entornos sustancialmente más diversos. Las instancias no llevan etiqueta ni objetivo, y los datos y el código de generación se liberan bajo la licencia Apache 2.0.",
+      "blocks": [
+        "app-c-p3",
+        "app-c-p16",
+        "app-c-p67"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "future",
+      "en": "The datasheet suggests uses beyond household navigation: object detection, NeRFs, segmentation and generative modeling, and synthetic spaces such as factories, offices, grocery stores and full procedurally generated cities.",
+      "es": "La hoja de datos sugiere usos más allá de la navegación doméstica: detección de objetos, NeRF, segmentación y modelado generativo, y espacios sintéticos como fábricas, oficinas, tiendas de abarrotes y ciudades completas generadas proceduralmente.",
+      "blocks": [
+        "app-c-p54",
+        "app-c-p55",
+        "app-c-p56"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i35",
+      "kind": "limitation",
+      "en": "ProcTHOR-10K only uses 1-floor houses.",
+      "es": "ProcTHOR-10K solo usa casas de un piso.",
+      "blocks": [
+        "app-b-p73"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i36",
+      "kind": "future",
+      "en": "The authors plan multi-floor houses in ProcTHOR-v2.0, expecting a wider range of houses and better fine-tuning results. They also plan to scale up the asset database with open-source collections such as ABO, PartNet, ShapeNet, Google Scanned Objects and CO3D.",
+      "es": "Los autores planean casas de varios pisos en ProcTHOR-v2.0, con la expectativa de abarcar una gama más amplia de casas y lograr mejores resultados de ajuste fino. También planean ampliar la base de objetos con colecciones de código abierto como ABO, PartNet, ShapeNet, Google Scanned Objects y CO3D.",
+      "blocks": [
+        "app-b-p73"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i37",
+      "kind": "concept",
+      "en": "The closest datasets are HM3D (1,000 static scenes from 3D scans, navigation only), OpenRooms (scanned, slow to annotate, about 1 minute to label materials for one object) and Megaverse (procedural but game-like). Other work learns to generate floorplans, while ProcTHOR is built for E-AI with interactive, physics-respecting scenes.",
+      "es": "Los conjuntos más cercanos son HM3D (1,000 escenas estáticas de escaneos 3D, solo navegación), OpenRooms (escaneado y lento de anotar, cerca de 1 minuto para etiquetar materiales de un objeto) y Megaverse (procedural pero con aspecto de videojuego). Otros trabajos aprenden a generar plantas, mientras que ProcTHOR está hecho para IA corpórea con escenas interactivas que respetan la física.",
+      "blocks": [
+        "s2-p2",
+        "s2-p3"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "Hand design and scanning are why E-AI scene counts stay small."
+    },
+    {
+      "from": "i3",
+      "to": "i4",
+      "type": "uses",
+      "why": "Generation starts from a room spec."
+    },
+    {
+      "from": "i5",
+      "to": "i3",
+      "type": "part-of",
+      "why": "Floor plan generation is the first stage of the pipeline."
+    },
+    {
+      "from": "i6",
+      "to": "i3",
+      "type": "part-of",
+      "why": "Door sampling is a pipeline stage."
+    },
+    {
+      "from": "i10",
+      "to": "i3",
+      "type": "part-of",
+      "why": "Object placement is a pipeline stage."
+    },
+    {
+      "from": "i12",
+      "to": "i3",
+      "type": "part-of",
+      "why": "Material, lighting and state randomization is a pipeline stage."
+    },
+    {
+      "from": "i11",
+      "to": "i3",
+      "type": "part-of",
+      "why": "Validation closes the pipeline by accepting or resampling the house."
+    },
+    {
+      "from": "i13",
+      "to": "i3",
+      "type": "part-of",
+      "why": "Customizability is one of the five key characteristics of the framework."
+    },
+    {
+      "from": "i29",
+      "to": "i3",
+      "type": "part-of",
+      "why": "Hand-set biases and bounds are part of the generator's configuration."
+    },
+    {
+      "from": "i5",
+      "to": "i4",
+      "type": "uses",
+      "why": "The recursive subdivision follows the room spec tree and growth weights."
+    },
+    {
+      "from": "i6",
+      "to": "i4",
+      "type": "uses",
+      "why": "Which rooms get doors comes from the room spec constraints."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "part-of",
+      "why": "Annotations and splits are attached to the asset library by object type."
+    },
+    {
+      "from": "i9",
+      "to": "i7",
+      "type": "uses",
+      "why": "SAG samplers draw from the asset instances."
+    },
+    {
+      "from": "i10",
+      "to": "i8",
+      "type": "uses",
+      "why": "Room weights and edge/corner/middle annotations filter what can be placed."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "uses",
+      "why": "Floor placement samples SAGs along with single assets."
+    },
+    {
+      "from": "i30",
+      "to": "i10",
+      "type": "part-of",
+      "why": "Surface object probabilities drive the last placement step."
+    },
+    {
+      "from": "i28",
+      "to": "i10",
+      "type": "supports",
+      "why": "The placement rules are motivated by the hypothesis that plausible placement is needed."
+    },
+    {
+      "from": "i3",
+      "to": "i14",
+      "type": "uses",
+      "why": "The output of generation is a JSON house specification."
+    },
+    {
+      "from": "i15",
+      "to": "i3",
+      "type": "example-of",
+      "why": "PROCTHOR-10K is a sample drawn with the framework."
+    },
+    {
+      "from": "i15",
+      "to": "i4",
+      "type": "uses",
+      "why": "The 10K houses come from 16 room specs."
+    },
+    {
+      "from": "i27",
+      "to": "i3",
+      "type": "supports",
+      "why": "The combinatorics show why the framework can produce arbitrarily many houses."
+    },
+    {
+      "from": "i17",
+      "to": "i3",
+      "type": "measures",
+      "why": "Frame rates test whether generated houses are fast enough for large-scale training."
+    },
+    {
+      "from": "i16",
+      "to": "i7",
+      "type": "uses",
+      "why": "Most ARCHITECTHOR objects come from the ProcTHOR asset database."
+    },
+    {
+      "from": "i18",
+      "to": "i15",
+      "type": "uses",
+      "why": "The agents are pre-trained on PROCTHOR-10K."
+    },
+    {
+      "from": "i20",
+      "to": "i19",
+      "type": "uses",
+      "why": "Zero-shot is one of the two evaluation settings."
+    },
+    {
+      "from": "i21",
+      "to": "i19",
+      "type": "uses",
+      "why": "Fine-tuning is the other evaluation setting."
+    },
+    {
+      "from": "i20",
+      "to": "i15",
+      "type": "measures",
+      "why": "Zero-shot transfer tests what pre-training on the generated houses taught."
+    },
+    {
+      "from": "i21",
+      "to": "i15",
+      "type": "measures",
+      "why": "Fine-tuning tests PROCTHOR pre-training as an initialization."
+    },
+    {
+      "from": "i22",
+      "to": "i21",
+      "type": "part-of",
+      "why": "These are the specific benchmark gains from fine-tuning."
+    },
+    {
+      "from": "i23",
+      "to": "i16",
+      "type": "measures",
+      "why": "ARCHITECTHOR is the test bed for this result."
+    },
+    {
+      "from": "i24",
+      "to": "i15",
+      "type": "measures",
+      "why": "The ablation varies how many PROCTHOR houses are used."
+    },
+    {
+      "from": "i24",
+      "to": "i25",
+      "type": "supports",
+      "why": "More generated houses give better test performance."
+    },
+    {
+      "from": "i20",
+      "to": "i25",
+      "type": "supports",
+      "why": "Strong zero-shot transfer from a simple model points to data diversity."
+    },
+    {
+      "from": "i21",
+      "to": "i25",
+      "type": "supports",
+      "why": "State-of-the-art results with RGB-only simple models back the claim."
+    },
+    {
+      "from": "i31",
+      "to": "i20",
+      "type": "supports",
+      "why": "Fine-tuning never beat the zero-shot model on AI2-iTHOR ArmPointNav."
+    },
+    {
+      "from": "i37",
+      "to": "i26",
+      "type": "supports",
+      "why": "HM3D is static and navigation-only, which is the contrast ProcTHOR draws."
+    },
+    {
+      "from": "i32",
+      "to": "i4",
+      "type": "uses",
+      "why": "Editing room specs shifts the house size distribution."
+    },
+    {
+      "from": "i33",
+      "to": "i15",
+      "type": "part-of",
+      "why": "The datasheet documents PROCTHOR-10K."
+    },
+    {
+      "from": "i34",
+      "to": "i33",
+      "type": "example-of",
+      "why": "These are the other uses listed in the datasheet."
+    },
+    {
+      "from": "i36",
+      "to": "i35",
+      "type": "supports",
+      "why": "The planned ProcTHOR-v2.0 answers the 1-floor limitation."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i11",
+      "to": "correct-by-construction",
+      "why": "Rejection sampling and the reachability validator check every house as it is generated, so navigability and no clipping come with the model, although only these two properties are checked."
+    },
+    {
+      "idea": "i11",
+      "to": "proposed-vs-kept",
+      "why": "A house that fails validation is resampled with the same room spec, so what is kept differs from what was proposed, by an automatic rule and not by a person."
+    },
+    {
+      "idea": "i14",
+      "to": "ifc",
+      "why": "The generated house is a custom JSON spec that only AI2-THOR builds, with no open building exchange format, so it shows what IFC would have to cover."
+    },
+    {
+      "idea": "i14",
+      "to": "standardize-the-handoff",
+      "why": "A fixed JSON specification is the hand-off between generator and simulator, so no person touches individual houses in between."
+    },
+    {
+      "idea": "i16",
+      "to": "hand-offs",
+      "why": "10 hand-modeled houses took about 320 hours of 3D artists, while 10K generated houses took 1 hour, so human work moves to assets, annotations and room specs and away from each house."
+    },
+    {
+      "idea": "i4",
+      "to": "decision-delegation",
+      "why": "A person decides rooms, relative sizes and connections in the room spec, and the generator decides the rest, a clear case of delegating decisions."
+    },
+    {
+      "idea": "i29",
+      "to": "hypothesis",
+      "why": "Even in a fully automatic generator, people keep setting biases and bounds by looking at the quality of the houses, which matches human judgment staying in the loop."
+    },
+    {
+      "idea": "i30",
+      "to": "explicit-vs-learned",
+      "why": "The rules are explicit, but their statistics come from counting objects in hand-modeled rooms, so a human-built reference sits behind the explicit rules."
+    },
+    {
+      "idea": "i3",
+      "to": "tool-levels",
+      "why": "It can be read as a domain engine, a rule-based generator tied to a simulator and its assets, that sits between CAD rules and agents."
+    },
+    {
+      "idea": "i35",
+      "to": "question",
+      "why": "The generator stops at single-floor layouts with placed objects, and the paper says nothing about carrying the same process into detailed design or construction documents."
+    },
+    {
+      "idea": "i24",
+      "to": "method-one-task",
+      "why": "It varies one factor (number of houses) against fixed benchmarks, a way to test a generative process on one task instead of the whole field."
+    },
+    {
+      "idea": "i33",
+      "to": "dataset-purposes",
+      "why": "The stated purpose is training agents in more diverse environments, and the data carry no labels or raw sources, so the value is in variation and not in any one house."
+    },
+    {
+      "idea": "i5",
+      "to": "pinki-2024",
+      "why": "Both build plans by cutting a boundary into rooms, here with recursive subdivision driven by a room spec."
+    }
+  ]
+}
