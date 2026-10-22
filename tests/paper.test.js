@@ -52,6 +52,8 @@ describe('reading helpers', () => {
     expect(paraLabel(paper, 's2-p2')).toBe('2.2')
     expect(paraLabel(paper, 'fig-1')).toBe('Fig. 1')
   })
+  it('labels an appendix table', () =>
+    expect(paraLabel(editBlock(paper, 'fig-1', (b) => ({ ...b, id: 'tab-a1', type: 'table' })), 'tab-a1')).toBe('Table A1'))
   it('labels a second figure with the same number by that number', () =>
     expect(paraLabel(editBlock(paper, 'fig-1', (b) => ({ ...b, id: 'fig-3-2' })), 'fig-3-2')).toBe('Fig. 3'))
   it('falls back to English', () => expect(textOf({ text: { en: 'Hi' } }, 'es')).toBe('Hi'))

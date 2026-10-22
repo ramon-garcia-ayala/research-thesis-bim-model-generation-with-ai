@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { validatePaper } from '../../assets/paper.js'
-import { captionOf, dropContents, dropRunning, figureRegion, joinLines, orderBlocks, structure } from '../../scripts/papers/structure.mjs'
+import { bodySize, captionOf, dropContents, dropRunning, figureRegion, joinLines, orderBlocks, structure } from '../../scripts/papers/structure.mjs'
 import { blk, caption, first, page, prose, raw, texts } from './sample-dump.js'
 
 describe('cleaning a page', () => {
@@ -11,6 +11,30 @@ describe('cleaning a page', () => {
     expect(kept).not.toContain('Preprint. Under review.')
     expect(kept).not.toContain('2')
     expect(kept.some((t) => t.startsWith('Page 3 body.'))).toBe(true)
+  })
+
+  it('drops running heads that alternate between even and odd pages, a little below the edge', () => {
+    const head = (n) => (n % 2 ? `MSD: A Benchmark Dataset ${n}` : `${n} C. van Engelenburg et al.`)
+    const pages = [1, 2, 3, 4, 5, 6].map((n) => page(n, [blk([100, 85, 500, 95], head(n)), prose([40, 120, 570, 300], `Page ${n} body.`)]))
+    const kept = texts(dropRunning(pages))
+    expect(kept.some((t) => t.includes('van Engelenburg') || t.includes('MSD: A Benchmark'))).toBe(false)
+    expect(kept.filter((t) => t.startsWith('Page'))).toHaveLength(6)
+  })
+
+  it('drops a page number left alone once its running head is gone', () => {
+    const pages = [88, 89, 90].map((n) =>
+      page(n, [blk([60, 40, 550, 60], `${n}\nPinki et al./ Journal of Soft Computing in Civil Engineering 8-4 (2024)`), prose([60, 100, 550, 300], `Page ${n} text. It`)]))
+    expect(texts(dropRunning(pages)).filter((t) => /^\d+$/.test(t))).toEqual([])
+  })
+
+  it('keeps the number of a heading near the top of a page', () => {
+    const pages = [3, 4, 5].map((n) =>
+      page(n, [
+        ...(n === 3 ? [blk([108, 74, 200, 86], '2\nRelated Work', 12, true)] : []),
+        prose([108, 100, 500, 300], 'Some text. It'),
+        blk([300, 742, 310, 752], String(n)),
+      ]))
+    expect(texts(dropRunning(pages)).slice(0, 2)).toEqual(['2', 'Related Work'])
   })
 
   it('drops the arXiv side stamp', () =>
@@ -53,6 +77,17 @@ describe('figures', () => {
     expect(captionOf('Figure 3 shows the stages.')).toBeNull()
   })
 
+  it('recognises an appendix table or figure', () => {
+    expect(captionOf('Table A1. Space classes.')).toEqual({ kind: 'table', n: 'A1' })
+    expect(captionOf('Figure B2: More houses.')).toEqual({ kind: 'figure', n: 'B2' })
+  })
+
+  it('recognises a caption written without punctuation, but not a sentence about a figure', () => {
+    expect(captionOf('Figure 1 Workflow of the ACR from BIM and Architecture Design File')).toEqual({ kind: 'figure', n: 1 })
+    expect(captionOf('Figure 5 illustrates an end-to-end example where a user query asks for the lighting power.')).toBeNull()
+    expect(captionOf(`Figure 6 ${'Presents a long paragraph that keeps going. '.repeat(10)}`)).toBeNull()
+  })
+
   it('crops a figure to the drawings above its caption, inside its column', () =>
     expect(figureRegion(raw.pages[1], caption, 'figure')).toEqual([40, 120, 290, 300]))
 
@@ -82,6 +117,62 @@ describe('figures', () => {
     const cap = blk([108, 627, 504, 659], 'Figure 27: Instantiations of a semantic asset group.')
     const p = page(30, [prose([108, 373, 505, 503], 'Asset samplers define how assets are positioned. They'), cap], { images: [[84, 483, 518, 636]] })
     expect(figureRegion(p, cap, 'figure', 10)).toEqual([84, 503, 518, 627])
+  })
+
+  it('in a one-column paper, a short caption at the left still takes the whole width', () => {
+    const cap = blk([166, 300, 280, 310], 'Table 1. Definition of classes.')
+    const p = page(4, [prose([166, 100, 561, 280], 'Before delving into spatial relationships. It'), cap, blk([300, 330, 420, 340], 'Class Name', 8)], {
+      drawings: [[166, 320, 561, 321], [480, 330, 561, 500], [166, 505, 561, 506]],
+    })
+    expect(figureRegion(p, cap, 'table', 10, { single: true })).toEqual([166, 320, 561, 506])
+  })
+
+  it('does not take a table row written as one long line for running text', () => {
+    const cap = blk([166, 300, 280, 310], 'Table 1. Definition of classes.')
+    const row = (y, text) => ({ bbox: [180, y, 560, y + 10], lines: [{ text, size: 9, bold: false, bbox: [180, y, 560, y + 10] }] })
+    const p = page(4, [cap, row(330, 'Public space Living room Dining room 1 20 RGB(254,0,2)'), row(345, 'Private space Bedroom Dressing room Closet 2 5 11 RGB')], {
+      drawings: [[166, 320, 561, 321], [166, 360, 561, 361]],
+    })
+    expect(figureRegion(p, cap, 'table', 10, { single: true })).toEqual([166, 320, 561, 361])
+  })
+
+  it('measures the body size on running text, not on a crowd of tiny labels', () => {
+    const labels = Array.from({ length: 40 }, (_, i) => blk([60, 400 + i, 90, 405 + i], `L${i}`, 5))
+    expect(bodySize([prose([40, 60, 570, 300], 'Body text here. It'), prose([40, 310, 570, 380], 'More body. It'), ...labels])).toBe(10)
+  })
+
+  it('reads a one-column page top to bottom', () => {
+    const p = page(1, [blk([330, 85, 560, 95], 'B right'), blk([166, 100, 250, 110], 'A left'), blk([166, 120, 560, 200], 'C')])
+    expect(orderBlocks(p).map(first)).toEqual(['A left', 'B right', 'C'])
+    expect(orderBlocks(p, { single: true }).map(first)).toEqual(['B right', 'A left', 'C'])
+  })
+
+  it('between two tables, a table caption takes the one below it', () => {
+    const cap = blk([166, 300, 400, 310], 'Table 5. Encapsulation methods.')
+    const p = page(7, [blk([166, 150, 400, 160], 'Table 4. Connection line.'), cap, blk([180, 330, 260, 340], 'Step 1. Detected', 9)], {
+      drawings: [[166, 170, 561, 171], [166, 296, 561, 297], [166, 313, 561, 314], [166, 400, 561, 401]],
+    })
+    expect(figureRegion(p, cap, 'table', 10, { single: true })).toEqual([166, 313, 561, 401])
+  })
+
+  it('a figure caption ignores a subheading right under it and takes the image above', () => {
+    const cap = blk([166, 322, 400, 331], 'Figure 2. The process of collecting raw data.')
+    const p = page(4, [prose([166, 80, 561, 130], 'Spatial relationship diagram extraction. It'), cap, blk([166, 334, 330, 344], '3.3. Spatial Relationship Definition'),
+      prose([166, 348, 561, 420], 'Before delving into spatial relationships. It')], { images: [[168, 136, 438, 318]] })
+    expect(figureRegion(p, cap, 'figure', 10, { single: true })).toEqual([168, 136, 438, 318])
+  })
+
+  it('leaves the running head’s rule out of a figure at the top of a page', () => {
+    const cap = blk([166, 300, 450, 310], 'Figure 2. Example showcasing the result of Prompt A.')
+    const p = { ...page(10, [cap], { images: [[170, 90, 520, 290]], drawings: [[33, 65, 560, 66]] }), h: 842 }
+    expect(figureRegion(p, cap, 'figure', 10, { single: true })).toEqual([170, 90, 520, 290])
+  })
+
+  it('takes the side it is told to', () => {
+    const cap = blk([166, 300, 400, 310], 'Table 5. Encapsulation methods.')
+    const p = page(7, [cap], { drawings: [[166, 250, 561, 296], [166, 313, 561, 401]] })
+    expect(figureRegion(p, cap, 'table', 10, { single: true })).toEqual([166, 313, 561, 401])
+    expect(figureRegion(p, cap, 'table', 10, { single: true, side: 'above' })).toEqual([166, 250, 561, 296])
   })
 
   it('crops a table whose caption sits below it', () => {
@@ -136,6 +227,33 @@ describe('structure', () => {
     expect(JSON.stringify(structure(deco, opts).paper)).not.toContain('· · ·')
   })
 
+  it('takes short bold lines at body size as headings (a journal that does not enlarge them)', () => {
+    const flat = {
+      pages: [
+        page(1, [blk([40, 60, 290, 72], '1. Introduction', 10, true), prose([40, 80, 290, 200], 'Intro text. It'),
+          blk([320, 60, 570, 72], '2. Method', 10, true), prose([320, 80, 570, 200], 'Method text. It')]),
+        page(2, [blk([40, 60, 290, 72], 'References', 10, true), blk([40, 80, 290, 100], '1. A. Author. A paper. 2020.', 9)]),
+      ],
+    }
+    expect(structure(flat, opts).paper.sections.map((s) => s.id)).toEqual(['s1', 's2', 'refs'])
+  })
+
+  it('keeps a short bold label as text when the paper enlarges its headings', () => {
+    const label = blk([320, 210, 570, 222], 'Motivation', 10, true)
+    const doc = { pages: [{ ...raw.pages[0], blocks: [...raw.pages[0].blocks, label] }, raw.pages[1]] }
+    const s2 = structure(doc, opts).paper.sections[1]
+    expect(s2.blocks.find((b) => b.text.en === 'Motivation').type).toBe('paragraph')
+  })
+
+  it('splits a section heading and its first subheading written as one block', () => {
+    const two = blk([40, 60, 290, 90], '3. Methodology\n3.1. Procedure', 10, false)
+    two.lines[0].bold = true
+    const doc = { pages: [page(1, [two, prose([40, 100, 290, 200], 'The procedure. It'), blk([300, 760, 310, 770], '1')])] }
+    const s = structure(doc, opts).paper.sections
+    expect(s.map((x) => x.title.en)).toEqual(['3. Methodology'])
+    expect(s[0].blocks[0].text.en).toBe('3.1. Procedure')
+  })
+
   it('closes the references at the next unnumbered heading', () => {
     const back = page(3, [blk([40, 60, 290, 75], 'Contributions', 12, true), prose([40, 80, 290, 200], 'Matt Deitke designed the houses. This paragraph')])
     const { paper } = structure({ pages: [...raw.pages, back] }, opts)
@@ -154,6 +272,28 @@ describe('structure', () => {
     const withEq = { pages: [raw.pages[0], { ...raw.pages[1], blocks: [...raw.pages[1].blocks, garbled] }] }
     const { paper } = structure(withEq, { ...opts, overrides: { drop: ['^_ i \\\\ s i m$'] } })
     expect(JSON.stringify(paper)).not.toContain('s i m')
+  })
+
+  it('leaves table cells that look like numbered headings out of the text', () => {
+    const tcap = blk([40, 330, 290, 345], 'Table 1: Classes.')
+    const cells = [blk([60, 360, 200, 370], '80 object categories (doors,', 10, true), blk([60, 380, 200, 390], '16 space class (living room,', 10, true)]
+    const withTable = { pages: [raw.pages[0], { ...raw.pages[1], blocks: [...raw.pages[1].blocks, tcap, ...cells], drawings: [...raw.pages[1].drawings, [40, 352, 290, 353], [40, 395, 290, 396]] }] }
+    const { paper } = structure(withTable, opts)
+    expect(paper.sections.map((s) => s.id)).toEqual(['s1', 's2', 'refs'])
+    expect(JSON.stringify(paper)).not.toContain('object categories')
+  })
+
+  it('drops the blocks inside an override region (a journal’s side column)', () => {
+    const side = blk([35, 490, 150, 500], 'Citation: Park, H.; Gu, H. Developing a Robust', 7)
+    const withSide = { pages: [{ ...raw.pages[0], blocks: [...raw.pages[0].blocks, side] }, raw.pages[1]] }
+    const { paper } = structure(withSide, { ...opts, overrides: { dropBlocks: [{ page: 1, bbox: [0, 400, 160, 792] }] } })
+    expect(JSON.stringify(paper)).not.toContain('Citation:')
+  })
+
+  it('reads a paragraph that only starts like a caption as text when told so', () => {
+    const { paper, crops } = structure(raw, { ...opts, overrides: { notCaptions: ['fig-1'] } })
+    expect(crops).toEqual([])
+    expect(paper.sections[1].blocks.find((b) => b.text.en.startsWith('Figure 1:')).type).toBe('paragraph')
   })
 
   it('applies overrides', () => {
