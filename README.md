@@ -10,9 +10,15 @@ Private and local: this folder has git history for undo and **no remote**. Nothi
 ## Open it
 
 ```
-npm install   # once
-npm run dev   # http://localhost:4322/
+npm install         # once
+npm run dev         # http://localhost:4322/ — the map and the paper reader
+npm run dev:phone   # the same, plus the phone: prints an https://….ts.net/ address for your tailnet
 ```
+
+`npm run dev` runs the map's own server (`scripts/serve.mjs`), on this laptop only (127.0.0.1). It serves the folder and
+the reader's API: the reading state in `reading/`, the chat (Claude Code, `claude -p`, on your own login) and the note
+entries you approve. `npm run dev:phone` also runs `tailscale serve` while the server runs (Tailscale on and signed in on
+the laptop and the phone) and stops it with Ctrl+C. Nothing is installed to start on its own; nothing is public.
 
 ## Presentations
 

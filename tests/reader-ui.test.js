@@ -372,3 +372,22 @@ describe('underlines and the remembered place', () => {
     expect(client.load).not.toHaveBeenCalled()
   })
 })
+
+describe('on a phone', () => {
+  afterEach(() => Object.defineProperty(window, 'innerWidth', { value: 1024, configurable: true }))
+
+  it('is always full, one column, with the contents behind a button', async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 400, configurable: true })
+    document.body.innerHTML = '<main id="app"></main>'
+    root = document.getElementById('app')
+    view = await start(root, { load: fromDisk, dir: 'tests/fixture/', index })
+    await read('sample-a')
+    expect($('.reader').dataset.mode).toBe('full')
+    expect($('.reader__mode').hidden).toBe(true)
+    expect($('.reader').classList.contains('side-open')).toBe(false)
+    $('.reader__contents').click()
+    expect($('.reader').classList.contains('side-open')).toBe(true)
+    $('.reader__toc [data-goto="s2"]').click()
+    expect($('.reader').classList.contains('side-open')).toBe(false)
+  })
+})

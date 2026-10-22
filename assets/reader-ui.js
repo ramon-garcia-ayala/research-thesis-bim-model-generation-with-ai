@@ -151,6 +151,7 @@ export function mountReader(
   el.hidden = true
   el.innerHTML = `
     <header class="reader__bar">
+      <button type="button" class="reader__contents">☰</button>
       <span class="reader__title"></span>
       <span class="reader__langs" role="group">
         <button type="button" class="reader__lang" data-lang="en">EN</button>
@@ -158,6 +159,7 @@ export function mountReader(
       </span>
       <span class="reader__voice"></span>
       <button type="button" class="reader__mode"></button>
+      <button type="button" class="reader__chat-open" hidden></button>
       <button type="button" class="reader__close">×</button>
     </header>
     <p class="reader__hint" hidden></p>
@@ -329,6 +331,12 @@ export function mountReader(
     toggle.setAttribute('aria-label', m === 'half' ? L().full : L().half)
     toggle.title = toggle.getAttribute('aria-label')
     toggle.hidden = narrow()
+    // On a phone the contents and the chat open over the text, from a button each.
+    $('.reader__contents').hidden = !narrow()
+    $('.reader__contents').setAttribute('aria-label', L().contents)
+    $('.reader__chat-open').hidden = !narrow() || !live
+    $('.reader__chat-open').textContent = L().chat
+    if (!narrow()) el.classList.remove('side-open', 'chat-open')
     $('.reader__close').setAttribute('aria-label', L().close)
     $('.reader__close').title = L().close
     $('.reader__zoom-close').setAttribute('aria-label', L().zoomClose)
@@ -517,8 +525,13 @@ export function mountReader(
       pop.hidden = false
       return
     }
+    if (t.closest('.reader__contents')) return void el.classList.toggle('side-open')
+    if (t.closest('.reader__chat-open')) return void el.classList.toggle('chat-open')
     const go = t.closest('[data-goto]')
-    if (go) return goTo(go.dataset.goto)
+    if (go) {
+      el.classList.remove('side-open')
+      return goTo(go.dataset.goto)
+    }
     const img = t.closest('figure.blk img')
     if (img) {
       zoom.querySelector('img').setAttribute('src', img.getAttribute('src'))
