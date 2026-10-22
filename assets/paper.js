@@ -131,7 +131,7 @@ export function paraLabel(paper, blockId) {
     const blocks = list(sections[si].blocks)
     const b = blocks.find((x) => x.id === blockId)
     if (!b) continue
-    const n = /-(\d+)$/.exec(b.id)?.[1]
+    const n = /-(\d+)/.exec(b.id)?.[1]
     if (b.type === 'figure') return `Fig. ${n ?? ''}`.trim()
     if (b.type === 'table') return `Table ${n ?? ''}`.trim()
     if (b.type !== 'paragraph') return `${si + 1}`

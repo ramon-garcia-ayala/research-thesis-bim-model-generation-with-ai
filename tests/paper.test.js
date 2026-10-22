@@ -52,6 +52,8 @@ describe('reading helpers', () => {
     expect(paraLabel(paper, 's2-p2')).toBe('2.2')
     expect(paraLabel(paper, 'fig-1')).toBe('Fig. 1')
   })
+  it('labels a second figure with the same number by that number', () =>
+    expect(paraLabel(editBlock(paper, 'fig-1', (b) => ({ ...b, id: 'fig-3-2' })), 'fig-3-2')).toBe('Fig. 3'))
   it('falls back to English', () => expect(textOf({ text: { en: 'Hi' } }, 'es')).toBe('Hi'))
   it('reads a section title too', () => expect(textOf({ title: { en: 'Method', es: 'Método' } }, 'es')).toBe('Método'))
   it('splits sentences without breaking abbreviations or decimals', () => {
