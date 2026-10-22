@@ -45,4 +45,5 @@ Claude runs `npm run check` (and `npm test` when code changed) and commits.
 - `scripts/check-presentations.mjs` — the decks' checker: both languages, relative links, the app name never typed, and
   every `data-map` id is in `map.json`. `npm run check` runs both.
 
-Design: `gfit-generative-information-modeler/docs/superpowers/specs/2026-10-18-research-map-design.md`.
+Design: `gfit-generative-information-modeler/docs/superpowers/specs/2026-10-18-research-map-design.md`. The paper
+reader (proposed): `docs/superpowers/specs/2026-10-22-paper-reader-design.md`, here in this project.

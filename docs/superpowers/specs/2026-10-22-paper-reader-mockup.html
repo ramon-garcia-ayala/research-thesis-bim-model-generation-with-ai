@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Paper reader mockup</title>
+<!-- The mockup approved on 2026-10-22 (brainstorm): the same reader in half and full mode; the author chose both, with a switch. -->
+<style>
+  :root { --bg-primary:#fff; --bg-secondary:#f6f6f4; --bg-tertiary:#e9e9e5; --border:#d9d9d4; --text-primary:#1d1d1b;
+    --text-secondary:#5c5c57; --text-tertiary:#8a8a84; --accent:#2f6fde; --selected-bg:#dbe7fb; --selected-border:#2f6fde; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg-primary:#1b1b1d; --bg-secondary:#232326; --bg-tertiary:#303034; --border:#3a3a3f; --text-primary:#ededea;
+      --text-secondary:#b3b3ad; --text-tertiary:#85857f; --accent:#6b9cf0; --selected-bg:#24375a; --selected-border:#6b9cf0; }
+  }
+  body { margin:0; padding:24px; background:var(--bg-primary); color:var(--text-primary); font-family:Inter, system-ui, sans-serif; }
+  h2 { margin:0 0 4px; } .subtitle { margin:0 0 8px; color:var(--text-secondary); }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(480px, 1fr)); gap:20px; }
+  .card { border:1px solid var(--border); border-radius:10px; overflow:hidden; background:var(--bg-secondary); }
+  .card-body { padding:10px 14px; } .card-body h3 { margin:0 0 4px; font-size:15px; } .card-body p { margin:0; color:var(--text-secondary); font-size:13px; }
+</style>
+<script>function toggleSelect() {}</script>
+</head>
+<body>
+<style>
+  .rd { font: 12px/1.45 Inter, system-ui, sans-serif; color: var(--text-primary); }
+  .rd * { box-sizing: border-box; }
+  .rd .frame { display: flex; height: 440px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg-primary); }
+  .rd .map { background-color: var(--bg-secondary); background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 14px 14px; position: relative; }
+  .rd .mcard { position: absolute; width: 96px; padding: 5px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-primary); font-size: 10px; opacity: .45; }
+  .rd .mcard.lit { opacity: 1; border-color: var(--accent); box-shadow: 0 0 0 2px var(--selected-bg); }
+  .rd .reader { display: flex; flex-direction: column; min-width: 0; border-left: 1px solid var(--border); }
+  .rd .bar { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--bg-secondary); font-size: 11px; }
+  .rd .bar b { margin-right: auto; font-weight: 600; }
+  .rd .pill { padding: 2px 6px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg-primary); white-space: nowrap; }
+  .rd .pill.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .rd .text { flex: 1; overflow: hidden; padding: 10px 14px; font-family: Newsreader, Georgia, serif; font-size: 13px; }
+  .rd .text h4 { font: 600 12px Inter, sans-serif; margin: 0 0 6px; color: var(--text-secondary); }
+  .rd .text p { margin: 0 0 8px; }
+  .rd .hl { background: #fde68a88; border-bottom: 2px solid #f59e0b; }
+  .rd .reading { background: var(--selected-bg); outline: 1px solid var(--selected-border); border-radius: 2px; }
+  .rd .fig { border: 1px dashed var(--border); border-radius: 6px; padding: 6px; margin: 6px 0 10px; font: 10px Inter, sans-serif; color: var(--text-secondary); }
+  .rd .fig .img { height: 54px; border-radius: 4px; background: repeating-linear-gradient(45deg, var(--bg-tertiary), var(--bg-tertiary) 6px, var(--bg-secondary) 6px, var(--bg-secondary) 12px); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+  .rd .pop { display: inline-flex; gap: 3px; padding: 3px; border-radius: 6px; background: var(--text-primary); color: var(--bg-primary); font: 10px Inter, sans-serif; vertical-align: middle; margin-left: 4px; }
+  .rd .pop span { padding: 1px 5px; border-radius: 4px; background: #ffffff22; }
+  .rd .chat { display: flex; flex-direction: column; border-top: 1px solid var(--border); background: var(--bg-secondary); font-size: 11px; }
+  .rd .chat .msgs { flex: 1; overflow: hidden; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .rd .chip { align-self: flex-start; padding: 3px 7px; border-radius: 6px; border-left: 3px solid #f59e0b; background: var(--bg-primary); font-size: 10px; color: var(--text-secondary); }
+  .rd .me { align-self: flex-end; max-width: 85%; padding: 5px 8px; border-radius: 8px; background: var(--accent); color: #fff; }
+  .rd .ai { align-self: flex-start; max-width: 92%; padding: 5px 8px; border-radius: 8px; background: var(--bg-primary); border: 1px solid var(--border); }
+  .rd .ai a { color: var(--accent); text-decoration: underline; }
+  .rd .acts { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 8px 6px; }
+  .rd .input { margin: 0 8px 8px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-primary); color: var(--text-tertiary); }
+  .rd .side { width: 150px; border-right: 1px solid var(--border); background: var(--bg-secondary); padding: 8px; font-size: 11px; overflow: hidden; }
+  .rd .side .lbl { font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-tertiary); margin: 6px 0 4px; }
+  .rd .side .toc div { padding: 2px 4px; border-radius: 4px; }
+  .rd .side .toc .cur { background: var(--selected-bg); }
+  .rd .side .thumbs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .rd .side .thumbs div { height: 34px; border-radius: 3px; background: repeating-linear-gradient(45deg, var(--bg-tertiary), var(--bg-tertiary) 5px, var(--bg-primary) 5px, var(--bg-primary) 10px); font-size: 8px; display: flex; align-items: flex-end; padding: 2px; }
+  .rd .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0 18px; font-size: 12px; color: var(--text-secondary); }
+  .rd .legend i { display: inline-block; width: 22px; height: 10px; vertical-align: middle; margin-right: 5px; border-radius: 2px; }
+</style>
+
+<h2>El lector: ¿mitad del mapa o pantalla completa?</h2>
+<p class="subtitle">Mismo lector en las dos. Haz clic en la que se sienta más como lo que imaginas (o en las dos, si quieres poder cambiar entre ellas).</p>
+
+<div class="rd">
+  <div class="legend">
+    <span><i style="background:#fde68a;border-bottom:2px solid #f59e0b"></i>tu subrayado (se guarda)</span>
+    <span><i style="background:var(--selected-bg);outline:1px solid var(--selected-border)"></i>lo que la voz está leyendo</span>
+    <span><i style="background:var(--text-primary)"></i>menú al seleccionar texto</span>
+  </div>
+
+  <div class="cards">
+    <!-- A: half -->
+    <div class="card" data-choice="mitad" onclick="toggleSelect(this)">
+      <div class="card-image" style="padding:0">
+        <div class="frame">
+          <div class="map" style="width:38%">
+            <div class="mcard" style="left:12px;top:30px">Explicit rules vs learned judgment</div>
+            <div class="mcard lit" style="left:30px;top:120px">ProcTHOR: procedurally generated houses…</div>
+            <div class="mcard lit" style="left:16px;top:210px">Generated models carry the information…</div>
+            <div class="mcard" style="left:40px;top:300px">MSD: a benchmark of multi-apartment…</div>
+            <div class="mcard" style="left:8px;top:375px">CubiCasa5K</div>
+          </div>
+          <div class="reader" style="width:62%">
+            <div class="bar">
+              <b>ProcTHOR (2022)</b>
+              <span class="pill">EN</span><span class="pill on">ES</span>
+              <span class="pill">▶ Todo</span><span class="pill">⏸</span><span class="pill">1.0×</span>
+              <span class="pill" title="Pantalla completa">⤢</span><span class="pill">×</span>
+            </div>
+            <div class="text">
+              <h4>3 · Generación procedural de casas</h4>
+              <p>A partir de una <em>especificación de habitaciones</em>, el sistema muestrea un contorno interior y lo subdivide recursivamente en cuartos.</p>
+              <p><span class="hl">Un validador revisa cada casa: una búsqueda en anchura sobre una retícula de 0.25 m debe encontrar al menos 5 posiciones alcanzables en cada cuarto.</span> <span class="reading">Si falla, la casa se vuelve a muestrear desde la misma especificación.</span></p>
+              <div class="fig"><div class="img">Figura 3 · imagen original (inglés)</div>Fig. 3 — Etapas de generación: contorno → cuartos → conexiones → objetos.</div>
+            </div>
+            <div class="chat" style="height:150px">
+              <div class="msgs">
+                <div class="chip">¶ 3.2 · «Un validador revisa cada casa…»</div>
+                <div class="me">¿Qué quiso decir con 5 posiciones alcanzables?</div>
+                <div class="ai">Que un agente pueda llegar caminando a cada cuarto… <a>¶ 3.2</a></div>
+              </div>
+              <div class="input">Pregúntale al paper…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>A · Mitad: el mapa sigue a la vista</h3>
+        <p>El lector ocupa la mitad derecha; el mapa enciende el paper y sus links. El chat vive abajo del texto y se puede encoger.</p>
+      </div>
+    </div>
+
+    <!-- B: full -->
+    <div class="card" data-choice="completa" onclick="toggleSelect(this)">
+      <div class="card-image" style="padding:0">
+        <div class="frame">
+          <div class="side">
+            <div class="lbl">Índice</div>
+            <div class="toc">
+              <div>1 · Introducción</div>
+              <div>2 · Trabajo relacionado</div>
+              <div class="cur">3 · Generación procedural</div>
+              <div>4 · Experimentos</div>
+              <div>5 · Limitaciones</div>
+            </div>
+            <div class="lbl">Figuras y tablas</div>
+            <div class="thumbs"><div>Fig 1</div><div>Fig 2</div><div>Fig 3</div><div>Tab 1</div><div>Fig 4</div><div>Tab 2</div></div>
+            <div class="lbl">Tus subrayados · 4</div>
+          </div>
+          <div class="reader" style="flex:1;border-left:0">
+            <div class="bar">
+              <b>ProcTHOR (2022)</b>
+              <span class="pill">EN</span><span class="pill on">ES</span>
+              <span class="pill">▶ Todo</span><span class="pill">⏸</span><span class="pill">1.0×</span>
+              <span class="pill" title="Volver a la mitad">⤡</span><span class="pill">×</span>
+            </div>
+            <div class="text">
+              <h4>3 · Generación procedural de casas</h4>
+              <p>A partir de una <em>especificación de habitaciones</em>, el sistema muestrea un contorno interior y lo subdivide recursivamente en cuartos.</p>
+              <p><span class="hl">Un validador revisa cada casa: una búsqueda en anchura sobre una retícula de 0.25 m debe encontrar al menos 5 posiciones alcanzables en cada cuarto.</span> <span class="reading">Si falla, la casa se vuelve a muestrear</span> desde la misma especificación, «para no cambiar la distribución».<span class="pop"><span>Subrayar</span><span>Preguntar</span><span>▶ Desde aquí</span></span></p>
+              <div class="fig"><div class="img">Figura 3 · imagen original (inglés)</div>Fig. 3 — Etapas de generación.</div>
+            </div>
+          </div>
+          <div class="chat" style="width:200px;border-top:0;border-left:1px solid var(--border)">
+            <div class="msgs">
+              <div class="chip">¶ 3.2 · «Un validador revisa cada casa…»</div>
+              <div class="me">¿Qué quiso decir con 5 posiciones alcanzables?</div>
+              <div class="ai">Que un agente pueda llegar caminando a cada cuarto; si un cuarto queda aislado, la casa no sirve para entrenar. <a>¶ 3.2</a></div>
+            </div>
+            <div class="acts"><span class="pill">¿Qué quiso decir?</span><span class="pill">Investiga esto</span><span class="pill">Hazme preguntas ▾</span></div>
+            <div class="input">Pregúntale al paper…</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>B · Pantalla completa: modo estudio</h3>
+        <p>Índice, figuras y tus subrayados a la izquierda; texto al centro; chat a la derecha. El mapa se oculta mientras estudias.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
