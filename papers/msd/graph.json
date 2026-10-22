@@ -1,0 +1,689 @@
+{
+  "version": 1,
+  "node": "msd",
+  "built": {
+    "date": "2026-10-22",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can a floor plan dataset be built from medium- to large-scale buildings with several apartments, and can current generation methods handle it?",
+      "es": "¿Se puede construir un conjunto de datos de planos de planta de edificios medianos y grandes con varios departamentos, y pueden los métodos actuales de generación manejarlo?",
+      "blocks": [
+        "s0-p5",
+        "s1-p2",
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "claim",
+      "en": "Multi-apartment plans differ from single-apartment ones: there are an order of magnitude more areas to arrange, connectivity between apartments matters, and structural constraints such as staircases and load-bearing walls must stay intact.",
+      "es": "Los planos de varios departamentos son distintos a los de un solo departamento: hay un orden de magnitud más de áreas por acomodar, importa la conectividad entre departamentos y hay restricciones estructurales, como escaleras y muros de carga, que deben mantenerse.",
+      "blocks": [
+        "s1-p3",
+        "s1-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "claim",
+      "en": "RPLAN and LIFULL cover only single-apartment dwellings with a limited number of areas, are axis-aligned and entirely Manhattan-shaped, and give no compass orientation.",
+      "es": "RPLAN y LIFULL solo cubren viviendas de un solo departamento con pocas áreas, están alineados a los ejes y son totalmente de forma Manhattan, y no incluyen la orientación de la brújula.",
+      "blocks": [
+        "s2-p1",
+        "fig-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "dataset",
+      "en": "MSD (Modified Swiss Dwellings) has 5,372 annotated floor plans of medium- to large-scale building complexes, covering over 18.9K distinct apartments and 165.3K+ areas, in image, vector and graph formats. Code and data are open.",
+      "es": "MSD (Modified Swiss Dwellings) tiene 5,372 planos de planta anotados de conjuntos de edificios medianos y grandes, con más de 18.9K departamentos distintos y 165.3K+ áreas, en formatos de imagen, vectorial y de grafo. El código y los datos son abiertos.",
+      "blocks": [
+        "s0-p5",
+        "s1-p6",
+        "s3-p3",
+        "supplementary-materials-msd-a-benchmark-p13"
+      ],
+      "key": "msd",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "dataset",
+      "en": "MSD is derived from the Swiss Dwellings dataset (SD), a dataframe where each row is a geometry (area, separator, opening or feature) nested by site, building, plan, floor, apartment and unit IDs.",
+      "es": "MSD se deriva del conjunto Swiss Dwellings (SD), un dataframe donde cada fila es una geometría (área, separador, abertura o elemento) anidada por los ID de sitio, edificio, plano, piso, departamento y unidad.",
+      "blocks": [
+        "s3-p1",
+        "supplementary-materials-msd-a-benchmark-p1",
+        "supplementary-materials-msd-a-benchmark-p7",
+        "supplementary-materials-msd-a-benchmark-p8"
+      ],
+      "key": "swiss-dwellings",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Cleaning SD: remove non-floorplan features; drop non-residential plans (2,305, 16.6%); keep one plan per plan ID, the lowest elevation (4,395, 31.6%); drop plans with fewer than 15 areas or fewer than two Zone 2 areas (1,541, 11.1%); drop an extra 388 (2.8%) with floating disconnected areas. 5,372 plans remain.",
+      "es": "Limpieza de SD: se quitan los elementos que no son del plano; se descartan los planos no residenciales (2,305, 16.6%); se conserva un plano por ID de plano, el de menor elevación (4,395, 31.6%); se descartan los planos con menos de 15 áreas o con menos de dos áreas Zone 2 (1,541, 11.1%); y se descartan otros 388 (2.8%) con áreas desconectadas flotantes. Quedan 5,372 planos.",
+      "blocks": [
+        "s3-p2",
+        "s3-p3",
+        "supplementary-materials-msd-a-benchmark-p10",
+        "supplementary-materials-msd-a-benchmark-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "Each area has a polygon shape, a room type and a zoning type: zone1 is private, zone2 public, zone3 service and zone4 outside.",
+      "es": "Cada área tiene una forma de polígono, un tipo de cuarto y un tipo de zonificación: zone1 es privada, zone2 pública, zone3 de servicio y zone4 exterior.",
+      "blocks": [
+        "s3-p4",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Floor plans are drawn as single-channel images with integer room labels; two extra channels hold the x and y coordinates in meters, so the original position is kept in the image.",
+      "es": "Los planos se dibujan como imágenes de un solo canal con etiquetas de cuarto enteras; dos canales extra guardan las coordenadas x y y en metros, de modo que la posición original se conserva en la imagen.",
+      "blocks": [
+        "s3-p5",
+        "supplementary-materials-msd-a-benchmark-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "An access graph is extracted by algorithm: areas are nodes (centroid, geometry, room type, zoning type); edges are passage (areas within ≤0.04 m), door or front door (a door within ≤0.05 m of both areas). The room graph keeps room types and the zoning graph keeps zoning types.",
+      "es": "El grafo de acceso se extrae con un algoritmo: las áreas son nodos (centroide, geometría, tipo de cuarto, tipo de zonificación); las aristas son paso (áreas a ≤0.04 m), puerta o puerta principal (una puerta a ≤0.05 m de ambas áreas). El grafo de cuartos conserva los tipos de cuarto y el de zonificación los tipos de zona.",
+      "blocks": [
+        "s3-p6",
+        "s3-p7",
+        "fig-2"
+      ],
+      "key": "access-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Structure extraction: a wall thicker than the base thickness, the 60% quantile of the wall thicknesses in a plan, counts as load-bearing; columns are added. Both are treated as fixed inputs to the design problem.",
+      "es": "Extracción de la estructura: un muro más grueso que el grosor base, el cuantil de 60% de los grosores de muro de un plano, se considera de carga; se añaden las columnas. Ambos se tratan como datos fijos del problema de diseño.",
+      "blocks": [
+        "s3-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "result",
+      "en": "Compared with RPLAN and LIFULL, MSD comes from Europe (Switzerland), keeps orientation and non-Manhattan room shapes, has more corners per room, models connections between apartments, and gives zoning types, doors and structure. LIFULL has no door information.",
+      "es": "En comparación con RPLAN y LIFULL, MSD viene de Europa (Suiza), conserva la orientación y las formas de cuarto no Manhattan, tiene más esquinas por cuarto, modela las conexiones entre departamentos y da los tipos de zonificación, las puertas y la estructura. LIFULL no tiene información de puertas.",
+      "blocks": [
+        "s3-p10",
+        "s3-p11",
+        "s3-p12",
+        "s3-p13",
+        "s3-p15",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "result",
+      "en": "Size: RPLAN has ~81K plans, LIFULL ~124K and MSD ~5K; rooms are ~165K for MSD against ~539K and ~1010K. Near-duplicates (MIoU above 0.87) are <1% in MSD, 70% in RPLAN and 50% in LIFULL. After removing them, rooms in MSD and RPLAN are approximately equal and LIFULL stays larger.",
+      "es": "Tamaño: RPLAN tiene ~81K planos, LIFULL ~124K y MSD ~5K; los cuartos son ~165K en MSD frente a ~539K y ~1010K. Los casi duplicados (MIoU mayor a 0.87) son <1% en MSD, 70% en RPLAN y 50% en LIFULL. Al quitarlos, los cuartos de MSD y RPLAN son aproximadamente iguales y LIFULL sigue siendo mayor.",
+      "blocks": [
+        "s3-p14",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "result",
+      "en": "Diversity, measured as entropy over the distribution of room graphs, is 8.02 for MSD, 4.56 for RPLAN and 7.79 for LIFULL, so MSD is the most diverse in connectivity.",
+      "es": "La diversidad, medida como entropía sobre la distribución de grafos de cuartos, es 8.02 para MSD, 4.56 para RPLAN y 7.79 para LIFULL, así que MSD es el más diverso en conectividad.",
+      "blocks": [
+        "s3-p14",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "Task: given the building structure (binary image) and the zoning graph, generate the floor plan as a pixel image of room classes or as a room graph. The authors frame it as bridging schematic design (spatial zoning) to detailed design (floor layout).",
+      "es": "Tarea: dada la estructura del edificio (imagen binaria) y el grafo de zonificación, generar el plano como una imagen de píxeles con clases de cuarto o como un grafo de cuartos. Los autores la plantean como un puente entre el diseño esquemático (zonificación espacial) y el diseño detallado (distribución de la planta).",
+      "blocks": [
+        "s4-p1",
+        "s4-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "Mean Intersection-over-Union (MIoU) compares predicted and ground-truth floor plans pixel by pixel across room classes; polygons are drawn from largest to smallest region so small areas are not hidden.",
+      "es": "La Mean Intersection-over-Union (MIoU) compara píxel por píxel el plano predicho con el real en todas las clases de cuarto; los polígonos se dibujan de la región más grande a la más pequeña para que las áreas chicas no queden ocultas.",
+      "blocks": [
+        "s4-p4",
+        "s6-p1"
+      ],
+      "key": "miou",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "Graph compatibility is the share of target-graph edges retained in the graph extracted from the predicted plan (an edge when areas are within a buffer, 5 at image size 512). Fig. 6 gives 25/30 = 0.83. A high score is better, unlike graph edit distance. It is computed only for MHD.",
+      "es": "La compatibilidad de grafos es la proporción de aristas del grafo objetivo que se conservan en el grafo extraído del plano predicho (hay arista cuando las áreas están dentro de un margen, 5 con imagen de tamaño 512). La Fig. 6 da 25/30 = 0.83. Un puntaje alto es mejor, a diferencia de la distancia de edición de grafos. Solo se calcula para MHD.",
+      "blocks": [
+        "s4-p5",
+        "s4-p7",
+        "s6-p3",
+        "fig-6",
+        "supplementary-materials-msd-a-benchmark-p16",
+        "supplementary-materials-msd-a-benchmark-p17"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "concept",
+      "en": "HouseDiffusion (HD) represents a plan as polygons of corner coordinates, adds noise in a forward process and learns to denoise the corners. Its attention layers are CSA (corners in the same room or door), GSA (all corners) and RCA (connected room-to-door corners).",
+      "es": "HouseDiffusion (HD) representa un plano como polígonos de coordenadas de esquinas, agrega ruido en un proceso hacia adelante y aprende a quitárselo a las esquinas. Sus capas de atención son CSA (esquinas del mismo cuarto o puerta), GSA (todas las esquinas) y RCA (esquinas conectadas de cuarto a puerta).",
+      "blocks": [
+        "s5-p2",
+        "s5-p3"
+      ],
+      "key": "housediffusion",
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Modified HouseDiffusion (MHD) adds to HD a wall cross attention module, a GAT that predicts room types, and an option to fit minimum rotated rectangles. RCA also takes the edge type (door, front door, passage). Trained with batch size 32 for 300k steps.",
+      "es": "Modified HouseDiffusion (MHD) agrega a HD un módulo de atención cruzada con muros, una GAT que predice los tipos de cuarto y la opción de ajustar rectángulos rotados mínimos. La RCA también recibe el tipo de arista (puerta, puerta principal, paso). Se entrenó con lote de 32 durante 300k pasos.",
+      "blocks": [
+        "s5-p2",
+        "fig-3",
+        "fig-9",
+        "supplementary-materials-msd-a-benchmark-p23",
+        "supplementary-materials-msd-a-benchmark-p24",
+        "supplementary-materials-msd-a-benchmark-p30"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "Wall cross attention (WCA): the structure image is thinned and skeletonized into straight wall lines, each embedded as a 512-d vector; room corners act as queries over the wall embeddings as keys and values.",
+      "es": "Atención cruzada con muros (WCA): la imagen de la estructura se adelgaza y se esqueletiza en líneas rectas de muro, cada una incrustada como un vector de 512-d; las esquinas de los cuartos son las consultas sobre los vectores de muro como claves y valores.",
+      "blocks": [
+        "s5-p4",
+        "fig-8",
+        "supplementary-materials-msd-a-benchmark-p26",
+        "supplementary-materials-msd-a-benchmark-p28",
+        "supplementary-materials-msd-a-benchmark-p29"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "method",
+      "en": "A GAT predicts room types from the zoning graph as a node classification problem, before the diffusion step. It uses 5 GATConv layers with hidden size 64 and reaches validation accuracy 0.893.",
+      "es": "Una GAT predice los tipos de cuarto a partir del grafo de zonificación como un problema de clasificación de nodos, antes del paso de difusión. Usa 5 capas GATConv con tamaño oculto de 64 y alcanza una exactitud de validación de 0.893.",
+      "blocks": [
+        "s5-p5",
+        "supplementary-materials-msd-a-benchmark-p20",
+        "supplementary-materials-msd-a-benchmark-p21"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "method",
+      "en": "MSD rooms have many more corners than the 4 to 10 typical in RPLAN, so MHD can denoise a minimum rotated rectangle per room (MRR) instead of the full polygon (POL).",
+      "es": "Los cuartos de MSD tienen muchas más esquinas que las 4 a 10 típicas de RPLAN, así que MHD puede quitar el ruido de un rectángulo rotado mínimo por cuarto (MRR) en lugar del polígono completo (POL).",
+      "blocks": [
+        "s5-p6",
+        "supplementary-materials-msd-a-benchmark-p22",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "method",
+      "en": "The graph-informed U-Net (UN) segments the building structure image into a floor plan image. A GCN encodes the zoning graph into a vector that is concatenated at the deepest layer of the U-Net; it is trained with cross-entropy loss.",
+      "es": "La U-Net informada por grafo (UN) segmenta la imagen de la estructura del edificio para producir una imagen del plano. Una GCN codifica el grafo de zonificación en un vector que se concatena en la capa más profunda de la U-Net; se entrena con pérdida de entropía cruzada.",
+      "blocks": [
+        "s5-p7",
+        "s5-p8",
+        "s5-p9",
+        "fig-3",
+        "supplementary-materials-msd-a-benchmark-p31",
+        "supplementary-materials-msd-a-benchmark-p34"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "method",
+      "en": "Boundary pre-processing turns the structure into a 3-channel image (interior, exterior, original structure), using Segment Anything to find the interior and exterior.",
+      "es": "El preprocesamiento del límite convierte la estructura en una imagen de 3 canales (interior, exterior, estructura original), usando Segment Anything para encontrar el interior y el exterior.",
+      "blocks": [
+        "s5-p10",
+        "supplementary-materials-msd-a-benchmark-p32",
+        "supplementary-materials-msd-a-benchmark-p33"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "Average MIoU ranges from 10.9 to 42.4 across the models, which the authors call poor performance. Relative positions of areas are mostly predicted quite accurately, but exact locations and shapes are far from accurate.",
+      "es": "La MIoU promedio va de 10.9 a 42.4 entre los modelos, lo que los autores consideran un desempeño pobre. Las posiciones relativas de las áreas se predicen en su mayoría con bastante exactitud, pero las ubicaciones y formas exactas están lejos de ser correctas.",
+      "blocks": [
+        "s6-p2",
+        "tab-2",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "Graph compatibility for MHD ranges between 74.4 and 87.0, much higher than MIoU, so the topology of the zoning graphs is largely retained in the generated plans.",
+      "es": "La compatibilidad de grafos de MHD va de 74.4 a 87.0, mucho más alta que la MIoU, así que la topología de los grafos de zonificación se conserva en gran parte en los planos generados.",
+      "blocks": [
+        "s6-p4",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "UN gets much higher MIoU and shows patterns such as central corridors, balconies outside the structure and kitchens near living rooms, but its rooms are hard to tell apart; MHD gives shapes that are easy to separate. The authors suggest the losses differ: UN's pixel cross-entropy matches MIoU, MHD's denoising loss does not.",
+      "es": "UN obtiene una MIoU mucho más alta y muestra patrones como corredores al centro, balcones fuera de la estructura y cocinas cerca de la sala, pero sus cuartos son difíciles de distinguir; MHD da formas fáciles de separar. Los autores sugieren que las pérdidas son distintas: la entropía cruzada por píxel de UN coincide con la MIoU, la pérdida de eliminación de ruido de MHD no.",
+      "blocks": [
+        "s6-p5",
+        "s6-p6",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "UN ablation: adding the GCN and/or pre-processing raises MIoU significantly. The GCN helps most for smaller complexes and scores for larger plans are comparable across the three variants, which suggests the GCN struggles with larger graphs. Pre-processing improves placement inside the building.",
+      "es": "Ablación de UN: agregar la GCN y/o el preprocesamiento sube la MIoU de forma significativa. La GCN ayuda más en conjuntos pequeños y los puntajes en planos grandes son comparables entre las tres variantes, lo que sugiere que la GCN tiene problemas con grafos más grandes. El preprocesamiento mejora la colocación de las áreas dentro del edificio.",
+      "blocks": [
+        "s6-p7",
+        "tab-2",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "result",
+      "en": "MHD ablation: WCA raises MIoU and the plans follow the building structure, but it lowers graph compatibility. MRR beats POL on both MIoU and compatibility.",
+      "es": "Ablación de MHD: WCA sube la MIoU y los planos siguen la estructura del edificio, pero baja la compatibilidad de grafos. MRR supera a POL tanto en MIoU como en compatibilidad.",
+      "blocks": [
+        "s6-p8",
+        "tab-2",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "claim",
+      "en": "The generated floor plans often look infeasible. MHD trains successfully on RPLAN, so the authors attribute the poor results to the harder benchmark (more complex graphs, irregular rooms, unit connectivity, no axis alignment) and not to improper training.",
+      "es": "Los planos generados muchas veces parecen inviables. MHD se entrena con éxito en RPLAN, así que los autores atribuyen los malos resultados al benchmark más difícil (grafos más complejos, cuartos irregulares, conectividad entre unidades, sin alineación a ejes) y no a un entrenamiento inadecuado.",
+      "blocks": [
+        "s6-p9",
+        "supplementary-materials-msd-a-benchmark-p37",
+        "fig-11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "result",
+      "en": "HouseGAN++ and FLNet, re-purposed for the task, also do not perform well on MSD.",
+      "es": "HouseGAN++ y FLNet, readaptados para la tarea, tampoco funcionan bien en MSD.",
+      "blocks": [
+        "s5-p1",
+        "supplementary-materials-msd-a-benchmark-p36",
+        "tab-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "claim",
+      "en": "Strategies that are most promising today cannot yet properly generate complex, more realistic floor plans; the benchmark calls for smarter methods and for rethinking current ones.",
+      "es": "Las estrategias más prometedoras hoy todavía no pueden generar como se debe planos complejos y más realistas; el benchmark pide métodos más inteligentes y repensar los actuales.",
+      "blocks": [
+        "s7-p1",
+        "s1-p5",
+        "s1-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "limitation",
+      "en": "Metric limits: the task predicts walls and areas, not doors, so adjacency graphs are extracted by distance instead of room graphs. Graph compatibility is not available for UN because graphs cannot be reasonably extracted from its images. For MHD, rooms overlap on average with 4.11±2.25 other rooms.",
+      "es": "Límites de las métricas: la tarea predice muros y áreas, no puertas, así que en lugar de grafos de cuartos se extraen grafos de adyacencia por distancia. La compatibilidad de grafos no está disponible para UN porque no se pueden extraer grafos razonables de sus imágenes. En MHD, los cuartos se traslapan en promedio con 4.11±2.25 otros cuartos.",
+      "blocks": [
+        "s4-p6",
+        "tab-2",
+        "supplementary-materials-msd-a-benchmark-p15",
+        "supplementary-materials-msd-a-benchmark-p19"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "future",
+      "en": "Extend MSD to dwellings from other regions in Europe. Region-specific datasets could help models cater to cultural preferences or comply with local building codes.",
+      "es": "Ampliar MSD a viviendas de otras regiones de Europa. Los conjuntos de datos regionales podrían ayudar a que los modelos atiendan preferencias culturales o cumplan con los códigos de construcción locales.",
+      "blocks": [
+        "s3-p10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "future",
+      "en": "Develop evaluation methods for topologically more complex floor plans, combining quantitative and qualitative measures. A preliminary user study had 7 architects, each rating 50 random IDs on topology and proportions.",
+      "es": "Desarrollar métodos de evaluación para planos con topología más compleja, combinando medidas cuantitativas y cualitativas. Un estudio preliminar con usuarios tuvo 7 arquitectos, cada uno con 50 ID al azar, que evaluaron la topología y las proporciones.",
+      "blocks": [
+        "supplementary-materials-msd-a-benchmark-p38",
+        "tab-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i35",
+      "kind": "concept",
+      "en": "Generation methods are rule-based or learning-based, and are constrained by the boundary, by the graph, or by both; boundary plus graph is closest to real design conditions. MSD also constrains the process by other structural components such as load-bearing walls.",
+      "es": "Los métodos de generación son basados en reglas o en aprendizaje, y se restringen por el límite, por el grafo o por ambos; límite más grafo es lo más cercano a las condiciones reales de diseño. MSD además restringe el proceso con otros componentes estructurales, como los muros de carga.",
+      "blocks": [
+        "s2-p2"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i6",
+      "to": "i5",
+      "type": "uses",
+      "why": "The cleaning steps start from the Swiss Dwellings dataframe."
+    },
+    {
+      "from": "i7",
+      "to": "i4",
+      "type": "part-of",
+      "why": "Room and zoning categories are the labels each MSD area carries."
+    },
+    {
+      "from": "i8",
+      "to": "i4",
+      "type": "part-of",
+      "why": "The image format is one of the three representations in MSD."
+    },
+    {
+      "from": "i9",
+      "to": "i4",
+      "type": "part-of",
+      "why": "The graph format is one of the three representations in MSD."
+    },
+    {
+      "from": "i10",
+      "to": "i4",
+      "type": "part-of",
+      "why": "The binary structure image is part of what MSD provides for each plan."
+    },
+    {
+      "from": "i9",
+      "to": "i7",
+      "type": "uses",
+      "why": "Nodes carry the room type and zoning type of each area."
+    },
+    {
+      "from": "i3",
+      "to": "i4",
+      "type": "supports",
+      "why": "The shortcomings of RPLAN and LIFULL are the reason MSD was built."
+    },
+    {
+      "from": "i2",
+      "to": "i4",
+      "type": "supports",
+      "why": "Real multi-apartment complexes are what MSD aims to cover."
+    },
+    {
+      "from": "i4",
+      "to": "i1",
+      "type": "supports",
+      "why": "MSD answers the dataset half of the question."
+    },
+    {
+      "from": "i31",
+      "to": "i1",
+      "type": "supports",
+      "why": "The baseline results answer the second half: current methods cannot yet cope."
+    },
+    {
+      "from": "i11",
+      "to": "i3",
+      "type": "supports",
+      "why": "The comparison shows MSD addressing each listed shortcoming."
+    },
+    {
+      "from": "i12",
+      "to": "i6",
+      "type": "supports",
+      "why": "The high near-duplicate shares in RPLAN and LIFULL justify dropping near-duplicate plans."
+    },
+    {
+      "from": "i13",
+      "to": "i11",
+      "type": "supports",
+      "why": "Graph entropy backs the claim that MSD is more diverse in connectivity."
+    },
+    {
+      "from": "i14",
+      "to": "i10",
+      "type": "uses",
+      "why": "The building structure is the first input to the task."
+    },
+    {
+      "from": "i14",
+      "to": "i9",
+      "type": "uses",
+      "why": "The zoning graph is the second input to the task."
+    },
+    {
+      "from": "i14",
+      "to": "i35",
+      "type": "example-of",
+      "why": "The task is a boundary- and graph-constrained setting."
+    },
+    {
+      "from": "i15",
+      "to": "i24",
+      "type": "measures",
+      "why": "MIoU is the visual score behind the 10.9 to 42.4 range."
+    },
+    {
+      "from": "i16",
+      "to": "i25",
+      "type": "measures",
+      "why": "Graph compatibility is the score behind the 74.4 to 87.0 range."
+    },
+    {
+      "from": "i16",
+      "to": "i9",
+      "type": "uses",
+      "why": "Edges of the predicted plan are extracted with a similar algorithm to the one that built MSD."
+    },
+    {
+      "from": "i18",
+      "to": "i17",
+      "type": "uses",
+      "why": "MHD modifies HouseDiffusion."
+    },
+    {
+      "from": "i19",
+      "to": "i18",
+      "type": "part-of",
+      "why": "WCA is one of the added modules."
+    },
+    {
+      "from": "i20",
+      "to": "i18",
+      "type": "part-of",
+      "why": "The GAT is one of the added modules."
+    },
+    {
+      "from": "i21",
+      "to": "i18",
+      "type": "part-of",
+      "why": "MRR is an option within MHD."
+    },
+    {
+      "from": "i19",
+      "to": "i10",
+      "type": "uses",
+      "why": "WCA turns the building structure into wall lines."
+    },
+    {
+      "from": "i20",
+      "to": "i7",
+      "type": "uses",
+      "why": "The GAT maps zoning types to room types."
+    },
+    {
+      "from": "i22",
+      "to": "i10",
+      "type": "uses",
+      "why": "The U-Net takes the building structure image as input."
+    },
+    {
+      "from": "i23",
+      "to": "i22",
+      "type": "part-of",
+      "why": "Pre-processing is a variant of the UN input."
+    },
+    {
+      "from": "i24",
+      "to": "i31",
+      "type": "supports",
+      "why": "Low overlap scores are the evidence that current methods fall short."
+    },
+    {
+      "from": "i29",
+      "to": "i31",
+      "type": "supports",
+      "why": "Successful training on RPLAN points to the benchmark as the cause of poor results."
+    },
+    {
+      "from": "i30",
+      "to": "i31",
+      "type": "supports",
+      "why": "Two more baselines also do poorly."
+    },
+    {
+      "from": "i26",
+      "to": "i24",
+      "type": "uses",
+      "why": "The UN versus MHD comparison is read from the MIoU scores."
+    },
+    {
+      "from": "i27",
+      "to": "i22",
+      "type": "measures",
+      "why": "The ablation shows what the GCN and pre-processing add to UN."
+    },
+    {
+      "from": "i28",
+      "to": "i19",
+      "type": "measures",
+      "why": "The with and without WCA comparison shows its effect on MIoU and compatibility."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i4",
+      "to": "msd",
+      "why": "This is the paper behind the map node: cleaned Swiss plans with image, graph and structure formats."
+    },
+    {
+      "idea": "i4",
+      "to": "dataset-purposes",
+      "why": "MSD is built as a benchmark to train and evaluate generators on complex multi-apartment plans."
+    },
+    {
+      "idea": "i10",
+      "to": "decision-delegation",
+      "why": "Structure is fixed beforehand and handed to the generator, so only the layout is delegated; the load-bearing call is a fixed rule."
+    },
+    {
+      "idea": "i9",
+      "to": "explicit-vs-learned",
+      "why": "Graphs and wall classes come from explicit distance and thickness rules while the layout generators learn, so rules label the data and networks generate."
+    },
+    {
+      "idea": "i35",
+      "to": "explicit-vs-learned",
+      "why": "The paper names rule-based generators next to learning-based ones but benchmarks only learned ones, leaving a gap on this task."
+    },
+    {
+      "idea": "i14",
+      "to": "question",
+      "why": "The task bridges schematic to detailed design, but the output is rooms and walls without doors, a partial step toward carrying concept-stage generation further."
+    },
+    {
+      "idea": "i24",
+      "to": "hypothesis",
+      "why": "With MIoU 10.9 to 42.4 and plans that often look infeasible, the gap between generated output and a usable model stays wide, so human judgment stays in the loop."
+    },
+    {
+      "idea": "i32",
+      "to": "hypothesis",
+      "why": "Automated checks cover topology only (no doors, no UN graphs), which fits the idea that what tools can check sets how many hands are needed."
+    },
+    {
+      "idea": "i34",
+      "to": "hypothesis",
+      "why": "Evaluating complex plans still leans on architects' qualitative ratings (7 architects), a human check beside the automated metrics."
+    },
+    {
+      "idea": "i31",
+      "to": "question",
+      "why": "Learned generators are shown not to cope with complex plans yet, so this paper gives no evidence that an iterative generator can carry into later stages."
+    }
+  ]
+}

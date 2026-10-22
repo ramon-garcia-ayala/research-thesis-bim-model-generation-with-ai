@@ -1,0 +1,1360 @@
+{
+  "version": 1,
+  "node": "msd",
+  "title": "MSD: A Benchmark Dataset for Floor Plan Generation of Building Complexes",
+  "source": "files/MSD - A Benchmark Dataset for Floor Plan Generation of Building Complexes.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Preliminares"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Casper van Engelenburg1 , Fatemeh Mostafavi1 , Emanuel Kuhn1, Yuntae Jeon2 , Michael Franzen3 , Matthias Standfest3 , Jan van Gemert1 , and Seyran Khademi1",
+            "es": "Casper van Engelenburg1 , Fatemeh Mostafavi1 , Emanuel Kuhn1, Yuntae Jeon2 , Michael Franzen3 , Matthias Standfest3 , Jan van Gemert1 y Seyran Khademi1"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "1 Delft University of Technology, The Netherlands",
+            "es": "1 Delft University of Technology, Países Bajos"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "2 Sungkyunkwan University, Korea",
+            "es": "2 Sungkyunkwan University, Corea"
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "3 Independent Researcher",
+            "es": "3 Investigador independiente"
+          }
+        },
+        {
+          "id": "s0-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Abstract. Diverse and realistic floor plan data are essential for the development of useful computer-aided methods in architectural design. To-day’s large-scale floor plan datasets predominantly feature simple floor plan layouts, typically representing single-apartment dwellings only. To compensate for the mismatch between current datasets and the real world, we develop Modified Swiss Dwellings (MSD) – the first largescale floor plan dataset that contains a significant share of layouts of multi-apartment dwellings. MSD features over 5.3K floor plans of mediumto large-scale building complexes, covering over 18.9K distinct apartments. We validate that existing approaches for floor plan generation, while effective in simpler scenarios, cannot yet seamlessly address the challenges posed by MSD. Our benchmark calls for new research in floor plan machine understanding. Code and data are open.",
+            "es": "Resumen. Contar con datos de planos de planta (floor plans) diversos y realistas es esencial para desarrollar métodos asistidos por computadora que sean útiles en el diseño arquitectónico. Los conjuntos de datos (datasets) de planos de planta a gran escala de hoy en día presentan predominantemente distribuciones simples, que por lo general representan únicamente viviendas de un solo departamento. Para compensar la discrepancia entre los conjuntos de datos actuales y el mundo real, desarrollamos Modified Swiss Dwellings (MSD), el primer conjunto de datos de planos de planta a gran escala que contiene una proporción significativa de distribuciones de viviendas de varios departamentos. MSD incluye más de 5.3K planos de planta de complejos de edificios de mediana a gran escala, que abarcan más de 18.9K departamentos distintos. Validamos que los enfoques existentes para la generación de planos de planta, aunque son eficaces en escenarios más simples, aún no pueden abordar sin dificultades los retos que plantea MSD. Nuestro punto de referencia (benchmark) hace un llamado a realizar nueva investigación sobre la comprensión automática de planos de planta por parte de las máquinas. El código y los datos son abiertos."
+          }
+        },
+        {
+          "id": "s0-p6",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Keywords: Benchmark Dataset · Floor Plan Generation · Diffusion Models",
+            "es": "Palabras clave: Conjunto de datos de referencia (benchmark dataset) · Generación de planos de planta · Modelos de difusión (diffusion models)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 Introduction",
+        "es": "1 Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "A floor plan is a 2D horizontal projection of a building’s floor, effectively conveying the layout of its inherent spatial components, such as areas, doors, and walls. Developing floor plans is a primary task in architectural design, and is a time-consuming and expensive operation – it is an informal optimization of multi-variable space functionality, concerning various constraints (e.g., environmental context, regulations, budget).",
+            "es": "Un plano de planta es una proyección horizontal en 2D de un piso de un edificio, que transmite de forma eficaz la distribución de sus componentes espaciales inherentes, como áreas, puertas y muros. Desarrollar planos de planta es una tarea primordial del diseño arquitectónico, y es una operación que consume mucho tiempo y es costosa: se trata de una optimización informal de la funcionalidad del espacio con múltiples variables, que atiende diversas restricciones (p. ej., contexto ambiental, normativas, presupuesto)."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Recent advancements in deep learning and the accessibility of large-scale floor plan datasets [7,33], led to a large number of techniques for automatically generating floor plans [18, 24, 30, 33]. The main focus of the current works has been on simple floor plans, mostly of small-scale and single-apartment dwellings. However, the majority of real-world dwellings are more complex, especially those that consist of multiple apartments.",
+            "es": "Los avances recientes en aprendizaje profundo (deep learning) y la accesibilidad de conjuntos de datos de planos de planta a gran escala [7,33] dieron lugar a un gran número de técnicas para generar planos de planta de forma automática [18, 24, 30, 33]. El enfoque principal de los trabajos actuales ha sido los planos de planta simples, sobre todo de viviendas de pequeña escala y de un solo departamento. Sin embargo, la mayoría de las viviendas del mundo real son más complejas, especialmente las que constan de varios departamentos."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Floor plans of multi-apartment building complexes are very different from single-apartment floor plans. Not only are there an order of magnitude more areas that need to be arranged, but the connectivity between apartments plays an essential role as well. Moreover, there are structural constraints on the floor plan design (e.g., staircases, load-bearing walls) that need to remain intact while arranging the space.",
+            "es": "Los planos de planta de complejos de edificios de varios departamentos son muy diferentes de los de un solo departamento. No solo hay un orden de magnitud más de áreas que se deben acomodar, sino que la conectividad entre departamentos también desempeña un papel esencial. Además, existen restricciones estructurales en el diseño del plano de planta (p. ej., escaleras, muros de carga [load-bearing walls]) que deben permanecer intactas al distribuir el espacio."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Fig. 1: MSD compared to RPLAN [33] and LIFULL [13]. Rooms are colored on function (e.g., blue for \"bedroom\"). The functional diagrams (represented as graphs) are drawn on top of the floor plans. MSD (right) significantly differs from RPLAN (left) and LIFULL (middle), as it contains more complex and realistic floor plans.",
+            "es": "Figura 1: MSD en comparación con RPLAN [33] y LIFULL [13]. Las habitaciones están coloreadas según su función (p. ej., azul para \"recámara\"). Los diagramas funcionales (functional diagrams), representados como grafos (graphs), están dibujados sobre los planos de planta. MSD (derecha) difiere significativamente de RPLAN (izquierda) y LIFULL (centro), ya que contiene planos de planta más complejos y realistas."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To train and evaluate realistic models, we curate a new floor plan dataset, called Modified Swiss Dwellings (MSD), that consists of a large number of complex floor plans. MSD includes precise area annotations, graph attributes, and the essential structural components of the building. Following [6], we define the floor plan generation task as one that is constrained on the functional diagram (represented as a graph) and the necessary structure of the building (represented as a binary image). To benchmark the complexity of MSD, we develop two baseline methods. The first method modifies HouseDiffusion [24] by including a wall cross attention module and by integrating it with a graph attention network (GAT) [32]. The second is a segmentation-based approach, integrating a U-Net [22] and a graph convolutional network (GCN) [9].",
+            "es": "Para entrenar y evaluar modelos realistas, curamos un nuevo conjunto de datos de planos de planta, llamado Modified Swiss Dwellings (MSD), que consiste en un gran número de planos de planta complejos. MSD incluye anotaciones precisas de áreas, atributos de grafos y los componentes estructurales esenciales del edificio. Siguiendo [6], definimos la tarea de generación de planos de planta como una que está condicionada por el diagrama funcional (representado como un grafo) y por la estructura necesaria del edificio (representada como una imagen binaria). Para medir la complejidad de MSD, desarrollamos dos métodos base (baseline). El primer método modifica HouseDiffusion [24] al incluir un módulo de atención cruzada de muros (wall cross attention) y al integrarlo con una red de atención de grafos (graph attention network, GAT) [32]. El segundo es un enfoque basado en segmentación que integra una U-Net [22] y una red convolucional de grafos (graph convolutional network, GCN) [9]."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our results reveal a significant drop in performance when the two methods are trained and tested on MSD compared to the performance on simpler floor plan data. The increased complexity that MSD brings underscores the need to reassess the current methods for floor plan generation. Our contributions are summarized as follows:",
+            "es": "Nuestros resultados revelan una caída significativa del desempeño cuando los dos métodos se entrenan y se prueban en MSD, en comparación con el desempeño en datos de planos de planta más simples. La mayor complejidad que aporta MSD subraya la necesidad de reevaluar los métodos actuales de generación de planos de planta. Nuestras contribuciones se resumen de la siguiente manera:"
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• We develop MSD – a benchmark dataset of floor plans of building complexes. MSD contains 5,372 annotated floor plan images of medium- to large-scale single- to multi-apartment building complexes, including precise geometrical and topological attributes. • We benchmark two state-of-the-art frameworks for floor plan generation to validate the complexity of floor plan generation of building complexes on MSD.",
+            "es": "• Desarrollamos MSD, un conjunto de datos de referencia de planos de planta de complejos de edificios. MSD contiene 5,372 imágenes de planos de planta anotadas de complejos de edificios de mediana a gran escala, de uno o varios departamentos, e incluye atributos geométricos y topológicos precisos. • Evaluamos dos marcos de trabajo de vanguardia para la generación de planos de planta, con el fin de validar la complejidad de generar planos de planta de complejos de edificios en MSD."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "• Our evaluations of generated floor plans for the two baseline methods reveal that the floor plan generation of building complexes is a very challenging task and invites researchers to rethink current methods.",
+            "es": "• Nuestras evaluaciones de los planos de planta generados por los dos métodos base revelan que la generación de planos de planta de complejos de edificios es una tarea muy desafiante e invitan a los investigadores a replantear los métodos actuales."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 Related work",
+        "es": "2 Trabajos relacionados"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Floor plan datasets. Floor plan datasets are used for retrieval [25], reconstruction and structural reasoning [5,7,12,14,28], architectural symbol spotting and wall detection [1,4,29], and floor plan generation [13,33]. For further comparison, we only consider publicly available datasets used in floor plan generation: RPLAN [33] and LIFULL [13] (the part that is publicly available). RPLAN and LIFULL contain 80K+ and 177K+ floor plans of, resp., Japanese and Asian houses. While large in scale, RPLAN and LIFULL have a significant number of shortcomings. First, both datasets only cover single-apartment dwellings with a limited number of areas. Second, floor plans in RPLAN and LIFULL are axis-aligned and entirely Manhattan-shaped layouts, which is at odds with realistic dwellings, which typically contain a significant number of more irregularly shaped rooms. Third, RPLAN and LIFULL do not provide compass orientation, while the direction of the sun is a critical feature in environmental design [16]. In our work, we gather and develop MSD – a big collection of floor plans that addresses the above-mentioned limitations. Specifically, MSD comprises singleand multi-apartment dwellings of which a significant part contains irregularly shaped areas as well as building boundaries.",
+            "es": "Conjuntos de datos de planos de planta. Los conjuntos de datos de planos de planta se usan para recuperación (retrieval) [25], reconstrucción y razonamiento estructural [5,7,12,14,28], detección de símbolos arquitectónicos y de muros [1,4,29], y generación de planos de planta [13,33]. Para una comparación más detallada, consideramos únicamente los conjuntos de datos disponibles públicamente que se utilizan en la generación de planos de planta: RPLAN [33] y LIFULL [13] (la parte que es de acceso público). RPLAN y LIFULL contienen más de 80K y más de 177K planos de planta de casas japonesas y asiáticas, respectivamente. Aunque son de gran escala, RPLAN y LIFULL tienen un número significativo de deficiencias. Primero, ambos conjuntos de datos abarcan únicamente viviendas de un solo departamento con un número limitado de áreas. Segundo, los planos de planta de RPLAN y LIFULL están alineados a los ejes y tienen distribuciones totalmente de forma Manhattan, lo cual no concuerda con las viviendas realistas, que por lo general contienen un número significativo de habitaciones de formas más irregulares. Tercero, RPLAN y LIFULL no proporcionan la orientación de brújula, a pesar de que la dirección del sol es una característica crítica en el diseño ambiental [16]. En nuestro trabajo, reunimos y desarrollamos MSD, una gran colección de planos de planta que aborda las limitaciones mencionadas. En concreto, MSD comprende viviendas de uno y de varios departamentos, de las cuales una parte significativa contiene áreas de formas irregulares, así como límites de edificio irregulares."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Automated floor plan generation. The goal of floor plan generation is to automatically orchestrate the elements intrinsic to the floor plan (e.g. rooms, doors, walls) into a reasonable composition. Rule-based [17,20,34] and learningbased [18, 24, 30, 33] methods exists to do so. We categorize the literature into three distinctive approaches. First, boundary-constrained floor plan generation methods [20,27,33], constrain the generative process on the external walls that separate the interior of the building from the outside. Second, graph-constrained floor plan generation methods [15,18,19,30,34] allow for fine-grained control of the floor plan by constraining the generative process on the functional diagram, which is usually represented as a graph. Instigated by [18], especially graphconstrained floor plan generation of residential houses has led to a broad range of domain-specific network architectures and optimization frameworks: Conv-MPN [35] was introduced to better capture topological and shape-wise features simultaneously; generative adversarial networks (GANs) over graphs to enable graph-structured generation [18,19]; discrete diffusion models [24] to accommodate the denoising of geometrical shapes; transformer GANs [30] to capture both local and global relations across nodes in the graph; etc. Third, boundary- and graph-constrained floor plan generation methods [6, 31] allow control over the boundary as well as the graph, a setting that is closest to most real-world design conditions. Besides the graph and boundary, we constrain the generative process on the other necessary structural components (e.g., load-bearing walls).",
+            "es": "Generación automatizada de planos de planta. El objetivo de la generación de planos de planta es orquestar automáticamente los elementos intrínsecos del plano de planta (p. ej., habitaciones, puertas, muros) en una composición razonable. Existen métodos basados en reglas [17,20,34] y basados en aprendizaje [18, 24, 30, 33] para hacerlo. Clasificamos la literatura en tres enfoques distintivos. Primero, los métodos de generación de planos de planta condicionados por el contorno [20,27,33] restringen el proceso generativo a los muros exteriores que separan el interior del edificio del exterior. Segundo, los métodos de generación de planos de planta condicionados por grafos [15,18,19,30,34] permiten un control detallado del plano de planta al restringir el proceso generativo al diagrama funcional, que usualmente se representa como un grafo. Impulsada por [18], en especial la generación de planos de planta de casas residenciales condicionada por grafos ha dado lugar a una amplia gama de arquitecturas de red y marcos de optimización específicos del dominio: Conv-MPN [35] se introdujo para capturar mejor, de forma simultánea, las características topológicas y las de forma; las redes generativas antagónicas (generative adversarial networks, GANs) sobre grafos permiten la generación estructurada en grafos [18,19]; los modelos de difusión discretos [24] permiten el eliminado de ruido de formas geométricas; las GAN con transformers [30] capturan relaciones tanto locales como globales entre los nodos del grafo; etc. Tercero, los métodos de generación de planos de planta condicionados por el contorno y por el grafo [6, 31] permiten controlar tanto el contorno como el grafo, un escenario que es el más cercano a la mayoría de las condiciones de diseño del mundo real. Además del grafo y del contorno, condicionamos el proceso generativo a los demás componentes estructurales necesarios (p. ej., muros de carga)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 Dataset of Modified Swiss Dwellings (MSD)",
+        "es": "3 Conjunto de datos (dataset) Modified Swiss Dwellings (MSD)"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "MSD is derived from the Swiss Dwellings dataset (SD) [26]. We carefully cleaned and curated SD by taking the following steps:",
+            "es": "MSD se deriva del conjunto de datos Swiss Dwellings (SD) [26]. Limpiamos y curamos SD cuidadosamente mediante los siguientes pasos:"
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "• Feature removal. All non-floorplan geometries are removed (e.g. \"bathtub\", \"stairs\"; see the full list in the suppl. mat.). • Residential-only filtering. We remove floor plans that include non-residential-like geometric details (e.g. areas categorized as \"waiting room\", \"dedicated medical room\"; see the full list in the suppl. mat.). This led to the removal of 2,305 (16.6%) floor plans. • Near-duplicate removal. Many floor plans that come from the same building stem from the same plan ID [26] (see suppl. mat. for details on ID nesting in SD). Floor plans with the same plan ID are based on the same layout, indicating that the spatial arrangements are nearly identical. Hence, we sample only one-floor plan per plan ID to drastically reduce the amount of nearduplicates. Specifically, we sample the floor plan with the lowest elevation. This led to the removal of 4,395 (31.6%) floor plans. • Medium- to large-scale filtering. Floor plans are removed that contain fewer than 15 areas. In addition, every floor plan should have at least two \"Zone 2\"-categorized areas. This led to the removal of 1,541 (11.1%) floor plans.",
+            "es": "• Eliminación de características (Feature removal). Se eliminan todas las geometrías que no forman parte del plano de planta (por ejemplo, \"bathtub\", \"stairs\"; véase la lista completa en el mat. suplementario). • Filtrado solo residencial. Eliminamos los planos de planta (floor plans) que incluyen detalles geométricos de tipo no residencial (por ejemplo, áreas categorizadas como \"waiting room\", \"dedicated medical room\"; véase la lista completa en el mat. suplementario). Esto condujo a la eliminación de 2,305 (16.6%) planos de planta. • Eliminación de casi duplicados (near-duplicates). Muchos planos de planta que provienen del mismo edificio proceden del mismo ID de plano [26] (véanse en el mat. suplementario los detalles sobre el anidamiento de IDs en SD). Los planos de planta con el mismo ID de plano se basan en la misma distribución, lo que indica que las disposiciones espaciales son casi idénticas. Por lo tanto, muestreamos solo un plano de planta por ID de plano para reducir drásticamente la cantidad de casi duplicados. En concreto, muestreamos el plano de planta con la menor elevación. Esto condujo a la eliminación de 4,395 (31.6%) planos de planta. • Filtrado de escala media a grande. Se eliminan los planos de planta que contienen menos de 15 áreas. Además, todo plano de planta debe tener al menos dos áreas categorizadas como \"Zone 2\". Esto condujo a la eliminación de 1,541 (11.1%) planos de planta."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Additional steps for cleaning and filtering are provided in the suppl. mat., leading to the removal of an extra 388 (2.8%) floor plans. Ultimately, the amount of floor plans in MSD is 5,372.",
+            "es": "En el mat. suplementario se describen pasos adicionales de limpieza y filtrado, que condujeron a la eliminación de otros 388 (2.8%) planos de planta. Finalmente, la cantidad de planos de planta en MSD es de 5,372."
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Categorization & labeling. We refer to an area as any well-defined part in a floor plan that a person could walk in or through (e.g., bedroom, corridor, balcony.) Each area has three attributes: 1) the shape of the room (represented as polygon), 2) a room type category, and 3) a zoning type category. The zoning types (or zones) are based on the categorization made in [8]: \"zone1\" refers to a private space, \"zone2\" to a public space, \"zone3\" to a service space, and \"zone4\" to an outside place.",
+            "es": "Categorización y etiquetado. Llamamos área a cualquier parte bien definida de un plano de planta por la que una persona pueda caminar o transitar (por ejemplo, dormitorio, pasillo, balcón). Cada área tiene tres atributos: 1) la forma de la habitación (representada como polígono), 2) una categoría de tipo de habitación y 3) una categoría de tipo de zonificación. Los tipos de zonificación (o zonas) se basan en la categorización hecha en [8]: \"zone1\" se refiere a un espacio privado, \"zone2\" a un espacio público, \"zone3\" a un espacio de servicio y \"zone4\" a un espacio exterior."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Image extraction. The floor plan images are made by ’drawing’ the floor plan’s corresponding geometries on a single-channel image canvas. The room category labels are represented as integers (e.g. 0 for \"living room\"). The coordinates x (east-to-west) and y (south-to-north) are defined in meters. The floor plans are mostly centered around (x, y)=(0, 0). To retain the information of the original coordinates within the image representation, two extra channels are added on top of the image (see suppl. mat. for details).",
+            "es": "Extracción de imágenes. Las imágenes de los planos de planta se crean \"dibujando\" las geometrías correspondientes del plano de planta sobre un lienzo de imagen de un solo canal. Las etiquetas de categoría de las habitaciones se representan como números enteros (por ejemplo, 0 para \"living room\"). Las coordenadas x (de este a oeste) y y (de sur a norte) se definen en metros. Los planos de planta están en su mayoría centrados alrededor de (x, y)=(0, 0). Para conservar la información de las coordenadas originales dentro de la representación de la imagen, se agregan dos canales adicionales sobre la imagen (véanse los detalles en el mat. suplementario)."
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Graph extraction. An (access) graph is an attribute of a floor plan and explicitly models the connections (edges) between the areas (nodes). We use an algorithmic approach to extract the graphs from the room shapes. The procedure is as follows:",
+            "es": "Extracción de grafos. Un grafo (graph) (de acceso) es un atributo de un plano de planta y modela explícitamente las conexiones (aristas, edges) entre las áreas (nodos, nodes). Usamos un enfoque algorítmico para extraer los grafos a partir de las formas de las habitaciones. El procedimiento es el siguiente:"
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Fig. 2: Representation of floor plan data. MSD contains three types of data. (Left) The floor plan is the complete layout of the floor of the building, including the position and shape of the rooms, doors, and windows. The areas are labeled by color (see legends). There are two category systems: 1) category is based on the type of the area (’room type’), in which each area has a room type (e.g., \"bedroom\"); and 2) category is based on the zone of the area (’zone type’), in which each areas has a zone type (e.g., \"zone1\"). (Middle) The associated room and zoning graphs are depicted on the right of the floor plans. The node colors are equivalent to the colors of the floor plan. The position of each node is taken as the centroid of the area that the node represents. (Right) A binary image of the necessary structural components of the floor plan.",
+            "es": "Figura 2: Representación de los datos de los planos de planta. MSD contiene tres tipos de datos. (Izquierda) El plano de planta es la distribución completa de la planta del edificio, incluida la posición y la forma de las habitaciones, las puertas y las ventanas. Las áreas se etiquetan por color (véanse las leyendas). Hay dos sistemas de categorías: 1) la categoría se basa en el tipo del área (\"tipo de habitación\", 'room type'), en la que cada área tiene un tipo de habitación (por ejemplo, \"bedroom\"); y 2) la categoría se basa en la zona del área (\"tipo de zona\", 'zone type'), en la que cada área tiene un tipo de zona (por ejemplo, \"zone1\"). (Centro) Los grafos de habitaciones y de zonificación asociados se muestran a la derecha de los planos de planta. Los colores de los nodos equivalen a los colores del plano de planta. La posición de cada nodo se toma como el centroide del área que el nodo representa. (Derecha) Una imagen binaria de los componentes estructurales necesarios del plano de planta."
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "• Edge types. We define three types of edge connectivity: 1) \"passage\" when one can walk from one area to the other without a door in between; 2) \"door\" if two areas are connected by a door; and 3) \"front door\" if two areas are connected by a front door. • Edge development. We iterate over all possible area pairs and create an edge between the two areas if 1) either the polygons that define the shapes of the areas are close enough (≤0.04 m) – in this case the edge type is \"passage\" – or 2) there is a door for which the polygon that defines the door’s shape is close enough to both area shapes (≤0.05 m) – in this case the edge type is either \"door\" or \"front door\" depending on the type of door. • Node development. We include all necessary geometric and semantic information as node attributes. \"centroid\": is the center of the area. \"geometry\": is an array of the 2D coordinates representing the shape of the room as a polygon. \"roomtype\": is an integer representing the room category of the area. \"zonetype\": an integer representing the zoning category of the area. • Room and zoning graph. We define the room graph as the graph including only \"roomtype\" node attributes, and the zoning graph as the graph including only \"zonetype\" node attributes. Fig. 2 depicts both room and zoning graphs.",
+            "es": "• Tipos de aristas. Definimos tres tipos de conectividad de aristas: 1) \"passage\" cuando se puede caminar de un área a la otra sin una puerta de por medio; 2) \"door\" si dos áreas están conectadas por una puerta; y 3) \"front door\" si dos áreas están conectadas por una puerta de entrada. • Desarrollo de aristas. Recorremos todos los pares posibles de áreas y creamos una arista entre las dos áreas si 1) los polígonos que definen las formas de las áreas están lo bastante cerca (≤0.04 m), en cuyo caso el tipo de arista es \"passage\", o 2) existe una puerta cuyo polígono que define su forma está lo bastante cerca de ambas formas de área (≤0.05 m), en cuyo caso el tipo de arista es \"door\" o \"front door\", según el tipo de puerta. • Desarrollo de nodos. Incluimos toda la información geométrica y semántica necesaria como atributos de los nodos. \"centroid\": es el centro del área. \"geometry\": es un arreglo de las coordenadas 2D que representan la forma de la habitación como polígono. \"roomtype\": es un entero que representa la categoría de habitación del área. \"zonetype\": un entero que representa la categoría de zonificación del área. • Grafo de habitaciones y de zonificación. Definimos el grafo de habitaciones como el grafo que incluye únicamente los atributos de nodo \"roomtype\", y el grafo de zonificación como el grafo que incluye únicamente los atributos de nodo \"zonetype\". La Fig. 2 muestra ambos grafos."
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Structure extraction. Structural elements of the building are often regarded as fixed beforehand. The structural elements in floor plans include load-bearing walls and columns. Accordingly, the structural elements of the floor plans are extracted and regarded as a part of the input to frame a plausible design problem. The criteria to distinguish the structural walls from the regular separating walls are based on the base wall thickness. The base wall thickness for each floor plan is the 60% quantile of the full set of existing walls’ thickness given a floor plan. Any wall with a thickness larger than the base thickness value is then regarded as a load-bearing wall. Similar to load-bearing walls, columns are regarded as fixed as well. Hence, all geometric details categorized as \"columns\" are appended to the building structure.",
+            "es": "Extracción de la estructura. Los elementos estructurales del edificio suelen considerarse fijos de antemano. Los elementos estructurales en los planos de planta incluyen muros de carga (load-bearing walls) y columnas. En consecuencia, los elementos estructurales de los planos de planta se extraen y se consideran parte de la entrada para plantear un problema de diseño plausible. El criterio para distinguir los muros estructurales de los muros divisorios normales se basa en el espesor base de los muros. El espesor base de los muros de cada plano de planta es el cuantil (quantile) del 60% del conjunto completo de espesores de los muros existentes en un plano de planta dado. Cualquier muro con un espesor mayor que el valor del espesor base se considera entonces un muro de carga. Al igual que los muros de carga, las columnas también se consideran fijas. Por lo tanto, todos los detalles geométricos categorizados como \"columns\" se añaden a la estructura del edificio."
+          }
+        },
+        {
+          "id": "s3-h1",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.1 Comparison to other datasets",
+            "es": "3.1 Comparación con otros conjuntos de datos"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We compare MSD to RPLAN [33] and LIFULL [13]. Tab. 1 accompanies the findings that are given next.",
+            "es": "Comparamos MSD con RPLAN [33] y LIFULL [13]. La Tab. 1 acompaña los hallazgos que se presentan a continuación."
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Origin. RPLAN and LIFULL contain floor plans that originate from, resp., the Asian and Japanese houses. MSD, on the other hand, is the first large-scale and detailed floor plan dataset originating from Europe, specifically Switzerland. While investigating the differences between Asian and European floor layouts is in itself an interesting endeavor (and goes beyond this paper), with regionspecific floor plan datasets, machine learning algorithms can assist in designing buildings that cater to specific cultural preferences or comply with local building codes. We are actively extending the current dataset, to dwellings from other regions in Europe as well.",
+            "es": "Origen. RPLAN y LIFULL contienen planos de planta que provienen, respectivamente, de viviendas asiáticas y japonesas. MSD, por su parte, es el primer conjunto de datos de planos de planta detallado y a gran escala originado en Europa, específicamente en Suiza. Si bien investigar las diferencias entre las distribuciones de planta asiáticas y europeas es en sí mismo un empeño interesante (y va más allá de este artículo), con conjuntos de datos de planos de planta específicos de cada región, los algoritmos de aprendizaje automático pueden ayudar a diseñar edificios que atiendan preferencias culturales específicas o cumplan con los códigos de construcción locales. Estamos ampliando activamente el conjunto de datos actual con viviendas de otras regiones de Europa."
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Realism. The vectorized floor layouts in LIFULL are extracted from the original image dataset [13] using the vectorization algorithm proposed in [12]. This vectorization algorithm is not necessarily error-proof and reaches on average an accuracy (1−IoU) of 88.5 and 94.7 for predicting the room shapes and wall junctions, resp. (Tab. 1 in [12]). Furthermore, floor plans in RPLAN and LIFULL are re-oriented to make them axis-aligned, arguably for easy processing and use. MSD, on the contrary, retains the orientation of the floor plans – a feature of significant importance to the quality of the floor plan design.",
+            "es": "Realismo. Las distribuciones de planta vectorizadas en LIFULL se extraen del conjunto de datos de imágenes original [13] mediante el algoritmo de vectorización propuesto en [12]. Este algoritmo de vectorización no está necesariamente libre de errores y alcanza en promedio una exactitud (1−IoU) de 88.5 y 94.7 al predecir las formas de las habitaciones y las uniones de muros, respectivamente (Tab. 1 en [12]). Además, los planos de planta en RPLAN y LIFULL se reorientan para alinearlos con los ejes, posiblemente para facilitar su procesamiento y uso. MSD, por el contrario, conserva la orientación de los planos de planta, una característica de gran importancia para la calidad del diseño del plano de planta."
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Complexity. RPLAN and LIFULL comprise floor plans of isolated apartments; therefore, the data do not contain information about the relations between the distinct apartments. MSD is the first large-scale floor plan dataset of multiapartment dwellings; hence, the connections between the distinct apartments are explicitly modeled (Tab. 1, column 5). Moreover, rooms in RPLAN and LIFULL are Manhattan-shaped. In the real world, rooms are often more diverse in shape (i.e., non-Manhattan (NM)). MSD retains the imposed shapes of the rooms, even if the shapes are NM (Tab. 1, column 6). Additionally, rooms in MSD consist of more corners (Tab. 1, column 3).",
+            "es": "Complejidad. RPLAN y LIFULL comprenden planos de planta de apartamentos aislados; por lo tanto, los datos no contienen información sobre las relaciones entre los distintos apartamentos. MSD es el primer conjunto de datos de planos de planta a gran escala de viviendas con múltiples apartamentos; por ello, las conexiones entre los distintos apartamentos se modelan explícitamente (Tab. 1, columna 5). Además, las habitaciones en RPLAN y LIFULL tienen forma Manhattan. En el mundo real, las habitaciones suelen tener formas más diversas (es decir, no Manhattan (NM)). MSD conserva las formas impuestas de las habitaciones, incluso si son NM (Tab. 1, columna 6). Adicionalmente, las habitaciones en MSD constan de más esquinas (Tab. 1, columna 3)."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: MSD compared to RPLAN [33] and LIFULL [13]. Complexity is measured by the average number of corners per room (c3), rooms per unit (c4), and units per floor (c5). Additionally, c6 indicates a significant share (> 5%) of NM-shaped rooms. Information is measured per the existence of room labels (room type and zoning type in c7 and c8, resp.) and of doors (c9). Size: c10 and c11 provide the total number of rooms and units in the datasets, resp. Note that the total number reflects the reduced dataset sizes when near-duplicates are removed. Diversity is measured as the entropy, Hg (see Eq. (1)), over the distribution of graphs (c12). MSD sets a new standard as a more complex and realistic floor plan dataset. Note that ci is column i.",
+            "es": "Tabla 1: MSD comparado con RPLAN [33] y LIFULL [13]. La complejidad se mide por el número promedio de esquinas por habitación (c3), habitaciones por unidad (c4) y unidades por planta (c5). Además, c6 indica una proporción significativa (> 5%) de habitaciones de forma NM. La información se mide según la existencia de etiquetas de habitación (tipo de habitación y tipo de zonificación en c7 y c8, respectivamente) y de puertas (c9). Tamaño: c10 y c11 indican el número total de habitaciones y de unidades en los conjuntos de datos, respectivamente. Obsérvese que el total refleja los tamaños reducidos de los conjuntos de datos cuando se eliminan los casi duplicados. La diversidad se mide como la entropía (entropy), Hg (véase la Ec. (1)), sobre la distribución de grafos (c12). MSD establece un nuevo estándar como un conjunto de datos de planos de planta más complejo y realista. Obsérvese que ci es la columna i."
+          }
+        },
+        {
+          "id": "s3-p13",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Information. Where RPLAN and LIFULL comprise floor plans in either image (RPLAN) or vectorized (LIFULL) format, MSD explicitly represents the floor plans in an image, vectorized, and graph formats. On top of the full floor plan layouts, MSD contains the corresponding structural necessary components, represented as binary images. In addition to room type labels, MSD provides the zoning category of each room as well. Floor plans in LIFULL do not contain door information. MSD contains (as does RPLAN) the geometric information of the doors as well – a necessary feature to better understand and exploit the interconnectivity between spaces.",
+            "es": "Información. Mientras que RPLAN y LIFULL comprenden planos de planta en formato de imagen (RPLAN) o vectorizado (LIFULL), MSD representa explícitamente los planos de planta en formatos de imagen, vectorizado y de grafo. Además de las distribuciones completas de los planos de planta, MSD contiene los componentes estructurales necesarios correspondientes, representados como imágenes binarias. Además de las etiquetas de tipo de habitación, MSD proporciona también la categoría de zonificación de cada habitación. Los planos de planta en LIFULL no contienen información de puertas. MSD contiene (al igual que RPLAN) también la información geométrica de las puertas, una característica necesaria para comprender y aprovechar mejor la interconectividad entre espacios."
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Size & diversity. RPLAN (∼81K) and LIFULL (∼124K) have significantly more floor plans than MSD (∼5K) (column 8 in Tab. 1). The total number of rooms is much closer though: ∼165K for MSD vs. ∼539K and ∼1010K for RPLAN and LIFULL, resp. However, RPLAN and LIFULL contain a serious amount of near-duplicates. We measure the number of near-duplicates in a floor plan dataset by measuring the MIoU between pairs of floor plans and removing those that exceed a certain threshold, which we set to 0.87, equivalent to the procedure in [2]. While the number of near-duplicates in MSD is negligible (<1%), those in RPLAN and LIFULL are not: 70% for RPLAN and 50% for LIFULL. When filtering out the near-duplicates from the original RPLAN and LIFULL datasets, the number of rooms in MSD and RPLAN are approximately equal, while the number in LIFULL still remains significantly larger. In terms of the topology of the room graphs, MSD is notably more diverse than RPLAN and slightly more diverse than LIFULL. The diversity is measured as the entropy over the distribution of graphs: b el where G is the set of distinct un-attributed room graphs in the dataset and pg(g) is the probability of a floor plan having a corresponding room graph equal to graph g. pg(g) is numerically approximated through the dataset. The entropy over the graph distributions for MSD, RPLAN, and LIFULL are resp., 8.02, 4.56, and 7.79, which reveals that MSD is most diverse in terms of the connectivity.",
+            "es": "Tamaño y diversidad. RPLAN (∼81K) y LIFULL (∼124K) tienen significativamente más planos de planta que MSD (∼5K) (columna 8 en la Tab. 1). Sin embargo, el número total de habitaciones es mucho más cercano: ∼165K para MSD frente a ∼539K y ∼1010K para RPLAN y LIFULL, respectivamente. No obstante, RPLAN y LIFULL contienen una cantidad considerable de casi duplicados. Medimos el número de casi duplicados en un conjunto de datos de planos de planta midiendo el MIoU entre pares de planos de planta y eliminando aquellos que superan un cierto umbral (threshold), que fijamos en 0.87, equivalente al procedimiento en [2]. Mientras que el número de casi duplicados en MSD es insignificante (<1%), en RPLAN y LIFULL no lo es: 70% para RPLAN y 50% para LIFULL. Al filtrar los casi duplicados de los conjuntos de datos originales RPLAN y LIFULL, el número de habitaciones en MSD y RPLAN es aproximadamente igual, mientras que el de LIFULL sigue siendo significativamente mayor. En cuanto a la topología de los grafos de habitaciones, MSD es notablemente más diverso que RPLAN y ligeramente más diverso que LIFULL. La diversidad se mide como la entropía sobre la distribución de grafos: b el donde G es el conjunto de grafos de habitaciones distintos sin atributos en el conjunto de datos y pg(g) es la probabilidad de que un plano de planta tenga un grafo de habitaciones correspondiente igual al grafo g. pg(g) se aproxima numéricamente a través del conjunto de datos. La entropía sobre las distribuciones de grafos para MSD, RPLAN y LIFULL es, respectivamente, 8.02, 4.56 y 7.79, lo que revela que MSD es el más diverso en términos de conectividad."
+          }
+        },
+        {
+          "id": "s3-p15",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "In summary, MSD is a large floor plan dataset of European (Switzerland) building complexes and exceeds other datasets in layout complexity and graph diversity. MSD is, above all, the first big dataset that makes explicit the interrelations between spatially-connected apartments. Fig. 1 further reveals the noteworthy differences between MSD and other floor plan datasets.",
+            "es": "En resumen, MSD es un conjunto de datos grande de planos de planta de complejos de edificios europeos (Suiza) y supera a otros conjuntos de datos en complejidad de la distribución y diversidad de grafos. MSD es, sobre todo, el primer conjunto de datos grande que hace explícitas las interrelaciones entre apartamentos conectados espacialmente. La Fig. 1 revela además las diferencias notables entre MSD y otros conjuntos de datos de planos de planta."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 Floor plan generation task",
+        "es": "4 Tarea de generación de planos de planta"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We set our task as a real-world design formulation by bridging the schematic design (spatial zoning) to the detailed design (floor layout). Similar to [6], we formulate the floor plan generation task as a multi-modal constrained optimization problem with the following in- and outputs:",
+            "es": "Planteamos nuestra tarea como una formulación de diseño del mundo real, que une el diseño esquemático (zonificación espacial) con el diseño detallado (distribución de la planta). De manera similar a [6], formulamos la tarea de generación de planos de planta como un problema de optimización con restricciones multimodal con las siguientes entradas y salidas:"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "• Input 1. The building structure indicates where the necessary structural components are positioned. The building structure is represented as a set of geometries or as a binary image. • Input 2. The zoning graph defines the connectivity of areas and is represented as a graph with category-attributed nodes and edges that indicate the zoning classes. • Output. The floor plan which is either represented as an image with pixel values that indicate the room classes or a room graph with geometry- and category-attributed nodes that indicate the shape and room category. We include both representations to enable the use of different model architectures such as convolutional neural networks (that need images) and graph neural networks (that need graphs).",
+            "es": "• Entrada 1. La estructura del edificio indica dónde se ubican los componentes estructurales necesarios. La estructura del edificio se representa como un conjunto de geometrías o como una imagen binaria. • Entrada 2. El grafo de zonificación define la conectividad de las áreas y se representa como un grafo con nodos atribuidos con categorías y aristas que indican las clases de zonificación. • Salida. El plano de planta, que se representa ya sea como una imagen con valores de píxel que indican las clases de habitación, o como un grafo de habitaciones con nodos atribuidos con geometría y categoría que indican la forma y la categoría de habitación. Incluimos ambas representaciones para permitir el uso de distintas arquitecturas de modelos, como las redes neuronales convolucionales (convolutional neural networks), que necesitan imágenes, y las redes neuronales de grafos (graph neural networks), que necesitan grafos."
+          }
+        },
+        {
+          "id": "s4-h1",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "4.1 Evaluation metrics",
+            "es": "4.1 Métricas de evaluación"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "To measure the performance of the models, we compute both the visual and topological similarities between the predicted and ground truth floor plans. The ordered sets of target and predicted floor plans are, resp., denoted as Q = {Qi}1,...,N and K = {Ki}1,...,N, in which N is the size of the test set.",
+            "es": "Para medir el desempeño de los modelos, calculamos tanto las similitudes visuales como las topológicas entre los planos de planta predichos y los de la verdad de referencia (ground truth). Los conjuntos ordenados de planos de planta objetivo y predichos se denotan, respectivamente, como Q = {Qi}1,...,N y K = {Ki}1,...,N, donde N es el tamaño del conjunto de prueba."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Mean Intersection-over-Union. The rooms of a floor plan must have the correct shape and location. To measure the performance at the pixel level, the Mean Intersection-over-Union (MIoU) between Q and K is used. Equivalent to [2], MIoU across all classes c ∈C is computed by: m i ou} where Rc(·) is the function that outputs the region in the image occupied by c.",
+            "es": "Intersección sobre unión media (Mean Intersection-over-Union). Las habitaciones de un plano de planta deben tener la forma y la ubicación correctas. Para medir el desempeño a nivel de píxel se utiliza la Intersección sobre unión media (MIoU) entre Q y K. De manera equivalente a [2], la MIoU a través de todas las clases c ∈C se calcula mediante: m i ou} donde Rc(·) es la función que devuelve la región de la imagen ocupada por c."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Graph compatibility. It is similarly important that the topology of the predicted floor plan’s composition closely matches that of the ground truth. To measure the consistency between the predicted and target graph, we compute the graph compatibility between the graph extracted from the predicted floor plan and the target graph. [2,18,19,24,30] measure the compatibility based on a graph edit distance (GED) [23]. The output of the floor plan generation task, however, hinders the practical use of the GED in our case, because doors are not predicted in our setting. Similar to the graph extraction algorithm used in the making of MSD, we extract the room graphs of the predicted floor plan by looping through all the pairs of different areas of a given floor plan. We assign an edge whenever the minimum distance between the areas is less or equal to a buffer. The compatibility is computed by checking whether the edges from the target graph are retained in the predicted graph: l i a ti b il rm i h ty} p",
+            "es": "Compatibilidad de grafos (Graph compatibility). Es igualmente importante que la topología de la composición del plano de planta predicho coincida estrechamente con la de la verdad de referencia. Para medir la consistencia entre el grafo predicho y el grafo objetivo, calculamos la compatibilidad de grafos entre el grafo extraído del plano de planta predicho y el grafo objetivo. [2,18,19,24,30] miden la compatibilidad con base en una distancia de edición de grafos (graph edit distance, GED) [23]. Sin embargo, la salida de la tarea de generación de planos de planta dificulta el uso práctico de la GED en nuestro caso, porque en nuestro planteamiento no se predicen las puertas. De manera similar al algoritmo de extracción de grafos usado en la creación de MSD, extraemos los grafos de habitaciones del plano de planta predicho recorriendo todos los pares de áreas distintas de un plano de planta dado. Asignamos una arista siempre que la distancia mínima entre las áreas sea menor o igual a un margen (buffer). La compatibilidad se calcula verificando si las aristas del grafo objetivo se conservan en el grafo predicho: l i a ti b il rm i h ty} p"
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Extracting graphs from noisy pixel maps is error-prone; hence, we refrain from using it for methods alike (e.g., for UN; see Section 5.2). For graph-based methods (e.g., for MHD; see Section 5.1), graph extraction from the predicted layouts could lead to errors as well, usually when a predicted layout contains many overlapping rooms. However, we found that such scenarios do not often occur (see suppl. mat. for details). Hence, we deem extracting room edges algorithmically as reasonable. (Note that previous works use a similar algorithmic approach too.)",
+            "es": "Extraer grafos a partir de mapas de píxeles ruidosos es propenso a errores; por ello, evitamos usarlo para métodos similares (por ejemplo, para UN; véase la Sección 5.2). Para los métodos basados en grafos (por ejemplo, para MHD; véase la Sección 5.1), la extracción de grafos a partir de las distribuciones predichas también podría conducir a errores, normalmente cuando una distribución predicha contiene muchas habitaciones superpuestas. Sin embargo, encontramos que tales escenarios no ocurren con frecuencia (véanse los detalles en el mat. suplementario). Por lo tanto, consideramos razonable extraer las aristas de las habitaciones de manera algorítmica. (Obsérvese que trabajos previos también usan un enfoque algorítmico similar.)"
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "As mentioned before, previous works use a GED to measure the compatibility [2,18,19,24,30]. Hence, lower scores suggest better methods. We measure a graph similarity instead of distance. Therefore, a high score (instead of low in the case of GED) positively correlates with performance.",
+            "es": "Como se mencionó antes, trabajos previos usan una GED para medir la compatibilidad [2,18,19,24,30]. Por lo tanto, puntuaciones más bajas sugieren mejores métodos. Nosotros medimos una similitud de grafos en lugar de una distancia. Por ello, una puntuación alta (en lugar de baja, como en el caso de la GED) se correlaciona positivamente con el desempeño."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 Models",
+        "es": "5 Modelos"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "We develop two baseline models to benchmark MSD: a diffusion- and segmentationbased approach. Fig. 3 provide visual clarifications of both baselines. We also tested the generalizability of HouseGAN++ [19] and FLNet [31], for which the results are provided in the suppl. mat. (Note that most of the details on the model architectures, the training, and pre-processing are given in the suppl. mat.)",
+            "es": "Desarrollamos dos modelos de referencia (baseline) para evaluar MSD: un enfoque basado en difusión (diffusion) y otro basado en segmentación (segmentation). La Fig. 3 ofrece aclaraciones visuales de ambos modelos de referencia. También probamos la capacidad de generalización de HouseGAN++ [19] y FLNet [31], cuyos resultados se presentan en el material suplementario. (Obsérvese que la mayoría de los detalles sobre las arquitecturas de los modelos, el entrenamiento y el preprocesamiento se encuentran en el material suplementario.)"
+          }
+        },
+        {
+          "id": "s5-h1",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "5.1 Modified HouseDiffusion (MHD)",
+            "es": "5.1 HouseDiffusion modificado (Modified HouseDiffusion, MHD)"
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "HouseDiffusion (HD) [24] is a state-of-the-art model for graph-constrained floor plan generation. To adapt HD to our task, a cross-attention module is added, which effectively conditions the diffusion process on the building structure. To learn the room graph from the zoning graph, we use a GAT [32], which operates as a pre-processing step to the diffusion process. We coin our method Modi-fied HouseDiffusion (MHD). Fig. 3 (right) provides all modifications and added modules, which are depicted in blue.",
+            "es": "HouseDiffusion (HD) [24] es un modelo de vanguardia para la generación de planos de planta (floor plan) restringida por grafos. Para adaptar HD a nuestra tarea, se añade un módulo de atención cruzada (cross-attention), que condiciona de manera efectiva el proceso de difusión a la estructura del edificio. Para aprender el grafo de habitaciones a partir del grafo de zonificación (zoning graph), usamos una GAT [32], que funciona como un paso de preprocesamiento previo al proceso de difusión. Llamamos a nuestro método Modified HouseDiffusion (MHD). La Fig. 3 (derecha) muestra todas las modificaciones y los módulos añadidos, representados en azul."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "HouseDiffusion (HD). In HD, floor plans are represented by a set of polygons P = {P1, P2, ..., PN}, each representing a room or door. Each polygon P• is defined by a sequence of 2D corner coordinates, Cl,m ∈R2 in which l refers to l-th polygon and m the index of the corner. In the forward process, noise is added to the corner coordinates at each timestep t such that at timestep t=T all corner coordinates follow a normal distribution. The corner coordinates at timestep t=0 remain unaltered. The goal of the model is then to learn the reverse process (i.e., to iteratively denoise the noisy corner candidates back). At its core, HD consists of three attention layers with structured masking: 1) CSA, limiting attention among corners in the same room or door, 2) GSA, full stack attention between every pair of corners across all rooms, and 3) RCA, limiting attention between connected room-to-door corner pairs.",
+            "es": "HouseDiffusion (HD). En HD, los planos de planta se representan mediante un conjunto de polígonos P = {P1, P2, ..., PN}, cada uno de los cuales representa una habitación o una puerta. Cada polígono P• se define mediante una secuencia de coordenadas 2D de esquinas, Cl,m ∈R2, donde l se refiere al l-ésimo polígono y m al índice de la esquina. En el proceso hacia adelante (forward process), se añade ruido a las coordenadas de las esquinas en cada paso de tiempo t, de modo que en el paso de tiempo t=T todas las coordenadas de las esquinas siguen una distribución normal. Las coordenadas de las esquinas en el paso de tiempo t=0 permanecen inalteradas. El objetivo del modelo es entonces aprender el proceso inverso (es decir, eliminar iterativamente el ruido de las esquinas candidatas ruidosas para recuperarlas). En esencia, HD consta de tres capas de atención con enmascaramiento estructurado: 1) CSA, que limita la atención entre las esquinas de una misma habitación o puerta, 2) GSA, atención de pila completa entre cada par de esquinas de todas las habitaciones, y 3) RCA, que limita la atención entre los pares de esquinas conectados de habitación a puerta."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Wall-cross attention (WCA). MHD expects the building structure to be encoded as a set of wall elements (straight lines) wi, which are extracted from the binary image by a morphological thinning technique followed by skeletonization (see suppl. mat. for details). Each wall element is converted into a 512-d wall embedding ˆwi by an MLP followed by three multi-head attention modules. To condition the model on the building structure, we add an extra cross-attention module (WCA) between all corner and wall embeddings.",
+            "es": "Atención cruzada de muros (wall-cross attention, WCA). MHD espera que la estructura del edificio esté codificada como un conjunto de elementos de muro (líneas rectas) wi, que se extraen de la imagen binaria mediante una técnica de adelgazamiento morfológico (morphological thinning) seguida de esqueletización (skeletonization) (véanse los detalles en el material suplementario). Cada elemento de muro se convierte en un embedding de muro de 512-d ˆwi mediante un MLP seguido de tres módulos de atención multicabezal (multi-head attention). Para condicionar el modelo a la estructura del edificio, añadimos un módulo adicional de atención cruzada (WCA) entre todos los embeddings de esquinas y de muros."
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Graph attention network (GAT). Instead of changing HD’s architecture to denoise a room type for each corner in addition to the coordinates, we separately learned the room types beforehand. We use a GAT [32] to learn the room graph from the zoning graph, by essentially framing the problem as node classification.",
+            "es": "Red de atención sobre grafos (graph attention network, GAT). En lugar de modificar la arquitectura de HD para eliminar el ruido del tipo de habitación de cada esquina además de las coordenadas, aprendimos los tipos de habitación por separado de antemano. Usamos una GAT [32] para aprender el grafo de habitaciones a partir del grafo de zonificación, planteando esencialmente el problema como una clasificación de nodos (node classification)."
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Minimum rotated rectangle (MRR). In HD, the number of corners is sampled from the known corner count distributions per room type in the training set. In contrast to RPLAN, which typically has between 4 and 10 corners per room, MSD contains many areas with a much larger amount of corners, making it more difficult for the model to appropriately denoise the polygons. In addition to doing experiments with the full set of corners (POL) we approximate the polygons by a minimum rotated rectangle fit (MRR), and subsequently learn to denoise the MRRs instead.",
+            "es": "Rectángulo rotado mínimo (minimum rotated rectangle, MRR). En HD, el número de esquinas se muestrea a partir de las distribuciones conocidas de conteo de esquinas por tipo de habitación en el conjunto de entrenamiento. A diferencia de RPLAN, que normalmente tiene entre 4 y 10 esquinas por habitación, MSD contiene muchas áreas con una cantidad de esquinas mucho mayor, lo que dificulta que el modelo elimine adecuadamente el ruido de los polígonos. Además de realizar experimentos con el conjunto completo de esquinas (POL), aproximamos los polígonos mediante un ajuste de rectángulo rotado mínimo (MRR) y, posteriormente, aprendemos a eliminar el ruido de los MRR en su lugar."
+          }
+        },
+        {
+          "id": "s5-h2",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "5.2 Graph-informed U-Net (UN)",
+            "es": "5.2 U-Net informada por grafos (Graph-informed U-Net, UN)"
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "We propose a floor plan generation model based on U-Net [22] for direct prediction at the pixel level. At the deepest level of the network, the U-Net is constrained on a graph-level encoding of the zoning graph which is learned by a GCN [9].",
+            "es": "Proponemos un modelo de generación de planos de planta basado en U-Net [22] para la predicción directa a nivel de píxel. En el nivel más profundo de la red, la U-Net se condiciona a una codificación a nivel de grafo del grafo de zonificación, aprendida por una GCN [9]."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Fig. 3: Baseline methods for floor plan generation. (Left: UN) UN takes the building structure (image) as input to the U-Net. The U-Net is composed of an encoder and decoder using the conventional up- and down-sampling 2D convolutions, resp., and includes skip connections between the encoder and decoder feature maps at equivalent feature map scales. A GCN is used to map the zoning graph to a feature vector which is concatenated to the latent space of the U-Net. (Right: MHD) A wall encoder is used to map the pre-processed building structure into corresponding wall embeddings. MHD expands HD [24] by introducing an extra attention module (WCA) between the wall embeddings from and corner features of the rooms. A GAT is separately trained to predict the room types from the zoning types, which are used to \"color\" the full layout.",
+            "es": "Figura 3: Métodos de referencia para la generación de planos de planta. (Izquierda: UN) UN toma la estructura del edificio (imagen) como entrada de la U-Net. La U-Net se compone de un codificador y un decodificador que usan convoluciones 2D convencionales de submuestreo y sobremuestreo, respectivamente, e incluye conexiones de salto (skip connections) entre los mapas de características del codificador y del decodificador a escalas equivalentes. Se utiliza una GCN para transformar el grafo de zonificación en un vector de características que se concatena al espacio latente de la U-Net. (Derecha: MHD) Se utiliza un codificador de muros para transformar la estructura del edificio preprocesada en los embeddings de muros correspondientes. MHD amplía HD [24] al introducir un módulo de atención adicional (WCA) entre los embeddings de muros y las características de las esquinas de las habitaciones. Una GAT se entrena por separado para predecir los tipos de habitación a partir de los tipos de zonificación, los cuales se usan para \"colorear\" el diseño completo."
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "U-Net. A U-Net is used to ’segment’ the building structure into the floor plan. Essentially, a U-Net is an autoencoder with the addition of skip-connection between the feature maps of the encoder and decoder that share the same feature map resolution. Similar to the original U-Net implementation, we use convolutional layers for both down- and up-sampling. The output of the U-Net is the floor plan image.",
+            "es": "U-Net. Se utiliza una U-Net para \"segmentar\" la estructura del edificio en el plano de planta. Esencialmente, una U-Net es un autocodificador (autoencoder) con la adición de conexiones de salto entre los mapas de características del codificador y del decodificador que comparten la misma resolución de mapa de características. De manera similar a la implementación original de U-Net, usamos capas convolucionales tanto para el submuestreo como para el sobremuestreo. La salida de la U-Net es la imagen del plano de planta."
+          }
+        },
+        {
+          "id": "s5-p9",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Graph convolutional network (GCN). A GCN [9] is used to learn a fixedsized graph-level embedding of the zoning graph. To effectively combine the graph and boundary representations, the graph-level embedding is concatenated to the deepest layer’s feature map of the U-Net.",
+            "es": "Red convolucional sobre grafos (graph convolutional network, GCN). Se utiliza una GCN [9] para aprender un embedding de tamaño fijo a nivel de grafo del grafo de zonificación. Para combinar eficazmente las representaciones del grafo y del contorno, el embedding a nivel de grafo se concatena al mapa de características de la capa más profunda de la U-Net."
+          }
+        },
+        {
+          "id": "s5-p10",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Boundary pre-processing. Inspired by [33], we pre-process the building structure into a 3-channel image, distinguishing the interior (channel 1), the exterior (channel 2), and the original building structure (channel 3). We use Segment Anything [10] to extract the interior and exterior from the building structure.",
+            "es": "Preprocesamiento del contorno. Inspirados en [33], preprocesamos la estructura del edificio para convertirla en una imagen de 3 canales que distingue el interior (canal 1), el exterior (canal 2) y la estructura original del edificio (canal 3). Usamos Segment Anything [10] para extraer el interior y el exterior de la estructura del edificio."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6 Results",
+        "es": "6 Resultados"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "MIoU. To measure the visual similarity, we use (Eq. 2). The polygonal outputs of MHD are drawn on the same image canvas as that of the ground truth. The drawing order matters and is from largest to smallest region size to make sure the smaller areas are not entirely occluded by larger areas.",
+            "es": "MIoU. Para medir la similitud visual, usamos (Ec. 2). Las salidas poligonales de MHD se dibujan sobre el mismo lienzo de imagen que el de la referencia real (ground truth). El orden de dibujo es importante y va del tamaño de región más grande al más pequeño, para asegurar que las áreas más pequeñas no queden completamente ocultas por las áreas más grandes."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "The average MIoU (Tab. 2) ranges from 10.9 to 42.4. Intuitively, this means that for all the models, a pixel is more likely to be predicted incorrectly. We conclude that the performance is poor and does not yet comply with the performance standards we would like to see. The apparent mismatch between predictions and targets is further investigated based on some of the generated examples, provided in Fig. 4. Even though the relative positioning of the areas (for MHD models) and pixel regions (for UN models), for most generated floor plans, are predicted quite accurately, the exact locations and precise shapes of the areas and regions are far from accurate yet – explaining, indeed, the low overlap scores.",
+            "es": "El MIoU promedio (Tab. 2) varía de 10.9 a 42.4. Intuitivamente, esto significa que, para todos los modelos, es más probable que un píxel se prediga de forma incorrecta. Concluimos que el desempeño es deficiente y aún no cumple con los estándares de desempeño que quisiéramos ver. La discrepancia aparente entre las predicciones y los objetivos se investiga más a fondo con base en algunos de los ejemplos generados, presentados en la Fig. 4. Aunque el posicionamiento relativo de las áreas (para los modelos MHD) y de las regiones de píxeles (para los modelos UN) se predice con bastante exactitud en la mayoría de los planos de planta generados, las ubicaciones exactas y las formas precisas de las áreas y las regiones todavía distan mucho de ser exactas, lo que explica, en efecto, los bajos puntajes de superposición."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 12,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2: MIoU and compatibility scores for MHD and UN.. The best scores across indicated in bold, and we underline the scores that are best within each approach. The scores for different floor plan ’sizes’ – based on the range in a number of areas – are provided in the different columns of MIoU and graph compatibility. The graph compatibility scores for the UN-based models are not available (n.a.) because graphs cannot be reasonably extracted from the output images. The vanilla version of UN is denoted as \"U-Net\", and \"(pre)\" indicates the use of Segment Anything for pre-processing. MHD considers either the full polygons (POL) or a minimum rotated rectangle fit (MRR). \"+WCA\" indicates the use of the full-stack attention module between corner and wall embeddings.",
+            "es": "Tabla 2: Puntajes de MIoU y de compatibilidad para MHD y UN. Los mejores puntajes en general se indican en negritas, y subrayamos los puntajes que son los mejores dentro de cada enfoque. Los puntajes para diferentes \"tamaños\" de plano de planta, basados en el rango del número de áreas, se presentan en las distintas columnas de MIoU y de compatibilidad de grafos. Los puntajes de compatibilidad de grafos para los modelos basados en UN no están disponibles (n.a.) porque no es posible extraer grafos de manera razonable a partir de las imágenes de salida. La versión básica de UN se denota como \"U-Net\", y \"(pre)\" indica el uso de Segment Anything para el preprocesamiento. MHD considera ya sea los polígonos completos (POL) o un ajuste de rectángulo rotado mínimo (MRR). \"+WCA\" indica el uso del módulo de atención de pila completa entre los embeddings de esquinas y de muros."
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Graph compatibility. The compatibility is only measured for MHD, because reliably extracting graphs from the floor plans generated by UN is too ambiguous. For an image size equal to 512, the buffer is set to 5 to allow some, but not too much, space between rooms. The compatibility is computed between the extracted room graph of the predicted floor plan and the room graph of the target floor plan by Eq. 3.",
+            "es": "Compatibilidad de grafos (graph compatibility). La compatibilidad solo se mide para MHD, porque extraer de manera confiable grafos a partir de los planos de planta generados por UN es demasiado ambiguo. Para un tamaño de imagen igual a 512, el margen (buffer) se establece en 5 para permitir cierto espacio, pero no demasiado, entre las habitaciones. La compatibilidad se calcula entre el grafo de habitaciones extraído del plano de planta predicho y el grafo de habitaciones del plano de planta objetivo mediante la Ec. 3."
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Compared to the MIoU, the compatibility scores, ranging between 74.4 and 87.0, are much higher; thus, the topology of the zoning graphs is largely retained in the generated floor plans. Therefore, MHD can reasonably well learn how the rooms should be composed.",
+            "es": "En comparación con el MIoU, los puntajes de compatibilidad, que van de 74.4 a 87.0, son mucho más altos; por lo tanto, la topología de los grafos de zonificación se conserva en gran medida en los planos de planta generados. Por consiguiente, MHD puede aprender razonablemente bien cómo deben componerse las habitaciones."
+          }
+        },
+        {
+          "id": "s6-p5",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "UN vs. MHD. Fig. 4 shows the qualitative differences between MHD and UN models. One observation is that MHD creates composed shapes in which the distinct areas can be easily separated by the eye. In contrast, UN models create segmented scenes for which it is less visible which set of pixels belongs to which room. The MIoU scores are, however, much higher for the UN models from which we can conclude that the UN models have a better understanding of the placement of specific rooms in relation to the building structure. Indeed, the example outputs of the UN models clearly show that the central regions in the floor plans are usually corridors, that the balconies are placed outside the building structure, and that the kitchen is usually located close to the living room – characteristics that are to lesser extend present in the floor plans generated by MHD.",
+            "es": "UN vs. MHD. La Fig. 4 muestra las diferencias cualitativas entre los modelos MHD y UN. Una observación es que MHD crea formas compuestas en las que las distintas áreas se pueden separar fácilmente a simple vista. En contraste, los modelos UN crean escenas segmentadas en las que es menos visible qué conjunto de píxeles pertenece a qué habitación. Sin embargo, los puntajes de MIoU son mucho más altos para los modelos UN, de lo cual podemos concluir que los modelos UN tienen una mejor comprensión de la colocación de habitaciones específicas en relación con la estructura del edificio. En efecto, las salidas de ejemplo de los modelos UN muestran claramente que las regiones centrales de los planos de planta suelen ser pasillos, que los balcones se colocan fuera de la estructura del edificio y que la cocina suele ubicarse cerca de la sala, características que están presentes en menor medida en los planos de planta generados por MHD."
+          }
+        },
+        {
+          "id": "s6-p6",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "The discrepancy in the performance (in MIoU) might stem from the different losses. Clearly, the loss of UN (cross-entropy at pixel level) is closely aligned with evaluating MIoU. However, in the case of MHD, the loss and evaluation are not necessarily as closely aligned. The objective is similar to other diffusion models: at each iteration, you randomly select a time-step t and learn a mapping for the reverse noise, which is parameterized by a neural network as eθ (Cl,m, t). Hence, the neural network eθ (•, •) learns to effectively denoise corner points for a given time step. This is not necessarily the same as learning a mapping from input (structure and graph) to a fixed output (floor plan layout), which could for a part explain the discrepancy in performance.",
+            "es": "La discrepancia en el desempeño (en MIoU) podría deberse a las diferentes funciones de pérdida (losses). Claramente, la pérdida de UN (entropía cruzada a nivel de píxel) está estrechamente alineada con la evaluación del MIoU. Sin embargo, en el caso de MHD, la pérdida y la evaluación no están necesariamente tan estrechamente alineadas. El objetivo es similar al de otros modelos de difusión: en cada iteración, se selecciona aleatoriamente un paso de tiempo t y se aprende un mapeo para el ruido inverso, que se parametriza mediante una red neuronal como eθ (Cl,m, t). Por lo tanto, la red neuronal eθ (•, •) aprende a eliminar eficazmente el ruido de los puntos de esquina para un paso de tiempo dado. Esto no es necesariamente lo mismo que aprender un mapeo de la entrada (estructura y grafo) a una salida fija (diseño del plano de planta), lo cual podría explicar en parte la discrepancia en el desempeño."
+          }
+        },
+        {
+          "id": "s6-h1",
+          "type": "heading",
+          "page": 13,
+          "text": {
+            "en": "6.1 Ablation studies",
+            "es": "6.1 Estudios de ablación"
+          }
+        },
+        {
+          "id": "s6-p7",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "UN. From Tab. 2, the effects of adding the GCN and/or pre-processing are significant and increase MIoU. The impact of the GCN is most significant for smaller building complexes. The MIoU scores for larger floor plans are comparable across the three methods, which suggests that the GCN struggles with larger graphs, emphasizing the need for graph models that can cope better with both small- as well as large graphs. The examples in Fig. 4 show that the addition of the pre-processing tends to improve the placement of the areas within the interior of the building.",
+            "es": "UN. De la Tab. 2, los efectos de añadir la GCN y/o el preprocesamiento son significativos y aumentan el MIoU. El impacto de la GCN es más significativo en los complejos de edificios más pequeños. Los puntajes de MIoU para los planos de planta más grandes son comparables entre los tres métodos, lo que sugiere que la GCN tiene dificultades con grafos más grandes, y subraya la necesidad de modelos de grafos que puedan manejar mejor tanto los grafos pequeños como los grandes. Los ejemplos de la Fig. 4 muestran que la adición del preprocesamiento tiende a mejorar la colocación de las áreas dentro del interior del edificio."
+          }
+        },
+        {
+          "id": "s6-p8",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "MHD. Observed from the generated examples in Fig. 4, adding WCA leads to floor plans that follow the building structure reasonably well. This is also shown by the increase in MIoU scores between the models with and without WCA. However, the addition of WCA leads to degraded graph compatibility, likely because when conditioning on the building structure, the model has to learn to place rooms along the existing structure, instead of only placing rooms relative to each other. The model that uses the minimum rotated rectangle (MRR) approximation performs better than the model with full polygons (POL), both on MIoU and compatibility, which we attribute to the following potential causes. First, some rooms in MSD have many corners and are likely more complicated to learn. Second, the number of corners for POL is sampled independently of the building structure, which can lead to room polygons having too few or too many corners to fit the building structure.",
+            "es": "MHD. Según se observa en los ejemplos generados de la Fig. 4, añadir WCA produce planos de planta que siguen razonablemente bien la estructura del edificio. Esto también se muestra en el aumento de los puntajes de MIoU entre los modelos con y sin WCA. Sin embargo, la adición de WCA degrada la compatibilidad de grafos, probablemente porque, al condicionar a la estructura del edificio, el modelo tiene que aprender a colocar las habitaciones a lo largo de la estructura existente, en lugar de colocarlas solo en relación unas con otras. El modelo que usa la aproximación de rectángulo rotado mínimo (MRR) tiene un mejor desempeño que el modelo con polígonos completos (POL), tanto en MIoU como en compatibilidad, lo cual atribuimos a las siguientes posibles causas. Primero, algunas habitaciones en MSD tienen muchas esquinas y probablemente son más complicadas de aprender. Segundo, el número de esquinas para POL se muestrea de manera independiente de la estructura del edificio, lo que puede dar lugar a polígonos de habitaciones con muy pocas o demasiadas esquinas para ajustarse a la estructura del edificio."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 14,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Fig. 4: Example generations of MHD and UN. Columns 1 and 2 show the inputs: the zone graph and building structure respectively. Columns 3 - 6 show the floor plans generated by the MHD variants. Columns 7 - 9 show the floor plans generated by the UN variants. Column 10 shows the ground truth.",
+            "es": "Figura 4: Ejemplos de generaciones de MHD y UN. Las columnas 1 y 2 muestran las entradas: el grafo de zonas y la estructura del edificio, respectivamente. Las columnas 3 - 6 muestran los planos de planta generados por las variantes de MHD. Las columnas 7 - 9 muestran los planos de planta generados por las variantes de UN. La columna 10 muestra la referencia real (ground truth)."
+          }
+        },
+        {
+          "id": "s6-p9",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Overall, the floor plans often look infeasible. We could, however, train MHD on RPLAN successfully (see suppl. materials); hence, we believe that the poor results do not come from improper training. Instead, we attribute the poor results to the more complex benchmark we set: more complex graphs; more irregularly shaped rooms; unit connectivity; no axis alignment; etc.",
+            "es": "En general, los planos de planta a menudo parecen inviables. Sin embargo, pudimos entrenar MHD con éxito en RPLAN (véase el material suplementario); por lo tanto, creemos que los malos resultados no se deben a un entrenamiento inadecuado. En cambio, atribuimos los malos resultados al referente de evaluación (benchmark) más complejo que planteamos: grafos más complejos; habitaciones de formas más irregulares; conectividad entre unidades; ausencia de alineación con los ejes; etc."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "title": {
+        "en": "7 Conclusion",
+        "es": "7 Conclusión"
+      },
+      "blocks": [
+        {
+          "id": "s7-p1",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "We developed MSD – a large-scale floor plan dataset of building complexes. In contrast to the other floor plan datasets, MSD contains more complex floor plans. To test the generalizability and scaling of the current state-of-the-art floor plan generation method to MSD, we developed two baseline models. The baseline models were highly inspired by previous works and only altered where needed. Our experiments show that the generation of more complex, hence more realistic, floor plans cannot yet be properly addressed by strategies that are currently most promising in floor plan generation. To address real-world floor plan design, our benchmark asks for even smarter methods in the future. Acknowledgment: We would like to thank all architects and students who participated in our user study (see suppl. mat.).",
+            "es": "Desarrollamos MSD, un conjunto de datos a gran escala de planos de planta de complejos de edificios. A diferencia de otros conjuntos de datos de planos de planta, MSD contiene planos de planta más complejos. Para probar la generalización y la escalabilidad del método de generación de planos de planta de vanguardia actual en MSD, desarrollamos dos modelos de referencia. Los modelos de referencia se inspiraron en gran medida en trabajos previos y solo se modificaron cuando fue necesario. Nuestros experimentos muestran que la generación de planos de planta más complejos y, por lo tanto, más realistas aún no puede abordarse adecuadamente con las estrategias que actualmente son las más prometedoras en la generación de planos de planta. Para abordar el diseño de planos de planta del mundo real, nuestro referente de evaluación exige métodos aún más inteligentes en el futuro. Agradecimientos: Queremos agradecer a todos los arquitectos y estudiantes que participaron en nuestro estudio con usuarios (véase el material suplementario)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "1. Dodge, S., Xu, J., Stenger, B.: Parsing Floor Plan Images. In: Int. Conf. Mach. Vis. Appl. (2017) 2. van Engelenburg, C., Khademi, S., van Gemert, J.: SSIG: A Visually-Guided Graph Edit Distance for Floor Plan Similarity. In: Int. Conf. Comput. Vis. Worksh. (2023) 3. Gonzalez, R., Woods, R., Masters, B.: Digital Image Processing (3rd Ed.). J. Biomed. Opt. (2009) 4. Goyal, S., Mistry, V., Chattopadhyay, C., Bhatnagar, G.: BRIDGE: Building Plan Repository for Image Description Generation, and Evaluation. In: Int. Conf. Doc. Anal. Recog. (2019) 5. de las Heras, L.P., Terrades, O.R., Robles, S., Sánchez, G.: CVC-FP and SGT: A New Database for Structural Floor Plan Analysis and Its Groundtruthing Tool. Int. J. Doc. Anal. Recog. 18 (2015) 6. Hu, R., Huang, Z., Tang, Y., Van Kaick, O., Zhang, H., Huang, H.: Graph2Plan: Learning Floorplan Generation From Layout Graphs. ACM Trans. Graph. 39 (2020) 7. Kalervo, A., Ylioinas, J., Häikiö, M., Karhu, A., Kannala, J.: CubiCasa5K: A Dataset and an Improved Multi-task Model for Floorplan Image Analysis. In: Scan-dinavian. C. Im. Anal. pp. 28–40 (2019) 8. Khodabakhshi, K., Khaghani, S., Garmaroodi, A.A.: A Procedural Approach for Configuration of Residential Activities Based on Users’ Needs and Architectural Guidelines. Nexus Network Journal (2022) 9. Kipf, T.N., Welling, M.: Semi-Supervised Classification with Graph Convolutional Networks. In: Int. Conf. Learn. Represent. (2017) 10. Kirillov, A., Mintun, E., Ravi, N., Mao, H., Rolland, C., Gustafson, L., Xiao, T., Whitehead, S., Berg, A.C., Lo, W.Y., Dollár, P., Girshick, R.: Segment Anything. http://arxiv.org/abs/2304.02643 (2023) 11. Lam, L., Lee, S.W., Suen, C.: Thinning Methodologies: A Comprehensive Survey. IEEE Trans. Pattern Anal. Mach. Intell. 14 (1992) 12. Liu, C., Wu, J., Kohli, P., Furukawa, Y.: Raster-To-Vector: Revisiting Floorplan Transformation. In: Int. Conf. Comput. Vis. (2017) 13. Ltd., L.C.: LIFULL Home’s - A Large-scale Database of Residential Floor Plans. https://www.nii.ac.jp/dsc/idr/en/lifull/ (2015) 14. Lu, Z., Wang, T., Guo, J., Meng, W., Xiao, J., Zhang, W., Zhang, X.: Data-driven Floor Plan Understanding in Rural Residential Buildings via Deep Recognition. Information Sciences 567 (2021) 15. Luo, Z., Huang, W.: FloorplanGAN: Vector Residential Floorplan Adversarial Gen-eration. Automation in Construction 142 (2022) 16. Mostafavi, F., Tahsildoost, M., Zomorodian, Z.: Energy Efficiency and Carbon Emission in High-rise Buildings: A Review (2005-2020). Building and Environment 206 (2021) 17. Müller, P., Wonka, P., Haegler, S., Ulmer, A., Van Gool, L.: Procedural Modeling of Buildings. ACM Trans. Graph. 25 (2006) 18. Nauata, N., Chang, K.H., Cheng, C.Y., Mori, G., Furukawa, Y.: House-GAN: Re-lational Generative Adversarial Networks for Graph-Constrained House Layout Generation. In: Eur. Conf. Comput. Vis. (2020) 19. Nauata, N., Hosseini, S., Chang, K.H., Chu, H., Cheng, C.Y., Furukawa, Y.: House-GAN++: Generative Adversarial Layout Refinement Network towards Intelligent Computational Agent for Professional Architects. In: IEEE Conf. Comput. Vis. Pattern Recog. (2021)"
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "20. Peng, C.H., Yang, Y.L., Wonka, P.: Computing Layouts with Deformable Tem-plates. TOG 33 (2014) 21. Pizarro, P.N., Hitschfeld, N., Sipiran, I., Saavedra, J.M.: Automatic Floor Plan Analysis and Recognition. Automation in Construction 140 (2022) 22. Ronneberger, O., Fischer, P., Brox, T.: U-Net: Convolutional Networks for Biomed-ical Image Segmentation. In: Navab, N., Hornegger, J., Wells, W.M., Frangi, A.F. (eds.) Medical Im. Computation and Computer Assist. Interventions. Springer In-ternational Publishing (2015) 23. Sanfeliu, A., Fu, K.S.: A Distance Measure Between Attributed Relational Graphs for Pattern Recognition. IEEE Transactions on Systems, Man, and Cybernetics 13 (1983) 24. Shabani, M.A., Hosseini, S., Furukawa, Y.: HouseDiffusion: Vector Floorplan Gen-eration via a Diffusion Model with Discrete and Continuous Denoising. In: IEEE Conf. Comput. Vis. Pattern Recog. Vancouver, BC, Canada (2023) 25. Sharma, D., Gupta, N., Chattopadhyay, C., Mehta, S.: DANIEL: A Deep Architec-ture for Automatic Analysis and Retrieval of Building Floor Plans. In: Int. Conf. Doc. Anal. Recog. vol. 01 (2017) 26. Standfest, M., Franzen, M., Schröder, Y., Medina, L.G., Hernandez, Y.V., Buck, J.H., Tan, Y.L., Niedzwiecka, M., Colmegna, R.: Swiss Dwellings: A Large Dataset of Apartment Models Including Aggregated Geolocation-based Simulation Results Covering Viewshed, Natural Light, Traffic Noise, Centrality and Geometric Anal-ysis. https://zenodo.org/records/7788422 (2022) 27. Sun, J., Wu, W., Liu, L., Min, W., Zhang, G., Zheng, L.: WallPlan: Synthesizing Floorplans by Learning to Generate Wall Graphs. ACM Trans. Graph. 41 (2022) 28. Surikov, I.Y., Nakhatovich, M.A., Belyaev, S.Y., Savchuk, D.A.: Floor Plan Recog-nition and Vectorization Using Combination UNet, Faster-RCNN, Statistical Com-ponent Analysis and Ramer-Douglas-Peucker. In: Computing Science, Communi-cation and Security (2020) 29. Swaileh, W., Kotzinos, D., Ghosh, S., Jordan, M., Vu, N.S., Qian, Y.: Versailles-FP Dataset: Wall Detection in Ancient Floor Plans. In: Int. Conf. Doc. Anal. Recog. (2021) 30. Tang, H., Shao, L., Sebe, N., Gool, L.V.: Graph Transformer GANs with Graph Masked Modeling for Architectural Layout Generation. IEEE Trans. Pattern Anal. Mach. Intell. (2024) 31. Upadhyay, A., Dubey, A., Arora, V., Kuriakose, S.M., Agarawal, S.: FLNet: Graph Constrained Floor Layout Generation. In: Int. C. Multimedia Expo Worksh. (2022) 32. Veličković, P., Cucurull, G., Casanova, A., Romero, A., Liò, P., Bengio, Y.: Graph Attention Networks. In: Int. Conf. Learn. Represent. (2018) 33. Wu, W., Fu, X.M., Tang, R., Wang, Y., Qi, Y.H., Liu, L.: Data-driven Interior Plan Generation for Residential Buildings. ACM Trans. Graph. 38 (2019) 34. Yin, Y., Hutchcroft, W., Khosravan, N., Boyadzhiev, I., Fu, Y., Kang, S.B.: Gen-erating Topological Structure of Floorplans from Room Attributes. In: ACM Int. Conf. Multimedia (2022) 35. Zhang, F., Nauata, N., Furukawa, Y.: Conv-MPN: Convolutional Message Passing Neural Network for Structured Outdoor Architecture Reconstruction. In: IEEE Conf. Comput. Vis. Pattern Recog. (2020)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "supplementary-materials-msd-a-benchmark",
+      "title": {
+        "en": "Supplementary Materials: MSD: A Benchmark",
+        "es": "Materiales suplementarios: MSD: un banco de pruebas (benchmark)"
+      },
+      "blocks": [
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h1",
+          "type": "heading",
+          "page": 17,
+          "text": {
+            "en": "Dataset for Floor Plan Generation of Building",
+            "es": "Conjunto de datos (dataset) para la generación de planos de planta (floor plan) de"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h2",
+          "type": "heading",
+          "page": 17,
+          "text": {
+            "en": "Complexes",
+            "es": "complejos de edificios"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h3",
+          "type": "heading",
+          "page": 17,
+          "text": {
+            "en": "8 Dataset of MSD",
+            "es": "8 Conjunto de datos de MSD"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h4",
+          "type": "heading",
+          "page": 17,
+          "text": {
+            "en": "8.1 Categorization and ID nesting",
+            "es": "8.1 Categorización y anidación de ID"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p1",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "The Swiss Dwellings dataset (SD) [26] is stored as a large dataframe1. Each row in the dataframe corresponds to a geometrical detail e.g. living room, wall element, or balcony. The entity has a type and, further nested, subtype categorization (which form two of the columns in the dataframe):",
+            "es": "El conjunto de datos Swiss Dwellings (SD) [26] se almacena como un marco de datos (dataframe) grande1. Cada fila del marco de datos corresponde a un detalle geométrico, por ejemplo, una sala de estar, un elemento de muro o un balcón. La entidad tiene una categorización por tipo y, anidada dentro de este, por subtipo (que conforman dos de las columnas del marco de datos):"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p2",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "– The \"feature\" type includes the following subtypes: \"washing machine\",",
+            "es": "– El tipo \"feature\" incluye los siguientes subtipos: \"washing machine\","
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p3",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "\"shower\", \"bathtub\", \"kitchen\", \"elevator\", \"built in furniture\", \"stairs\", \"toilet\", \"sink\", \"ramp\". – The \"separator\" type includes the following subtypes: \"wall\", \"railing\",",
+            "es": "\"shower\", \"bathtub\", \"kitchen\", \"elevator\", \"built in furniture\", \"stairs\", \"toilet\", \"sink\", \"ramp\". – El tipo \"separator\" incluye los siguientes subtipos: \"wall\", \"railing\","
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p4",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "\"column\". – The \"opening\" type includes the following subtypes: \"entrance door\", \"window\", \"door\". – The \"area\" type includes the following subtypes:: \"radiation therapy\", \"office\", \"corridors and halls\", \"wintergarten\", \"salesroom\", \"studio\", \"open plan office\", \"outdoor void\", \"electrical supply\", \"workshop\", \"physio and rehabilitation\", \"living dining\", \"not defined\", \"shaft\", \"carpark\", \"corridor\", \"air\", \"dedicated medical room\", \"office space\", \"water supply\", \"garage\", \"medical room\", \"elevator\", \"balcony\", \"sanitary rooms\", \"staircase\", \"vehicle traffic area\", \"cold storage\", \"meeting room\", \"living room\", \"factory room\", \"showroom\", \"oil tank\", \"office tech room\", \"bedroom\", \"foyer\", \"room\", \"patio\", \"teaching room\", \"elevator facilities\", \"logistics\", \"garden\", \"canteen\", \"community room\", \"gas\",\"operations facilities\", \"storeroom\", \"lobby\", \"shelter\", \"cloakroom\", \"technical area\", \"dining\", \"warehouse\", \"basement compartment\", \"loggia\", \"reception room\", \"bathroom\", \"basement\", \"common kitchen\", \"pram and bike storage room\", \"bike storage\", \"break room\", \"house technics facilities\", \"lightwell\", \"counter room\", \"transport shaft\", \"wash and dry room\", \"terrace\", \"arcade\", \"waiting room\", \"void\", \"heating\", \"kitchen\", \"sports rooms\", \"pram\", \"kitchen dining\", \"archive\".",
+            "es": "\"column\". – El tipo \"opening\" incluye los siguientes subtipos: \"entrance door\", \"window\", \"door\". – El tipo \"area\" incluye los siguientes subtipos: \"radiation therapy\", \"office\", \"corridors and halls\", \"wintergarten\", \"salesroom\", \"studio\", \"open plan office\", \"outdoor void\", \"electrical supply\", \"workshop\", \"physio and rehabilitation\", \"living dining\", \"not defined\", \"shaft\", \"carpark\", \"corridor\", \"air\", \"dedicated medical room\", \"office space\", \"water supply\", \"garage\", \"medical room\", \"elevator\", \"balcony\", \"sanitary rooms\", \"staircase\", \"vehicle traffic area\", \"cold storage\", \"meeting room\", \"living room\", \"factory room\", \"showroom\", \"oil tank\", \"office tech room\", \"bedroom\", \"foyer\", \"room\", \"patio\", \"teaching room\", \"elevator facilities\", \"logistics\", \"garden\", \"canteen\", \"community room\", \"gas\",\"operations facilities\", \"storeroom\", \"lobby\", \"shelter\", \"cloakroom\", \"technical area\", \"dining\", \"warehouse\", \"basement compartment\", \"loggia\", \"reception room\", \"bathroom\", \"basement\", \"common kitchen\", \"pram and bike storage room\", \"bike storage\", \"break room\", \"house technics facilities\", \"lightwell\", \"counter room\", \"transport shaft\", \"wash and dry room\", \"terrace\", \"arcade\", \"waiting room\", \"void\", \"heating\", \"kitchen\", \"sports rooms\", \"pram\", \"kitchen dining\", \"archive\"."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p5",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "Here, the blue indicates which subtype category names are shared between the \"feature\" and \"area\" types.",
+            "es": "Aquí, el azul indica qué nombres de categorías de subtipo se comparten entre los tipos \"feature\" y \"area\"."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p6",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "1 A dataframe is defined as a two-dimensional data structure, for which the naming is borrowed from the Pandas library in Python.",
+            "es": "1 Un marco de datos se define como una estructura de datos bidimensional, cuyo nombre se toma prestado de la biblioteca Pandas de Python."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p7",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "In addition to the type and subtype categories, each entity contains metadata about the relation to other entities. This relation is resembled by the nested positioning of the entities across different sites, buildings, floors, apartments, and units. The most high-level positional identifier (ID) is the site ID which tells you on which site the entity is located. A site could, for instance, be a set of buildings in the same neighborhood (in which the different buildings are likely to share similar characteristics). Second is the building ID which tells you in which building the entity is located. Third is the plan ID which corresponds to the floor plan layout prototype that the entity is part of. Fourth is the floor ID which corresponds to a particular floor at a specific elevation in a building. It is noteworthy to mention that different floors can originate from the same plan ID. Fifth is the apartment ID which tells you from which apartment the entity originates. It is important to note that the apartment ID is shared across different floors in the case of multi-story apartments i.e. apartments that stretch across multiple levels. Sixth and final is the unit ID which indicates from which apartment the entity originates. In contrast to the apartment ID, the unit ID is different for each floor.",
+            "es": "Además de las categorías de tipo y subtipo, cada entidad contiene metadatos sobre su relación con otras entidades. Esta relación se refleja en el posicionamiento anidado de las entidades a través de distintos sitios, edificios, pisos, apartamentos y unidades. El identificador (ID) posicional de más alto nivel es el ID de sitio, que indica en qué sitio se ubica la entidad. Un sitio podría ser, por ejemplo, un conjunto de edificios del mismo vecindario (en el cual es probable que los distintos edificios compartan características similares). El segundo es el ID de edificio, que indica en qué edificio se ubica la entidad. El tercero es el ID de plano, que corresponde al prototipo de distribución del plano de planta del que forma parte la entidad. El cuarto es el ID de piso, que corresponde a un piso particular a una elevación específica en un edificio. Cabe destacar que distintos pisos pueden originarse del mismo ID de plano. El quinto es el ID de apartamento, que indica de qué apartamento proviene la entidad. Es importante señalar que el ID de apartamento se comparte entre distintos pisos en el caso de los apartamentos de varios niveles, es decir, los apartamentos que se extienden a lo largo de múltiples niveles. El sexto y último es el ID de unidad, que indica de qué apartamento proviene la entidad. A diferencia del ID de apartamento, el ID de unidad es distinto para cada piso."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p8",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "Type, subtype, geometry, site ID, building ID, plan ID, floor ID, apartment ID, and unit ID define – besides other meta-level information such as elevation – the columns of the dataframe. The geometry is defined as a polygon, formatted as well-known text (WKT).",
+            "es": "El tipo, el subtipo, la geometría, el ID de sitio, el ID de edificio, el ID de plano, el ID de piso, el ID de apartamento y el ID de unidad definen —además de otra información de metanivel, como la elevación— las columnas del marco de datos. La geometría se define como un polígono, con formato de texto bien conocido (well-known text, WKT)."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h5",
+          "type": "heading",
+          "page": 18,
+          "text": {
+            "en": "8.2 Filtering details",
+            "es": "8.2 Detalles del filtrado"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p9",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "For filtering and cleaning, we follow the steps provided in Section 3. Some details that were not mentioned specifically in the main text are provided below:",
+            "es": "Para el filtrado y la limpieza, seguimos los pasos indicados en la Sección 3. A continuación se presentan algunos detalles que no se mencionaron específicamente en el texto principal:"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p10",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "– Feature removal. All entities that are a \"feature\" (see Sec. 8.1) are removed entirely from the dataframe. – Residential-only filtering. All floor plans that contain at least one entity for which the subtype category is not to be found in residential buildings (the subtypes indicated in red in Sec. 8.1) are removed from the dataframe.",
+            "es": "– Eliminación de \"features\". Todas las entidades que son un \"feature\" (véase la Sec. 8.1) se eliminan por completo del marco de datos. – Filtrado exclusivo de uso residencial. Se eliminan del marco de datos todos los planos de planta que contienen al menos una entidad cuya categoría de subtipo no se encuentra en edificios residenciales (los subtipos indicados en rojo en la Sec. 8.1)."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p11",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "In addition to the filtering steps above, we remove floor plans that have too many small disconnected parts. Specifically, we remove all floor plans that have 2 or more areas that are fully disconnected in the room graph (read: that are \"floating\" in the floor plan); removing an extra 388 (2.8%) floor plans.",
+            "es": "Además de los pasos de filtrado anteriores, eliminamos los planos de planta que tienen demasiadas partes pequeñas desconectadas. En concreto, eliminamos todos los planos de planta que tienen 2 o más áreas completamente desconectadas en el grafo de habitaciones (es decir, que están \"flotando\" en el plano de planta); con ello se eliminan 388 (2.8%) planos de planta adicionales."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h6",
+          "type": "heading",
+          "page": 18,
+          "text": {
+            "en": "8.3 Image extraction",
+            "es": "8.3 Extracción de imágenes"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p12",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "The coordinates, x (east-to-west) and y (south-to-north), of the geometries in the dataframe are defined in meters and are usually centered around (x, y) = (0, 0) for a given floor plan. To retain the information of the original coordinates within the image, two extra channels are added on top of the image canvas representing x and y. The mappings from x and y to the corresponding pixel locations xi and yi (both defined on [0, 512]) for a given image size s (assumed to be square) are given by: x b e gin { ali gned} e x t colo r {r ed}{x_ where ∆x = xmax −xmin is the ’width’ of the floor plan, ∆y = ymax −ymin is the ’height’ of the floor plan, ∆xy = ∆x −∆y and ∆yx = −∆xy are the relative differences between width and height, and [·]+ = max (0, ·). The red part maps all coordinate values above 0; the green part makes sure to put the floor plan in the middle of the square that starts at (0, 0) and extends to (max(∆x, ∆y), max(∆x, ∆y)); the blue part makes sure to scale the square to the image domain.",
+            "es": "Las coordenadas, x (de este a oeste) y y (de sur a norte), de las geometrías del marco de datos se definen en metros y por lo general están centradas alrededor de (x, y) = (0, 0) para un plano de planta dado. Para conservar dentro de la imagen la información de las coordenadas originales, se agregan dos canales adicionales sobre el lienzo de la imagen que representan x y y. Las asignaciones de x y y a las ubicaciones de píxel correspondientes xi y yi (ambas definidas en [0, 512]) para un tamaño de imagen dado s (que se supone cuadrada) están dadas por: x b e gin { ali gned} e x t colo r {r ed}{x_ donde ∆x = xmax −xmin es el 'ancho' del plano de planta, ∆y = ymax −ymin es el 'alto' del plano de planta, ∆xy = ∆x −∆y y ∆yx = −∆xy son las diferencias relativas entre el ancho y el alto, y [·]+ = max (0, ·). La parte roja asigna todos los valores de coordenadas por encima de 0; la parte verde asegura colocar el plano de planta en el centro del cuadrado que comienza en (0, 0) y se extiende hasta (max(∆x, ∆y), max(∆x, ∆y)); la parte azul asegura escalar el cuadrado al dominio de la imagen."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h7",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "8.4 Statistics",
+            "es": "8.4 Estadísticas"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p13",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "With a total of 5.3K+ floor plans, containing 18.9K+ units, and covering 165.3K+ areas, MSD is one of the few publicly available large-scale floor plan datasets2. Fig. 5 shows the room and unit distributions for MSD.",
+            "es": "Con un total de 5.3K+ planos de planta, que contienen 18.9K+ unidades y abarcan 165.3K+ áreas, MSD es uno de los pocos conjuntos de datos de planos de planta a gran escala disponibles públicamente2. La Fig. 5 muestra las distribuciones de habitaciones y unidades de MSD."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 19,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Fig. 5: Area and unit distributions MSD. The unit distribution per floor (right), area distribution per floor (middle), and area distribution per unit (right) are plotted as histograms. The x-axis specifies the number of units or areas, and the y-axis specifies the frequency. From the unit distribution plot, it is apparent that MSD comprises mostly floor plans that contain between 2 to 9 units. MSD comprises mostly floor plans that have between 15 and 50 areas, with a peak of around 25. The area distribution per unit is similar to RPLAN [33] and LIFULL [13], ranging between 3 and 15 areas per unit and a median around 7 areas per unit.",
+            "es": "Figura 5: Distribuciones de áreas y unidades de MSD. La distribución de unidades por piso (derecha), la distribución de áreas por piso (centro) y la distribución de áreas por unidad (derecha) se grafican como histogramas (histograms). El eje x especifica el número de unidades o áreas, y el eje y especifica la frecuencia. A partir de la gráfica de distribución de unidades, es evidente que MSD comprende principalmente planos de planta que contienen entre 2 y 9 unidades. MSD comprende principalmente planos de planta que tienen entre 15 y 50 áreas, con un pico de alrededor de 25. La distribución de áreas por unidad es similar a la de RPLAN [33] y LIFULL [13], con un rango entre 3 y 15 áreas por unidad y una mediana de alrededor de 7 áreas por unidad."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p14",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "2 For details on the sizes of the other floor plan datasets, please refer to [21].",
+            "es": "2 Para más detalles sobre los tamaños de los otros conjuntos de datos de planos de planta, consúltese [21]."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h8",
+          "type": "heading",
+          "page": 20,
+          "text": {
+            "en": "9 Graph extraction from generated outputs",
+            "es": "9 Extracción de grafos a partir de las salidas generadas"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p15",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "In our work, we have set the floor plan generation task to predict only walls and areas – not doors. Therefore, we cannot reliably extract the room graph, ˆgr3, from the predicted floor plan because the edge formation critically depends on the door locations. Instead, we extract the adjacency graph, ˆga, from the predicted floor plan in which the edges are formed when geometries are close enough. Note that the set of nodes of ˆgr and ˆga are equivalent, and that the set of edges can be different.",
+            "es": "En nuestro trabajo, hemos planteado la tarea de generación de planos de planta de modo que solo se predigan muros y áreas, no puertas. Por lo tanto, no podemos extraer de manera confiable el grafo de habitaciones (room graph), ˆgr3, del plano de planta predicho, porque la formación de las aristas depende críticamente de la ubicación de las puertas. En su lugar, extraemos el grafo de adyacencia (adjacency graph), ˆga, del plano de planta predicho, en el cual las aristas se forman cuando las geometrías están lo suficientemente cerca. Obsérvese que el conjunto de nodos de ˆgr y ˆga es equivalente, y que el conjunto de aristas puede ser distinto."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p16",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "For the graph extraction strategy, we use an algorithmic approach to extract ˆga. Specifically, we assign an edge between a pair of nodes if and only if the minimum distance between the areas of that pair does not exceed a preset maximum distance, which is referred to as the buffer distance. For an image size of 512, we set the buffer distance to 5. Note that when two areas are overlapping, the minimum distance is 0, hence an edge is formed between overlapping areas.",
+            "es": "Para la estrategia de extracción de grafos, utilizamos un enfoque algorítmico para extraer ˆga. En concreto, asignamos una arista entre un par de nodos si y solo si la distancia mínima entre las áreas de ese par no excede una distancia máxima preestablecida, a la que se denomina distancia de búfer (buffer distance). Para un tamaño de imagen de 512, fijamos la distancia de búfer en 5. Obsérvese que cuando dos áreas se superponen, la distancia mínima es 0, por lo que se forma una arista entre áreas superpuestas."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 20,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Fig. 6: Graph compatibility computation. Left: predicted floor plan including ˆga. Right: ground truth floor plan including gr. The set of edges in gr that is retained in ˆga is colored in red. The node correspondence is made visual by enumerating the nodes graphically. The graph compatibility is computed by dividing the amount of red edges from ˆga by the total amount of edges in gr, equaling 25/30 = 0.83.",
+            "es": "Figura 6: Cálculo de la compatibilidad de grafos (graph compatibility). Izquierda: plano de planta predicho, incluido ˆga. Derecha: plano de planta de referencia (ground truth), incluido gr. El conjunto de aristas de gr que se conserva en ˆga está coloreado en rojo. La correspondencia de nodos se hace visible enumerando los nodos gráficamente. La compatibilidad de grafos se calcula dividiendo la cantidad de aristas rojas de ˆga entre la cantidad total de aristas de gr, lo que resulta en 25/30 = 0.83."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p17",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "Access connectivity implies adjacency, but adjacency does not necessarily imply access connectivity, which means that the gr is a subgraph of ga. Essentially, the graph compatibility reflects to what extend gr is contained in ˆga, which is done by computing the ratio of the amount of the edges from gr that are retained in ˆga with respect to the total amount of edges in ˆga (see Eq. (3) for details, and Fig. 6 for a visual elaboration).",
+            "es": "La conectividad de acceso implica adyacencia, pero la adyacencia no necesariamente implica conectividad de acceso, lo que significa que gr es un subgrafo de ga. Esencialmente, la compatibilidad de grafos refleja en qué medida gr está contenido en ˆga, lo cual se hace calculando la razón entre la cantidad de aristas de gr que se conservan en ˆga y la cantidad total de aristas en ˆga (véase la Ec. (3) para más detalles y la Fig. 6 para una elaboración visual)."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p18",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "For graph-based approaches e.g., MHD Section 5.1, the process of extracting graphs from predicted layouts can also introduce inaccuracies, particularly",
+            "es": "Para los enfoques basados en grafos, p. ej., MHD, Sección 5.1, el proceso de extraer grafos a partir de distribuciones predichas también puede introducir imprecisiones, en particular"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p19",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "3 We use ˆg to refer to the graph of the predicted floor plan and g to the graph of the ground truth floor plan. Additionally, the subscripts r and a refer to ’room’ and ’adjacency’ graph types. in cases where the predicted layout encompasses numerous overlapping rooms. Nonetheless, our analysis indicates that these instances are infrequent: rooms overlap on average (for MHD) with 4.11±2.25 other rooms. A typical prediction is given in Fig. 6. Therefore, we consider the algorithmic extraction of room edges to be a justifiable method for extracting the room graphs.",
+            "es": "3 Usamos ˆg para referirnos al grafo del plano de planta predicho y g al grafo del plano de planta de referencia. Además, los subíndices r y a se refieren a los tipos de grafo de 'habitaciones' y de 'adyacencia'. en los casos en que la distribución predicha abarca numerosas habitaciones superpuestas. No obstante, nuestro análisis indica que estos casos son poco frecuentes: las habitaciones se superponen en promedio (para MHD) con 4.11±2.25 otras habitaciones. En la Fig. 6 se presenta una predicción típica. Por lo tanto, consideramos que la extracción algorítmica de aristas de habitaciones es un método justificable para extraer los grafos de habitaciones."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h9",
+          "type": "heading",
+          "page": 21,
+          "text": {
+            "en": "10 Modified HouseDiffusion (MHD)",
+            "es": "10 HouseDiffusion modificado (Modified HouseDiffusion, MHD)"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h10",
+          "type": "heading",
+          "page": 21,
+          "text": {
+            "en": "10.1 Node classification with GAT",
+            "es": "10.1 Clasificación de nodos con GAT"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p20",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "We train a GAT model [32] to predict the room graph given the zoning graph. The room and zoning graph are isomorphic, and thus this prediction task can be formulated as a node classification problem.",
+            "es": "Entrenamos un modelo GAT [32] para predecir el grafo de habitaciones a partir del grafo de zonificación (zoning graph). El grafo de habitaciones y el de zonificación son isomorfos, por lo que esta tarea de predicción puede formularse como un problema de clasificación de nodos (node classification)."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p21",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "The GAT model consists of several stacked graph attention convolutional (GATConv) layers. The input to the model consists of the zoning type for each node, as well as the door type for each edge. The output of the last GATConv is concatenated with the initial node features, and subsequently fed into the final linear layer that maps the concatenated feature vectors to the correct output dimension for predicting the room types. Between each hidden layer, a ReLU is used as an activation function. We use dropout for regularization and use the Adam optimizer. The amount of GATConv layers is set to 5, the hidden sizes of each GATConv to 64, the learning rate to 0.001, and the batch size to 128. Including early stopping, for this setting the validation accuracy is 0.893.",
+            "es": "El modelo GAT consta de varias capas convolucionales de atención sobre grafos (graph attention convolutional, GATConv) apiladas. La entrada del modelo consiste en el tipo de zonificación de cada nodo, así como el tipo de puerta de cada arista. La salida de la última GATConv se concatena con las características iniciales del nodo y, posteriormente, se alimenta a la capa lineal final, que asigna los vectores de características concatenados a la dimensión de salida correcta para predecir los tipos de habitación. Entre cada capa oculta se utiliza una ReLU como función de activación. Usamos dropout para la regularización y el optimizador Adam. La cantidad de capas GATConv se fija en 5, los tamaños ocultos de cada GATConv en 64, la tasa de aprendizaje en 0.001 y el tamaño de lote en 128. Incluyendo la parada temprana (early stopping), con esta configuración la exactitud de validación es de 0.893."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h11",
+          "type": "heading",
+          "page": 21,
+          "text": {
+            "en": "10.2 Minimum rotated rectangle approximation (MRR)",
+            "es": "10.2 Aproximación por rectángulo rotado mínimo (MRR)"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p22",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "To be able to represent each area with a fixed number of corners, we propose to take the minimum rotated rectangle of each area. The minimum rotated rectangle of an area is the rotated rectangle that fully encloses the area polygon with minimal area. Approximating the areas of a floor plan by their minimum rotated rectangle (MRR) works best when drawing the area rectangles in order from largest to smallest, such that small areas occlude larger areas (see Fig. 7 for a visual clarification).",
+            "es": "Para poder representar cada área con un número fijo de esquinas, proponemos tomar el rectángulo rotado mínimo de cada área. El rectángulo rotado mínimo de un área es el rectángulo rotado que encierra por completo el polígono del área con un área mínima. Aproximar las áreas de un plano de planta mediante su rectángulo rotado mínimo (minimum rotated rectangle, MRR) funciona mejor cuando los rectángulos de las áreas se dibujan en orden de la más grande a la más pequeña, de modo que las áreas pequeñas ocluyan a las áreas más grandes (véase la Fig. 7 para una aclaración visual)."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 21,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Fig. 7: MRR. Left: the original floor plan (containing polygons with arbitrarily many corners). Middle: the result of applying MRR, but drawn in random order. Right: the result of applying MRR and drawing the largest to the smallest area.",
+            "es": "Figura 7: MRR. Izquierda: el plano de planta original (que contiene polígonos con un número arbitrario de esquinas). Centro: el resultado de aplicar MRR, pero dibujado en orden aleatorio. Derecha: el resultado de aplicar MRR y dibujar de la más grande a la más pequeña de las áreas."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h12",
+          "type": "heading",
+          "page": 22,
+          "text": {
+            "en": "10.3 Diffusion model",
+            "es": "10.3 Modelo de difusión"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p23",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "We borrow the model architecture of HouseDiffusion (HD) [24], and extend it to suite MSD. The attention layer in the transformer model is modified by adding cross attention between room corners and wall segments. Additionally, the relational cross attention (RCA) as defined in HD is modified to incorporate the edge attributes as well. RCA is modified because, in contrast to RPLAN in which areas are solely connected by a door, edges in MSD have a \"connectivity\" attribute representing the type of connectivity being \"door\", \"front door\", or \"passage\".",
+            "es": "Tomamos prestada la arquitectura del modelo de difusión (diffusion model) HouseDiffusion (HD) [24] y la extendemos para adaptarla a MSD. La capa de atención del modelo transformer se modifica agregando atención cruzada (cross attention) entre las esquinas de las habitaciones y los segmentos de muro. Además, la atención cruzada relacional (relational cross attention, RCA) tal como se define en HD se modifica para incorporar también los atributos de las aristas. Se modifica la RCA porque, a diferencia de RPLAN, en el que las áreas se conectan únicamente mediante una puerta, las aristas en MSD tienen un atributo de \"conectividad\" que representa el tipo de conectividad, que puede ser \"door\", \"front door\" o \"passage\"."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p24",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "We set the batch size to 32 and trained for 300k steps. Other hyperparameters are left the same as in HD implementation.",
+            "es": "Fijamos el tamaño de lote en 32 y entrenamos durante 300k pasos. Los demás hiperparámetros se dejan igual que en la implementación de HD."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h13",
+          "type": "heading",
+          "page": 22,
+          "text": {
+            "en": "10.4 Building structure pre-processing",
+            "es": "10.4 Preprocesamiento de la estructura del edificio"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p25",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "To be able to effectively condition MHD on walls, we first convert the binary image of the building structure to a set of straight lines. The line elements are extracted from the binary image of the building structure by following the steps below:",
+            "es": "Para poder condicionar MHD de manera efectiva a los muros, primero convertimos la imagen binaria de la estructura del edificio en un conjunto de líneas rectas. Los elementos de línea se extraen de la imagen binaria de la estructura del edificio siguiendo los pasos a continuación:"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p26",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "– Morphological thinning. We start by morphological thinning of the binary image of the building structure. Morphological thinning (see page 671 in [3], and an overview of thinning techniques in [11]) essentially creates a new binary image in which line thicknesses are reduced to a minimum (ideally one pixel). The resulting binary image is a skeletonized version of the original version. – Skeleton network extraction. From the skeletonized image we extract the skeleton network graph in which nodes represent joints and corners of the skeleton, and edges the geometry of the curves between the nodes. – Simplify skeleton network into set of lines. The edges of the skeleton network graph, which contain the geometry of the curves between two nodes, are converted to a set of straight lines.",
+            "es": "– Adelgazamiento morfológico (morphological thinning). Comenzamos con el adelgazamiento morfológico de la imagen binaria de la estructura del edificio. El adelgazamiento morfológico (véase la página 671 en [3] y un panorama de las técnicas de adelgazamiento en [11]) esencialmente crea una nueva imagen binaria en la que los grosores de línea se reducen a un mínimo (idealmente un píxel). La imagen binaria resultante es una versión esqueletizada de la versión original. – Extracción de la red del esqueleto (skeleton network). A partir de la imagen esqueletizada extraemos el grafo de la red del esqueleto, en el cual los nodos representan las uniones y esquinas del esqueleto, y las aristas, la geometría de las curvas entre los nodos. – Simplificación de la red del esqueleto a un conjunto de líneas. Las aristas del grafo de la red del esqueleto, que contienen la geometría de las curvas entre dos nodos, se convierten en un conjunto de líneas rectas."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p27",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "Fig. 8 visualizes the processing steps of the line extraction algorithm.",
+            "es": "La Fig. 8 visualiza los pasos de procesamiento del algoritmo de extracción de líneas."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h14",
+          "type": "heading",
+          "page": 22,
+          "text": {
+            "en": "10.5 Wall-cross attention (WCA)",
+            "es": "10.5 Atención cruzada de muros (WCA)"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p28",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "Each wall element wi extracted by the line extraction algorithm is a vector that represents the start and end points of the line. Similar to HD, we augment wi by uniformly sampling 7 points between the start and end points. Equivalent to the corner embeddings in HD, a single-layer MLP embeds the 4-D wi into a 512-D embedding vector: ˆwi = MLPw(AUW(wi)), in which AUW is the sampling function (similarly named as in HD). Note that the wall elements do not get updated during the denoising process.",
+            "es": "Cada elemento de muro wi extraído por el algoritmo de extracción de líneas es un vector que representa los puntos inicial y final de la línea. De manera similar a HD, aumentamos wi muestreando uniformemente 7 puntos entre los puntos inicial y final. De forma equivalente a las incrustaciones (embeddings) de esquinas en HD, un MLP de una sola capa incrusta el wi de 4-D en un vector de incrustación de 512-D: ˆwi = MLPw(AUW(wi)), donde AUW es la función de muestreo (nombrada de manera similar a como en HD). Obsérvese que los elementos de muro no se actualizan durante el proceso de eliminación de ruido (denoising)."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p29",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "The wall embeddings are used as additional input to MHD. In the original model, the attention layer consists of three types of masked attention with room corner embeddings. Specifically, the attention module in MHD is modified by adding an extra cross-attention operation between all room corner embeddings and wall embeddings, referred to as wall cross attention (WCA). The room corners are used as a query, and the wall embeddings as keys and values. All attention operations in the attention layer are summed together. Fig. 9 provides a zoomed-in version of Fig. 3.",
+            "es": "Las incrustaciones de muros se utilizan como entrada adicional para MHD. En el modelo original, la capa de atención consta de tres tipos de atención enmascarada con incrustaciones de esquinas de habitaciones. En concreto, el módulo de atención de MHD se modifica agregando una operación adicional de atención cruzada entre todas las incrustaciones de esquinas de habitaciones y las incrustaciones de muros, denominada atención cruzada de muros (wall cross attention, WCA). Las esquinas de las habitaciones se usan como consulta (query), y las incrustaciones de muros como claves (keys) y valores (values). Todas las operaciones de atención de la capa de atención se suman. La Fig. 9 ofrece una versión ampliada de la Fig. 3."
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 23,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Fig. 8: Line element extraction. Top-left: building structure as a binary image in which black indicates the necessary structural elements of the building. Top-right: a skeletonized building structure in which all the walls are reduced to one-pixel width. Bottom-left: a skeleton network graph in which the nodes (joints and corners) are red dots. Bottom-right: a simplified set of straight lines approximating the complete building structure as a set of straight-line elements.",
+            "es": "Figura 8: Extracción de elementos de línea. Arriba a la izquierda: la estructura del edificio como imagen binaria en la que el negro indica los elementos estructurales necesarios del edificio. Arriba a la derecha: una estructura del edificio esqueletizada en la que todos los muros se reducen a un ancho de un píxel. Abajo a la izquierda: un grafo de la red del esqueleto en el que los nodos (uniones y esquinas) son puntos rojos. Abajo a la derecha: un conjunto simplificado de líneas rectas que aproxima la estructura completa del edificio como un conjunto de elementos de línea recta."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h15",
+          "type": "heading",
+          "page": 23,
+          "text": {
+            "en": "10.6 RCA with door type embedding",
+            "es": "10.6 RCA con incrustación del tipo de puerta"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p30",
+          "type": "paragraph",
+          "page": 23,
+          "text": {
+            "en": "We modify the RCA module to discern between different connectivity types. Standard doors, passages, and front doors are each assigned a unique learned embedding. The RCA attention is applied separately for each door type, with the attention mask modified to only act on room corners connected by the specified type. On each application, the room corner embeddings are modified when used as keys and values by summing with the embedding of the door type.",
+            "es": "Modificamos el módulo RCA para distinguir entre distintos tipos de conectividad. A las puertas estándar, los pasajes y las puertas de entrada se les asigna a cada uno una incrustación aprendida única. La atención RCA se aplica por separado para cada tipo de puerta, con la máscara de atención modificada para actuar únicamente sobre las esquinas de habitaciones conectadas por el tipo especificado. En cada aplicación, las incrustaciones de las esquinas de las habitaciones se modifican, cuando se usan como claves y valores, sumándoles la incrustación del tipo de puerta."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h16",
+          "type": "heading",
+          "page": 23,
+          "text": {
+            "en": "11 Graph-informed U-Net",
+            "es": "11 U-Net informada por grafos"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h17",
+          "type": "heading",
+          "page": 23,
+          "text": {
+            "en": "11.1 Visual explanation of model.",
+            "es": "11.1 Explicación visual del modelo."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p31",
+          "type": "paragraph",
+          "page": 23,
+          "text": {
+            "en": "Fig. 10 shows the architecture of the U-Net model coupled with the GCN. While the U-Net learns a representation for the building structure, the GCN learns a representation for the zoning graph. The two representations are concatenated and simultaneously upsampled by the decoder of the U-Net, outputting the floor plan as a segmented image with the same resolution as the building structure.",
+            "es": "La Fig. 10 muestra la arquitectura del modelo U-Net acoplado con la GCN. Mientras que la U-Net aprende una representación de la estructura del edificio, la GCN aprende una representación del grafo de zonificación. Las dos representaciones se concatenan y son aumentadas de resolución (upsampled) simultáneamente por el decodificador (decoder) de la U-Net, que produce el plano de planta como una imagen segmentada con la misma resolución que la estructura del edificio."
+          }
+        },
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 24,
+          "image": "fig/fig-9.png",
+          "text": {
+            "en": "Fig. 9: Modified HouseDiffusion (MHD). A wall encoder is used to map the pre-processed building structure into corresponding wall embeddings. MHD expands HD [24] by introducing an extra attention module (WCA) between the wall embeddings from and corner features of the rooms. A GAT is separately trained to predict the room types from the zoning types, which are used to \"color\" the full layout.",
+            "es": "Fig. 9: HouseDiffusion modificado (Modified HouseDiffusion, MHD). Se utiliza un codificador de muros (wall encoder) para mapear la estructura del edificio preprocesada a los correspondientes embeddings de muros. MHD amplía HD [24] al introducir un módulo de atención adicional (WCA) entre los embeddings de muros y las características de las esquinas de las habitaciones. Una GAT se entrena por separado para predecir los tipos de habitación a partir de los tipos de zonificación, los cuales se utilizan para \"colorear\" el plano completo."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h18",
+          "type": "heading",
+          "page": 24,
+          "text": {
+            "en": "11.2 Boundary pre-processing",
+            "es": "11.2 Preprocesamiento del contorno"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p32",
+          "type": "paragraph",
+          "page": 24,
+          "text": {
+            "en": "Initially, the building structure’s binary image consists purely of the structural necessary components: black (\"0\") for structure and white (\"1\") for nonstructure. To better guide the model, we use Segment Anything [10] to predict the interior and exterior of the floor plans and explicitly input that information as well. Before we use Segment Anything, the binary images is substantially padded with extra pixels (white pixels). The padding ensures that the segmentation algorithm can reliably infer the largest area as the exterior, even in cases where the building structure is not completely closed. Once the masks are created, the largest mask is selected as background. The pre-processed image contains the following channels:",
+            "es": "Inicialmente, la imagen binaria de la estructura del edificio consta únicamente de los componentes estructurales necesarios: negro (\"0\") para la estructura y blanco (\"1\") para lo no estructural. Para guiar mejor al modelo, utilizamos Segment Anything [10] para predecir el interior y el exterior de los planos y también introducimos esa información de forma explícita. Antes de usar Segment Anything, a las imágenes binarias se les añade un relleno (padding) considerable de píxeles adicionales (píxeles blancos). El relleno garantiza que el algoritmo de segmentación pueda inferir de manera confiable que el área más grande es el exterior, incluso en los casos en que la estructura del edificio no esté completamente cerrada. Una vez creadas las máscaras, se selecciona la máscara más grande como fondo. La imagen preprocesada contiene los siguientes canales:"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p33",
+          "type": "paragraph",
+          "page": 24,
+          "text": {
+            "en": "1. \"In-wall-out\". This channel marks the interior of the building as ’1’, the boundaries as ’0.5’, and the exterior as ’0’. 2. \"In-out\". This channel marks the interior of the building as ’1’ and the exterior as ’0’, focusing on distinguishing between the interior and exterior spaces without structural details. 3. \"Raw-boundary\". This channel contains the original building structure.",
+            "es": "1. \"In-wall-out\". Este canal marca el interior del edificio como '1', los límites como '0.5' y el exterior como '0'. 2. \"In-out\". Este canal marca el interior del edificio como '1' y el exterior como '0', centrándose en distinguir entre los espacios interiores y exteriores sin detalles estructurales. 3. \"Raw-boundary\". Este canal contiene la estructura original del edificio."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h19",
+          "type": "heading",
+          "page": 25,
+          "text": {
+            "en": "11.3 Model, training, and evaluation details",
+            "es": "11.3 Detalles del modelo, el entrenamiento y la evaluación"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p34",
+          "type": "paragraph",
+          "page": 25,
+          "text": {
+            "en": "The encoder of the U-Net comprises four convolutional layers, each with layers that double the channel dimensions from 64 to 512 (64 →128 →256 →512). The convolutional layers all consist of (in order): 3x3 convolution, batch norm, ReLU, and 2x2 maxpool. The GCN consists of a stack of several graph convolutional (GConv) layers, each with a hidden feature size of 256. Global mean pooling is used to compute a graph-level feature vector of size 256. We use the Adam optimizer, and we use the cross-entropy loss.",
+            "es": "El codificador (encoder) de la U-Net consta de cuatro capas convolucionales, cada una con capas que duplican las dimensiones de los canales de 64 a 512 (64 →128 →256 →512). Las capas convolucionales constan todas de (en orden): convolución de 3x3, normalización por lotes (batch norm), ReLU y max pooling de 2x2. La GCN consta de una pila de varias capas convolucionales de grafos (GConv), cada una con un tamaño de características ocultas de 256. Se utiliza un pooling de media global para calcular un vector de características a nivel de grafo de tamaño 256. Usamos el optimizador Adam y la pérdida de entropía cruzada (cross-entropy loss)."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p35",
+          "type": "paragraph",
+          "page": 25,
+          "text": {
+            "en": "We found the following optimal settings during training: the amount of GConv layers is 2, a learning rate equal to 0.001, the batch size is 16, and the hidden sizes of each GConv layer are 256.",
+            "es": "Encontramos los siguientes ajustes óptimos durante el entrenamiento: la cantidad de capas GConv es 2, una tasa de aprendizaje igual a 0.001, el tamaño de lote es 16 y los tamaños ocultos de cada capa GConv son 256."
+          }
+        },
+        {
+          "id": "fig-10",
+          "type": "figure",
+          "page": 25,
+          "image": "fig/fig-10.png",
+          "text": {
+            "en": "Fig. 10: Graph-informed U-Net (UN). UN takes the building structure (image) as input to the U-Net. The U-Net is composed of an encoder and decoder using the conventional up- and down-sampling 2D convolutions, resp., and includes skip connections between the encoder and decoder feature maps at equivalent feature map scales. A GCN is used to map the zoning graph to a feature vector which is concatenated to the latent space of the U-Net.",
+            "es": "Fig. 10: U-Net informada por grafos (Graph-informed U-Net, UN). UN toma la estructura del edificio (imagen) como entrada de la U-Net. La U-Net se compone de un codificador y un decodificador que utilizan las convoluciones 2D convencionales de submuestreo y sobremuestreo, respectivamente, e incluye conexiones de salto entre los mapas de características del codificador y del decodificador en escalas equivalentes de mapa de características. Se utiliza una GCN para mapear el grafo de zonificación a un vector de características que se concatena con el espacio latente de la U-Net."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h20",
+          "type": "heading",
+          "page": 25,
+          "text": {
+            "en": "12 Additional experiments",
+            "es": "12 Experimentos adicionales"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h21",
+          "type": "heading",
+          "page": 25,
+          "text": {
+            "en": "12.1 Extra baselines: HouseGAN++ and FLNet",
+            "es": "12.1 Líneas base adicionales: HouseGAN++ y FLNet"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p36",
+          "type": "paragraph",
+          "page": 25,
+          "text": {
+            "en": "We also ran and evaluated FLNet [31] and HouseGAN++ [19] (See Table. 3). Both required re-purposing to make them applicable to the task we set. All hyperparameters, besides those stated in Table. 3, are equivalent to those in the original publications. These additional methods do not perform well, demonstrating the need for our proposed dataset with more realistic building complexes.",
+            "es": "También ejecutamos y evaluamos FLNet [31] y HouseGAN++ [19] (véase la Tabla 3). Ambos requirieron ser readaptados para poder aplicarse a la tarea que planteamos. Todos los hiperparámetros, salvo los indicados en la Tabla 3, son equivalentes a los de las publicaciones originales. Estos métodos adicionales no tienen un buen desempeño, lo que demuestra la necesidad de nuestro conjunto de datos propuesto con complejos de edificios más realistas."
+          }
+        },
+        {
+          "id": "fig-11",
+          "type": "figure",
+          "page": 26,
+          "image": "fig/fig-11.png",
+          "text": {
+            "en": "Fig. 11: MHD on RPLAN. Two example predictions of MHD on RPLAN [33]. The generated layouts follow the boundary reasonably well. The input graphs in both cases are equivalent, showing that the model can cope with a wide variety of differentlyshaped boundaries.",
+            "es": "Fig. 11: MHD en RPLAN. Dos ejemplos de predicciones de MHD en RPLAN [33]. Los planos generados siguen razonablemente bien el contorno. Los grafos de entrada en ambos casos son equivalentes, lo que muestra que el modelo puede manejar una amplia variedad de contornos de formas diferentes."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 26,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3: HouseGAN++: 128 x 128 masks, 388k steps, learn. rates: 1e-5 generator, 4e-5 discriminator, structural masks as input. FLNet: 128 x 128 masks, 50 epochs. The scores are averaged over all floor plans in the test set. User studies are done for MHD and U-Net: 7 architects, each 50 random IDs. Topology: whether the organization of the spaces makes sense. Proportions: whether the room proportions make sense. Scoring: {\"yes\": 1, \"unsure\": 0.5, \"no\": 0}.",
+            "es": "Tabla 3: HouseGAN++: máscaras de 128 x 128, 388k pasos, tasas de aprendizaje: 1e-5 generador, 4e-5 discriminador, máscaras estructurales como entrada. FLNet: máscaras de 128 x 128, 50 épocas. Las puntuaciones son el promedio de todos los planos del conjunto de prueba. Los estudios con usuarios se realizan para MHD y U-Net: 7 arquitectos, cada uno con 50 IDs aleatorios. Topología: si la organización de los espacios tiene sentido. Proporciones: si las proporciones de las habitaciones tienen sentido. Puntuación: {\"sí\": 1, \"no seguro\": 0.5, \"no\": 0}."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h22",
+          "type": "heading",
+          "page": 26,
+          "text": {
+            "en": "12.2 MHD on RPLAN",
+            "es": "12.2 MHD en RPLAN"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p37",
+          "type": "paragraph",
+          "page": 26,
+          "text": {
+            "en": "Not surprisingly, we successfully trained MHD on RPLAN [33], with seemingly similar performance to HD. To train MHD on RPLAN, we extract the boundary of the layouts first. The boundary (as a set of walls) and room graph serve as inputs to MHD. Similar to HD, doors are also predicted (dark red and light green for interior and front doors, resp., in Fig. 11). Further training details are equivalent to training on MSD. Two typical examples are shown in Fig. 11.",
+            "es": "No es de sorprender que entrenamos con éxito MHD en RPLAN [33], con un desempeño aparentemente similar al de HD. Para entrenar MHD en RPLAN, primero extraemos el contorno de los planos. El contorno (como un conjunto de muros) y el grafo de habitaciones sirven como entradas de MHD. De manera similar a HD, también se predicen las puertas (rojo oscuro y verde claro para las puertas interiores y de entrada, respectivamente, en la Fig. 11). Los demás detalles del entrenamiento son equivalentes a los del entrenamiento en MSD. En la Fig. 11 se muestran dos ejemplos típicos."
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-h23",
+          "type": "heading",
+          "page": 26,
+          "text": {
+            "en": "12.3 Evaluating complexity",
+            "es": "12.3 Evaluación de la complejidad"
+          }
+        },
+        {
+          "id": "supplementary-materials-msd-a-benchmark-p38",
+          "type": "paragraph",
+          "page": 26,
+          "text": {
+            "en": "To better evaluate the complexity, qualitative evaluation (besides the important instrumental measures) will play an essential role. We are actively researching the evaluation methods for topologically more complex floorplans, and some preliminary results of our study are shown in Table. 3 (right). Nonetheless, we believe that both quantitative as well as qualitative measures play an important role.",
+            "es": "Para evaluar mejor la complejidad, la evaluación cualitativa (además de las importantes medidas instrumentales) desempeñará un papel esencial. Estamos investigando activamente métodos de evaluación para planos topológicamente más complejos, y algunos resultados preliminares de nuestro estudio se muestran en la Tabla 3 (derecha). No obstante, creemos que tanto las medidas cuantitativas como las cualitativas desempeñan un papel importante."
+          }
+        }
+      ]
+    }
+  ]
+}
