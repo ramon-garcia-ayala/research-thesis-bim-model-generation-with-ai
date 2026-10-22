@@ -1,6 +1,6 @@
 # Paper reader and study companion inside the research map — design
 
-Date: 2026-10-22 · Status: proposed (brainstorm with the author, 2026-10-22)
+Date: 2026-10-22 · Status: approved by the author, 2026-10-22 · Plan: `docs/superpowers/plans/2026-10-22-paper-reader.md`
 
 ## Intent
 
