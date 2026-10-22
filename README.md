@@ -30,6 +30,31 @@ A slide says what it uses with `data-map="id id …"` on its `<section class="sl
 `hypothesis`. No `data-map` = it uses nothing from the map. A new deck: copy the track's latest folder to
 `presentations/<track>/presentacion-NN/`, list it in `presentations/assets/site.js`, run `npm run check`.
 
+## The paper reader
+
+Press **Papers** in the toolbar (or **Read** in a paper's panel): the paper opens over the right half of the map, or in
+full screen (⤢), in Spanish or English, with its figures where the paper has them (a click enlarges one). The map lights
+the paper and what it links to.
+
+- **Listen**: ▶ reads the paper aloud sentence by sentence; select text for *Read from here* or *Read selection*. Edge
+  has the natural voices.
+- **Underline**: select text → *Underline*. Underlines, the place you left, the language and the voice are kept in
+  `reading/<node-id>.json`.
+- **Ask**: select or underline → *Ask* puts the passage in the chat; then type, or *What did they mean here?*, *Research
+  this* (web, other papers, the notes), *Quiz me ▾* (only when you ask: this underline, section, paper or several).
+  Answers come from the paper's idea graph and cite paragraphs (¶ 3.2, a click scrolls there); when the graph has
+  nothing, it reads the paper again and adds what it found to the graph. *Across papers* chats with several. Sonnet by
+  default, Haiku to compare.
+- **Save this** on any message proposes a note entry (in English, your words quoted as written, yours and Claude's
+  marked); edit it and *Approve* to append it to the paper's note.
+
+Underlining, the chat and quizzes need `npm run dev` (the map's own server); opened any other way the reader shows text,
+figures and voice only.
+
+Preparing a paper (Claude does it, once per paper): `npm run paper:prepare -- <id>` (text and figure crops from the PDF;
+`papers/<id>/overrides.json` fixes crops and stray lines), `npm run paper:translate -- <id>` (Spanish, numbers checked),
+`npm run paper:graph -- <id>` (the idea graph, Sonnet 5.5 at xhigh).
+
 ## The rule
 
 Claude writes the map from the conversation; the author approves. Nothing is added without a yes. After every change
@@ -42,7 +67,12 @@ Claude runs `npm run check` (and `npm test` when code changed) and commits.
 - `files/` — copies of the PDFs and images the nodes cite; `source.original` keeps where they came from.
 - `sources/` — raw reading notes the nodes were written from.
 - `assets/` — the viewer (`model.js`, `notes.js`, `layout.js` are pure and tested; `view.js` draws).
-- `scripts/check.mjs` — the checker: valid data, every file and note present, no git remote.
+- `scripts/check.mjs` — the checker: valid data, every file and note present, every prepared paper and its graph valid,
+  `papers/index.json` up to date, no git remote.
+- `papers/<node-id>/` — a prepared paper: `paper.json` (text in blocks, English and Spanish), `fig/` (its figures and
+  tables), `graph.json` (its main ideas), `overrides.json` (fixes for the preparation). `reading/` — your reading state.
+- `scripts/papers/` — preparing papers; `scripts/serve.mjs` and `scripts/server/` — the local server; `assets/reader-ui.js`,
+  `speech.js`, `chat-ui.js` — the reader, its voice and its chat.
 - `presentations/` — the two decks (`leaders/` = Gensler, `thesis/` = IAAC), each numbered `presentacion-01`, `-02`…; the
   engine in `presentations/assets/`; `templates/` is the slide gallery. A deck opens on its own at
   `/presentations/<track>/<presentacion-NN>/` (that is how it is presented) and inside the map's viewer with `?embed`.
@@ -52,4 +82,5 @@ Claude runs `npm run check` (and `npm test` when code changed) and commits.
   every `data-map` id is in `map.json`. `npm run check` runs both.
 
 Design: `gfit-generative-information-modeler/docs/superpowers/specs/2026-10-18-research-map-design.md`. The paper
-reader (proposed): `docs/superpowers/specs/2026-10-22-paper-reader-design.md`, here in this project.
+reader: `docs/superpowers/specs/2026-10-22-paper-reader-design.md` and its plan in `docs/superpowers/plans/`, here in
+this project.

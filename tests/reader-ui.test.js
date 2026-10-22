@@ -364,6 +364,29 @@ describe('underlines and the remembered place', () => {
     expect(lastSaved().lang).toBe('en')
   })
 
+  it('shows the chat with the server, and Ask puts the selection in it as a chip', async () => {
+    await withClient(fakeClient())
+    await read('sample-a')
+    expect($('.reader__chat').hidden).toBe(false)
+    expect($('.reader__chat .chat__input')).not.toBeNull()
+    select('s2-p1', 12)
+    $('.reader__pop [data-act="ask"]').click()
+    expect($('.chat__chips').textContent).toContain(es_s2p1.slice(0, 12))
+  })
+
+  it('a citation in the chat scrolls the reader to the paragraph', async () => {
+    const seen = []
+    Element.prototype.scrollIntoView = function () {
+      seen.push(this.dataset?.block)
+    }
+    const reading = { ...emptyReading(), chats: [{ id: 'c1', papers: ['sample-a'], messages: [{ role: 'assistant', mode: 'ask', text: 'Mira [¶ s2-p2]', date: '2026-10-22' }] }] }
+    await withClient(fakeClient(reading))
+    await read('sample-a')
+    $('.reader__chat button[data-cite="s2-p2"]').click()
+    expect(seen).toContain('s2-p2')
+    delete Element.prototype.scrollIntoView
+  })
+
   it('offers no Underline when the server does not answer', async () => {
     await withClient(fakeClient(emptyReading(), false))
     await read('sample-a')

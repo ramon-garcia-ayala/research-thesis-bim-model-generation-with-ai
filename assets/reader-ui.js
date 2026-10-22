@@ -4,6 +4,7 @@
  * paper and what it links to on the map, like a slide does. Underlining, the chat and quizzes need the local server
  * (`client`); without it the reader still shows the text and the figures.
  */
+import { mountChat } from './chat-ui.js'
 import { blocksOf, paraLabel, textOf } from './paper.js'
 import { addUnderline, emptyReading, removeUnderline, segments } from './reading.js'
 import { buildQueue, createSpeaker } from './speech.js'
@@ -55,6 +56,24 @@ export const LABELS = {
     voice: 'Voice',
     readSelection: '▶ Read selection',
     removeUnderline: 'Remove underline',
+    thisPaper: 'This paper',
+    across: 'Across papers',
+    explain: 'What did they mean here?',
+    research: 'Research this',
+    quiz: 'Quiz me ▾',
+    scopes: { underline: 'This underline', section: 'This section', paper: 'This paper', papers: 'Several papers' },
+    placeholder: 'Ask the paper…',
+    send: 'Send',
+    rereading: 'Reading the paper again…',
+    retry: 'Try again',
+    save: 'Save this',
+    approve: 'Approve',
+    discard: 'Discard',
+    saved: 'Saved to the note.',
+    pickNotes: 'Add it to the notes of:',
+    you: 'You',
+    companion: 'Claude',
+    drafting: 'Writing the note entry…',
     voiceHint: 'This browser offers no natural voice: open the map in Microsoft Edge to listen with its natural voices.',
   },
   es: {
@@ -82,6 +101,24 @@ export const LABELS = {
     voice: 'Voz',
     readSelection: '▶ Leer selección',
     removeUnderline: 'Quitar subrayado',
+    thisPaper: 'Este paper',
+    across: 'Entre papers',
+    explain: '¿Qué quiso decir aquí?',
+    research: 'Investiga esto',
+    quiz: 'Hazme preguntas ▾',
+    scopes: { underline: 'Este subrayado', section: 'Esta sección', paper: 'Este paper', papers: 'Varios papers' },
+    placeholder: 'Pregúntale al paper…',
+    send: 'Enviar',
+    rereading: 'Volviendo a leer el paper…',
+    retry: 'Reintentar',
+    save: 'Guardar esto',
+    approve: 'Aprobar',
+    discard: 'Descartar',
+    saved: 'Guardado en la nota.',
+    pickNotes: 'Agrégalo a las notas de:',
+    you: 'Tú',
+    companion: 'Claude',
+    drafting: 'Redactando la entrada de la nota…',
     voiceHint: 'Este navegador no ofrece voces naturales: abre el mapa en Microsoft Edge para escucharlo con sus voces naturales.',
   },
 }
@@ -126,6 +163,7 @@ export function mountReader(
   // The local server, once it answers (null without it); the reading of the open paper (underlines, place, voice).
   let live = null
   let reading = null
+  let chat = null // the study companion, once the server answers
   const availability = client
     ? Promise.resolve()
         .then(() => client.available())
@@ -392,7 +430,21 @@ export function mountReader(
       if (reading?.lang === 'en' || reading?.lang === 'es') lang = reading.lang
       if (speaker && reading?.rate) speaker.setRate((rate = reading.rate))
       if (speaker && reading?.voice) speaker.setVoice(reading.voice)
+      if (live && !chat)
+        chat = mountChat($('.reader__chat'), {
+          client: live,
+          papers,
+          labels: LABELS,
+          lang,
+          onCite: (id) => {
+            el.classList.remove('chat-open')
+            goTo(id)
+          },
+          current: () => now && { ...now, block: firstVisible() },
+        })
       now = { nodeId, paper }
+      chat?.setLang(lang)
+      chat?.setConversation(nodeId, reading)
       render()
       voiceHint()
       text.scrollTop = 0
@@ -423,6 +475,7 @@ export function mountReader(
     lang = l
     remember(win, LANG_KEY, l)
     persist({ lang: l })
+    chat?.setLang(l)
     render()
     renderChrome()
     if (keep) goTo(keep)
@@ -506,6 +559,10 @@ export function mountReader(
       win.getSelection?.()?.removeAllRanges()
       if (action.dataset.act === 'read-from') speakFrom({ block, offset: start })
       if (action.dataset.act === 'read-selection') speakFrom(null, { block, start, end })
+      if (action.dataset.act === 'ask' && chat) {
+        chat.attach({ block, text: picked.text })
+        if (narrow()) el.classList.add('chat-open')
+      }
       if (action.dataset.act === 'underline' && reading) {
         reading = addUnderline(reading, { block, lang, start, end, text: picked.text }, today())
         persist()
