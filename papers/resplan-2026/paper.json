@@ -1,0 +1,930 @@
+{
+  "version": 1,
+  "node": "resplan-2026",
+  "title": "ResPlan: A Large-Scale Vector-Graph Dataset of 17 000 Residential Floor Plans",
+  "source": "files/ResPlan - A Large-Scale Vector-Graph Dataset of 17 000 Residential Floor Plans.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "ResPlan contains 17,000 residential floor plans with vector geometry, roomconnectivity graphs, and metric-scale coordinates. Each plan annotates walls, doors, windows, and functional spaces (kitchens, bedrooms, bathrooms, balconies, and others) under a 17-class taxonomy, with polygons in pixel and meter coordinates. Four typed edges (via_door, adjacency, direct, via_window) accompany every plan, supporting graph-based generation and spatial reasoning. Compared with RPLAN [Wu et al., 2019] (raster-only, ∼6.7 rooms per plan, observed maximum of 8 functional rooms in our converted split) and MSD [van Engelenburg et al., 2024] (floor-plate-level, requiring extraction), ResPlan provides self-contained unit-level layouts averaging 8.1 functional rooms (9.2 graph nodes), spanning apartments, villas, and multi-wing residences. The release includes the dataset, loading/post-processing code, a canonical split, and baselines for three benchmark tasks. The dataset and code are publicly available.1",
+            "es": "ResPlan contiene 17,000 planos de planta (floor plans) residenciales con geometría vectorial (vector geometry), grafos de conectividad de habitaciones (room-connectivity graphs) y coordenadas a escala métrica. Cada plano anota muros, puertas, ventanas y espacios funcionales (cocinas, recámaras, baños, balcones y otros) bajo una taxonomía (taxonomy) de 17 clases, con polígonos en coordenadas de píxeles y de metros. Cuatro tipos de aristas (via_door, adjacency, direct, via_window) acompañan a cada plano, y permiten la generación basada en grafos y el razonamiento espacial. En comparación con RPLAN [Wu et al., 2019] (solo ráster, ∼6.7 habitaciones por plano, con un máximo observado de 8 habitaciones funcionales en nuestra partición convertida) y MSD [van Engelenburg et al., 2024] (a nivel de planta del edificio, y que requiere extracción), ResPlan ofrece distribuciones autocontenidas a nivel de unidad, con un promedio de 8.1 habitaciones funcionales (9.2 nodos del grafo), que abarcan departamentos, villas y residencias con varias alas. La publicación incluye el conjunto de datos, el código de carga y posprocesamiento, una partición canónica y líneas base (baselines) para tres tareas de referencia (benchmark). El conjunto de datos y el código están disponibles públicamente.1"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 Introduction",
+        "es": "1 Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Floor plans are compact descriptions of how a home is organized: boundaries constrain space, room labels define function, and doors and windows determine how spaces connect. For learning systems that generate, label, or reason about layouts, these structural relationships matter as much as visual appearance. A dataset that only provides pixels can support image synthesis, but it cannot directly supervise metric geometry, room connectivity, or graph-conditioned reasoning.",
+            "es": "Los planos de planta son descripciones compactas de cómo se organiza una vivienda: los límites restringen el espacio, las etiquetas de las habitaciones definen la función, y las puertas y ventanas determinan cómo se conectan los espacios. Para los sistemas de aprendizaje que generan, etiquetan o razonan sobre distribuciones, estas relaciones estructurales importan tanto como la apariencia visual. Un conjunto de datos que solo proporciona píxeles puede apoyar la síntesis de imágenes, pero no puede supervisar directamente la geometría métrica, la conectividad entre habitaciones ni el razonamiento condicionado por grafos."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Existing floor-plan datasets each provide part of this supervision. RPLAN [Wu et al., 2019] offers scale, with 80K plans, but only as low-resolution rasters and with relatively simple layouts (∼6.7 rooms per plan; observed maximum of 8 functional rooms in the converted split used here). MSD [van Engelenburg et al., 2024] provides vector geometry and graphs for Swiss floor plates (18.9K units), but users must first extract individual apartments from building-level records. LIFULL [LIFULL Co., Ltd. and National Institute of Informatics (NII), 2017] contains millions of raster images but only a small structured subset, while CubiCasa5K [Kalervo et al., 2019] provides 5K SVG plans with rich annotations but limited scale. The result is a practical trade-off: researchers can choose scale, vector geometry, or topology, but not all three in a self-contained, unit-level dataset. This trade-off is most visible for larger homes, where 34.6% of ResPlan test plans contain more functional rooms than the converted RPLAN split’s observed maximum (Section 4).",
+            "es": "Los conjuntos de datos de planos de planta existentes aportan, cada uno, una parte de esta supervisión. RPLAN [Wu et al., 2019] ofrece escala, con 80K planos, pero solo como imágenes ráster de baja resolución y con distribuciones relativamente simples (∼6.7 habitaciones por plano; máximo observado de 8 habitaciones funcionales en la partición convertida que se usa aquí). MSD [van Engelenburg et al., 2024] proporciona geometría vectorial y grafos de plantas de edificios suizos (18.9K unidades), pero los usuarios primero deben extraer los departamentos individuales de registros a nivel de edificio. LIFULL [LIFULL Co., Ltd. and National Institute of Informatics (NII), 2017] contiene millones de imágenes ráster pero solo un pequeño subconjunto estructurado, mientras que CubiCasa5K [Kalervo et al., 2019] ofrece 5K planos en SVG con anotaciones ricas pero con escala limitada. El resultado es un compromiso práctico: los investigadores pueden elegir escala, geometría vectorial o topología, pero no las tres en un conjunto de datos autocontenido a nivel de unidad. Este compromiso es más visible en las viviendas más grandes, donde el 34.6% de los planos de prueba de ResPlan contiene más habitaciones funcionales que el máximo observado en la partición convertida de RPLAN (Sección 4)."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "1https://www.kaggle.com/datasets/resplan/resplan and https://github.com/m-agour/ ResPlan",
+            "es": "1https://www.kaggle.com/datasets/resplan/resplan y https://github.com/m-agour/ ResPlan"
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: Twelve floor plans from ResPlan, spanning small (≤6 rooms), medium (7–11), and large (≥12) layouts, all rendered from the released vector geometry. Colors: living area, bedroom, bathroom, kitchen, storage, balcony; pink/green segments are doors/windows; dark strokes are walls. Table 1: Comparison of ResPlan with existing floor plan datasets: RPLAN [Wu et al., 2019], MSD [van Engelenburg et al., 2024], LIFULL [LIFULL Co., Ltd. and National Institute of Informatics (NII), 2017], and CubiCasa5K [Kalervo et al., 2019].",
+            "es": "Figura 1: Doce planos de planta de ResPlan, que abarcan distribuciones pequeñas (≤6 habitaciones), medianas (7–11) y grandes (≥12), todos renderizados a partir de la geometría vectorial publicada. Colores: área de estar, recámara, baño, cocina, almacén, balcón; los segmentos rosas/verdes son puertas/ventanas; los trazos oscuros son muros. Tabla 1: Comparación de ResPlan con los conjuntos de datos de planos de planta existentes: RPLAN [Wu et al., 2019], MSD [van Engelenburg et al., 2024], LIFULL [LIFULL Co., Ltd. and National Institute of Informatics (NII), 2017] y CubiCasa5K [Kalervo et al., 2019]."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Feature ResPlan RPLAN MSD LIFULL CubiCasa5K",
+            "es": "Característica ResPlan RPLAN MSD LIFULL CubiCasa5K"
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "# Samples ∼17,000 ∼80,000 5,372 (18.9k units) ∼5M raster (∼124k vector*) 5,000 Source Online real estate listings Chinese real estate Swiss dwellings Japanese real estate Multiple countries Format Vector + Graph Raster (256×256) Vector + Graph Raster (+ R2V vectors) Raster + Vector (SVG) Curation Cleaned, Filtered Manual Cleaned, Filtered Licensed (NII) Manual (+furniture) Vector Native Yes No (converted) Yes No Yes Unit-Level Plans Yes Yes No (extraction needed) Yes Yes Graph Connectivity Yes No Yes No No Typed Edge Labels Yes (4 types) No Yes (3 types) No No Avg Rooms/Plan 8.1 ∼6.7 ∼8.8 per unit Varies – Max Rooms/Plan (obs.) 22 8 – – – Metric Scale Yes (meters) No Partial No No Canonical Splits Yes (80/10/10) No Yes No No License CC BY 4.0 Custom (research) CC BY 4.0 Restricted (NII) CC BY-NC-SA 4.0",
+            "es": "# Muestras ∼17,000 ∼80,000 5,372 (18.9k unidades) ∼5M ráster (∼124k vectoriales*) 5,000 Fuente Anuncios inmobiliarios en línea Inmobiliarias chinas Viviendas suizas Inmobiliarias japonesas Varios países Formato Vector + Grafo Ráster (256×256) Vector + Grafo Ráster (+ vectores R2V) Ráster + Vector (SVG) Curación Limpiado, Filtrado Manual Limpiado, Filtrado Con licencia (NII) Manual (+mobiliario) Vectorial nativo Sí No (convertido) Sí No Sí Planos a nivel de unidad Sí Sí No (requiere extracción) Sí Sí Conectividad en grafo Sí No Sí No No Etiquetas de aristas tipificadas Sí (4 tipos) No Sí (3 tipos) No No Prom. de habitaciones/plano 8.1 ∼6.7 ∼8.8 por unidad Varía – Máx. de habitaciones/plano (obs.) 22 8 – – – Escala métrica Sí (metros) No Parcial No No Particiones canónicas Sí (80/10/10) No Sí No No Licencia CC BY 4.0 Personalizada (investigación) CC BY 4.0 Restringida (NII) CC BY-NC-SA 4.0"
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "*LIFULL HOME’s contains ∼5M raster floor-plan images; only the ∼124k vectorized by Liu et al. [Liu et al., 2017] are commonly used in structured pipelines.",
+            "es": "*LIFULL HOME contiene ∼5M imágenes ráster de planos de planta; solo los ∼124k vectorizados por Liu et al. [Liu et al., 2017] se usan comúnmente en flujos de trabajo estructurados."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "ResPlan is designed to remove this trade-off. It contains 17,000 residential floor plans, from apartments to multi-wing homes, with the visual diversity shown in Figure 1. Each plan includes polygonal geometry with consistent wall thickness, 17 semantic categories, metric-scale coordinates, and a room-connectivity graph with four typed edges (via_door, adjacency, direct, via_window). The release also provides code for loading, rendering, graph construction, validation, and postprocessing, plus a canonical split (80/10/10) and baselines for three benchmark tasks, so the dataset can be used both as a resource and as a reference benchmark.",
+            "es": "ResPlan está diseñado para eliminar este compromiso. Contiene 17,000 planos de planta residenciales, desde departamentos hasta viviendas con varias alas, con la diversidad visual que se muestra en la Figura 1. Cada plano incluye geometría poligonal con grosor de muro consistente, 17 categorías semánticas, coordenadas a escala métrica y un grafo de conectividad de habitaciones con cuatro tipos de aristas (via_door, adjacency, direct, via_window). La publicación también ofrece código para carga, renderizado, construcción de grafos, validación y posprocesamiento, además de una partición canónica (80/10/10) y líneas base para tres tareas de referencia, de modo que el conjunto de datos puede usarse tanto como recurso como referencia de evaluación."
+          }
+        },
+        {
+          "id": "s1-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "ResPlan provides a benchmark for structured floor-plan learning and analysis. Table 1 summarizes the comparison with existing datasets; a quantitative comparison is given in Section 4.",
+            "es": "ResPlan ofrece una referencia para el aprendizaje y el análisis estructurados de planos de planta. La Tabla 1 resume la comparación con los conjuntos de datos existentes; en la Sección 4 se presenta una comparación cuantitativa."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 Related Work",
+        "es": "2 Trabajos relacionados"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Raster Floor-Plan Datasets. RPLAN [Wu et al., 2019] is the most widely used floor-plan dataset, containing 80,788 annotated plans rendered as 256×256 raster images. Despite its scale, RPLAN predominantly consists of simple, single-unit layouts, and its raster format introduces irregular door geometries that complicate precise geometric analysis. LIFULL [LIFULL Co., Ltd. and National Institute of Informatics (NII), 2017] offers millions of Japanese floor-plan images, but only a small subset has been converted to structured form. CubiCasa5K [Kalervo et al., 2019] supplies 5,000",
+            "es": "Conjuntos de datos ráster de planos de planta. RPLAN [Wu et al., 2019] es el conjunto de datos de planos de planta más usado, y contiene 80,788 planos anotados renderizados como imágenes ráster de 256×256. A pesar de su escala, RPLAN consiste predominantemente en distribuciones sencillas de una sola unidad, y su formato ráster introduce geometrías de puertas irregulares que complican el análisis geométrico preciso. LIFULL [LIFULL Co., Ltd. and National Institute of Informatics (NII), 2017] ofrece millones de imágenes de planos de planta japoneses, pero solo un pequeño subconjunto se ha convertido a forma estructurada. CubiCasa5K [Kalervo et al., 2019] proporciona 5,000"
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: Graph-based representation of floor plans in the ResPlan dataset. Rooms are represented as nodes with semantic and geometric attributes, while edges encode adjacency relationships classified as via_door, adjacency, direct, or via_window.",
+            "es": "Figura 2: Representación basada en grafos de los planos de planta en el conjunto de datos ResPlan. Las habitaciones se representan como nodos con atributos semánticos y geométricos, mientras que las aristas codifican relaciones de adyacencia clasificadas como via_door, adjacency, direct o via_window."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "SVG plans with rich annotations but at limited scale. These raster-first resources are valuable for recognition and segmentation, but they do not directly provide metric unit-level geometry paired with typed room-connectivity graphs.",
+            "es": "planos en SVG con anotaciones ricas pero a escala limitada. Estos recursos centrados en el ráster son valiosos para el reconocimiento y la segmentación, pero no proporcionan directamente geometría métrica a nivel de unidad emparejada con grafos tipificados de conectividad de habitaciones."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Vector and Graph-Based Datasets. The Modified Swiss Dwellings (MSD) dataset [van Enge-lenburg et al., 2024] provides 5,372 floor plans (18,900 dwelling units) in vector, raster, and graph modalities with three edge types (passage, door, front-door). ResPlan provides 17,000 self-contained residential units with metric geometry and four typed relations (window-mediated, door-mediated, front-door, and wall-adjacent), directly supporting generation, graph prediction, and search over functionally similar layouts.",
+            "es": "Conjuntos de datos vectoriales y basados en grafos. El conjunto de datos Modified Swiss Dwellings (MSD) [van Engelenburg et al., 2024] proporciona 5,372 planos de planta (18,900 unidades de vivienda) en modalidades vectorial, ráster y de grafo, con tres tipos de aristas (passage, door, front-door). ResPlan ofrece 17,000 unidades residenciales autocontenidas con geometría métrica y cuatro relaciones tipificadas (mediada por ventana, mediada por puerta, puerta de entrada y adyacente por muro), lo que apoya directamente la generación, la predicción de grafos y la búsqueda de distribuciones funcionalmente similares."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Graph-Conditioned Generation. An increasing number of generative models condition layout synthesis on graph structures. House-GAN++ [Nauata et al., 2021] and Graph2Plan [Hu et al., 2020] use room-connectivity graphs as input constraints, while diffusion methods such as HouseDiffu-sion [Shabani et al., 2023] and GSDiff [Hu et al., 2025] further demonstrate the utility of structured graph inputs. Figure 2 illustrates ResPlan’s representation: rooms are graph nodes, and edge labels distinguish access through doors/windows from direct contact and wall adjacency. Such methods need paired room geometry and connectivity graphs, which ResPlan provides natively with four typed edge labels.",
+            "es": "Generación condicionada por grafos. Un número creciente de modelos generativos condicionan la síntesis de distribuciones a estructuras de grafo. House-GAN++ [Nauata et al., 2021] y Graph2Plan [Hu et al., 2020] usan grafos de conectividad de habitaciones como restricciones de entrada, mientras que métodos de difusión como HouseDiffusion [Shabani et al., 2023] y GSDiff [Hu et al., 2025] demuestran además la utilidad de las entradas estructuradas en forma de grafo. La Figura 2 ilustra la representación de ResPlan: las habitaciones son nodos del grafo, y las etiquetas de las aristas distinguen el acceso a través de puertas/ventanas del contacto directo y de la adyacencia por muro. Estos métodos necesitan geometría de habitaciones y grafos de conectividad emparejados, que ResPlan proporciona de forma nativa con cuatro etiquetas de aristas tipificadas."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 Dataset Description",
+        "es": "3 Descripción del conjunto de datos"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Data Collection and Processing. ResPlan was built by converting rendered, textured listing images into annotated vectors. Source plans come from public real-estate listings rendered as stylized rasters: rooms use category-specific color/texture swatches (e.g., wood-tone bedrooms, tiled bathrooms/balconies), walls are thick dark strokes, and labels/dimensions are printed on the image (e.g., “Bedroom 15’9”×11”’). Conversion has three stages. First, color/texture segmentation separates rooms from structural strokes, while OCR over labels adds semantic cues. Second, connected components are traced into room, wall, door, and window polygons; classes combine visual cues and OCR, and listed gross area anchors metric scale. Third, post-processing repairs or discards invalid fragments, removes slivers/disconnected pieces, reconciles near-touching room boundaries, aligns openings to the nearest wall band, and normalizes wall thickness. The initial collection yielded approximately 27,000 raw plans; automated quality checks discarded layouts with degenerate geometries, missing structural elements, disconnected interiors, or ambiguous labels, leaving 17,000 plans (37% rejection). Heterogeneous labels such as Master Bedroom, Guest Room, or Kids Room are normalized into a 17-category schema.2 Door-to-wall alignment is verified by automatic geometric checks plus author-led visual spot-checks. On a stratified 500-plan audit, 83.1% of room polygons fall within plausible per-class area ranges (per-class 81.9–86.0%); all sampled plans are graphconnected and no bathroom is graph-isolated. We release the derived dataset with loading, rendering, graph construction, validation, metric conversion, and post-processing code; source collection and OCR/vectorization scripts are not redistributed.",
+            "es": "Recolección y procesamiento de datos. ResPlan se construyó convirtiendo imágenes de anuncios renderizadas y con texturas en vectores anotados. Los planos de origen provienen de anuncios inmobiliarios públicos renderizados como imágenes ráster estilizadas: las habitaciones usan muestras de color/textura específicas de cada categoría (p. ej., recámaras en tono madera, baños/balcones con mosaico), los muros son trazos oscuros gruesos, y las etiquetas/dimensiones están impresas sobre la imagen (p. ej., “Bedroom 15’9”×11”’). La conversión tiene tres etapas. Primero, la segmentación por color/textura separa las habitaciones de los trazos estructurales, mientras que el OCR sobre las etiquetas añade pistas semánticas. Segundo, los componentes conexos se trazan en polígonos de habitaciones, muros, puertas y ventanas; las clases combinan pistas visuales y OCR, y el área bruta indicada en el anuncio fija la escala métrica. Tercero, el posprocesamiento repara o descarta los fragmentos inválidos, elimina astillas y piezas desconectadas, concilia los límites de habitaciones casi tangentes, alinea las aberturas con la banda de muro más cercana y normaliza el grosor de los muros. La colección inicial produjo aproximadamente 27,000 planos sin procesar; las verificaciones automáticas de calidad descartaron las distribuciones con geometrías degeneradas, elementos estructurales faltantes, interiores desconectados o etiquetas ambiguas, lo que dejó 17,000 planos (37% de rechazo). Las etiquetas heterogéneas como Master Bedroom, Guest Room o Kids Room se normalizan en un esquema de 17 categorías.2 La alineación de puertas con muros se verifica mediante comprobaciones geométricas automáticas y revisiones visuales puntuales dirigidas por los autores. En una auditoría estratificada de 500 planos, el 83.1% de los polígonos de habitaciones cae dentro de rangos de área plausibles por clase (por clase 81.9–86.0%); todos los planos muestreados están conectados en grafo y ningún baño está aislado en el grafo. Publicamos el conjunto de datos derivado con el código de carga, renderizado, construcción de grafos, validación, conversión métrica y posprocesamiento; los scripts de recolección de origen y de OCR/vectorización no se redistribuyen."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Data Provenance and Ethics. The source plans originate from online real-estate listing platforms serving South Asian residential markets. Platform identities are withheld to comply with platform access terms (LIFULL [LIFULL Co., Ltd. and National Institute of Informatics (NII), 2017] convention); collection used only public, non-paywalled listing pages with no rate-limit, login-wall, or other access-control bypassing, after platform terms-of-service review. The released dataset consists entirely of derived geometric representations (Shapely [Gillies et al., 2024] polygons and NetworkX graphs); no original drawings, images, listing text, prices, addresses, or personally identifiable information are retained. The transformation removes all copyrightable artistic expression, preserving only factual geometric topology. The data is distributed under the CC BY 4.0 license; a full datasheet [Gebru et al., 2021] is included in the supplementary material. A public takedown policy (TAKEDOWN.md) accompanies the release: rights holders may request removal of specific plan IDs, with acknowledgement within 7 days and removal in the next release within 30 days; removed IDs are tracked so downstream users can update their splits.",
+            "es": "Procedencia de los datos y ética. Los planos de origen provienen de plataformas de anuncios inmobiliarios en línea que atienden mercados residenciales del sur de Asia. Las identidades de las plataformas se omiten para cumplir con los términos de acceso de las plataformas (convención de LIFULL [LIFULL Co., Ltd. and National Institute of Informatics (NII), 2017]); la recolección usó únicamente páginas de anuncios públicas y sin muro de pago, sin eludir límites de frecuencia, muros de inicio de sesión ni otros controles de acceso, después de revisar los términos de servicio de las plataformas. El conjunto de datos publicado consiste por completo en representaciones geométricas derivadas (polígonos de Shapely [Gillies et al., 2024] y grafos de NetworkX); no se conserva ningún dibujo original, imagen, texto de anuncio, precio, dirección ni información de identificación personal. La transformación elimina toda expresión artística protegible por derechos de autor, y conserva únicamente la topología geométrica factual. Los datos se distribuyen bajo la licencia CC BY 4.0; se incluye una hoja de datos completa [Gebru et al., 2021] en el material suplementario. Una política pública de retiro (TAKEDOWN.md) acompaña a la publicación: los titulares de derechos pueden solicitar la eliminación de identificadores de plano específicos, con acuse de recibo en un plazo de 7 días y eliminación en la siguiente publicación en un plazo de 30 días; los identificadores eliminados se registran para que los usuarios posteriores puedan actualizar sus particiones."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Release, Hosting, and Long-Term Availability. The dataset is hosted on Kaggle Datasets and mirrored with a permanent DOI. A Croissant [Akhtar et al., 2024] metadata file accompanies the release, so the dataset is discoverable and loadable by tools that consume Croissant. Code, trained baseline checkpoints, and a reproduction script (reproduce.sh) that regenerates every table and figure from the released dataset are provided in a public code repository with a pinned Docker image. The canonical split file (split.json) is versioned alongside the data; all reported numbers are tied to split-v2. The dataset is at https://www.kaggle.com/datasets/resplan/resplan and the code at https://github.com/m-agour/ResPlan.",
+            "es": "Publicación, alojamiento y disponibilidad a largo plazo. El conjunto de datos está alojado en Kaggle Datasets y replicado con un DOI permanente. Un archivo de metadatos Croissant [Akhtar et al., 2024] acompaña a la publicación, de modo que el conjunto de datos puede ser descubierto y cargado por herramientas que consumen Croissant. El código, los puntos de control de las líneas base entrenadas y un script de reproducción (reproduce.sh) que regenera cada tabla y figura a partir del conjunto de datos publicado se proporcionan en un repositorio de código público con una imagen de Docker fija. El archivo de la partición canónica (split.json) está versionado junto con los datos; todas las cifras reportadas están ligadas a split-v2. El conjunto de datos está en https://www.kaggle.com/datasets/resplan/resplan y el código en https://github.com/m-agour/ResPlan."
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Data Format and Schema. Each ResPlan sample is stored as a Python dictionary whose keys are semantic categories (e.g., bedroom, bathroom, wall, door) and whose values are Shapely polygon or multi-polygon objects in plan-view coordinates. If a category is absent in a given plan, its value is an empty geometry (MULTIPOLYGON EMPTY), so downstream pipelines never require special-case checks for missing keys.",
+            "es": "Formato y esquema de los datos. Cada muestra de ResPlan se almacena como un diccionario de Python cuyas claves son categorías semánticas (p. ej., bedroom, bathroom, wall, door) y cuyos valores son objetos de Shapely de tipo polígono o multipolígono en coordenadas de vista en planta. Si una categoría está ausente en un plano dado, su valor es una geometría vacía (MULTIPOLYGON EMPTY), de modo que los flujos de trabajo posteriores nunca requieren verificaciones de casos especiales para claves faltantes."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Room polygons are grouped by function; structural elements (walls, doors, windows) share a common thickness (wall_depth). The primary entrance (front_door) is isolated as a distinct element. An inner polygon encloses inhabitable space, and a neighbor layer records party walls— shared boundary walls between the unit and adjacent properties—enabling exterior/interior wall disambiguation via boolean set operations.",
+            "es": "Los polígonos de habitaciones se agrupan por función; los elementos estructurales (muros, puertas, ventanas) comparten un grosor común (wall_depth). La entrada principal (front_door) se aísla como un elemento distinto. Un polígono interior encierra el espacio habitable, y una capa neighbor registra los muros medianeros —muros límite compartidos entre la unidad y las propiedades adyacentes—, lo que permite distinguir muros exteriores e interiores mediante operaciones booleanas de conjuntos."
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Metadata and Splits. Every record includes a gross floor area in square meters and a numeric identifier. The canonical train/validation/test split is 13,736/1,632/1,632 plans (approximately 80/10/10), stratified by bedroom count to ensure proportional representation across subgroups. Split indices are distributed as a JSON file (split.json) mapping plan IDs to partitions.",
+            "es": "Metadatos y particiones. Cada registro incluye un área bruta construida en metros cuadrados y un identificador numérico. La partición canónica de entrenamiento/validación/prueba es de 13,736/1,632/1,632 planos (aproximadamente 80/10/10), estratificada por número de recámaras para asegurar una representación proporcional entre los subgrupos. Los índices de la partición se distribuyen como un archivo JSON (split.json) que asigna los identificadores de plano a las particiones."
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Metric-Scale Coordinates. Every plan is also available in real-world meters, converted using the listed gross floor area to derive a meters-per-pixel scale factor applied via Shapely’s affine_transform. Each record stores the scale factor, wall thickness in meters, and per-room areas. Across the dataset, median plan width is 12.4 m and median wall thickness is 21 cm.",
+            "es": "Coordenadas a escala métrica. Cada plano también está disponible en metros del mundo real, convertido usando el área bruta construida indicada para obtener un factor de escala de metros por píxel aplicado mediante affine_transform de Shapely. Cada registro almacena el factor de escala, el grosor del muro en metros y las áreas por habitación. En todo el conjunto de datos, el ancho mediano de los planos es de 12.4 m y el grosor mediano de los muros es de 21 cm."
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Graph Construction. Each plan is converted into a room-connectivity graph whose nodes correspond to six primary spaces (bedroom, bathroom, kitchen, living, balcony, front_door), each storing a semantic label, polygon geometry, and area. Secondary spaces are present as geometryonly categories. Edges encode four types: via_door and via_window (two rooms bridged by a door",
+            "es": "Construcción del grafo. Cada plano se convierte en un grafo de conectividad de habitaciones cuyos nodos corresponden a seis espacios primarios (bedroom, bathroom, kitchen, living, balcony, front_door), y cada uno almacena una etiqueta semántica, la geometría del polígono y el área. Los espacios secundarios están presentes como categorías de solo geometría. Las aristas codifican cuatro tipos: via_door y via_window (dos habitaciones unidas por una puerta"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "2The 17 categories comprise functional spaces (living, bedroom, bathroom, kitchen, balcony, storage, stair, garden, parking, pool), structural elements (wall, door, window, front_door), and boundary layers (inner, land, neighbor). or window), adjacency (rooms sharing a wall, detected via buffered polygon overlap), and direct (front-door nodes linked to rooms they physically touch). Polygon ordering is fixed, enabling O(1) cross-referencing between graph nodes and geometries. Task 1 uses the five room-type nodes as labels; front_door is retained as a graph node but excluded from the 5-class label set. Figure 2 illustrates the graph representation.",
+            "es": "2Las 17 categorías comprenden espacios funcionales (living, bedroom, bathroom, kitchen, balcony, storage, stair, garden, parking, pool), elementos estructurales (wall, door, window, front_door) y capas de límite (inner, land, neighbor). o una ventana), adjacency (habitaciones que comparten un muro, detectadas mediante superposición de polígonos con búfer) y direct (nodos de puerta de entrada ligados a las habitaciones que tocan físicamente). El orden de los polígonos es fijo, lo que permite una referencia cruzada en O(1) entre los nodos del grafo y las geometrías. La Tarea 1 usa los cinco nodos de tipo de habitación como etiquetas; front_door se conserva como nodo del grafo pero se excluye del conjunto de 5 clases de etiquetas. La Figura 2 ilustra la representación del grafo."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: Summary statistics of the ResPlan dataset: (a) floor area distribution (median 110 m2); (b) bedroom count distribution; (c) graph nodes (rooms) per plan. (a) Floor area (b) Bedroom count (c) Rooms per plan",
+            "es": "Figura 3: Estadísticas resumidas del conjunto de datos ResPlan: (a) distribución del área construida (mediana 110 m2); (b) distribución del número de recámaras; (c) nodos del grafo (habitaciones) por plano. (a) Área construida (b) Número de recámaras (c) Habitaciones por plano"
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4: Functional-room-count distribution of the converted RPLAN training split (blue, N=74,995) vs. the ResPlan test split (orange, N=1,632), using the five shared room types. The observed RPLAN maximum is 8 rooms per plan; 34.6% of ResPlan test plans exceed this limit.",
+            "es": "Figura 4: Distribución del número de habitaciones funcionales de la partición de entrenamiento convertida de RPLAN (azul, N=74,995) frente a la partición de prueba de ResPlan (naranja, N=1,632), usando los cinco tipos de habitación compartidos. El máximo observado en RPLAN es de 8 habitaciones por plano; el 34.6% de los planos de prueba de ResPlan supera este límite."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 Dataset Analysis",
+        "es": "4 Análisis del conjunto de datos"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Figure 3 presents the key distributional properties. Floor areas range from under 10 m2 to over 700 m2 (median 110 m2, mean 121 m2, σ=55 m2). Two-bedroom plans are the most common (47%), followed by three-bedroom (36%); 6.4% have four or more bedrooms. The room-connectivity graphs average 9.2 nodes and 12.9 edges per plan. Edge-type distribution: via_door 54.2%, adjacency 35.2%, direct 7.6%, via_window 3.0%. All but one graph is connected. A total of 125 plans (0.7%) lack a kitchen polygon.",
+            "es": "La Figura 3 presenta las propiedades distribucionales clave. Las áreas construidas van de menos de 10 m2 a más de 700 m2 (mediana 110 m2, media 121 m2, σ=55 m2). Los planos de dos recámaras son los más comunes (47%), seguidos por los de tres recámaras (36%); el 6.4% tiene cuatro o más recámaras. Los grafos de conectividad de habitaciones promedian 9.2 nodos y 12.9 aristas por plano. Distribución de tipos de aristas: via_door 54.2%, adjacency 35.2%, direct 7.6%, via_window 3.0%. Todos los grafos excepto uno son conexos. Un total de 125 planos (0.7%) carece de polígono de cocina."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Geometric statistics. Across 533,788 polygons, median vertex count is 4 (53.8% rectangles; 9.5% L-shaped, 6 vertices), and plan aspect ratio averages 1.40 (median 1.33). Edge fractions are via_door 51.3±10.1%, adjacency 32.5±10.8%, direct 8.8±4.0%, and via_window 7.4±7.0%.",
+            "es": "Estadísticas geométricas. En 533,788 polígonos, el número mediano de vértices es 4 (53.8% rectángulos; 9.5% en forma de L, 6 vértices), y la relación de aspecto de los planos promedia 1.40 (mediana 1.33). Las fracciones de aristas son via_door 51.3±10.1%, adjacency 32.5±10.8%, direct 8.8±4.0% y via_window 7.4±7.0%."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Scale and coverage. At 17,000 plans, ResPlan is substantially larger than CubiCasa5K and the 5,372 floor-plate records in MSD, while providing self-contained unit-level geometry, typed graphs, and metric scale. Figure 4 compares functional-room counts (bedroom, bathroom, kitchen, living, balcony) against the converted RPLAN training split used in our transfer experiment: that split has an observed maximum of eight rooms, while 34.6% of ResPlan test plans lie outside this support, extending to 17 rooms. Section 6.2 evaluates generation in this larger-layout regime.",
+            "es": "Escala y cobertura. Con 17,000 planos, ResPlan es sustancialmente más grande que CubiCasa5K y que los 5,372 registros de planta de edificio de MSD, a la vez que ofrece geometría autocontenida a nivel de unidad, grafos tipificados y escala métrica. La Figura 4 compara los conteos de habitaciones funcionales (bedroom, bathroom, kitchen, living, balcony) con la partición de entrenamiento convertida de RPLAN usada en nuestro experimento de transferencia: esa partición tiene un máximo observado de ocho habitaciones, mientras que el 34.6% de los planos de prueba de ResPlan queda fuera de este soporte, y llega hasta 17 habitaciones. La Sección 6.2 evalúa la generación en este régimen de distribuciones más grandes."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 Benchmark Tasks",
+        "es": "5 Tareas de referencia"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Three benchmark tasks cover semantic, geometric, and topological reasoning: semantic room labeling of graph nodes (accuracy, macro/weighted F1); constrained floor-plan generation from a boundary, room list, and graph (boundary IoU, room-count accuracy, adjacency satisfaction, FID); and plan-to-graph extraction with typed edges (edge precision/recall/F1 and type accuracy).",
+            "es": "Tres tareas de referencia cubren el razonamiento semántico, geométrico y topológico: etiquetado semántico de habitaciones en los nodos del grafo (exactitud, F1 macro/ponderado); generación restringida de planos de planta a partir de un límite, una lista de habitaciones y un grafo (IoU del límite, exactitud del número de habitaciones, satisfacción de la adyacencia, FID); y extracción de plano a grafo con aristas tipificadas (precisión/exhaustividad/F1 de aristas y exactitud del tipo)."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 6,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2: Baseline results for semantic room labeling (Task 1) on the ResPlan test set. GNN ± values are standard deviations over 3 random seeds; tree-based methods are deterministic.",
+            "es": "Tabla 2: Resultados de las líneas base para el etiquetado semántico de habitaciones (Tarea 1) en el conjunto de prueba de ResPlan. Los valores ± de las GNN son desviaciones estándar sobre 3 semillas aleatorias; los métodos basados en árboles son deterministas."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 6,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3: Feature ablation for GraphSAGE on Task 1. “No edge-type degrees” removes the three typed-edge degree features (via_door, adjacency, via_window), leaving 8 generic features. Mean±std over 3 seeds.",
+            "es": "Tabla 3: Ablación de características para GraphSAGE en la Tarea 1. “No edge-type degrees” elimina las tres características de grado por tipo de arista (via_door, adjacency, via_window), y deja 8 características genéricas. Media±desviación estándar sobre 3 semillas."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6 Baseline Experiments",
+        "es": "6 Experimentos de referencia"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "To demonstrate the utility of ResPlan and establish initial benchmarks, methods are evaluated on the three tasks defined above, together with a cross-dataset transfer experiment against RPLAN. The canonical split is used throughout; all metrics are computed on the 1,632-plan test partition.",
+            "es": "Para demostrar la utilidad de ResPlan y establecer puntos de referencia iniciales, se evalúan métodos en las tres tareas definidas arriba, junto con un experimento de transferencia entre conjuntos de datos (cross-dataset transfer) frente a RPLAN. En todo momento se usa la partición canónica (canonical split); todas las métricas se calculan sobre la partición de prueba de 1,632 planos."
+          }
+        },
+        {
+          "id": "s6-h1",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "6.1 Task 1: Semantic Room Labeling",
+            "es": "6.1 Tarea 1: Etiquetado semántico de habitaciones"
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Each room node in the connectivity graph must be classified into one of five categories: bedroom, bathroom, kitchen, living, or balcony.",
+            "es": "Cada nodo de habitación en el grafo de conectividad (connectivity graph) debe clasificarse en una de cinco categorías: recámara, baño, cocina, sala o balcón."
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Methods. Five baselines are compared: a rule-based decision tree (area, edge-type degree, area ratio); a random forest (200 trees, depth 20, 11 node features); gradient boosting (200 trees, depth 6, same features); a 3-layer GCN [Kipf and Welling, 2017] (128 hidden, BN, dropout 0.3, Adam, 500 epochs); and a 3-layer GraphSAGE [Hamilton et al., 2017] with the same setup but concatenationbased aggregation.",
+            "es": "Métodos. Se comparan cinco modelos de referencia (baselines): un árbol de decisión basado en reglas (rule-based decision tree) que usa área, grado por tipo de arista y proporción de áreas; un bosque aleatorio (random forest) de 200 árboles, profundidad 20 y 11 atributos por nodo; un gradient boosting de 200 árboles, profundidad 6 y los mismos atributos; una GCN de 3 capas [Kipf and Welling, 2017] (128 unidades ocultas, BN, dropout 0.3, Adam, 500 épocas); y una GraphSAGE de 3 capas [Hamilton et al., 2017] con la misma configuración, pero con agregación basada en concatenación."
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Results. Table 2 summarizes the results. GraphSAGE achieves the highest accuracy (95.1%) and macro F1 (0.950), outperforming tree-based methods (RF 91.4%, GB 90.8%) and GCN (73.9%), with the difference statistically significant (p < 10−21, Wilcoxon signed-rank). Per-class F1 ranges from 0.998 (living) to 0.873 (balcony), with the largest gains over tree methods on bathrooms (0.944 vs. 0.908) and kitchens (0.953 vs. 0.884), where graph context disambiguates rooms with overlapping sizes.",
+            "es": "Resultados. La Tabla 2 resume los resultados. GraphSAGE logra la mayor exactitud (accuracy) (95.1%) y el mayor F1 macro (0.950), y supera a los métodos basados en árboles (RF 91.4%, GB 90.8%) y a GCN (73.9%), con una diferencia estadísticamente significativa (p < 10−21, prueba de rangos con signo de Wilcoxon). El F1 por clase va de 0.998 (estancia) a 0.873 (balcón), y las mayores ganancias frente a los métodos de árboles están en baños (0.944 frente a 0.908) y cocinas (0.953 frente a 0.884), donde el contexto del grafo distingue cuartos de tamaños parecidos."
+          }
+        },
+        {
+          "id": "s6-h2",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "6.1.1 Ablation Studies",
+            "es": "6.1.1 Estudios de ablación"
+          }
+        },
+        {
+          "id": "s6-p5",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Feature ablation. Table 3 shows GraphSAGE accuracy under progressively reduced feature sets. The full 11-feature set achieves 95.0%. Removing typed-edge degrees drops accuracy by 2.3 pp. Area alone reaches 87.2%, while a structure-only baseline (no node features) drops to 34.0%, confirming that node attributes are necessary.",
+            "es": "Ablación de atributos (Feature ablation). La Tabla 3 muestra la exactitud de GraphSAGE con conjuntos de atributos progresivamente reducidos. El conjunto completo de 11 atributos alcanza 95.0%. Eliminar los grados por tipo de arista reduce la exactitud en 2.3 pp. El área por sí sola llega a 87.2%, mientras que una referencia que solo usa la estructura (sin atributos de nodo) cae a 34.0%, lo que confirma que los atributos de los nodos son necesarios."
+          }
+        },
+        {
+          "id": "s6-p6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Among GNN architectures (3 layers, 128 hidden), GraphSAGE (95.1%) outperforms GIN (83.9%), GCN (73.8%), and GAT (59.6%).",
+            "es": "Entre las arquitecturas de GNN (3 capas, 128 unidades ocultas), GraphSAGE (95.1%) supera a GIN (83.9%), GCN (73.8%) y GAT (59.6%)."
+          }
+        },
+        {
+          "id": "s6-h3",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "6.1.2 Cross-Dataset Transfer",
+            "es": "6.1.2 Transferencia entre conjuntos de datos"
+          }
+        },
+        {
+          "id": "s6-p7",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "To quantify the domain gap between ResPlan and other vector floor-plan resources, GraphSAGE is trained on one dataset and evaluated on the others, using a reduced 8-feature set common to all three (room area, total degree, neighbor area statistics, area ratio, centroid position). RPLAN and MSD room categories are mapped to the same five classes (see supplementary); MSD apartments are extracted by grouping the v2 release’s residential areas by apartment_id with adjacency from polygon contact.",
+            "es": "Para cuantificar la brecha de dominio entre ResPlan y otros recursos de planos vectoriales, se entrena GraphSAGE en un conjunto de datos y se evalúa en los demás, usando un conjunto reducido de 8 atributos común a los tres (área de la habitación, grado total, estadísticas del área de los vecinos, proporción de áreas, posición del centroide). Las categorías de habitación de RPLAN y MSD se asignan a las mismas cinco clases (véase el material suplementario); los departamentos de MSD se extraen agrupando las áreas residenciales de la versión v2 por apartment_id, con la adyacencia obtenida a partir del contacto entre polígonos."
+          }
+        },
+        {
+          "id": "tab-4",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-4.png",
+          "text": {
+            "en": "Table 4: Cross-dataset transfer accuracy (GraphSAGE, 8 common features). Diagonal entries are in-domain; off-diagonal entries measure transfer. MSD rows use 18,002 residential apartments from the v2 release.",
+            "es": "Tabla 4: Exactitud de transferencia entre conjuntos de datos (GraphSAGE, 8 atributos comunes). Las entradas de la diagonal son dentro del dominio; las entradas fuera de la diagonal miden la transferencia. Las filas de MSD usan 18,002 departamentos residenciales de la versión v2."
+          }
+        },
+        {
+          "id": "tab-5",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-5.png",
+          "text": {
+            "en": "Table 5: Conditional baselines for Task 2 (constrained generation). Top: retrieval methods; bottom: learned generative models with bounding-box outputs. FID is partition-render FID (Section 6.2). †Room counts are fixed by conditioning.",
+            "es": "Tabla 5: Líneas base condicionales para la Tarea 2 (generación con restricciones). Arriba: métodos de recuperación; abajo: modelos generativos aprendidos con salidas de cuadros delimitadores (bounding boxes). FID es el FID de renderizado de particiones (Sección 6.2). †El número de habitaciones queda fijado por el condicionamiento."
+          }
+        },
+        {
+          "id": "s6-p8",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Table 4 shows substantial gaps to RPLAN (34.4/25.8 pp) and larger gaps to MSD (70.6/49.6 pp): despite both being residential vector datasets, ResPlan averages 8.1 functional rooms vs. RPLAN’s 6.7, has lower graph density (0.35 vs. 0.53), more bathrooms (30.7% vs. 17.9%), and a smaller living-room fraction (35.9% vs. 50.0%); MSD’s Swiss corridor-mediated layouts diverge further still, so ResPlan is complementary to both. RPLAN pre-training plus fine-tuning helps only at 1% training data (+0.4 pp) and vanishes at ≥5%, confirming the gap is structural.",
+            "es": "La Tabla 4 muestra brechas sustanciales respecto a RPLAN (34.4/25.8 pp) y brechas mayores respecto a MSD (70.6/49.6 pp): a pesar de que ambos son conjuntos de datos vectoriales residenciales, ResPlan tiene en promedio 8.1 habitaciones funcionales frente a 6.7 de RPLAN, presenta menor densidad del grafo (0.35 frente a 0.53), más baños (30.7% frente a 17.9%) y una menor fracción de salas (35.9% frente a 50.0%); las distribuciones suizas de MSD, mediadas por pasillos, divergen aún más, por lo que ResPlan es complementario de ambos. El preentrenamiento en RPLAN con ajuste fino (fine-tuning) solo ayuda con 1% de los datos de entrenamiento (+0.4 pp) y el efecto desaparece con ≥5%, lo que confirma que la brecha es estructural."
+          }
+        },
+        {
+          "id": "s6-h4",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "6.2 Task 2: Constrained Floor Plan Generation",
+            "es": "6.2 Tarea 2: Generación de planos con restricciones"
+          }
+        },
+        {
+          "id": "s6-p9",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Given a target room-count vector and adjacency graph, the goal is to produce a floor plan that satisfies these constraints. Both retrieval-based and learned generative baselines are evaluated.",
+            "es": "Dados un vector objetivo de número de habitaciones y un grafo de adyacencia, el objetivo es producir un plano que cumpla estas restricciones. Se evalúan tanto líneas base basadas en recuperación como líneas base generativas aprendidas."
+          }
+        },
+        {
+          "id": "s6-p10",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Baselines include random, count-matched, and count+graph retrieval, plus four learned methods. Two conditional VAEs predict room boxes (cx, cy, w, h): CVAE uses room counts and boundary aspect ratio, while CVAE+Graph adds a 15-dimensional adjacency feature (both β-VAE, β=0.1, 128-dim latent, early stopping). A 3-layer layout GNN (13K parameters) predicts boxes by message passing, and an unconditional DDPM (UNet, dim multipliers 1, 2, 4, 8; 128×128; 100k steps, AMP, one L40S) assesses image-space quality independent of conditioning. Training rasters render six room categories plus walls; doors/windows are not separate channels, but the DDPM learns plausible openings as wall gaps.",
+            "es": "Las líneas base incluyen recuperación aleatoria, por coincidencia de conteos y por conteos más grafo, además de cuatro métodos aprendidos. Dos autocodificadores variacionales condicionales (conditional VAEs) predicen cuadros de habitaciones (cx, cy, w, h): CVAE usa el número de habitaciones y la relación de aspecto del contorno, mientras que CVAE+Graph añade un atributo de adyacencia de 15 dimensiones (ambos β-VAE, β=0.1, espacio latente de 128 dimensiones, parada temprana). Una GNN de distribución espacial (layout GNN) de 3 capas (13K parámetros) predice los cuadros mediante paso de mensajes, y un DDPM incondicional (UNet, multiplicadores de dimensión 1, 2, 4, 8; 128×128; 100k pasos, AMP, una L40S) evalúa la calidad en el espacio de imagen independientemente del condicionamiento. Las imágenes rasterizadas de entrenamiento representan seis categorías de habitación más los muros; las puertas y ventanas no son canales separados, pero el DDPM aprende aberturas plausibles como huecos en los muros."
+          }
+        },
+        {
+          "id": "s6-p11",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "GSDiff [Hu et al., 2025], HouseDiffusion [Shabani et al., 2023], and House-GAN++ [Nauata et al., 2021] require nontrivial adaptation (wall-junction extractor and 17-category embedding for GSDiff; rectangular-box assumption for the others, but only 53.8% of ResPlan polygons are rectangles); the released split and reproduction script support this follow-up.",
+            "es": "GSDiff [Hu et al., 2025], HouseDiffusion [Shabani et al., 2023] y House-GAN++ [Nauata et al., 2021] requieren una adaptación no trivial (extractor de uniones de muros y embedding de 17 categorías para GSDiff; suposición de cuadros rectangulares para los demás, pero solo 53.8% de los polígonos de ResPlan son rectángulos); la partición publicada y el script de reproducción respaldan este trabajo de seguimiento."
+          }
+        },
+        {
+          "id": "s6-p12",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "FID protocol. Bounding-box outputs from CVAE, CVAE+Graph, and Layout GNN are rasterized through a boundary-partition renderer: each inner-polygon pixel is assigned to the nearest predicted box (L∞distance, ties by center distance and area), producing a non-overlapping partition. Applying the same renderer to ground-truth boxes yields the conditional partition-render Fréchet Inception Distance (FIDpart.). The unconditional DDPM outputs raster pixels directly and is evaluated against natively rasterized plans (FIDraster), so its FID is not directly comparable to Table 5’s partition values.",
+            "es": "Protocolo de FID. Las salidas de cuadros delimitadores de CVAE, CVAE+Graph y Layout GNN se rasterizan mediante un renderizador de partición del contorno: cada píxel del polígono interior se asigna al cuadro predicho más cercano (distancia L∞, con desempates por distancia al centro y por área), lo que produce una partición sin traslapes. Aplicar el mismo renderizador a los cuadros de referencia (ground truth) produce la distancia de Fréchet Inception (Fréchet Inception Distance) condicional de renderizado de particiones (FIDpart.). El DDPM incondicional produce directamente píxeles rasterizados y se evalúa frente a planos rasterizados de forma nativa (FIDraster), por lo que su FID no es directamente comparable con los valores de partición de la Tabla 5."
+          }
+        },
+        {
+          "id": "tab-6",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-6.png",
+          "text": {
+            "en": "Table 6: Typed vs. untyped graph conditioning for CVAE+Graph (Task 2). Same architecture, training schedule, augmentation, and best-of-20 sampling protocol. FID is partition-render FID against partition-rendered real plans. Adjacency and IoU are recomputed under the shared protocol and therefore differ slightly from Table 5.",
+            "es": "Tabla 6: Condicionamiento con grafo tipificado frente a no tipificado para CVAE+Graph (Tarea 2). Misma arquitectura, calendario de entrenamiento, aumento de datos y protocolo de muestreo del mejor de 20. FID es el FID de renderizado de particiones frente a planos reales renderizados por partición. La adyacencia y el IoU se recalculan bajo el protocolo compartido y por ello difieren ligeramente de la Tabla 5."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5: Adjacency satisfaction and boundary IoU vs. functional-room-count bucket. Shaded 9+ buckets are outside converted RPLAN support; CVAEs degrade with size, while Layout GNN keeps adjacency but low IoU.",
+            "es": "Figura 5: Satisfacción de adyacencia e IoU del contorno frente al intervalo de número de habitaciones funcionales. Los intervalos sombreados de 9+ quedan fuera del soporte de RPLAN convertido; los CVAE se degradan con el tamaño, mientras que Layout GNN mantiene la adyacencia pero con un IoU bajo."
+          }
+        },
+        {
+          "id": "s6-p13",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Results. Count retrieval achieves 99.6% room-count accuracy; graph reranking improves adjacency satisfaction to 90.3%. Under partition-FID, the layout GNN reaches near-perfect adjacency (0.999) but high FID (63.8) because it forces rectangular rooms. Both CVAEs keep 99.5% room counts but only ∼0.68 adjacency, collapsing the living room into a dominant rectangle (Figure 7) and yielding FIDs of 25.9/25.0. Unconditionally, the DDPM reaches FIDraster 6.1 against natively rasterized plans. Pixel generation thus gives visual fidelity without structural guarantees, while conditioned bbox methods enforce counts at the cost of spatial coherence.",
+            "es": "Resultados. La recuperación por conteos alcanza 99.6% de exactitud en el número de habitaciones; el reordenamiento con el grafo mejora la satisfacción de adyacencia a 90.3%. Bajo el FID de partición, la layout GNN alcanza una adyacencia casi perfecta (0.999) pero un FID alto (63.8) porque fuerza habitaciones rectangulares. Ambos CVAE mantienen 99.5% en el número de habitaciones pero solo ∼0.68 de adyacencia, colapsando la sala en un rectángulo dominante (Figura 7) y obteniendo FID de 25.9/25.0. De manera incondicional, el DDPM alcanza un FIDraster de 6.1 frente a planos rasterizados de forma nativa. Así, la generación de píxeles ofrece fidelidad visual sin garantías estructurales, mientras que los métodos condicionados de cuadros delimitadores imponen los conteos a costa de la coherencia espacial."
+          }
+        },
+        {
+          "id": "s6-p14",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Ablation: do typed edges help? ResPlan exposes four edge types (via_door, adjacency, direct, via_window). CVAE+Graph collapses them into a 15-d type-pair count vector; we compare this with a 60-d typed encoding (15 type-pair counts × 4 edge types) under the same best-of-20 sampling protocol. Table 6 shows the typed variant matches the untyped baseline (FID 25.0 vs. 25.0; adjacency 0.590 vs. 0.592; IoU 0.553 vs. 0.555). At this model scale, the limiting factor is the CVAE’s dominant-living-room mode rather than graph granularity, but the released typed edges enable relational decoders and per-edge-type message passing [Schlichtkrull et al., 2018].",
+            "es": "Ablación: ¿ayudan las aristas tipificadas? ResPlan expone cuatro tipos de arista (via_door, adjacency, direct, via_window). CVAE+Graph los colapsa en un vector de 15 dimensiones con conteos de pares de tipos; lo comparamos con una codificación tipificada de 60 dimensiones (15 conteos de pares de tipos × 4 tipos de arista) bajo el mismo protocolo de muestreo del mejor de 20. La Tabla 6 muestra que la variante tipificada iguala a la línea base no tipificada (FID 25.0 frente a 25.0; adyacencia 0.590 frente a 0.592; IoU 0.553 frente a 0.555). A esta escala de modelo, el factor limitante es el modo de sala dominante del CVAE y no la granularidad del grafo, pero las aristas tipificadas publicadas permiten decodificadores relacionales y paso de mensajes por tipo de arista [Schlichtkrull et al., 2018]."
+          }
+        },
+        {
+          "id": "s6-p15",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Scaling with plan complexity. To probe scaling with layout complexity, the 1,632 test plans are bucketed by functional-room count; Figure 5 reports per-bucket adjacency satisfaction and boundary IoU. Both CVAEs degrade monotonically: adjacency drops from 0.70 in the 4–6-room bucket to 0.42 in the 13+-room bucket, and IoU from 0.57 to 0.50. The drop starts within the converted RPLAN split’s observed support (7–8 rooms) and accelerates in the 9+-room regime absent from that split (shaded). The Layout GNN satisfies adjacency by construction (1.000 across buckets) but remains at low IoU (∼0.16), failing to fit the boundary as layouts grow.",
+            "es": "Escalamiento con la complejidad del plano. Para sondear el escalamiento con la complejidad de la distribución, los 1,632 planos de prueba se agrupan por número de habitaciones funcionales; la Figura 5 reporta la satisfacción de adyacencia y el IoU del contorno por intervalo. Ambos CVAE se degradan de forma monótona: la adyacencia baja de 0.70 en el intervalo de 4–6 habitaciones a 0.42 en el de 13+ habitaciones, y el IoU de 0.57 a 0.50. La caída comienza dentro del soporte observado de la partición de RPLAN convertida (7–8 habitaciones) y se acelera en el régimen de 9+ habitaciones, ausente de esa partición (sombreado). La Layout GNN satisface la adyacencia por construcción (1.000 en todos los intervalos) pero permanece con un IoU bajo (∼0.16), sin lograr ajustar el contorno a medida que las distribuciones crecen."
+          }
+        },
+        {
+          "id": "s6-h5",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "6.3 Task 3: Plan-to-Graph Extraction",
+            "es": "6.3 Tarea 3: Extracción del grafo a partir del plano"
+          }
+        },
+        {
+          "id": "s6-p16",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Given only the polygonal layout, the goal is to recover the typed connectivity graph. We evaluate four heuristic edge detectors (proximity, shared boundary, complete graph, and an oracle upper bound) followed by an edge-type classifier that distinguishes via_door, adjacency, direct, and via_window. Two classifiers share the same 47 geometric features (shared-boundary length, opening overlap, polygon-pair distance, area ratios, axis-aligned offsets): a gradient-boosted (GB) tree ensemble and an inductive GraphSAGE node-conditioned variant [Hamilton et al., 2017]. Shared-boundary",
+            "es": "Dada únicamente la distribución poligonal, el objetivo es recuperar el grafo de conectividad tipificado. Evaluamos cuatro detectores heurísticos de aristas (proximidad, frontera compartida, grafo completo y un límite superior oráculo), seguidos de un clasificador de tipo de arista que distingue via_door, adjacency, direct y via_window. Dos clasificadores comparten los mismos 47 atributos geométricos (longitud de la frontera compartida, traslape de aberturas, distancia entre pares de polígonos, proporciones de áreas, desplazamientos alineados a los ejes): un ensamble de árboles con gradient boosting (GB) y una variante inductiva de GraphSAGE condicionada por nodos [Hamilton et al., 2017]. La frontera compartida"
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6: Qualitative retrieval for Task 2. Count+Graph retrieval preserves functional adjacencies better than count-only matching, showing why typed connectivity is useful beyond room counts.",
+            "es": "Figura 6: Recuperación cualitativa para la Tarea 2. La recuperación por conteos más grafo preserva mejor las adyacencias funcionales que la coincidencia solo por conteos, lo que muestra por qué la conectividad tipificada es útil más allá del número de habitaciones."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7: Sampled DDPM outputs for five held-out targets. Outputs are visually realistic (FID 6.1), with openings implicit. Table 7: Plan-to-graph extraction baselines (Task 3). Type accuracy is on correctly detected edges; †GB, ‡SAGE.",
+            "es": "Figura 7: Salidas muestreadas del DDPM para cinco objetivos reservados. Las salidas son visualmente realistas (FID 6.1), con las aberturas implícitas. Tabla 7: Líneas base de extracción de plano a grafo (Tarea 3). La exactitud de tipo se calcula sobre las aristas detectadas correctamente; †GB, ‡SAGE."
+          }
+        },
+        {
+          "id": "s6-p17",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Method Precision Recall F1 Type Acc.",
+            "es": "Método Precisión Exhaustividad F1 Exactitud de tipo"
+          }
+        },
+        {
+          "id": "s6-p18",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Proximity 0.564 0.906 0.695 0.504 Shared boundary 0.961 0.982 0.971 0.504 Shared boundary + GB† 0.961 0.982 0.971 0.850 Shared boundary + SAGE‡ 0.961 0.982 0.971 0.831∗ Complete graph 0.315 1.000 0.480 0.504 Oracle (GT) 1.000 1.000 1.000 1.000",
+            "es": "Proximidad 0.564 0.906 0.695 0.504 Frontera compartida 0.961 0.982 0.971 0.504 Frontera compartida + GB† 0.961 0.982 0.971 0.850 Frontera compartida + SAGE‡ 0.961 0.982 0.971 0.831∗ Grafo completo 0.315 1.000 0.480 0.504 Oráculo (GT) 1.000 1.000 1.000 1.000"
+          }
+        },
+        {
+          "id": "s6-p19",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "∗Macro-F1 0.782 for the learned SAGE edge classifier. detection alone recovers 98.2% of true edges (F1 0.971), confirming that adjacency in ResPlan is overwhelmingly mediated by polygon contact rather than long-range visibility. Adding the GB classifier on top raises type accuracy from the 50.4% majority-class baseline to 85.0% (Table 7); the SAGE variant reaches 83.1% with macro-F1 0.782, indicating room for richer relational architectures. Remaining errors concentrate on the rare via_window class (3.0% of edges), which is most often confused with adjacency when the window straddles a shared wall.",
+            "es": "∗F1 macro de 0.782 para el clasificador de aristas SAGE aprendido. La detección por sí sola recupera 98.2% de las aristas verdaderas (F1 0.971), lo que confirma que la adyacencia en ResPlan está mediada abrumadoramente por el contacto entre polígonos y no por la visibilidad de largo alcance. Añadir el clasificador GB encima eleva la exactitud de tipo de la línea base de clase mayoritaria de 50.4% a 85.0% (Tabla 7); la variante SAGE llega a 83.1% con F1 macro de 0.782, lo que indica margen para arquitecturas relacionales más ricas. Los errores restantes se concentran en la clase poco frecuente via_window (3.0% de las aristas), que se confunde con mayor frecuencia con adjacency cuando la ventana abarca un muro compartido."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "title": {
+        "en": "7 Discussion and Conclusion",
+        "es": "7 Discusión y conclusión"
+      },
+      "blocks": [
+        {
+          "id": "s7-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "ResPlan provides 17,000 unit-level vector floor plans paired with typed connectivity graphs and metric coordinates, with reproducible baselines for constrained generation, room labeling, and plan-to-graph extraction. Three properties distinguish it: (i) native unit-level geometry without dwelling-extraction from larger floor plates; (ii) four typed relations (via_door, via_window, adjacency, direct) separating door- from window-mediated access; and (iii) broad layout complexity, with 34.6% of held-out plans extending past the converted RPLAN eight-room support (Figure 4).",
+            "es": "ResPlan ofrece 17,000 planos vectoriales a nivel de unidad, acompañados de grafos de conectividad tipificados y coordenadas métricas, con líneas base reproducibles para la generación con restricciones, el etiquetado de habitaciones y la extracción de plano a grafo. Tres propiedades lo distinguen: (i) geometría nativa a nivel de unidad, sin extraer las viviendas de plantas más grandes; (ii) cuatro relaciones tipificadas (via_door, via_window, adjacency, direct) que separan el acceso mediado por puertas del mediado por ventanas; y (iii) una amplia complejidad de distribución, con 34.6% de los planos reservados que se extienden más allá del soporte de ocho habitaciones de RPLAN convertido (Figura 4)."
+          }
+        },
+        {
+          "id": "s7-p2",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Task 2 reveals a gap between bounding-box generators that respect counts but collapse the living room and graph-conditioned methods that satisfy adjacency without realistic geometry; the scaling curves (Figure 5) localize this to the 9+-room regime outside RPLAN support. Cross-regional transfer (Section 6.1.2) and the typed-edge ablation (Section 6.2) suggest the next gains will come from joint geometry–graph models and per-edge-type message passing.",
+            "es": "La Tarea 2 revela una brecha entre los generadores de cuadros delimitadores, que respetan los conteos pero colapsan la sala, y los métodos condicionados por grafo, que satisfacen la adyacencia sin una geometría realista; las curvas de escalamiento (Figura 5) la localizan en el régimen de 9+ habitaciones fuera del soporte de RPLAN. La transferencia entre regiones (Sección 6.1.2) y la ablación de aristas tipificadas (Sección 6.2) sugieren que las próximas mejoras vendrán de modelos conjuntos de geometría y grafo y del paso de mensajes por tipo de arista."
+          }
+        },
+        {
+          "id": "s7-h1",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "7.1 Limitations",
+            "es": "7.1 Limitaciones"
+          }
+        },
+        {
+          "id": "s7-p3",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Geographic and cultural scope. Every plan originates from South Asian residential listings. Room-type distributions, unit sizes, and layout conventions therefore reflect one regional tradition, and models trained on ResPlan should not be assumed to transfer to Western or East Asian residential architecture. Section 6.1.2 quantifies rather than excuses this, with substantial accuracy drops in both directions against RPLAN and MSD. Extending coverage to other markets is the primary direction for a future release.",
+            "es": "Alcance geográfico y cultural. Todos los planos provienen de anuncios residenciales del sur de Asia. Por lo tanto, las distribuciones de tipos de habitación, los tamaños de las unidades y las convenciones de distribución reflejan una sola tradición regional, y no debe suponerse que los modelos entrenados en ResPlan se transfieran a la arquitectura residencial occidental o del este de Asia. La Sección 6.1.2 cuantifica esto en lugar de excusarlo, con caídas sustanciales de exactitud en ambas direcciones frente a RPLAN y MSD. Ampliar la cobertura a otros mercados es la principal línea de trabajo para una versión futura."
+          }
+        },
+        {
+          "id": "s7-p4",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Representation scope. Plans are single-floor and unit-level: multi-storey circulation, furniture, and 3D information are absent. Wall thickness is normalized per plan, so within-plan variation between structural walls and thin partitions is not preserved (99.3% of plans fall in the 10–40 cm range). Applications requiring true structural wall geometry should treat this as an approximation.",
+            "es": "Alcance de la representación. Los planos son de una sola planta y a nivel de unidad: no se incluyen la circulación entre varios niveles, el mobiliario ni la información 3D. El grosor de los muros se normaliza por plano, por lo que no se conserva la variación dentro del plano entre muros estructurales y tabiques delgados (99.3% de los planos se ubican en el rango de 10–40 cm). Las aplicaciones que requieran la geometría estructural real de los muros deben tratar esto como una aproximación."
+          }
+        },
+        {
+          "id": "s7-p5",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Annotation artifacts. Room boundaries are recovered by contour tracing, and a small tail of polygons retains jagged, stair-stepped contours rather than clean architectural edges: 0.52% of room polygons exceed 30 vertices and 0.02% exceed 100. Automated structural checks over the full dataset bound the remaining quality: doors align to a wall band in 99.94% of cases and connect at least two rooms in 99.34%, windows align in 99.98%, and the summed room area falls within ±25% of the listed gross area for 98.7% of plans. These are geometric checks and do not establish semantic room-label accuracy, for which the evidence remains the stratified 500-plan manual audit.",
+            "es": "Artefactos de anotación. Los límites de las habitaciones se recuperan mediante trazado de contornos, y una pequeña cola de polígonos conserva contornos dentados y escalonados en lugar de bordes arquitectónicos limpios: 0.52% de los polígonos de habitación superan los 30 vértices y 0.02% superan los 100. Las verificaciones estructurales automáticas sobre todo el conjunto de datos acotan la calidad restante: las puertas se alinean con una banda de muro en 99.94% de los casos y conectan al menos dos habitaciones en 99.34%, las ventanas se alinean en 99.98%, y la suma del área de las habitaciones queda dentro de ±25% del área bruta indicada en 98.7% de los planos. Estas son verificaciones geométricas y no establecen la exactitud semántica de las etiquetas de habitación, para la cual la evidencia sigue siendo la auditoría manual estratificada de 500 planos."
+          }
+        },
+        {
+          "id": "s7-p6",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Near-duplicate plans. Because listings are sometimes republished, the dataset contains repeated layouts. A geometry-based scan (label-raster IoU maximized over the eight dihedral symmetries, threshold 0.90) identifies 1,170 redundant plans (6.9%) in 931 clusters, and 154 of the 1,632 test plans have a near-duplicate in the training split. The effect on benchmark results is small—removing every affected test plan changes Task 1 accuracy by −0.15 pp—but a deduplication-aware split is distributed alongside the canonical split so that users can avoid the leakage entirely.",
+            "es": "Planos casi duplicados. Como los anuncios a veces se vuelven a publicar, el conjunto de datos contiene distribuciones repetidas. Un escaneo basado en la geometría (IoU de rasterización de etiquetas maximizado sobre las ocho simetrías diédricas, umbral 0.90) identifica 1,170 planos redundantes (6.9%) en 931 grupos, y 154 de los 1,632 planos de prueba tienen un casi duplicado en la partición de entrenamiento. El efecto sobre los resultados de referencia es pequeño (eliminar todos los planos de prueba afectados modifica la exactitud de la Tarea 1 en −0.15 pp), pero se distribuye una partición consciente de la deduplicación junto con la partición canónica para que los usuarios puedan evitar por completo la fuga de datos (leakage)."
+          }
+        },
+        {
+          "id": "s7-p7",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Provenance. Source platform identities are withheld to comply with platform access terms, and the collection and OCR/vectorization scripts are not redistributed. This limits independent auditing of geographic sampling and of the conversion pipeline itself, which we accept as the cost of honoring those terms.",
+            "es": "Procedencia. Las identidades de las plataformas de origen se omiten para cumplir con los términos de acceso de las plataformas, y los scripts de recopilación y de OCR/vectorización no se redistribuyen. Esto limita la auditoría independiente del muestreo geográfico y del propio proceso de conversión, lo cual aceptamos como el costo de respetar esos términos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Mubashara Akhtar, Omar Benjelloun, Costanza Conforti, Luca Foschini, Joan Giner-Miguelez, Pieter"
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Gijsbers, Sujata Goswami, Nitisha Jain, et al. Croissant: A metadata format for ML-ready datasets. In Advances in Neural Information Processing Systems (NeurIPS) Datasets and Benchmarks Track, 2024."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Timnit Gebru, Jamie Morgenstern, Briana Vecchione, Jennifer Wortman Vaughan, Hanna Wallach,"
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Hal Daumé III, and Kate Crawford. Datasheets for datasets. Communications of the ACM, 64(12): 86–92, 2021."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Sean Gillies et al. Shapely: Manipulation and Analysis of Geometric Objects, 2024. URL https:"
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "//shapely.readthedocs.io/."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "William L. Hamilton, Zhitao Ying, and Jure Leskovec. Inductive representation learning on large graphs. In Advances in Neural Information Processing Systems (NeurIPS), volume 30, 2017."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Ruizhen Hu, Zeyu Huang, Yuhan Tang, Oliver van Kaick, Hao Zhang, and Hui Huang. Graph2plan:"
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Learning floorplan generation from layout graphs. ACM Transactions on Graphics (TOG), 39(4): 118:1–118:14, 2020. doi: 10.1145/3386569.3392391."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Sizhe Hu, Wenming Wu, Yuntao Wang, Benzhu Xu, and Liping Zheng. GSDiff: Synthesizing vector floorplans via geometry-enhanced structural graph generation. In Proceedings of the AAAI Conference on Artificial Intelligence (AAAI), volume 39, pages 17323–17332, 2025."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Ahti Kalervo, Juha Ylioinas, Markus Häikiö, Antti Karhu, and Juho Kannala. Cubicasa5k: A dataset and an improved multi-task model for floorplan image analysis. In Image Analysis (SCIA 2019), volume 11482 of Lecture Notes in Computer Science, pages 275–287. Springer, 2019. doi: 10.1007/978-3-030-20205-7_3."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Thomas N. Kipf and Max Welling. Semi-supervised classification with graph convolutional networks."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "In International Conference on Learning Representations (ICLR), 2017. URL https://arxiv. org/abs/1609.02907."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "LIFULL Co., Ltd. and National Institute of Informatics (NII). LIFULL HOME’S Dataset. https:"
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "//www.nii.ac.jp/dsc/idr/en/lifull/, 2017."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Chen Liu, Jiajun Wu, Pushmeet Kohli, and Yasutaka Furukawa. Raster-to-vector: Revisiting floorplan transformation. In IEEE International Conference on Computer Vision (ICCV), 2017."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Nelson Nauata, Sepidehsadat Hosseini, Kai-Hung Chang, Hang Chu, Chin-Yi Cheng, and Yasutaka"
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Furukawa. House-gan++: Generative adversarial layout refinement network towards intelligent computational agent for professional architects. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 13632–13641, 2021."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Michael Schlichtkrull, Thomas N. Kipf, Peter Bloem, Rianne van den Berg, Ivan Titov, and Max"
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Welling. Modeling relational data with graph convolutional networks. In Proceedings of the Euro-pean Semantic Web Conference (ESWC), pages 593–607, 2018. doi: 10.1007/978-3-319-93417-4_ 38."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Mohammad Amin Shabani, Sepidehsadat Hosseini, and Yasutaka Furukawa. Housediffusion: Vector floorplan generation via a diffusion model with discrete and continuous denoising. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 5466– 5475, 2023. doi: 10.1109/CVPR52729.2023.00529."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Casper van Engelenburg, Fatemeh Mostafavi, Emanuel Kuhn, Yuntae Jeon, Michael Franzen, Matthias"
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Standfest, Jan C. van Gemert, and Seyran Khademi. MSD: A benchmark dataset for floor plan generation of building complexes. In Proceedings of the European Conference on Computer Vision (ECCV), 2024. doi: 10.1007/978-3-031-73636-0_4. URL https://arxiv.org/abs/"
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "2407.10121."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Wenming Wu, Xiao-Ming Fu, Rui Tang, Yuhan Wang, Yu-Hao Qi, and Ligang Liu. Data-driven interior plan generation for residential buildings. ACM Transactions on Graphics (TOG), 38(6): 1–12, 2019. doi: 10.1145/3355089.3356556."
+          }
+        }
+      ]
+    }
+  ]
+}
