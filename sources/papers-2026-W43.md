@@ -51,7 +51,7 @@ A scale ablation over 10, 100, 1,000 and 10,000 houses shows test performance ri
 ## 2. MSD: what a realistic floor plan dataset has to contain
 
 **Citation.** van Engelenburg, C., Mostafavi, F., Kuhn, E., Jeon, Y., Franzen, M., Standfest, M., van Gemert, J., Khademi, S. *MSD: A Benchmark Dataset for Floor Plan Generation of Building Complexes* (paper + supplementary material). Delft University of Technology / Sungkyunkwan University / independent researchers.
-- Year, venue and DOI/arXiv: not stated in the PDF (file `paper_and_supplement.pdf`).
+- Year, venue and DOI/arXiv: not stated in the PDF (file `MSD - A Benchmark Dataset for Floor Plan Generation of Building Complexes.pdf`).
 
 **Question.** Large floor-plan datasets (RPLAN, LIFULL) are mostly simple single-apartment layouts. Can current generators handle realistic multi-apartment building complexes?
 
@@ -147,7 +147,7 @@ Automated checks then reject degenerate, disconnected or ambiguous plans. Each p
 ## 4. FloorPlanCAD: real CAD drawings, labeled by hand
 
 **Citation.** Fan, Z., Zhu, L., Li, H., Chen, X., Zhu, S., Tan, P. *FloorPlanCAD: A Large-Scale CAD Drawing Dataset for Panoptic Symbol Spotting.* Alibaba Group / Simon Fraser University.
-- Year, venue and arXiv id: not printed in the PDF. The file name is `2105.07147v2`. Dataset: https://floorplancad.github.io/
+- Year, venue and arXiv id: not printed in the PDF. The file was originally named `2105.07147v2.pdf` (arXiv id taken from that name). Dataset: https://floorplancad.github.io/
 
 **Question.** Symbol spotting in CAD drawings needs large annotated vector data. Can spotting be done on vector graphics, for both countable "things" (doors, toilets) and uncountable "stuff" (walls, parking)?
 
