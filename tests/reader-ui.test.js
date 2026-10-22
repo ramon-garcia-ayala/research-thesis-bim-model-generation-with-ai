@@ -1,8 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { LABELS } from '../assets/reader-ui.js'
 import { start } from '../assets/view.js'
+import { Utterance, fakeSynth } from './fake-speech.js'
 
 const fromDisk = async (path) => (existsSync(join(import.meta.dirname, '..', path)) ? readFileSync(join(import.meta.dirname, '..', path), 'utf8') : null)
 const paper = JSON.parse(readFileSync(join(import.meta.dirname, 'fixture/papers/sample-a/paper.json'), 'utf8'))
@@ -144,6 +145,11 @@ describe('the reader and the map', () => {
   })
 
   it('hides underlining, chat and quizzes without a client', async () => {
+    window.speechSynthesis = fakeSynth()
+    window.SpeechSynthesisUtterance = Utterance
+    document.body.innerHTML = '<main id="app"></main>'
+    root = document.getElementById('app')
+    view = await start(root, { load: fromDisk, dir: 'tests/fixture/', index })
     await read('sample-a')
     expect($('.reader__chat').hidden).toBe(true)
     const p = block('s2-p2')
@@ -154,11 +160,125 @@ describe('the reader and the map', () => {
     window.getSelection().addRange(range)
     p.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
     const acts = [...root.querySelectorAll('.reader__pop button')].map((b) => b.dataset.act)
-    expect(acts).toEqual(['read-from'])
+    expect(acts).toEqual(['read-from', 'read-selection'])
+    delete window.speechSynthesis
+    delete window.SpeechSynthesisUtterance
   })
 
   it('says so when a paper cannot be loaded', async () => {
     await view.reader.open('sample-b')
     expect($('.reader__text').textContent).toContain(LABELS.es.notPrepared)
+  })
+})
+
+describe('voice', () => {
+  let synth
+  /** A fresh map whose window has a (fake) speechSynthesis. */
+  const withVoice = async (voices = [{ name: 'Microsoft Dalia Online (Natural) - Spanish (Mexico)', lang: 'es-MX' }]) => {
+    synth = fakeSynth(voices)
+    window.speechSynthesis = synth
+    window.SpeechSynthesisUtterance = Utterance
+    document.body.innerHTML = '<main id="app"></main>'
+    root = document.getElementById('app')
+    view = await start(root, { load: fromDisk, dir: 'tests/fixture/', index })
+  }
+  const lastSpoken = () => synth.spoken.at(-1)
+  /** Selects the first `n` characters of block `id` and lifts the mouse, as the author would. */
+  const select = (id, n = 5) => {
+    const el = block(id)
+    const range = document.createRange()
+    range.setStart(el.firstChild, 0)
+    range.setEnd(el.firstChild, n)
+    window.getSelection().removeAllRanges()
+    window.getSelection().addRange(range)
+    el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+  }
+  afterEach(() => {
+    delete window.speechSynthesis
+    delete window.SpeechSynthesisUtterance
+  })
+
+  it('hides the voice controls when the browser cannot speak', async () => {
+    await read('sample-a')
+    expect($('.reader__voice').children).toHaveLength(0)
+  })
+
+  it('reads the whole paper from the top and lights the sentence being read', async () => {
+    await withVoice()
+    await read('sample-a')
+    $('[data-voice="play"]').click()
+    expect(lastSpoken().text).toBe(textOfBlock('s1-p1').en.split('. ')[0] + '.')
+    expect(block('s1-p1').querySelector('.speaking').textContent).toBe(lastSpoken().text)
+    synth.finish()
+    expect(block('s1-p1').querySelector('.speaking').textContent).toBe('We generate them from rules.')
+  })
+
+  it('reads from a selected point on', async () => {
+    await withVoice()
+    await read('sample-a')
+    select('s2-p1')
+    $('.reader__pop [data-act="read-from"]').click()
+    expect(lastSpoken().text).toBe(es_s2p1)
+  })
+
+  it('reads only the selection', async () => {
+    await withVoice()
+    await read('sample-a')
+    select('s2-p2', 12)
+    $('.reader__pop [data-act="read-selection"]').click()
+    expect(lastSpoken().text).toBe(en_s2p2.slice(0, 12))
+    synth.finish()
+    expect(synth.spoken).toHaveLength(1)
+  })
+
+  it('switching language while reading resumes the same block in the other language', async () => {
+    await withVoice()
+    await read('sample-a')
+    select('s2-p1')
+    $('.reader__pop [data-act="read-from"]').click()
+    view.reader.setLang('en')
+    expect(synth.cancel).toHaveBeenCalled()
+    expect(lastSpoken().text).toBe(textOfBlock('s2-p1').en)
+  })
+
+  it('pauses, resumes and stops from the bar', async () => {
+    await withVoice()
+    await read('sample-a')
+    $('[data-voice="play"]').click()
+    $('[data-voice="pause"]').click()
+    expect(synth.pause).toHaveBeenCalled()
+    $('[data-voice="pause"]').click()
+    expect(synth.resume).toHaveBeenCalled()
+    $('[data-voice="stop"]').click()
+    expect(root.querySelector('.speaking')).toBeNull()
+  })
+
+  it('changes the speed', async () => {
+    await withVoice()
+    await read('sample-a')
+    $('[data-voice="play"]').click()
+    const rate = $('.reader__rate')
+    rate.value = '1.5'
+    rate.dispatchEvent(new Event('change', { bubbles: true }))
+    expect(lastSpoken().rate).toBe(1.5)
+  })
+
+  it('closing the reader stops the voice', async () => {
+    await withVoice()
+    await read('sample-a')
+    $('[data-voice="play"]').click()
+    escape()
+    expect(synth.cancel).toHaveBeenCalled()
+    expect(root.querySelector('.speaking')).toBeNull()
+  })
+
+  it('says once that Edge has natural voices when none is offered', async () => {
+    await withVoice([{ name: 'Microsoft Sabina - Spanish (Mexico)', lang: 'es-MX' }])
+    await read('sample-a')
+    expect($('.reader__hint').hidden).toBe(false)
+    expect(window.localStorage.getItem('research-map-reader-voice-hint')).toBe('shown')
+    view.reader.close()
+    await read('sample-a')
+    expect($('.reader__hint').hidden).toBe(true)
   })
 })

@@ -5,9 +5,28 @@
  * (`client`); without it the reader still shows the text and the figures.
  */
 import { blocksOf, paraLabel, textOf } from './paper.js'
+import { segments } from './reading.js'
+import { buildQueue, createSpeaker } from './speech.js'
 
 export const MODE_KEY = 'research-map-reader-mode'
 export const LANG_KEY = 'research-map-reader-lang'
+export const HINT_KEY = 'research-map-reader-voice-hint'
+const RATES = [0.75, 1, 1.25, 1.5, 2]
+
+/** The element of block `blockEl` that holds its text: the paragraph or heading itself, a figure's caption. */
+const holderOf = (blockEl) => (blockEl?.tagName === 'FIGURE' ? blockEl.querySelector('figcaption') : blockEl)
+
+/** Where `range` starts and ends in the text of block `blockEl` (character offsets), or null when it is not inside. */
+export function offsetsIn(blockEl, range) {
+  const holder = holderOf(blockEl)
+  if (!holder || !holder.contains(range.startContainer) || !holder.contains(range.endContainer)) return null
+  const before = blockEl.ownerDocument.createRange()
+  before.selectNodeContents(holder)
+  before.setEnd(range.startContainer, range.startOffset)
+  const start = before.toString().length
+  const end = start + range.toString().length
+  return end > start ? { start, end } : null
+}
 
 /** Every string the reader shows, in its two languages. */
 export const LABELS = {
@@ -26,6 +45,16 @@ export const LABELS = {
     missing: 'The figure’s image is missing.',
     notPrepared: 'This paper is not prepared yet.',
     chat: 'Chat',
+    play: 'Read aloud',
+    pause: 'Pause',
+    resume: 'Resume',
+    stop: 'Stop',
+    prev: 'Previous paragraph',
+    next: 'Next paragraph',
+    rate: 'Speed',
+    voice: 'Voice',
+    readSelection: '▶ Read selection',
+    voiceHint: 'This browser offers no natural voice: open the map in Microsoft Edge to listen with its natural voices.',
   },
   es: {
     papers: 'Papers',
@@ -42,6 +71,16 @@ export const LABELS = {
     missing: 'Falta la imagen de la figura.',
     notPrepared: 'Este paper todavía no está preparado.',
     chat: 'Chat',
+    play: 'Leer en voz alta',
+    pause: 'Pausa',
+    resume: 'Seguir',
+    stop: 'Detener',
+    prev: 'Párrafo anterior',
+    next: 'Párrafo siguiente',
+    rate: 'Velocidad',
+    voice: 'Voz',
+    readSelection: '▶ Leer selección',
+    voiceHint: 'Este navegador no ofrece voces naturales: abre el mapa en Microsoft Edge para escucharlo con sus voces naturales.',
   },
 }
 
@@ -68,14 +107,20 @@ const remember = (win, key, value) => {
  * Mounts the reader into `root`. `papers` are the entries of papers/index.json; `load(path)` reads a file of the map
  * folder (null when missing); `base` prefixes image URLs (the folder the map was loaded from). `onShow()` is called
  * when it opens (the map closes its panel and the presentations viewer); `onLit(ids | null)` lights the paper and the
- * nodes it links to, or nothing once it closes.
+ * nodes it links to, or nothing once it closes. `speech` is the browser's voice (`{ synth, Utterance }`); without it
+ * the voice controls are not shown.
  */
-export function mountReader(root, { papers = [], map, load, base = '', client = null, onLit = () => {}, onShow = () => {}, win = window } = {}) {
+export function mountReader(
+  root,
+  { papers = [], map, load, base = '', client = null, onLit = () => {}, onShow = () => {}, win = window, speech = { synth: win.speechSynthesis, Utterance: win.SpeechSynthesisUtterance } } = {},
+) {
   const doc = root.ownerDocument
   let lang = stored(win, LANG_KEY, ['en', 'es'], 'es')
   let mode = stored(win, MODE_KEY, ['half', 'full'], 'half')
   let now = null // { nodeId, paper }
   let pending = Promise.resolve()
+  let speaking = null // the sentence being read: { block, start, end }
+  let picked = null // the selection the menu acts on: { block, start, end, text }
   const L = () => LABELS[lang]
   const narrow = () => (win.innerWidth || 1024) < 700
   const effectiveMode = () => (narrow() ? 'full' : mode)
@@ -94,6 +139,7 @@ export function mountReader(root, { papers = [], map, load, base = '', client = 
       <button type="button" class="reader__mode"></button>
       <button type="button" class="reader__close">×</button>
     </header>
+    <p class="reader__hint" hidden></p>
     <div class="reader__body">
       <nav class="reader__side"></nav>
       <article class="reader__text" tabindex="-1"></article>
@@ -112,6 +158,87 @@ export function mountReader(root, { papers = [], map, load, base = '', client = 
   const zoom = $('.reader__zoom')
 
   const imageUrl = (b) => `${base}papers/${now.nodeId}/${b.image}`
+  const blockEl = (id) => text.querySelector(`[data-block="${CSS.escape(id)}"]`)
+  const blockById = (id) => blocksOf(now?.paper).find((b) => b.id === id)
+
+  /** The highlighted runs of a block's text: the sentence being read (underlines join in later). */
+  const rangesOf = (id) => (speaking?.block === id ? [{ start: speaking.start, end: speaking.end, id: 'speaking' }] : [])
+
+  /** Re-draws the text of block `id` with its highlights. */
+  function decorate(id) {
+    const b = now && blockById(id)
+    const holder = holderOf(blockEl(id))
+    if (!b || !holder) return
+    const t = textOf(b, lang)
+    const ranges = rangesOf(id)
+    if (!ranges.length) return void (holder.textContent = t)
+    holder.innerHTML = segments(t, ranges)
+      .map((r) => (r.ids.includes('speaking') ? `<span class="speaking">${esc(r.text)}</span>` : esc(r.text)))
+      .join('')
+  }
+
+  // ---- Voice ----
+
+  const canSpeak = Boolean(speech?.synth && speech?.Utterance)
+  let rate = 1
+  const speaker = canSpeak
+    ? createSpeaker({
+        synth: speech.synth,
+        Utterance: speech.Utterance,
+        onSentence(item) {
+          const before = speaking
+          speaking = item ? { block: item.block, start: item.start, end: item.end } : null
+          if (before) decorate(before.block)
+          if (item) {
+            decorate(item.block)
+            blockEl(item.block)?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+          }
+          renderVoice()
+        },
+        onIdle: () => renderVoice(),
+      })
+    : null
+  speech?.synth?.addEventListener?.('voiceschanged', () => renderVoice())
+
+  function renderVoice() {
+    const bar = $('.reader__voice')
+    if (!speaker) return void bar.replaceChildren()
+    const state = speaker.state()
+    const voices = speaker.voicesFor(lang)
+    const chosen = bar.querySelector('.reader__voices')?.value
+    const button = (act, label, glyph) => `<button type="button" data-voice="${act}" aria-label="${esc(label)}" title="${esc(label)}">${glyph}</button>`
+    bar.innerHTML = `
+      ${button('play', L().play, '▶')}
+      ${button('pause', state === 'paused' ? L().resume : L().pause, state === 'paused' ? '▶︎' : '⏸')}
+      ${button('stop', L().stop, '■')}
+      ${button('prev', L().prev, '⏮')}
+      ${button('next', L().next, '⏭')}
+      <select class="reader__rate" aria-label="${esc(L().rate)}">${RATES.map((r) => `<option value="${r}"${r === rate ? ' selected' : ''}>${r}×</option>`).join('')}</select>
+      ${
+        voices.length
+          ? `<select class="reader__voices" aria-label="${esc(L().voice)}">${voices
+              .map((v) => `<option value="${esc(v.name)}"${v.name === chosen ? ' selected' : ''}>${esc(v.name.replace(/^Microsoft\s+/, '').replace(/\s+-\s+.*$/, ''))}</option>`)
+              .join('')}</select>`
+          : ''
+      }`
+    for (const b of bar.querySelectorAll('[data-voice="pause"], [data-voice="stop"], [data-voice="prev"], [data-voice="next"]')) b.disabled = state === 'idle'
+  }
+
+  /** Says once, when the browser has no natural voice for the language, that Edge has them. */
+  function voiceHint() {
+    const hint = $('.reader__hint')
+    hint.hidden = true
+    if (!speaker || speaker.voicesFor(lang).some((v) => /natural/i.test(v.name))) return
+    if (stored(win, HINT_KEY, ['shown'], null)) return
+    hint.textContent = L().voiceHint
+    hint.hidden = false
+    remember(win, HINT_KEY, 'shown')
+  }
+
+  function speakFrom(from, only = null) {
+    if (!speaker || !now) return
+    speaker.play(buildQueue(now.paper, lang, from, only))
+  }
 
   function renderText() {
     const { paper } = now
@@ -124,6 +251,7 @@ export function mountReader(root, { papers = [], map, load, base = '', client = 
       )
       .join('')
     for (const img of text.querySelectorAll('figure.blk img')) img.addEventListener('error', () => missing(img))
+    if (speaking) decorate(speaking.block)
   }
 
   function blockHtml(paper, b) {
@@ -175,6 +303,7 @@ export function mountReader(root, { papers = [], map, load, base = '', client = 
     side.hidden = m !== 'full'
     $('.reader__chat').hidden = !client
     $('.reader__chat-toggle').hidden = !client || m !== 'half'
+    renderVoice()
   }
 
   /** The block shown at the top of the text, to keep the place across a re-render. */
@@ -216,8 +345,10 @@ export function mountReader(root, { papers = [], map, load, base = '', client = 
         onLit([nodeId])
         return
       }
+      speaker?.stop()
       now = { nodeId, paper }
       render()
+      voiceHint()
       text.scrollTop = 0
       if (at?.block) goTo(at.block)
       const linked = (map?.links ?? []).flatMap((l) => (l.from === nodeId ? [l.to] : l.to === nodeId ? [l.from] : []))
@@ -229,6 +360,7 @@ export function mountReader(root, { papers = [], map, load, base = '', client = 
 
   function close() {
     if (el.hidden) return
+    speaker?.stop()
     el.hidden = true
     now = null
     pop.hidden = true
@@ -239,11 +371,14 @@ export function mountReader(root, { papers = [], map, load, base = '', client = 
   function setLang(l) {
     if (l !== 'en' && l !== 'es') return
     const keep = now ? firstVisible() : null
+    const reading = speaker?.at() // the voice goes on at the same paragraph, in the other language
+    if (reading) speaker.stop()
     lang = l
     remember(win, LANG_KEY, l)
     render()
     renderChrome()
     if (keep) goTo(keep)
+    if (reading) speakFrom({ block: reading.block })
   }
 
   function setMode(m) {
@@ -265,13 +400,17 @@ export function mountReader(root, { papers = [], map, load, base = '', client = 
     const sel = win.getSelection?.()
     if (!sel || sel.isCollapsed || !sel.rangeCount) return void (pop.hidden = true)
     const range = sel.getRangeAt(0)
-    const blockEl = range.startContainer.parentElement?.closest('[data-block]')
-    if (!blockEl || !text.contains(blockEl)) return void (pop.hidden = true)
-    const acts = client
-      ? [['underline', L().underline], ['ask', L().ask], ['read-from', L().readFrom]]
-      : [['read-from', L().readFrom]]
+    const target = range.startContainer.parentElement?.closest('[data-block]')
+    const at = target && text.contains(target) ? offsetsIn(target, range) : null
+    if (!at) return void (pop.hidden = true)
+    picked = { block: target.dataset.block, ...at, text: range.toString() }
+    const acts = [
+      ...(client ? [['underline', L().underline], ['ask', L().ask]] : []),
+      ...(speaker ? [['read-from', L().readFrom], ['read-selection', L().readSelection]] : []),
+    ]
+    if (!acts.length) return void (pop.hidden = true)
     pop.innerHTML = acts.map(([act, label]) => `<button type="button" data-act="${act}">${esc(label)}</button>`).join('')
-    pop.dataset.block = blockEl.dataset.block
+    pop.dataset.block = picked.block
     const r = range.getBoundingClientRect?.()
     const box = el.getBoundingClientRect()
     if (r) {
@@ -295,6 +434,24 @@ export function mountReader(root, { papers = [], map, load, base = '', client = 
     const l = t.closest('.reader__lang')
     if (l) return setLang(l.dataset.lang)
     if (t.closest('.reader__mode')) return setMode(effectiveMode() === 'half' ? 'full' : 'half')
+    const voice = t.closest('[data-voice]')
+    if (voice && speaker) {
+      const act = voice.dataset.voice
+      if (act === 'play') speakFrom(firstVisible() ? { block: firstVisible() } : null)
+      else if (act === 'pause') speaker.state() === 'paused' ? speaker.resume() : speaker.pause()
+      else if (act === 'stop') speaker.stop()
+      else speaker.skip(act === 'next' ? 1 : -1)
+      return renderVoice()
+    }
+    const action = t.closest('.reader__pop [data-act]')
+    if (action && picked) {
+      const { block, start, end } = picked
+      pop.hidden = true
+      win.getSelection?.()?.removeAllRanges()
+      if (action.dataset.act === 'read-from') speakFrom({ block, offset: start })
+      if (action.dataset.act === 'read-selection') speakFrom(null, { block, start, end })
+      return
+    }
     const go = t.closest('[data-goto]')
     if (go) return goTo(go.dataset.goto)
     const img = t.closest('figure.blk img')
@@ -312,6 +469,15 @@ export function mountReader(root, { papers = [], map, load, base = '', client = 
       toggle.setAttribute('aria-expanded', String(open))
       el.classList.toggle('chat-collapsed', !open)
     }
+  })
+
+  el.addEventListener('change', (e) => {
+    if (!speaker) return
+    if (e.target.matches('.reader__rate')) {
+      rate = Number(e.target.value)
+      speaker.setRate(rate)
+    }
+    if (e.target.matches('.reader__voices')) speaker.setVoice(e.target.value)
   })
 
   win.addEventListener('resize', () => now && renderChrome())
