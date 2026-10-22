@@ -1,0 +1,558 @@
+{
+  "version": 1,
+  "node": "floorplancad-2021",
+  "built": {
+    "date": "2026-10-22",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "concept",
+      "en": "2D CAD drawings carry accurate geometry and rich semantics of a cross section of a 3D design, and serve as the universal language among designers, engineers and constructors in AEC. Reading them automatically would lead to efficient 3D modeling and save vast amounts of labor, since detailed 3D models of buildings can take months.",
+      "es": "Los dibujos CAD 2D llevan geometría precisa y semántica rica de un corte de un diseño 3D, y son el lenguaje universal entre diseñadores, ingenieros y constructores en AEC. Leerlos de forma automática llevaría a un modelado 3D eficiente y ahorraría mucho trabajo, pues los modelos 3D detallados de edificios pueden tardar meses.",
+      "blocks": [
+        "s1-p1",
+        "s1-p4",
+        "fig-1"
+      ],
+      "key": "cad-as-shared-language",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "question",
+      "en": "How can symbols, and also amorphous elements such as walls, be recognized in real vector CAD drawings when the same object is drawn very differently depending on who produced the drawing?",
+      "es": "¿Cómo se pueden reconocer símbolos, y también elementos amorfos como los muros, en dibujos CAD vectoriales reales cuando un mismo objeto se dibuja de forma muy distinta según quién produjo el dibujo?",
+      "blocks": [
+        "s1-p2",
+        "s1-p3",
+        "fig-2"
+      ],
+      "key": "symbol-spotting",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Panoptic symbol spotting treats the instance spotting of countable things (sink, toilet, door) and the semantic labeling of uncountable stuff (wall, parking) as one recognition task. Ignoring instance indices gives semantic symbol spotting; keeping only thing classes gives instance symbol spotting.",
+      "es": "El spotting panóptico de símbolos trata la detección de instancias de cosas contables (lavabo, inodoro, puerta) y el etiquetado semántico de materia incontable (muro, estacionamiento) como una sola tarea de reconocimiento. Si se ignoran los índices de instancia se obtiene spotting semántico; si solo se usan las clases de cosas, spotting de instancias.",
+      "blocks": [
+        "s1-p3",
+        "s1-p10",
+        "s3-p1",
+        "s3-p3"
+      ],
+      "key": "panoptic-symbol-spotting",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "A generalized symbol is a set of graphical entities sharing a semantic label and an instance index, and it stands for either a thing instance or a stuff class. Instance indices of stuff entities are ignored, and which classes are stuff or things is a design choice left to the dataset creator.",
+      "es": "Un símbolo generalizado es un conjunto de entidades gráficas que comparten una etiqueta semántica y un índice de instancia, y representa una instancia de cosa o una clase de materia. Los índices de instancia de la materia se ignoran, y decidir qué clases son materia o cosas es una elección de diseño de quien crea el dataset.",
+      "blocks": [
+        "s3-p2",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "dataset",
+      "en": "FloorPlanCAD is a dataset of over 15,000 real-world floor plans, from residential to commercial buildings, kept as vector graphics with line-grained annotations of 35 object categories. It covers residential towers, schools, hospitals, shopping malls and office buildings.",
+      "es": "FloorPlanCAD es un dataset de más de 15,000 planos arquitectónicos reales, de edificios residenciales a comerciales, conservados como gráficos vectoriales con anotaciones a nivel de línea de 35 categorías de objetos. Incluye torres residenciales, escuelas, hospitales, centros comerciales y edificios de oficinas.",
+      "blocks": [
+        "s0-p1",
+        "s1-p5",
+        "s1-p9",
+        "fig-3"
+      ],
+      "key": "floorplancad",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Drawings are collected from public repositories of real architecture projects (over 100 projects), and every floor plan is clipped out of the project files, with 10 to 50 floor plans per project and 2,500 individual floor plan files at the time. The proprietary .dwg files are parsed to the open .svg format and cropped into smaller blocks holding only geometric and structural information.",
+      "es": "Los dibujos se recopilan de repositorios públicos de proyectos de arquitectura reales (más de 100 proyectos), y cada planta se recorta de los archivos del proyecto, con entre 10 y 50 plantas por proyecto y 2,500 archivos de plantas individuales en ese momento. Los archivos propietarios .dwg se convierten al formato abierto .svg y se recortan en bloques más pequeños que solo contienen información geométrica y estructural.",
+      "blocks": [
+        "s4-p1",
+        "s4-p2",
+        "s1-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "A floor plan drawing consists of dozens of layers, but a layer name does not necessarily explain its content and nothing restricts what is grouped in a layer. The authors split each multi-layer plan into separate layers and annotate each one, which is much less cluttered and boosts annotation efficiency.",
+      "es": "Un plano consta de decenas de capas, pero el nombre de una capa no necesariamente explica su contenido y nada restringe lo que se agrupa en una capa. Los autores separan cada plano multicapa en capas individuales y anotan cada una, que está mucho menos saturada, lo que aumenta la eficiencia de la anotación.",
+      "blocks": [
+        "s4-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "35 object classes were chosen, with wall and parking as the two stuff classes; parking is annotated as a whole space rather than slot by slot to reduce the annotation burden. 11 specialists spent over 1,000 hours creating the line-grained annotations.",
+      "es": "Se eligieron 35 clases de objetos, con muro y estacionamiento como las dos clases de materia; el estacionamiento se anota como un espacio completo y no cajón por cajón para reducir la carga de anotación. 11 especialistas dedicaron más de 1,000 horas a crear las anotaciones a nivel de línea.",
+      "blocks": [
+        "s4-p3",
+        "s4-p4",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "To protect data owners, identifiable and personally or commercially sensitive fields are removed and texts are removed from the drawings. Each floor plan is cut into 10m × 10m square blocks and only 30% of the blocks are kept.",
+      "es": "Para proteger a los dueños de los datos se eliminan los campos identificables o sensibles personal o comercialmente y se quitan los textos de los dibujos. Cada planta se corta en bloques cuadrados de 10m × 10m y solo se conserva 30% de los bloques.",
+      "blocks": [
+        "s4-p4",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "dataset",
+      "en": "The split is by project: 60 projects chosen at random for training and the rest for testing, giving 10,161 training and 5,502 testing drawings. 800 random drawings from the training set are held out for validation.",
+      "es": "La división es por proyecto: 60 proyectos elegidos al azar para entrenamiento y el resto para prueba, lo que da 10,161 dibujos de entrenamiento y 5,502 de prueba. 800 dibujos aleatorios del conjunto de entrenamiento se separan para validación.",
+      "blocks": [
+        "s4-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "claim",
+      "en": "The paper claims FloorPlanCAD is the first of its kind and the only dataset in its comparison that gives panoptic annotation while keeping vector graphics throughout. It is compared with SESYD (1000 synthetic floor plans) and FPLAN-POLY (42 floor plans converted from images).",
+      "es": "El artículo afirma que FloorPlanCAD es el primero de su tipo y el único de su comparación que ofrece anotación panóptica conservando los gráficos vectoriales en todo el proceso. Se compara con SESYD (1000 planos sintéticos) y FPLAN-POLY (42 planos convertidos de imágenes).",
+      "blocks": [
+        "tab-1",
+        "s4-p5",
+        "s2-p2",
+        "s1-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "result",
+      "en": "Wall and parking entities together account for about 27% of the total entities, and wall takes up a large portion of the whole dataset. Class imbalance in the training set is evident, and most elements are shorter than 0.2m.",
+      "es": "Las entidades de muro y estacionamiento juntas representan cerca de 27% del total de entidades, y el muro ocupa una gran parte de todo el dataset. El desbalance de clases en el conjunto de entrenamiento es evidente, y la mayoría de los elementos miden menos de 0.2m.",
+      "blocks": [
+        "s4-p3",
+        "s9-p1",
+        "fig-7",
+        "fig-5",
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "A predicted symbol matches a ground truth symbol when the labels are equal and IoU > 0.5, with IoU computed on arc length using a logarithm to reduce the influence of very long lines. The panoptic metric is the product of recognition quality (F1) and segmentation quality (mean IoU of matched symbols), and covers both thing and stuff symbols.",
+      "es": "Un símbolo predicho coincide con uno de referencia cuando las etiquetas son iguales y IoU > 0.5, con el IoU calculado sobre la longitud de arco usando un logaritmo para reducir la influencia de las líneas muy largas. La métrica panóptica es el producto de la calidad de reconocimiento (F1) y la calidad de segmentación (IoU promedio de los símbolos emparejados), y abarca símbolos de cosas y de materia.",
+      "blocks": [
+        "s3-p4",
+        "s3-p5",
+        "s3-p6",
+        "s3-p7",
+        "s3-p9",
+        "s3-p10",
+        "fig-5"
+      ],
+      "key": "panoptic-quality",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "PanCADNet is an end-to-end network with a CNN backbone, a graph convolution head for semantic (stuff) symbol spotting and a detection head for instance (thing) symbol spotting. In the panoptic task it uses a ResNet-50 backbone to balance efficiency and accuracy.",
+      "es": "PanCADNet es una red de extremo a extremo con un backbone CNN, una cabeza de convolución de grafos para el spotting semántico (materia) y una cabeza de detección para el spotting de instancias (cosas). En la tarea panóptica usa un backbone ResNet-50 para equilibrar eficiencia y precisión.",
+      "blocks": [
+        "s5-p1",
+        "fig-8",
+        "s6-p13",
+        "s6-p12"
+      ],
+      "key": "pancadnet",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "Each drawing becomes a graph whose nodes are graphical entities (segments, arcs) and whose edges join entities that are close enough, with ε = 100mm, η = 0.2 for parallel lines (walls and windows) and at most K = 3 edges per node by random dropping.",
+      "es": "Cada dibujo se convierte en un grafo cuyos nodos son entidades gráficas (segmentos, arcos) y cuyas aristas unen entidades suficientemente cercanas, con ε = 100mm, η = 0.2 para líneas paralelas (muros y ventanas) y como máximo K = 3 aristas por nodo mediante eliminación aleatoria.",
+      "blocks": [
+        "s5-p1",
+        "s1-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "Node features join hand-designed geometric features (length, normalized center location, one-hot entity type) with CNN features fetched from the feature pyramid at the entity's coordinates. Three graph convolution layers aggregate information from neighboring vertices.",
+      "es": "Las características de los nodos combinan rasgos geométricos diseñados a mano (longitud, ubicación normalizada del centro, tipo de entidad en one-hot) con rasgos CNN tomados de la pirámide de características en las coordenadas de la entidad. Tres capas de convolución de grafos agregan información de los vértices vecinos.",
+      "blocks": [
+        "s5-p1",
+        "s1-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "A class-weighted loss is used for the GCN head because of class imbalance, with weights set from the number of entities per class. The GCN and detection losses are combined for end-to-end training with λ = 3.",
+      "es": "Se usa una función de pérdida ponderada por clase para la cabeza GCN por el desbalance de clases, con pesos definidos según el número de entidades de cada clase. Las pérdidas de GCN y de detección se combinan para entrenar de extremo a extremo con λ = 3.",
+      "blocks": [
+        "s5-p2",
+        "s5-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "To compare with image segmentation models, entities are projected onto a canvas with a line width of 5 pixels, and pixel predictions are converted to entity labels by sampling and voting. For instance spotting, points are sampled on each element and instances are converted to COCO-style boxes.",
+      "es": "Para comparar con modelos de segmentación de imágenes, las entidades se proyectan sobre un lienzo con grosor de línea de 5 píxeles, y las predicciones por píxel se convierten en etiquetas de entidad mediante muestreo y votación. Para el spotting de instancias, se muestrean puntos en cada elemento y las instancias se convierten a cajas en estilo COCO.",
+      "blocks": [
+        "s6-p2",
+        "s6-p5",
+        "s6-p7",
+        "s6-p10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "On semantic symbol spotting, the GCN-based method outperforms HRNetsV2 and DeepLabv3+ significantly, with an improvement of 11.8% on F1 score and 8.4% weighted F1 score.",
+      "es": "En el spotting semántico de símbolos, el método basado en GCN supera de forma significativa a HRNetsV2 y DeepLabv3+, con una mejora de 11.8% en F1 y 8.4% en F1 ponderado.",
+      "blocks": [
+        "s6-p8",
+        "tab-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "In the ablation, the GCN with only simple geometric features is the worst, and CNN features from the backbone boost accuracy significantly. The weighted loss and the AM-softmax loss are both helpful.",
+      "es": "En la ablación, la GCN con solo rasgos geométricos simples es la peor, y los rasgos CNN del backbone mejoran la precisión de forma significativa. La pérdida ponderada y la pérdida AM-softmax resultan ambas útiles.",
+      "blocks": [
+        "s6-p9",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "For instance symbol spotting, Faster R-CNN and FCOS achieve comparable accuracy and both outperform YOLOv3, which the paper attributes to the dataset's varied scenes, 28 symbol classes and complex backgrounds.",
+      "es": "En el spotting de instancias, Faster R-CNN y FCOS logran una precisión comparable y ambos superan a YOLOv3, algo que el artículo atribuye a las escenas variadas del dataset, sus 28 clases de símbolos y sus fondos complejos.",
+      "blocks": [
+        "s6-p10",
+        "tab-4",
+        "s10-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "The two traditional symbol spotting methods, SCIP and Graph Matching, perform poorly on the dataset because the data comes from different vendors and has no standard templates to compare with.",
+      "es": "Los dos métodos tradicionales de spotting de símbolos, SCIP y Graph Matching, tienen un desempeño pobre en el dataset porque los datos vienen de distintos proveedores y no hay plantillas estándar con las cuales comparar.",
+      "blocks": [
+        "s6-p10",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "PanCADNet is evaluated with panoptic quality on the FloorPlanCAD test set (Table 5), and the paper says it knows of no other method doing this task on vector graphics. A bay window is detected correctly, and several failure cases are visible in the figures.",
+      "es": "PanCADNet se evalúa con calidad panóptica en el conjunto de prueba de FloorPlanCAD (Tabla 5), y el artículo dice que no conoce otro método que haga esta tarea sobre gráficos vectoriales. Una ventana de bahía se detecta correctamente y en las figuras se ven varios casos de falla.",
+      "blocks": [
+        "s6-p11",
+        "s6-p14",
+        "tab-5",
+        "fig-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "Vector graphics let a GCN work efficiently because of its sparsity and extract non-Euclidean features through topological connections, whereas treating CAD drawings as pixel images loses the accuracy of vector graphics. Adding CNN Euclidean features to the GCN improved performance.",
+      "es": "Los gráficos vectoriales permiten que una GCN trabaje con eficiencia por su dispersión y extraiga rasgos no euclidianos mediante conexiones topológicas, mientras que tratar los dibujos CAD como imágenes de píxeles pierde la precisión de los gráficos vectoriales. Añadir rasgos euclidianos de CNN a la GCN mejoró el desempeño.",
+      "blocks": [
+        "s1-p2",
+        "s1-p6",
+        "s1-p7",
+        "s7-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "claim",
+      "en": "The GCN head on vector input gives good results for the two stuff classes (wall and parking), and the boxes from the detection head let each thing instance be distinguished. The GCN beats DeepLabv3+ most on wall, which always mixes with thing classes and whose lengths have statistical regularity.",
+      "es": "La cabeza GCN sobre entrada vectorial da buenos resultados en las dos clases de materia (muro y estacionamiento), y las cajas de la cabeza de detección permiten distinguir cada instancia de cosa. La GCN supera a DeepLabv3+ sobre todo en muro, que siempre se mezcla con clases de cosas y cuyas longitudes tienen regularidad estadística.",
+      "blocks": [
+        "s11-p1",
+        "s10-p1",
+        "s6-p8",
+        "s10-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "limitation",
+      "en": "Some background elements are mis-classified by the predicted box of a thing instance (for example around stairs). Failure cases are also visible in the panoptic visualizations.",
+      "es": "Algunos elementos de fondo se clasifican mal por la caja predicha de una instancia de cosa (por ejemplo, alrededor de escaleras). También se ven casos de falla en las visualizaciones panópticas.",
+      "blocks": [
+        "s11-p2",
+        "fig-16",
+        "s6-p14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "Per-class results in Table 6 are reported on the V1 dataset, which has only 30 classes (28 thing and 2 stuff), while the main text counts 35 categories. Released blocks hold only geometry and structure, with texts removed and only 30% of the 10m × 10m blocks kept.",
+      "es": "Los resultados por clase de la Tabla 6 se reportan sobre el dataset V1, que tiene solo 30 clases (28 de cosas y 2 de materia), mientras que el texto principal cuenta 35 categorías. Los bloques publicados solo contienen geometría y estructura, sin textos y con solo 30% de los bloques de 10m × 10m.",
+      "blocks": [
+        "tab-6",
+        "s9-p1",
+        "s4-p4",
+        "s4-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "future",
+      "en": "Future work is to generate instance proposals in vector space, which can propose object instances in a more flexible way. The next version of the dataset is under construction.",
+      "es": "El trabajo futuro es generar propuestas de instancias en el espacio vectorial, que pueden proponer instancias de objetos de forma más flexible. La siguiente versión del dataset está en construcción.",
+      "blocks": [
+        "s11-p2",
+        "s7-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "concept",
+      "en": "Earlier symbol spotting uses query-by-example with hand-crafted shape descriptors, or graph matching that is sensitive to noise and topology errors. These work on isolated symbols but fail when symbols are embedded in documents, and the best prior learning method treats drawings as images.",
+      "es": "El spotting de símbolos anterior usa consulta por ejemplo con descriptores de forma diseñados a mano, o emparejamiento de grafos sensible al ruido y a errores de topología. Funcionan con símbolos aislados pero fallan cuando los símbolos están dentro de documentos, y el mejor método de aprendizaje previo trata los dibujos como imágenes.",
+      "blocks": [
+        "s2-p3",
+        "s1-p2"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i2",
+      "type": "supports",
+      "why": "Automatic perception of CAD drawings is the motivation for asking how to spot symbols in them."
+    },
+    {
+      "from": "i29",
+      "to": "i2",
+      "type": "supports",
+      "why": "Query-by-example and graph matching are impractical when symbols for the same object vary so much."
+    },
+    {
+      "from": "i22",
+      "to": "i2",
+      "type": "supports",
+      "why": "Template-based methods perform poorly on data from different vendors without standard templates."
+    },
+    {
+      "from": "i4",
+      "to": "i3",
+      "type": "part-of",
+      "why": "The generalized symbol is the unit the panoptic task is defined over."
+    },
+    {
+      "from": "i6",
+      "to": "i5",
+      "type": "part-of",
+      "why": "Collection and preprocessing are how the dataset is built."
+    },
+    {
+      "from": "i8",
+      "to": "i5",
+      "type": "part-of",
+      "why": "The line-grained annotation is what makes the drawings a labeled dataset."
+    },
+    {
+      "from": "i9",
+      "to": "i5",
+      "type": "part-of",
+      "why": "Obfuscation shapes what the released dataset contains."
+    },
+    {
+      "from": "i10",
+      "to": "i5",
+      "type": "part-of",
+      "why": "The train/test split by project is part of the dataset definition."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "uses",
+      "why": "Annotation is performed layer by layer on the split drawings."
+    },
+    {
+      "from": "i9",
+      "to": "i27",
+      "type": "supports",
+      "why": "Removing texts and keeping 30% of blocks is why released data holds only part of each plan."
+    },
+    {
+      "from": "i11",
+      "to": "i5",
+      "type": "supports",
+      "why": "The comparison in Table 1 is the paper's argument for the dataset's novelty."
+    },
+    {
+      "from": "i12",
+      "to": "i17",
+      "type": "supports",
+      "why": "Class imbalance and the dominance of wall motivate the class-weighted loss."
+    },
+    {
+      "from": "i14",
+      "to": "i5",
+      "type": "uses",
+      "why": "PanCADNet is trained and tested on FloorPlanCAD."
+    },
+    {
+      "from": "i15",
+      "to": "i14",
+      "type": "part-of",
+      "why": "The graph built from entities is the input of the graph convolution head."
+    },
+    {
+      "from": "i16",
+      "to": "i14",
+      "type": "part-of",
+      "why": "Node features and graph convolution layers make up the GCN head."
+    },
+    {
+      "from": "i17",
+      "to": "i14",
+      "type": "part-of",
+      "why": "The loss design lets the whole network train end-to-end."
+    },
+    {
+      "from": "i14",
+      "to": "i3",
+      "type": "uses",
+      "why": "PanCADNet is the baseline solution to the panoptic symbol spotting task."
+    },
+    {
+      "from": "i13",
+      "to": "i23",
+      "type": "measures",
+      "why": "Panoptic quality is the metric used to report PanCADNet's results."
+    },
+    {
+      "from": "i19",
+      "to": "i18",
+      "type": "uses",
+      "why": "The semantic comparison depends on projecting entities and voting on pixel predictions."
+    },
+    {
+      "from": "i19",
+      "to": "i24",
+      "type": "supports",
+      "why": "The GCN's gain over HRNetsV2 and DeepLabv3+ backs the case for vector graphs."
+    },
+    {
+      "from": "i20",
+      "to": "i24",
+      "type": "supports",
+      "why": "The ablation shows topology plus CNN features beats geometric features alone."
+    },
+    {
+      "from": "i26",
+      "to": "i25",
+      "type": "contradicts",
+      "why": "The paper itself notes that predicted boxes can mis-classify background elements, qualifying the claim that instances are distinguished easily."
+    },
+    {
+      "from": "i28",
+      "to": "i26",
+      "type": "supports",
+      "why": "Vector-space instance proposals are the paper's stated answer to the box limitation."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i1",
+      "to": "hand-offs",
+      "why": "The 2D CAD drawing is the artifact that passes between designers, engineers and constructors, and the paper tries to read it automatically to rebuild 3D models."
+    },
+    {
+      "idea": "i7",
+      "to": "standardize-the-handoff",
+      "why": "Layer names that don't explain content and symbols that vary by producer show what a non-standardized hand-off costs the next reader."
+    },
+    {
+      "idea": "i8",
+      "to": "correct-by-construction",
+      "why": "A drawing doesn't carry object classes by itself, so 11 specialists spent over 1,000 hours labeling what a model with the information built in would already hold."
+    },
+    {
+      "idea": "i5",
+      "to": "proposed-vs-kept",
+      "why": "The drawings come from real architecture projects, so the dataset is made of what people kept, with value added by hand labels."
+    },
+    {
+      "idea": "i5",
+      "to": "dataset-purposes",
+      "why": "An example of a dataset built to train and test a recognition task (symbol spotting) rather than to generate designs."
+    },
+    {
+      "idea": "i22",
+      "to": "explicit-vs-learned",
+      "why": "Template and graph-matching rules fail across vendors where no standard exists, while a learned network works; its graph construction still relies on explicit thresholds (ε, η, K)."
+    },
+    {
+      "idea": "i13",
+      "to": "method-one-task",
+      "why": "A method to borrow: define one task, one matching rule and one metric so different methods can be compared on it."
+    },
+    {
+      "idea": "i6",
+      "to": "ifc",
+      "why": "The authors convert proprietary .dwg to open .svg for researchers, but the result holds only geometry and structure, with no object semantics of the kind an open BIM format carries."
+    },
+    {
+      "idea": "i24",
+      "to": "cubicasa5k-2019",
+      "why": "A contrast in representation: this paper argues that learning on pixel images loses vector accuracy, while CubiCasa5K annotates raster plans."
+    },
+    {
+      "idea": "i26",
+      "to": "hypothesis",
+      "why": "Even a trained recognizer leaves residual errors (boxes sweeping in background elements) that a person must check, which fits the claim that human judgment stays in the loop."
+    }
+  ]
+}

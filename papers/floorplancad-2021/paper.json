@@ -1,0 +1,1358 @@
+{
+  "version": 1,
+  "node": "floorplancad-2021",
+  "title": "FloorPlanCAD: A Large-Scale CAD Drawing Dataset for Panoptic Symbol Spotting",
+  "source": "files/FloorPlanCAD - A Large-Scale CAD Drawing Dataset for Panoptic Symbol Spotting.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Access to large and diverse computer-aided design (CAD) drawings is critical for developing symbol spotting algorithms. In this paper, we present FloorPlan-CAD, a large-scale real-world CAD drawing dataset containing over 15,000 floor plans, ranging from residential to commercial buildings. CAD drawings in the dataset are all represented as vector graphics, which enable us to provide line-grained annotations of 35 object categories. Equipped by such annotations, we introduce the task of panoptic symbol spotting, which requires to spot not only instances of countable things, but also the semantic of uncountable stuff. Aiming to solve this task, we propose a novel method by combining Graph Convo-lutional Networks (GCNs) with Convolutional Neural Net-works (CNNs), which captures both non-Euclidean and Eu-clidean features and can be trained end-to-end. The proposed CNN-GCN method achieved state-of-the-art (SOTA) performance on the task of semantic symbol spotting, and help us build a baseline network for the panoptic symbol spotting task. Our contributions are three-fold: 1) to the best of our knowledge, the presented CAD drawing dataset is the first of its kind; 2) the panoptic symbol spotting task considers the spotting of both thing instances and stuff semantic as one recognition problem; and 3) we presented a baseline solution to the panoptic symbol spotting task based on a novel CNN-GCN method, which achieved SOTA performance on semantic symbol spotting. We believe that these contributions will boost research in related areas. The dataset and code is publicly available at https://floorplancad.github.io/.",
+            "es": "El acceso a dibujos de diseño asistido por computadora (computer-aided design, CAD) grandes y diversos es fundamental para desarrollar algoritmos de detección de símbolos (symbol spotting). En este artículo presentamos FloorPlan-CAD, un conjunto de datos a gran escala de dibujos CAD del mundo real que contiene más de 15,000 planos de planta, desde edificios residenciales hasta comerciales. Los dibujos CAD del conjunto de datos están todos representados como gráficos vectoriales (vector graphics), lo que nos permite proporcionar anotaciones a nivel de línea (line-grained annotations) de 35 categorías de objetos. Con estas anotaciones, introducimos la tarea de detección panóptica de símbolos (panoptic symbol spotting), que requiere detectar no solo instancias (instances) de elementos contables (things), sino también la semántica (semantic) de elementos no contables (stuff). Con el fin de resolver esta tarea, proponemos un método novedoso que combina redes convolucionales de grafos (Graph Convolutional Networks, GCNs) con redes neuronales convolucionales (Convolutional Neural Networks, CNNs), el cual captura tanto características no euclidianas como euclidianas y puede entrenarse de extremo a extremo (end-to-end). El método CNN-GCN propuesto alcanzó un desempeño del estado del arte (state-of-the-art, SOTA) en la tarea de detección semántica de símbolos y nos ayudó a construir una red base (baseline network) para la tarea de detección panóptica de símbolos. Nuestras contribuciones son tres: 1) hasta donde sabemos, el conjunto de datos de dibujos CAD que presentamos es el primero de su tipo; 2) la tarea de detección panóptica de símbolos considera la detección de instancias de elementos contables y de la semántica de elementos no contables como un único problema de reconocimiento; y 3) presentamos una solución base para la tarea de detección panóptica de símbolos, basada en un método CNN-GCN novedoso, que alcanzó un desempeño SOTA en la detección semántica de símbolos. Creemos que estas contribuciones impulsarán la investigación en áreas relacionadas. El conjunto de datos y el código están disponibles públicamente en https://floorplancad.github.io/."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1. Introduction",
+        "es": "1. Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The perception of 2D computer-aided design (CAD) drawings plays a crucial role for creating 3D prototypes, also known as “digital twins”, see Figure 1, in architecture, engineering and construction (AEC) industries. A CAD drawing typically conveys accurate geometric and rich semantic information of a cross section of a 3D design. By integrating information from a group of CAD drawings, the according 3D model can be precisely reconstructed. For example, 3D buildings can be faithfully encoded by a bunch of 2D floor plans, which are detailed CAD drawings compose of line segments, arcs, curves, and texts, see Figure 1. Automatic perception of CAD drawings will lead to efficient 3D modeling approaches, saving vast amount of labor work. That is especially true for architectures, which usually contain massive components and might cost months for creating detailed 3D models.",
+            "es": "La percepción de dibujos 2D de diseño asistido por computadora (CAD) desempeña un papel crucial en la creación de prototipos 3D, también conocidos como “gemelos digitales” (digital twins), véase la Figura 1, en las industrias de la arquitectura, la ingeniería y la construcción (architecture, engineering and construction, AEC). Un dibujo CAD suele transmitir información geométrica precisa y semántica rica de una sección transversal de un diseño 3D. Al integrar la información de un grupo de dibujos CAD, el modelo 3D correspondiente puede reconstruirse con precisión. Por ejemplo, los edificios 3D pueden codificarse fielmente mediante un conjunto de planos de planta 2D, que son dibujos CAD detallados compuestos de segmentos de línea, arcos, curvas y textos, véase la Figura 1. La percepción automática de dibujos CAD conducirá a enfoques de modelado 3D eficientes, que ahorrarán una gran cantidad de trabajo manual. Esto es especialmente cierto para la arquitectura, que suele contener una enorme cantidad de componentes y cuya creación de modelos 3D detallados puede tardar meses."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 1,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: The rich semantic, accurate location and detailed 3D shape (right top) of windows (light blue), blind windows (blue), railings (orange) and walls (dark red) are faithfully encoded in the CAD drawings of a floor plan (left) and its south facade (right bottom). (a) Floor plan (b) Facade and 3D model",
+            "es": "Figura 1: La semántica rica, la ubicación precisa y la forma 3D detallada (arriba a la derecha) de ventanas (azul claro), ventanas ciegas (azul), barandales (naranja) y muros (rojo oscuro) están codificadas fielmente en los dibujos CAD de un plano de planta (izquierda) y de su fachada sur (abajo a la derecha). (a) Plano de planta (b) Fachada y modelo 3D"
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 1,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: Various sink symbols from our FloorPlanCAD dataset. The style and appearance of a symbol depend on the producer of the drawing.",
+            "es": "Figura 2: Diversos símbolos de lavabo de nuestro conjunto de datos FloorPlanCAD. El estilo y la apariencia de un símbolo dependen de quien produce el dibujo."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Symbol spotting refers to the recognition of graphic symbols embedded in the context of large digital drawings [31]. It is typically carried out as query-by-example approaches [28, 27, 35], where candidate regions that might contain the given query symbol are obtained. These approaches are impractical in real-world scenarios, because symbols representing the same object might vary fiercely, see Figure 2. To cope with the variability of symbols, a recent work [32] attempted learning-based approach on realworld floor plan drawings, but they treat CAD drawings as pixel images, losing the accuracy of vector graphics and leading to possibly inaccurate annotations and predictions.",
+            "es": "La detección de símbolos se refiere al reconocimiento de símbolos gráficos incrustados en el contexto de dibujos digitales grandes [31]. Normalmente se lleva a cabo mediante enfoques de consulta por ejemplo (query-by-example) [28, 27, 35], en los que se obtienen regiones candidatas que podrían contener el símbolo de consulta dado. Estos enfoques son poco prácticos en escenarios del mundo real, porque los símbolos que representan el mismo objeto pueden variar enormemente, véase la Figura 2. Para hacer frente a la variabilidad de los símbolos, un trabajo reciente [32] intentó un enfoque basado en aprendizaje sobre dibujos de planos de planta del mundo real, pero trata los dibujos CAD como imágenes de píxeles, con lo que pierde la precisión de los gráficos vectoriales y conduce a anotaciones y predicciones posiblemente inexactas."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: A snapshot of our FloorPlanCAD dataset. (a) Texts are removed to protect privacy and intellectual property. (b) The line-grained annotations is illustrated by colors. (a) A raw floor plan drawing. (b) The drawing with instance and semantic annotations.",
+            "es": "Figura 3: Una vista de nuestro conjunto de datos FloorPlanCAD. (a) Los textos se eliminan para proteger la privacidad y la propiedad intelectual. (b) Las anotaciones a nivel de línea se ilustran mediante colores. (a) Un dibujo de plano de planta en bruto. (b) El dibujo con anotaciones de instancia y semánticas."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Traditional symbol spotting approaches focus on instance detection, therefore cannot deal with semantic of uncountable stuff. For example, these methods cannot detect the wall in CAD drawings, which is usually represented by a group of parallel lines with large span, see Figure 3. Fol-lowing ideas in [19], we consider the instance spotting of countable things and the semantic detection of uncountable stuff as one visual recognition task, which is called panoptic symbol spotting.",
+            "es": "Los enfoques tradicionales de detección de símbolos se centran en la detección de instancias, por lo que no pueden tratar la semántica de elementos no contables. Por ejemplo, estos métodos no pueden detectar el muro en los dibujos CAD, que suele representarse mediante un grupo de líneas paralelas de gran extensión, véase la Figura 3. Siguiendo las ideas de [19], consideramos la detección de instancias de elementos contables y la detección semántica de elementos no contables como una sola tarea de reconocimiento visual, a la que llamamos detección panóptica de símbolos."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In practice, CAD drawings play the role of universal language among practitioners in AEC industries, including designers, engineers, constructors, who share a common knowledge set. This observation inspires us to adopt learning methods for recognition tasks on CAD drawings, which demands comprehensive annotated data for training and testing networks.",
+            "es": "En la práctica, los dibujos CAD desempeñan el papel de lenguaje universal entre los profesionales de las industrias AEC, incluidos diseñadores, ingenieros y constructores, quienes comparten un conjunto común de conocimientos. Esta observación nos inspira a adoptar métodos de aprendizaje para las tareas de reconocimiento en dibujos CAD, lo cual exige datos anotados exhaustivos para entrenar y probar las redes."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We build a large-scale dataset of over 15,000 floor plans in the form of vector graphics. These floor plans are collected from public repositories of real-world architecture projects across the industries. To help researchers processing those drawings, we parse the initial proprietary “.dwg” file to the open standard “.svg” format and crop each floor plan into regular smaller blocks. At the end, floor plan blocks in the dataset only contain geometric and structural information, as illustrated in Figure 3a. We select 35 object categories of our interest, and provide line-grained annotations, see Figure 3b.",
+            "es": "Construimos un conjunto de datos a gran escala de más de 15,000 planos de planta en forma de gráficos vectoriales. Estos planos de planta se recopilaron de repositorios públicos de proyectos de arquitectura del mundo real en distintas industrias. Para ayudar a los investigadores a procesar esos dibujos, convertimos el archivo propietario original “.dwg” al formato estándar abierto “.svg” y recortamos cada plano de planta en bloques regulares más pequeños. Al final, los bloques de planos de planta del conjunto de datos solo contienen información geométrica y estructural, como se ilustra en la Figura 3a. Seleccionamos 35 categorías de objetos de nuestro interés y proporcionamos anotaciones a nivel de línea, véase la Figura 3b."
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The property of vector graphics enable us to apply graph convolutional networks (GCNs), which is computational efficient due to its sparsity, and is good at extracting non-Euclidean features via topology connections. For each floor plan, we build a graph, whose nodes are graphic entities, e.g. straight segment, arc, and edges are created according to their adjacency.",
+            "es": "La propiedad de los gráficos vectoriales nos permite aplicar redes convolucionales de grafos (GCNs), que son computacionalmente eficientes debido a su dispersión y son buenas para extraer características no euclidianas mediante conexiones topológicas. Para cada plano de planta construimos un grafo cuyos nodos son entidades gráficas, por ejemplo, segmentos rectos y arcos, y cuyas aristas se crean según su adyacencia."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In our experiments, we found that Euclidean features captures by Convolutional Neural Networks (CNNs) can improve the performance. Therefore we propose a novel network combining GCNs and CNNs, which achieves stateof-the-art performance on the semantic symbol spotting task, and leads us to a baseline network for the panoptic symbol spotting task.",
+            "es": "En nuestros experimentos encontramos que las características euclidianas capturadas por las redes neuronales convolucionales (CNNs) pueden mejorar el desempeño. Por ello proponemos una red novedosa que combina GCNs y CNNs, la cual alcanza un desempeño del estado del arte en la tarea de detección semántica de símbolos y nos lleva a una red base para la tarea de detección panóptica de símbolos."
+          }
+        },
+        {
+          "id": "s1-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The goal of our research is to push the development of perception on the CAD drawing by providing large-scale annotated dataset and a baseline algorithm. Our main contributions are:",
+            "es": "El objetivo de nuestra investigación es impulsar el desarrollo de la percepción en dibujos CAD mediante un conjunto de datos anotado a gran escala y un algoritmo base. Nuestras principales contribuciones son:"
+          }
+        },
+        {
+          "id": "s1-p9",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• We present a large-scale real-world dataset of over 15,000 CAD drawings with line-grained annotations, covering various types of buildings, e.g. residential towers, schools, hospitals, shopping malls and office buildings. To the best of our knowledge, it is the first of its kind.",
+            "es": "• Presentamos un conjunto de datos del mundo real a gran escala con más de 15,000 dibujos CAD con anotaciones a nivel de línea, que abarca diversos tipos de edificios, por ejemplo, torres residenciales, escuelas, hospitales, centros comerciales y edificios de oficinas. Hasta donde sabemos, es el primero de su tipo."
+          }
+        },
+        {
+          "id": "s1-p10",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• We introduce the task of panoptic symbol spotting, which is a generalization of the traditional symbol spotting problem, considering the instance spotting of countable things and the semantic labeling of uncountable stuff as one recognition task. A panoptic metric is provided for evaluating the prediction quality of various methods.",
+            "es": "• Introducimos la tarea de detección panóptica de símbolos, que es una generalización del problema tradicional de detección de símbolos, y que considera la detección de instancias de elementos contables y el etiquetado semántico de elementos no contables como una sola tarea de reconocimiento. Se proporciona una métrica panóptica para evaluar la calidad de predicción de diversos métodos."
+          }
+        },
+        {
+          "id": "s1-p11",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• We propose a CNN-GCN method, which achieved state-of-the-art performance on the semantic symbol spotting task, and help us build a unified baseline network for the panoptic symbol spotting task.",
+            "es": "• Proponemos un método CNN-GCN, que alcanzó un desempeño del estado del arte en la tarea de detección semántica de símbolos y nos ayudó a construir una red base unificada para la tarea de detección panóptica de símbolos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2. Related Work",
+        "es": "2. Trabajo relacionado"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In this section we briefly summarize existing datasets and methods in related areas, including symbol spotting, sketch segmentation and panoptic segmentation.",
+            "es": "En esta sección resumimos brevemente los conjuntos de datos y métodos existentes en áreas relacionadas, incluidas la detección de símbolos, la segmentación de bocetos (sketch segmentation) y la segmentación panóptica (panoptic segmentation)."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Existing datasets The impact of a proper dataset for pushing the development in an area has been widely recognized. For instance, ImageNet [36] for image recognition, Matterport3D [1] for RGB-D scene understanding and ShapeNet [2] for 3D shape perception. SESYD [8] is is a database of synthetical vectorized graphic documents with corresponding ground truth including 1000 floor plans. FPLAN-POLY [33] dataset contains 42 floor plans converted from images using a raster-to-vector algorithm [15] implemented in the QGar [9] library.",
+            "es": "Conjuntos de datos existentes El impacto de un conjunto de datos adecuado para impulsar el desarrollo en un área ha sido ampliamente reconocido. Por ejemplo, ImageNet [36] para el reconocimiento de imágenes, Matterport3D [1] para la comprensión de escenas RGB-D y ShapeNet [2] para la percepción de formas 3D. SESYD [8] es una base de datos de documentos gráficos vectorizados sintéticos con su correspondiente verdad de referencia (ground truth), que incluye 1000 planos de planta. El conjunto de datos FPLAN-POLY [33] contiene 42 planos de planta convertidos a partir de imágenes mediante un algoritmo de rasterizado a vectorial [15] implementado en la biblioteca QGar [9]."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Symbol spotting Symbol spotting [31, 35, 38] refers to the retrieval of graphical symbols embedded in larger images or documents [32]. Symbol retrieval and recognition in technical documents remains a challenge in the document analysis community [28]. Traditionally, hand-crafted symbol descriptors is designed to describe the shape [28, 27, 35]. Then the query symbol and the document is matched with the sliding window or information retrieval techniques. Graph representation and matching [11, 10, 12] is also used but more sensitive to the noise and topology error. These methods work well on isolated symbols but fail significantly when symbols are embedded in documents. Recently, an image based deep learning method is proposed [32] and achieves the best result on existing public datasets [8, 33].",
+            "es": "Detección de símbolos La detección de símbolos [31, 35, 38] se refiere a la recuperación de símbolos gráficos incrustados en imágenes o documentos más grandes [32]. La recuperación y el reconocimiento de símbolos en documentos técnicos siguen siendo un reto para la comunidad de análisis de documentos [28]. Tradicionalmente, se diseñan descriptores de símbolos hechos a mano para describir la forma [28, 27, 35]. Luego, el símbolo de consulta y el documento se emparejan con técnicas de ventana deslizante o de recuperación de información. También se utiliza la representación y el emparejamiento mediante grafos [11, 10, 12], pero es más sensible al ruido y a los errores de topología. Estos métodos funcionan bien con símbolos aislados, pero fallan de manera considerable cuando los símbolos están incrustados en documentos. Recientemente se propuso un método de aprendizaje profundo basado en imágenes [32], que logra el mejor resultado en los conjuntos de datos públicos existentes [8, 33]."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Semantic sketch segmentation Semantic sketch segmentation aims to label pixels into semantic groups on freehand sketched line images [39, 16, 22, 46]. Sun et al. [39] segment the cluttered sketch into multiple parts first, and then detect semantically meaningful objects by leveraging a web-scale clipart database. Huang et al. [16] formulate the problem as a mixed integer programming problem, and present a data-driven solution. By treating the input as a 2D point set and encode the stroke structure information into graph, Yang et al. [46] predict the per-point labels with a Graph Convolutional Networks (GCNs).",
+            "es": "Segmentación semántica de bocetos La segmentación semántica de bocetos busca etiquetar píxeles en grupos semánticos en imágenes de líneas de bocetos a mano alzada [39, 16, 22, 46]. Sun et al. [39] segmentan primero el boceto desordenado en múltiples partes y luego detectan objetos con significado semántico aprovechando una base de datos de imágenes prediseñadas (clipart) a escala web. Huang et al. [16] formulan el problema como un problema de programación entera mixta y presentan una solución basada en datos. Al tratar la entrada como un conjunto de puntos 2D y codificar la información de la estructura de los trazos en un grafo, Yang et al. [46] predicen las etiquetas por punto con una red convolucional de grafos (GCN)."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Panoptic segmentation In computer vision, countable things are referred to as instances, such as doors, windows, and tables [14, 23, 24]. Uncountable stuff that extends in amorphous regions of similar texture or material has no instance and only semantic, such as sky, road, and wall [4, 5, 37]. Kirillov et al. [19] take instance and semantic segmentation into one visual recognition task and coin the phrase panoptic segmentation. It tries to assign stuff pixels with semantic label and detect each object with a bounding box or segmentation mask at the same time [19, 18, 45]. BANet [6] introduces a bidirectional path between semantic and instance segmentation to improve the panoptic perfornumber of elements mance. The BGRNet [44] incorporates graph structure to mine the intra-modular and inter-modular relations.",
+            "es": "Segmentación panóptica En visión por computadora, los elementos contables (things) se denominan instancias, como puertas, ventanas y mesas [14, 23, 24]. Los elementos no contables (stuff), que se extienden en regiones amorfas de textura o material similar, no tienen instancia y solo tienen semántica, como el cielo, el camino y el muro [4, 5, 37]. Kirillov et al. [19] reúnen la segmentación de instancias y la segmentación semántica en una sola tarea de reconocimiento visual y acuñan el término segmentación panóptica. Esta intenta asignar una etiqueta semántica a los píxeles de elementos no contables y detectar cada objeto con un cuadro delimitador o una máscara de segmentación al mismo tiempo [19, 18, 45]. BANet [6] introduce una vía bidireccional entre la segmentación semántica y la de instancias para mejorar el desempeño panóptico. BGRNet [44] incorpora una estructura de grafo para extraer las relaciones intramodulares e intermodulares."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4: In CAD drawings, a generalized symbol represents either an instance of things (e.g. sink, toilet, single door), or a particular stuff (e.g. wall). Given the ground truth symbols (a), the predicted symbols (b) can be classified as true positive TP (c-d) and false positive FP (e), while missing ground truth symbols are considered as false negative FN (f). (a) Ground truth (b) Prediction (c) (d) (e) (f)",
+            "es": "Figura 4: En los dibujos CAD, un símbolo generalizado representa una instancia de elementos contables (por ejemplo, lavabo, inodoro, puerta sencilla) o un elemento no contable particular (por ejemplo, muro). Dados los símbolos de la verdad de referencia (a), los símbolos predichos (b) pueden clasificarse como verdaderos positivos VP (c-d) y falsos positivos FP (e), mientras que los símbolos faltantes de la verdad de referencia se consideran falsos negativos FN (f). (a) Verdad de referencia (b) Predicción (c) (d) (e) (f)"
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5: Length histogram of elements in the CAD drawing. Most of them are shorter than 0.2m.",
+            "es": "Figura 5: Histograma de longitudes de los elementos en el dibujo CAD. La mayoría son más cortos que 0.2m."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3. Panoptic Symbol Spotting",
+        "es": "3. Detección panóptica de símbolos"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Traditional symbol spotting techniques [35, 38] mostly study things – countable symbols such as windows, doors, tables [31]. Stuff – amorphous symbols of similar objects or material such as vegetation, wall, road – is barely discussed. Similar to the panoptic segmentation in [19], we propose and study a task named panoptic symbol spotting, which considers semantic detection of stuff as well as instance spotting of things.",
+            "es": "Las técnicas tradicionales de detección de símbolos [35, 38] estudian principalmente los elementos contables (things), es decir, símbolos contables como ventanas, puertas y mesas [31]. Los elementos no contables (stuff), es decir, símbolos amorfos de objetos o materiales similares como la vegetación, el muro y el camino, apenas se discuten. De manera similar a la segmentación panóptica de [19], proponemos y estudiamos una tarea denominada detección panóptica de símbolos, que considera la detección semántica de elementos no contables, así como la detección de instancias de elementos contables."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Generalized symbol Symbols are graphical entities that hold a semantic meaning in a specific domain, such as logos, silhouettes and musical notes [34]. In the setting of CAD drawings, a generalized symbol is a set of graphical entities, representing either a thing instance, e.g. toilet, sink, door, or a particular stuff, e.g. wall, see Figure 4. We denote a graphical entity ei = (li, zi) by a semantic label li and an instance index zi, thus a symbol is defined as sj = {ei | li = lj, zi = zj}. For short, we demote a symbol as sj = (lj, zj). Things of the same class share the same semantic label, while instance of things can be distinguished by their instance indices. Notably, we ignore the instance index of entities belonging to stuff. The selection of which classes are stuff or things is a design choice left to the creator of the dataset.",
+            "es": "Símbolo generalizado Los símbolos son entidades gráficas que tienen un significado semántico en un dominio específico, como logotipos, siluetas y notas musicales [34]. En el contexto de los dibujos CAD, un símbolo generalizado es un conjunto de entidades gráficas que representa una instancia de elementos contables, por ejemplo, inodoro, lavabo, puerta, o un elemento no contable particular, por ejemplo, muro, véase la Figura 4. Denotamos una entidad gráfica ei = (li, zi) mediante una etiqueta semántica li y un índice de instancia zi, de modo que un símbolo se define como sj = {ei | li = lj, zi = zj}. En forma abreviada, denotamos un símbolo como sj = (lj, zj). Los elementos contables de la misma clase comparten la misma etiqueta semántica, mientras que las instancias de elementos contables pueden distinguirse por sus índices de instancia. Cabe destacar que ignoramos el índice de instancia de las entidades que pertenecen a elementos no contables. La selección de qué clases son elementos no contables o contables es una decisión de diseño que se deja a quien crea el conjunto de datos."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Task formation Given a CAD drawing represented by a set of graphical entities {ek}, the panoptic symbol spotting task requires a map Fp : ek 7→(lk, zk) ∈L × N, where L := {0, . . . , L −1} is a set of predetermined set of object classes, and N is the number of possible instances. The semantic label set L can be partitioned into stuff and things subsets, namely L = Lst ∪Lth and Lst ∩Lth = ∅. By ignoring the instance indices, the task is degraded to a semantic symbol spotting task Fs : ek 7→lk ∈L. If we only focus on the thing classes Lth, the panoptic symbol spotting is degraded to an instance symbol spotting task Fi : ek 7→(lk, zk) ∈Lth × N.",
+            "es": "Formulación de la tarea Dado un dibujo CAD representado por un conjunto de entidades gráficas {ek}, la tarea de detección panóptica de símbolos requiere una función Fp : ek 7→(lk, zk) ∈L × N, donde L := {0, . . . , L −1} es un conjunto predeterminado de clases de objetos y N es el número de instancias posibles. El conjunto de etiquetas semánticas L puede dividirse en los subconjuntos de elementos no contables y contables, a saber, L = Lst ∪Lth y Lst ∩Lth = ∅. Al ignorar los índices de instancia, la tarea se degrada a una tarea de detección semántica de símbolos Fs : ek 7→lk ∈L. Si nos centramos únicamente en las clases de elementos contables Lth, la detección panóptica de símbolos se degrada a una tarea de detección de símbolos por instancia Fi : ek 7→(lk, zk) ∈Lth × N."
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Panoptic metric A predicted symbol sp = (lp, zp) is matched to a ground truth symbol sg = (lg, zg) if lp = lg and IoU(sp, sg) > 0.5, where the intersection over union (IoU) between two symbols are computed based on arc length L(·),",
+            "es": "Métrica panóptica Un símbolo predicho sp = (lp, zp) se empareja con un símbolo de la verdad de referencia sg = (lg, zg) si lp = lg e IoU(sp, sg) > 0.5, donde la intersección sobre unión (intersection over union, IoU) entre dos símbolos se calcula con base en la longitud de arco L(·),"
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Here logarithm is adopted to degrade the influence of lines with very large span. Figure 5 shows the distribution of entity length, which spans from several millimeters to tens of meters. As proved in [19], this strategy produces a unique mapping: there can be at most one predicted symbol matched with each ground truth symbol. A predicted symbol is considered as true positive (TP) if it can be matched to a ground truth symbol, otherwise false positives (FP). Missing ground truth symbols are marked as false negatives (FN).",
+            "es": "Aquí se adopta el logaritmo para reducir la influencia de las líneas con una extensión muy grande. La Figura 5 muestra la distribución de la longitud de las entidades, que abarca desde varios milímetros hasta decenas de metros. Como se demuestra en [19], esta estrategia produce una correspondencia única: puede haber como máximo un símbolo predicho emparejado con cada símbolo de la verdad de referencia. Un símbolo predicho se considera un verdadero positivo (true positive, TP) si puede emparejarse con un símbolo de la verdad de referencia; en caso contrario, es un falso positivo (false positive, FP). Los símbolos faltantes de la verdad de referencia se marcan como falsos negativos (false negative, FN)."
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The widely used F1 score is used to measure the recognition quality: vert T P",
+            "es": "La puntuación F1, ampliamente utilizada, se emplea para medir la calidad de reconocimiento: vert T P"
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "By averaging the IoUs of matched symbols, the segmentation quality is measured by:",
+            "es": "Al promediar las IoU de los símbolos emparejados, la calidad de segmentación se mide mediante:"
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "S",
+            "es": "S"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Similar to [19], our panoptic symbol spotting metric is defined as the multiplication of RQ and SQ: e t vert T",
+            "es": "De manera similar a [19], nuestra métrica de detección panóptica de símbolos se define como la multiplicación de RQ y SQ: e t vert T"
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Notably, this panoptic metric takes both thing and stuff symbols into account, proving a uniform quality measurement for evaluating panoptic symbol spotting methods.",
+            "es": "Cabe destacar que esta métrica panóptica toma en cuenta tanto los símbolos de elementos contables como los de elementos no contables, y proporciona una medida de calidad uniforme para evaluar los métodos de detección panóptica de símbolos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4. The FloorPlanCAD dataset",
+        "es": "4. El conjunto de datos (dataset) FloorPlanCAD"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We collect large-scale CAD drawings from public repositories of real-world architecture projects across the industries. Since the data is from different sources, it shows much more varieties in style and appearance of the objects. To the date of this revision, we have obtained over 100 projects including residential buildings, schools, hospitals, and large shopping malls with complicated structures.",
+            "es": "Recopilamos dibujos CAD a gran escala de repositorios públicos de proyectos de arquitectura reales de distintos sectores. Como los datos provienen de fuentes diferentes, muestran mucha mayor variedad en el estilo y la apariencia de los objetos. Hasta la fecha de esta revisión, hemos obtenido más de 100 proyectos, entre ellos edificios residenciales, escuelas, hospitales y grandes centros comerciales con estructuras complicadas."
+          }
+        },
+        {
+          "id": "s4-h1",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "4.1. Preproccess",
+            "es": "4.1. Preprocesamiento"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In practice, architects tend to organize floors and related components of several buildings into one file, and a project usually has more than one file. Before getting started, we need to clip out every floor plan from the project files. The number of floor plans in a project is usually between 10 to 50, and now we have 2, 500 files of individual floor plans. Generally, a floor plan drawing consists of dozens of layers distinguished by the functionality of the elements. The layer name does not necessarily explains its content, and the layer content might be quite messy because there is no restrictions on what should be grouped as a layer. The original multi-layer floor plan is firstly split into separate layers as shown in the Figure 6. The following annotation is performed on each layer that is much less cluttered, and boosts the annotation efficiency and effect significantly.",
+            "es": "En la práctica, los arquitectos suelen organizar los pisos y los componentes relacionados de varios edificios en un solo archivo, y un proyecto normalmente tiene más de un archivo. Antes de comenzar, necesitamos recortar cada plano de planta (floor plan) de los archivos del proyecto. El número de planos de planta en un proyecto suele estar entre 10 y 50, y ahora tenemos 2, 500 archivos de planos de planta individuales. En general, un dibujo de plano de planta consta de decenas de capas (layers) distinguidas por la funcionalidad de los elementos. El nombre de la capa no necesariamente explica su contenido, y el contenido de la capa puede ser bastante desordenado porque no hay restricciones sobre qué debe agruparse como una capa. El plano de planta original de múltiples capas se divide primero en capas separadas, como se muestra en la Figura 6. La anotación (annotation) siguiente se realiza sobre cada capa, que está mucho menos saturada, y esto mejora de manera significativa la eficiencia y el efecto de la anotación."
+          }
+        },
+        {
+          "id": "s4-h2",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "4.2. Annotation",
+            "es": "4.2. Anotación"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We choose 35 object classes of our interest including 30 thing classes in this revision. Some of them are listed in Figure 7, please visit our website for more details. Two stuff classes, wall and parking, are included because they are the very fundamental and dominant elements in floor plans. The wall serves as the basic structure for windows, doors, beams, etc. The wall and parking entities together accounts for about 27% of the total entities (Table 6 in supplementary material), therefore is sufficient for studying the number of instances symbol spotting problem and solving the related task. We make parking as a semantic class, even though each parking slot can be treated as an instance. However they always appear side by side and span a huge area, it is reasonable to view them as an a whole parking space to reduce the burden in annotation.",
+            "es": "Elegimos 35 clases de objetos de nuestro interés, entre ellas 30 clases de objetos contables (thing classes) en esta revisión. Algunas de ellas se enumeran en la Figura 7; visite nuestro sitio web para más detalles. Se incluyen dos clases de materia (stuff classes), pared y estacionamiento, porque son los elementos más fundamentales y dominantes en los planos de planta. La pared sirve como estructura básica para ventanas, puertas, vigas, etc. Las entidades de pared y de estacionamiento juntas representan aproximadamente el 27% del total de entidades (Tabla 6 del material suplementario), por lo que son suficientes para estudiar el problema de la localización de símbolos (symbol spotting) por número de instancias y para resolver la tarea relacionada. Hacemos de estacionamiento una clase semántica, aunque cada cajón de estacionamiento pueda tratarse como una instancia. Sin embargo, siempre aparecen uno junto a otro y abarcan un área enorme, por lo que es razonable verlos como un todo, un espacio de estacionamiento, para reducir la carga de anotación."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7: Number of finely annotated instances (y-axis) for 28 thing classes and their associated categories (x-axis).",
+            "es": "Figura 7: Número de instancias anotadas con detalle (eje y) para 28 clases de objetos contables y sus categorías asociadas (eje x)."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 5,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: Properties and statistics of existing datasets. BRIDGE [13] still is not publically available by the time this paper is submitted. Note that our FloorPlanCAD is the only one that gives panoptic annotation while retaining the characteristics of vector graphics throughout the process.",
+            "es": "Tabla 1: Propiedades y estadísticas de los conjuntos de datos existentes. BRIDGE [13] todavía no está disponible públicamente al momento de enviar este artículo. Nótese que nuestro FloorPlanCAD es el único que ofrece anotación panóptica (panoptic) y que además conserva las características de los gráficos vectoriales (vector graphics) durante todo el proceso."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "11 specialists spend over 1,000 hours on creating linegrained annotations. To protect the privacy of the data owners, data obfuscation is conducted. First of all, fields that are classified as identifiable, personally or commercially sensitive are removed. Each floor plan is cut into squared blocks with dimension of 10m × 10m and only 30% of the blocks are kept in our dataset.",
+            "es": "11 especialistas dedicaron más de 1,000 horas a crear anotaciones a nivel de línea. Para proteger la privacidad de los propietarios de los datos, se realiza una ofuscación de datos. En primer lugar, se eliminan los campos clasificados como identificables o sensibles a nivel personal o comercial. Cada plano de planta se corta en bloques cuadrados de 10m × 10m y solo se conserva el 30% de los bloques en nuestro conjunto de datos."
+          }
+        },
+        {
+          "id": "s4-h3",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "4.3. Properties",
+            "es": "4.3. Propiedades"
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "There are three key characteristics that make our dataset unique and valuable: large-scale, real-world, and vector graphics. It implies that studies on our dataset are more suitable to practical applications. Table 1 shows that we have much richer categories and larger amount of drawings comparing to SESYD [8] and FPLAN-POLY [33].",
+            "es": "Hay tres características clave que hacen que nuestro conjunto de datos sea único y valioso: gran escala, datos del mundo real y gráficos vectoriales. Esto implica que los estudios sobre nuestro conjunto de datos son más adecuados para aplicaciones prácticas. La Tabla 1 muestra que tenemos categorías mucho más ricas y una mayor cantidad de dibujos en comparación con SESYD [8] y FPLAN-POLY [33]."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The annotated dataset is split into two sets: 60 projects are randomly chosen for training and the remaining for testing. Then our dataset consists of 10, 161 training and 5, 502 testing drawings with line-grained annotations. In the reported experiments, 800 random CAD drawings are split from the training set for validation to mitigate over-fitting.",
+            "es": "El conjunto de datos anotado se divide en dos subconjuntos: 60 proyectos se eligen al azar para entrenamiento y el resto para prueba. Así, nuestro conjunto de datos consta de 10, 161 dibujos de entrenamiento y 5, 502 de prueba con anotaciones a nivel de línea. En los experimentos reportados, 800 dibujos CAD aleatorios se separan del conjunto de entrenamiento para validación, a fin de mitigar el sobreajuste (over-fitting)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5. PanCADNet",
+        "es": "5. PanCADNet"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To tackle the panoptic symbol spotting problem, an endto-end architecture named PanCADNet is proposed. It consists of a CNN backbone, a graph convolution head, and detection head, which are designed for semantic and instance symbol spotting respectively. Graph construction Given a CAD drawing, a graph G = (V, E) is constructed, whose vertices are graphical entities V = {ei}. An edge is created for two vertices if their distance are close enough, namely D(ei, ej) < ϵ: e xt where es and et represent the start and end points of the graphical entity e respectively, regardless of its shape. For a pair of parallel lines, we slightly modify the distance as: where η is a scale factor for establishing parallelism connection for wall and windows. To keep the graph complexity low, at almost K edges are allowed for every node by random dropping. In our dataset, we have ϵ = 100mm, η = 0.2, K = 3. Figure on the right illustrates how a graph is constructed, where black dots represent nodes and red curves stands for edges. Geometric features Graphical entities in a symbol usually share properties such as scale, location, and types. We encode the length f l i and the normalized center location f p i of each vertex ei as its spatial features. In addition, the type (segment, circle or curve) of each vertex is encoded as a one-hot array f s i , namely its type feature. Textural features CNN is capable of extracting multiscale textural features from an image. To utilize the power of CNN, we follow Pixel2Mesh [43] to obtain the visual feature f cnn i for each entity. Specifically, given the 2D coordinate of an entity ei, CNN features is fetched from the aligned position from feature pyramid networks [23]. Con-catenating with the manually designed geometric features, the node features become fi = {f l i, f p i , f cnn i }. Graph convolution Applying the graph convolution network [17] on G, the vertex aggregates information by propagating information from neighboring vertices, f _ {i}^{'} = eLU(W_0f where N(ei) are neighbor vertices of graph vertex ei, and W0 and W1 are learnable parameters of the model. In our experiment, three graph convolution layers are used. Detection head Previous methods [13, 32] apply object detection models to retrieve instance indices of symbols. Similarly, we build a two-stage detectors head, namely Faster R-CNN, for instance symbol spotting. It takes the pyramid features from our backbone network as input and outputs a bounding box with category label and confidence for each detected symbol instance. The loss term in the detection head LossDetection follows [30].",
+            "es": "Para abordar el problema de la localización panóptica de símbolos (panoptic symbol spotting), se propone una arquitectura de extremo a extremo (end-to-end) llamada PanCADNet. Consta de una red troncal (backbone) CNN, una cabeza de convolución de grafos (graph convolution head) y una cabeza de detección (detection head), diseñadas para la localización semántica y de instancias de símbolos, respectivamente. Construcción del grafo: dado un dibujo CAD, se construye un grafo G = (V, E), cuyos vértices son entidades gráficas V = {ei}. Se crea una arista entre dos vértices si su distancia es suficientemente cercana, es decir, D(ei, ej) < ϵ: e xt donde es y et representan los puntos inicial y final de la entidad gráfica e, respectivamente, sin importar su forma. Para un par de líneas paralelas, modificamos ligeramente la distancia como: donde η es un factor de escala para establecer la conexión de paralelismo para pared y ventanas. Para mantener baja la complejidad del grafo, se permiten como máximo K aristas por nodo mediante eliminación aleatoria. En nuestro conjunto de datos, tenemos ϵ = 100mm, η = 0.2, K = 3. La figura de la derecha ilustra cómo se construye un grafo, donde los puntos negros representan nodos y las curvas rojas representan aristas. Características geométricas: las entidades gráficas de un símbolo suelen compartir propiedades como escala, ubicación y tipo. Codificamos la longitud f l i y la ubicación normalizada del centro f p i de cada vértice ei como sus características espaciales. Además, el tipo (segmento, círculo o curva) de cada vértice se codifica como un arreglo one-hot f s i , es decir, su característica de tipo. Características texturales: una CNN es capaz de extraer características texturales multiescala de una imagen. Para aprovechar el poder de la CNN, seguimos a Pixel2Mesh [43] para obtener la característica visual f cnn i de cada entidad. Específicamente, dada la coordenada 2D de una entidad ei, las características de la CNN se obtienen de la posición alineada en las redes piramidales de características (feature pyramid networks) [23]. Al concatenarlas con las características geométricas diseñadas manualmente, las características del nodo se convierten en fi = {f l i, f p i , f cnn i }. Convolución de grafos: al aplicar la red de convolución de grafos (graph convolution network) [17] sobre G, el vértice agrega información propagándola desde los vértices vecinos, f _ {i}^{'} = eLU(W_0f donde N(ei) son los vértices vecinos del vértice ei del grafo, y W0 y W1 son parámetros aprendibles del modelo. En nuestro experimento se usan tres capas de convolución de grafos. Cabeza de detección: los métodos anteriores [13, 32] aplican modelos de detección de objetos para recuperar los índices de instancia de los símbolos. De manera similar, construimos una cabeza de detectores de dos etapas, a saber, Faster R-CNN, para la localización de símbolos por instancia. Toma como entrada las características piramidales de nuestra red troncal y produce, para cada instancia de símbolo detectada, un cuadro delimitador con etiqueta de categoría y confianza. El término de pérdida de la cabeza de detección LossDetection sigue a [30]."
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Figure 8: Network architecture of the proposed panoptic symbol spotting model (PanCADNet).",
+            "es": "Figura 8: Arquitectura de red del modelo propuesto de localización panóptica de símbolos (PanCADNet)."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Loss function As indicated in Figure 7, class imbalance in the training set is evident. As a result, we design a class weighted loss for GCN head. Here, we adopted weights for different classes by the number of entities in each class:",
+            "es": "Función de pérdida: como se indica en la Figura 7, el desbalance de clases en el conjunto de entrenamiento es evidente. Por ello, diseñamos una pérdida ponderada por clase para la cabeza GCN. Aquí adoptamos pesos para las distintas clases según el número de entidades en cada clase:"
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "{e _ i",
+            "es": "{e _ i"
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "C",
+            "es": "C"
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Loss_ { G",
+            "es": "Loss_ { G"
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "N}= m _ where wj = |{ei|GT(ei) = lj}|/|{ei}|, lg i and lj i are the ground truth and predicted labels of vertex ei, respectively. P(·) describes the probability of a prediction. By integrating loss terms of detection head and GCN head, we are able to train the whole system end-to-end, where λ = 3 in our experiments.",
+            "es": "N}= m _ donde wj = |{ei|GT(ei) = lj}|/|{ei}|, lg i y lj i son las etiquetas de referencia (ground truth) y predicha del vértice ei, respectivamente. P(·) describe la probabilidad de una predicción. Al integrar los términos de pérdida de la cabeza de detección y de la cabeza GCN, podemos entrenar todo el sistema de extremo a extremo, donde λ = 3 en nuestros experimentos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6. Experiments",
+        "es": "6. Experimentos"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We first evaluate the proposed GCN head on semantic symbol spotting task with various image segmentation models to validate the effectiveness of the proposed module. Then, we test several detection-based methods and traditional symbol spotting methods on instance symbol spotting task. In the panoptic symbol spotting task, we apply the proposed model shown in Figure. 8 with tuned modules.",
+            "es": "Primero evaluamos la cabeza GCN propuesta en la tarea de localización semántica de símbolos con diversos modelos de segmentación de imágenes, para validar la efectividad del módulo propuesto. Después, probamos varios métodos basados en detección y métodos tradicionales de localización de símbolos en la tarea de localización de símbolos por instancia. En la tarea de localización panóptica de símbolos, aplicamos el modelo propuesto que se muestra en la Figura 8 con módulos ajustados."
+          }
+        },
+        {
+          "id": "s6-h1",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "6.1. Semantic Symbol Spotting",
+            "es": "6.1. Localización semántica de símbolos"
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We utilize the backbone and GCN head shown in Fig-ure 8 as a network for semantic symbol spotting and validate the effectiveness of each component. Datasets In order to apply semantic segmentation models, annotation masks are generated by projecting graphical en-",
+            "es": "Utilizamos la red troncal y la cabeza GCN mostradas en la Figura 8 como una red para la localización semántica de símbolos y validamos la efectividad de cada componente. Conjuntos de datos: para aplicar modelos de segmentación semántica, las máscaras de anotación se generan proyectando entidades gráficas"
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "A",
+            "es": "A"
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "B",
+            "es": "B"
+          }
+        },
+        {
+          "id": "s6-p5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "(a) Input CAD drawing with region A and B (b) GT tities onto the background canvas with line width of 5 pixels during training.",
+            "es": "(a) Dibujo CAD de entrada con las regiones A y B (b) GT sobre el lienzo de fondo con un grosor de línea de 5 píxeles durante el entrenamiento."
+          }
+        },
+        {
+          "id": "s6-p6",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Implementation HRNetsV2 [42] is adopted to extract rich high resolution representations. We use Adam optimizer with β1 = 0.9 and β2 = 0.999 for the proposed GCN-based method. The training is done for 40k iterations with an initial learning rate of 0.0001, we scheduled the learning rate with cosine annealing [26]. To push the performance ahead, we adopt AM-Softmax [41] loss relacing the origin softmax loss. We train our method with 8 Nvidia GTX 2080Ti GPUs with 1 training samples on each GPU. All semantic segmentation models are trained for 40k iterations which corresponds to the 40k schedule in the mmsegmentation [7].",
+            "es": "Implementación: se adopta HRNetsV2 [42] para extraer representaciones ricas de alta resolución. Usamos el optimizador Adam con β1 = 0.9 y β2 = 0.999 para el método propuesto basado en GCN. El entrenamiento se realiza durante 40k iteraciones con una tasa de aprendizaje inicial de 0.0001, y programamos la tasa de aprendizaje con recocido coseno (cosine annealing) [26]. Para mejorar el desempeño, adoptamos la pérdida AM-Softmax [41] en lugar de la pérdida softmax original. Entrenamos nuestro método con 8 GPU Nvidia GTX 2080Ti con 1 muestra de entrenamiento en cada GPU. Todos los modelos de segmentación semántica se entrenan durante 40k iteraciones, lo que corresponde al programa de 40k en mmsegmentation [7]."
+          }
+        },
+        {
+          "id": "s6-p7",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Benchmark Performance In order to compare with traditional image segmentation method on our dataset, their label prediction on pixels are converted to label on entities by sampling and voting: de where pk indicates the sample point and PD(pi) is the predicted mask retrieved from the CNN output.",
+            "es": "Desempeño de referencia (benchmark): para comparar con el método tradicional de segmentación de imágenes en nuestro conjunto de datos, sus predicciones de etiquetas sobre píxeles se convierten en etiquetas sobre entidades mediante muestreo y votación: de donde pk indica el punto de muestra y PD(pi) es la máscara predicha obtenida de la salida de la CNN."
+          }
+        },
+        {
+          "id": "s6-p8",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Quantitative results on semantic symbol segmentation task are shown in Table 3. We can see that our method with GCN module outperforms both HRNetsV2 [42] and DeepLabv3+ [5] significantly, with the improvement of 11.8% on F1 score and 8.4% weighted F1 score, whose weights are similarly defined as Equation 1. The qualitative results are shown in Figure 9. We can see that our method predicts noticeable better results, especially in class wall, where their lengths have statistical regularity and semantic segmentation methods may fail in the boundary areas.",
+            "es": "Los resultados cuantitativos de la tarea de segmentación semántica de símbolos se muestran en la Tabla 3. Podemos ver que nuestro método con el módulo GCN supera de manera significativa tanto a HRNetsV2 [42] como a DeepLabv3+ [5], con una mejora de 11.8% en la puntuación F1 y de 8.4% en la puntuación F1 ponderada, cuyos pesos se definen de manera similar a la Ecuación 1. Los resultados cualitativos se muestran en la Figura 9. Podemos ver que nuestro método predice resultados notablemente mejores, especialmente en la clase pared, donde sus longitudes tienen regularidad estadística y los métodos de segmentación semántica pueden fallar en las zonas de borde."
+          }
+        },
+        {
+          "id": "s6-h2",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "6.2. Ablation Study on Semantic Symbol Spotting",
+            "es": "6.2. Estudio de ablación sobre la localización semántica de símbolos"
+          }
+        },
+        {
+          "id": "s6-p9",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Extensive ablation studies are performed to validate the effectiveness of our proposed method GCN network. As we can see in Table 2, GCN itself with simple geometric features is the worst and strong visual CNN features from the backbone boost the model accuracy significantly. With topology embedded in the graph convolutional layers, it connects image features and aggregates information from neighbour in a way that is almost impossible for the CNN-based methods. Moreover, weighted loss function and AM-softmax loss are both helpful to the proposed method.",
+            "es": "Se realizan estudios de ablación (ablation studies) extensos para validar la efectividad de nuestra red GCN propuesta. Como podemos ver en la Tabla 2, la GCN por sí sola con características geométricas simples es la peor, y las sólidas características visuales de la CNN provenientes de la red troncal aumentan la exactitud del modelo de manera significativa. Con la topología incrustada en las capas de convolución de grafos, se conectan las características de la imagen y se agrega información de los vecinos de una manera que es casi imposible para los métodos basados en CNN. Además, la función de pérdida ponderada y la pérdida AM-softmax son útiles para el método propuesto."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2: The quantitative comparisons between proposed GCN model and GCN model with/without its components. (c) DeepLabv3 [5] (d) HRNetV2 [42] (e) Ours Figure 9: Qualitative results on the test set on the semantic symbol spotting task.",
+            "es": "Tabla 2: Comparaciones cuantitativas entre el modelo GCN propuesto y el modelo GCN con/sin sus componentes. (c) DeepLabv3 [5] (d) HRNetV2 [42] (e) Nuestro Figura 9: Resultados cualitativos en el conjunto de prueba en la tarea de localización semántica de símbolos."
+          }
+        },
+        {
+          "id": "s6-h3",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "6.3. Instance Symbol Spotting",
+            "es": "6.3. Localización de símbolos por instancia"
+          }
+        },
+        {
+          "id": "s6-p10",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "In this section, thorough experiments are conducted to evaluate traditional and modern, supervised and unsupervised methods on the sub-task, namely instance symbol spotting defined at Task formation 3 of the proposed Floor-PlanCAD dataset. Dataset We uniformly sample points on each element of the annotated CAD drawing and calculate the outside bounding box for each instance. We convert the instance information to COCO-styled version [25]. Implementation All models are trained for 100 epochs except YOLOv3 for 273 epochs. ResNet-101 with FPN is used as backbone for Faster-RCNN and FCOS, DarkNet-53 is used for YOLOv3. Experiments are implemented based on the latest release of mmdetection [3]. Two typical traditional methods, SCIP [27] and Graph Matching [20], are implemented and evaluated on this task. Benchmark Performance Quantitative results on instance symbol detection task are shown in Table 4. We can see that Faster-RCNN and FCOS achieve comparable accuracy. Both traditional methods perform poorly on the proposed dataset since our data is from different vendors and do not have such standard templates to compare with.",
+            "es": "En esta sección se realizan experimentos exhaustivos para evaluar métodos tradicionales y modernos, supervisados y no supervisados, en la subtarea, a saber, la detección de símbolos por instancia (instance symbol spotting) definida en la Formulación de la tarea 3 del conjunto de datos propuesto Floor-PlanCAD. Conjunto de datos: muestreamos uniformemente puntos en cada elemento del dibujo CAD anotado y calculamos el cuadro delimitador exterior (bounding box) de cada instancia. Convertimos la información de las instancias a la versión en estilo COCO [25]. Implementación: todos los modelos se entrenan durante 100 épocas, excepto YOLOv3, que se entrena durante 273 épocas. Se utiliza ResNet-101 con FPN como red troncal (backbone) para Faster-RCNN y FCOS, y DarkNet-53 para YOLOv3. Los experimentos se implementan con base en la versión más reciente de mmdetection [3]. Se implementan y evalúan en esta tarea dos métodos tradicionales representativos, SCIP [27] y Graph Matching [20]. Desempeño de referencia (benchmark): los resultados cuantitativos en la tarea de detección de símbolos por instancia se muestran en la Tabla 4. Podemos ver que Faster-RCNN y FCOS logran una precisión comparable. Ambos métodos tradicionales tienen un desempeño deficiente en el conjunto de datos propuesto, puesto que nuestros datos provienen de distintos proveedores y no cuentan con plantillas estándar con las cuales compararse."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3: Statistical results on the proposed dataset of different semantic segmentation models and our GCN-based method. Both HRNetsV2 [42] and DeepLabv3+ [5] show that deeper networks produce better results.",
+            "es": "Tabla 3: Resultados estadísticos en el conjunto de datos propuesto de diferentes modelos de segmentación semántica y de nuestro método basado en GCN. Tanto HRNetsV2 [42] como DeepLabv3+ [5] muestran que las redes más profundas producen mejores resultados."
+          }
+        },
+        {
+          "id": "tab-4",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-4.png",
+          "text": {
+            "en": "Table 4: Quantitative results of different detection methods and symbol spotting methods on the symbol detection task.",
+            "es": "Tabla 4: Resultados cuantitativos de diferentes métodos de detección y métodos de localización de símbolos en la tarea de detección de símbolos."
+          }
+        },
+        {
+          "id": "tab-5",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-5.png",
+          "text": {
+            "en": "Table 5: Quantitative results of the proposed PanCADNet on the proposed FloorPlanCAD test set. Metrics for every class can be found in supplemental materials.",
+            "es": "Tabla 5: Resultados cuantitativos del PanCADNet propuesto en el conjunto de prueba de FloorPlanCAD propuesto. Las métricas de cada clase pueden consultarse en los materiales suplementarios."
+          }
+        },
+        {
+          "id": "s6-h4",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "6.4. Panoptic symbol spotting",
+            "es": "6.4. Localización panóptica de símbolos"
+          }
+        },
+        {
+          "id": "s6-p11",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "With the optimized GCN head and detection head, then we propose the PanCADNet shown in Figure 8. To our knowledge, there is no other method conducting similar task on vector graphics.",
+            "es": "Con la cabeza GCN y la cabeza de detección optimizadas, proponemos entonces el PanCADNet mostrado en la Figura 8. Hasta donde sabemos, no existe ningún otro método que realice una tarea similar sobre gráficos vectoriales."
+          }
+        },
+        {
+          "id": "s6-p12",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Dataset For the panoptic symbol spotting task, we merge the 5 semantic symbol and 30 instance symbol classes for the classification graph head. The box annotation for the detection head is the same to the previous section.",
+            "es": "Conjunto de datos: para la tarea de localización panóptica de símbolos, fusionamos las 5 clases de símbolos semánticos y las 30 clases de símbolos de instancia para la cabeza de clasificación del grafo. La anotación de cuadros para la cabeza de detección es la misma que en la sección anterior."
+          }
+        },
+        {
+          "id": "s6-p13",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Implementation We set the training scheme of PanCAD-Net similar to our semantic symbol spotting model except that we use ResNet-50 as backbone to balance the model efficiency and accuracy. By enforcing an overlap greater than 0.5 IoU, we are given a unique matching similar to [19].",
+            "es": "Implementación: establecemos el esquema de entrenamiento de PanCAD-Net de manera similar a nuestro modelo de localización semántica de símbolos, salvo que usamos ResNet-50 como red troncal para equilibrar la eficiencia y la exactitud del modelo. Al exigir un traslape mayor que 0.5 de IoU, obtenemos una correspondencia única similar a [19]."
+          }
+        },
+        {
+          "id": "s6-p14",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Benchmark Performance Table 5 lists the calculated panotic quality on the proposed panoptic symbol spotting task. Visualizations of several typical scenes of panoptic results are shown in Figure 10. Bay window in the first row area A is correctly detected, which has only one more parallel line segment further away compared to the ordinary window symbol. Several failure cases are visible in second row area A and thrid row area B. All graphics shown in the experiment are vector graphics, please feel free to zoom in and check.",
+            "es": "Desempeño de referencia: la Tabla 5 enumera la calidad panóptica (panoptic quality) calculada en la tarea propuesta de localización panóptica de símbolos. En la Figura 10 se muestran visualizaciones de varias escenas típicas de resultados panópticos. El mirador (bay window) del área A de la primera fila se detecta correctamente; este tiene solo un segmento de línea paralelo más, más alejado, en comparación con el símbolo de ventana ordinario. Se observan varios casos de fallo en el área A de la segunda fila y en el área B de la tercera fila. Todos los gráficos mostrados en el experimento son gráficos vectoriales; siéntase libre de acercarlos y revisarlos."
+          }
+        },
+        {
+          "id": "fig-10",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-10.png",
+          "text": {
+            "en": "Figure 10: The proposed panoptic symbol spotting results on various scenes in the FloorPlanCAD dataset. From top to down: apartment, dormitory and shopping mall. (a) Input floor plan (b) GT (L) and prediction (R)",
+            "es": "Figura 10: Resultados de la localización panóptica de símbolos propuesta en diversas escenas del conjunto de datos FloorPlanCAD. De arriba hacia abajo: departamento, dormitorio y centro comercial. (a) Plano de planta de entrada (b) GT (I) y predicción (D)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "title": {
+        "en": "7. Conclusion",
+        "es": "7. Conclusión"
+      },
+      "blocks": [
+        {
+          "id": "s7-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "In this paper, we present a large-scale CAD drawing dataset of real-world floor plans with line-grained annotations. Based on the characteristics of the vector graphics, we introduce the panoptic symbol spotting problem with evaluation metric. By integrating CNN features into the GCN, we show the power of combining topological and geometric features. Our dataset and code with be public available and the next version dataset is under construction.",
+            "es": "En este artículo presentamos un conjunto de datos de dibujos CAD a gran escala de planos de planta reales con anotaciones a nivel de línea. Con base en las características de los gráficos vectoriales, introducimos el problema de la localización panóptica de símbolos con una métrica de evaluación. Al integrar características de CNN en la GCN, mostramos el poder de combinar características topológicas y geométricas. Nuestro conjunto de datos y nuestro código serán de acceso público y la siguiente versión del conjunto de datos está en construcción."
+          }
+        },
+        {
+          "id": "tab-6",
+          "type": "table",
+          "page": 9,
+          "image": "fig/tab-6.png",
+          "text": {
+            "en": "Table 6: Dataset entities number and quantitative results for semantic symbol spotting, instance symbol spotting and panoptic symbol spotting of each category. Entity length weighted F1 is used for semantic symbol spotting evaluation, mAP is used for instance symbol spotting evaluation, panoptic quality is used for panoptic symbol spotting evaluation. Note that, the results are reported based on V1 dataset which contains only 30 classes",
+            "es": "Tabla 6: Número de entidades del conjunto de datos y resultados cuantitativos de la localización semántica de símbolos, la localización de símbolos por instancia y la localización panóptica de símbolos para cada categoría. Para evaluar la localización semántica de símbolos se usa el F1 ponderado por longitud de entidad, para evaluar la localización de símbolos por instancia se usa mAP, y para evaluar la localización panóptica de símbolos se usa la calidad panóptica. Nótese que los resultados se reportan con base en el conjunto de datos V1, que contiene solo 30 clases"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s8",
+      "title": {
+        "en": "8. Appendix Introduction",
+        "es": "8. Introducción al apéndice"
+      },
+      "blocks": [
+        {
+          "id": "s8-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Due to space limitations in the paper, this supplemental material contains more descriptions about the dataset and more quantitative and qualitative results of the proposed methods.",
+            "es": "Debido a las limitaciones de espacio en el artículo, este material suplementario contiene más descripciones del conjunto de datos y más resultados cuantitativos y cualitativos de los métodos propuestos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s9",
+      "title": {
+        "en": "9. Dataset",
+        "es": "9. Conjunto de datos"
+      },
+      "blocks": [
+        {
+          "id": "s9-h1",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "9.1. Entity Distribution among Classes",
+            "es": "9.1. Distribución de entidades entre clases"
+          }
+        },
+        {
+          "id": "s9-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "In Table 6, we provide statistics of graphical entities of 30 object classes, including 28 thing classes and 2 stuff classes. We can see that the wall class takes up a large portion of the whole dataset.",
+            "es": "En la Tabla 6 proporcionamos estadísticas de las entidades gráficas de 30 clases de objetos, entre ellas 28 clases de objetos contables y 2 clases de materia. Podemos ver que la clase pared ocupa una gran porción de todo el conjunto de datos."
+          }
+        },
+        {
+          "id": "s9-h2",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "9.2. Visualizations on Train Set",
+            "es": "9.2. Visualizaciones del conjunto de entrenamiento"
+          }
+        },
+        {
+          "id": "s9-p2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "We visualize several samples in train set of FloorPlan-CAD dataset in Figure 11 and Figure 12 to demonstrate the variety of the proposed dataset.",
+            "es": "Visualizamos varias muestras del conjunto de entrenamiento del conjunto de datos FloorPlan-CAD en la Figura 11 y la Figura 12 para demostrar la variedad del conjunto de datos propuesto."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s10",
+      "title": {
+        "en": "10. Per-Class Evaluation",
+        "es": "10. Evaluación por clase"
+      },
+      "blocks": [
+        {
+          "id": "s10-h1",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "10.1. Semantic Symbol Spotting",
+            "es": "10.1. Detección semántica de símbolos (Semantic Symbol Spotting)"
+          }
+        },
+        {
+          "id": "s10-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The third column of Table 6 shows semantic symbol spotting results of DeepLabv3+ [5] and the proposed GCN-based method on all object classes. Here, we use weighted F1 score as the metric which use the entity length log(1 + L(ei)) to weight the TP, FP and FN. We can see the GCN-based methods significantly outperforms DeepLabv3+ in wall class since wall class always mixes with thing classes.",
+            "es": "La tercera columna de la Tabla 6 muestra los resultados de detección semántica de símbolos (semantic symbol spotting) de DeepLabv3+ [5] y del método propuesto basado en GCN en todas las clases de objetos. Aquí usamos como métrica el F1 ponderado (weighted), que usa la longitud de la entidad log(1 + L(ei)) para ponderar los TP, FP y FN. Vemos que los métodos basados en GCN superan claramente a DeepLabv3+ en la clase muro, ya que la clase muro siempre se mezcla con las clases de objetos (thing classes)."
+          }
+        },
+        {
+          "id": "s10-h2",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "10.2. Instance Symbol Spotting",
+            "es": "10.2. Detección de símbolos por instancia (Instance Symbol Spotting)"
+          }
+        },
+        {
+          "id": "s10-p2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "We provide the class-wise mAP for Faster R-CNN [30], FCOS [40] and YOLOv3 [29] in the fourth column of Ta-ble 6. The results includes 28 thing classes. We can notice Faster R-CNN is comparable with FCOS and both outperform YOLOv3 which may caused by our dataset contains various scenes, 28 possible symbol classes and complex background.",
+            "es": "Presentamos el mAP por clase para Faster R-CNN [30], FCOS [40] y YOLOv3 [29] en la cuarta columna de la Tabla 6. Los resultados incluyen 28 clases de objetos contables (thing classes). Podemos notar que Faster R-CNN es comparable con FCOS y que ambos superan a YOLOv3, lo cual puede deberse a que nuestro conjunto de datos contiene diversas escenas, 28 posibles clases de símbolos y fondos complejos."
+          }
+        },
+        {
+          "id": "s10-h3",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "10.3. Panoptic Symbol Spotting Results",
+            "es": "10.3. Resultados de la detección panóptica de símbolos (Panoptic Symbol Spotting)"
+          }
+        },
+        {
+          "id": "s10-p3",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "In the fifth column of Table 6, we provide the detailed evaluation results of panoptic quality(PQ), segmentation quality(SQ) and recognition quality(RQ). Additional visualization results of PanCADNet on FloorPlanCAD dataset are shown in Figure 13, Figure 14 and Figure 15. The results for 2 stuff classes are obtained by GCN head while 28 thing classes are obtained by detection head [30].",
+            "es": "En la quinta columna de la Tabla 6 presentamos los resultados detallados de evaluación de la calidad panóptica (panoptic quality, PQ), la calidad de segmentación (segmentation quality, SQ) y la calidad de reconocimiento (recognition quality, RQ). En la Figura 13, la Figura 14 y la Figura 15 se muestran visualizaciones adicionales de los resultados de PanCADNet en el conjunto de datos FloorPlanCAD. Los resultados de las 2 clases de materia (stuff classes) se obtienen con la cabeza GCN, mientras que las 28 clases de objetos contables (thing classes) se obtienen con la cabeza de detección [30]."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s11",
+      "title": {
+        "en": "11. Limitations and Future Works",
+        "es": "11. Limitaciones y trabajo futuro"
+      },
+      "blocks": [
+        {
+          "id": "s11-p1",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The proposed PanCADNet benefits from the GCN head which takes the vectorized data as input, utilizing both the geometric feature and aligned CNN features, aggregating neighbour information by graph topology, resulting in a good results for the two key stuff classes (i.e. wall and parking). With the help of predicted bounding box using a detection head, we can distinguish each instance in thing classes easily.",
+            "es": "PanCADNet se beneficia de la cabeza GCN, que toma como entrada los datos vectorizados, aprovecha tanto la característica geométrica como las características CNN alineadas y agrega la información de los vecinos mediante la topología del grafo, lo que da buenos resultados en las dos clases de materia clave (es decir, pared y estacionamiento). Con la ayuda del cuadro delimitador predicho mediante una cabeza de detección, podemos distinguir fácilmente cada instancia en las clases de objetos contables."
+          }
+        },
+        {
+          "id": "s11-p2",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Although the proposed method can solve the panoptic symbol spotting problem, some limitations still exist: as is pointed out in Figure 16, some background elements may be mis-classified by the predicted box. The future works include generating instance proposals in vector space which can propose object instances in a more flexible way.",
+            "es": "Aunque el método propuesto puede resolver el problema de la detección panóptica de símbolos, aún existen algunas limitaciones: como se señala en la Figura 16, algunos elementos del fondo pueden clasificarse erróneamente por el cuadro predicho. El trabajo futuro incluye generar propuestas de instancias en el espacio vectorial, lo que permitiría proponer instancias de objetos de una manera más flexible."
+          }
+        },
+        {
+          "id": "fig-11",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-11.png",
+          "text": {
+            "en": "Figure 11: Exemplary raw inputs and annotations in FloorPlanCAD, see the main manuscript for annotation details. The images are part of our train set of residential building and school CAD drawings.",
+            "es": "Figura 11: Ejemplos de entradas sin procesar y anotaciones en FloorPlanCAD; consulte el manuscrito principal para los detalles de la anotación. Las imágenes forman parte de nuestro conjunto de entrenamiento de planos CAD de edificios residenciales y escuelas."
+          }
+        },
+        {
+          "id": "fig-12",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-12.png",
+          "text": {
+            "en": "Figure 12: Exemplary raw inputs and annotations in FloorPlanCAD, see the main manuscript for annotation details. The images are part of our train set of underground parking lot and office building CAD drawings.",
+            "es": "Figura 12: Ejemplos de entradas sin procesar y anotaciones en FloorPlanCAD; consulte el manuscrito principal para los detalles de la anotación. Las imágenes forman parte de nuestro conjunto de entrenamiento de planos CAD de estacionamientos subterráneos y edificios de oficinas."
+          }
+        },
+        {
+          "id": "fig-13",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-13.png",
+          "text": {
+            "en": "Figure 13: Results of PanCADNet on FloorPlanCAD, see the main manuscript for annotation details. The images are part of our test set of large shopping mall CAD drawings.",
+            "es": "Figura 13: Resultados de PanCADNet en FloorPlanCAD; consulte el manuscrito principal para los detalles de la anotación. Las imágenes forman parte de nuestro conjunto de prueba de planos CAD de grandes centros comerciales."
+          }
+        },
+        {
+          "id": "fig-14",
+          "type": "figure",
+          "page": 14,
+          "image": "fig/fig-14.png",
+          "text": {
+            "en": "Figure 14: Results of PanCADNet on FloorPlanCAD, see the main manuscript for annotation details. The images are part of our test set of large shopping mall and residential building CAD drawings.",
+            "es": "Figura 14: Resultados de PanCADNet en FloorPlanCAD; consulte el manuscrito principal para los detalles de la anotación. Las imágenes forman parte de nuestro conjunto de prueba de planos CAD de grandes centros comerciales y edificios residenciales."
+          }
+        },
+        {
+          "id": "fig-15",
+          "type": "figure",
+          "page": 15,
+          "image": "fig/fig-15.png",
+          "text": {
+            "en": "Figure 15: Results of PanCADNet on FloorPlanCAD, see the main manuscript for annotation details. The images are part of our test set of underground parking lot, residential building and hotel CAD drawings.",
+            "es": "Figura 15: Resultados de PanCADNet en FloorPlanCAD; consulte el manuscrito principal para los detalles de la anotación. Las imágenes forman parte de nuestro conjunto de prueba de planos CAD de estacionamientos subterráneos, edificios residenciales y hoteles."
+          }
+        },
+        {
+          "id": "fig-16",
+          "type": "figure",
+          "page": 16,
+          "image": "fig/fig-16.png",
+          "text": {
+            "en": "Figure 16: A failure case of PanCADNet, where the predicted box of the stairs is shown using a dotted green box, the entities mis-classified by the predicted box are highlighted by solid green boxes.",
+            "es": "Figura 16: Un caso de falla de PanCADNet, donde el cuadro predicho de las escaleras se muestra con un cuadro verde punteado y las entidades clasificadas erróneamente por el cuadro predicho se resaltan con cuadros verdes sólidos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[1] Angel Chang, Angela Dai, Thomas Funkhouser, Maciej Hal-ber, Matthias Niessner, Manolis Savva, Shuran Song, Andy Zeng, and Yinda Zhang. Matterport3d: Learning from rgbd data in indoor environments. International Conference on 3D Vision (3DV), 2017."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[2] Angel X. Chang, Thomas Funkhouser, Leonidas Guibas, Pat Hanrahan, Qixing Huang, Zimo Li, Silvio Savarese, Mano-lis Savva, Shuran Song, Hao Su, Jianxiong Xiao, Li Yi, and Fisher Yu. ShapeNet: An Information-Rich 3D Model Repository. Technical Report arXiv:1512.03012 [cs.GR], Stanford University — Princeton University — Toyota Tech-nological Institute at Chicago, 2015."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[3] Kai Chen, Jiaqi Wang, Jiangmiao Pang, Yuhang Cao, Yu Xiong, Xiaoxiao Li, Shuyang Sun, Wansen Feng, Ziwei Liu, Jiarui Xu, et al. Mmdetection: Open mmlab detection toolbox and benchmark. arXiv preprint arXiv:1906.07155, 2019."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[4] Liang-Chieh Chen, George Papandreou, Florian Schroff, and Hartwig Adam. Rethinking atrous convolution for semantic image segmentation. arXiv preprint arXiv:1706.05587, 2017."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[5] Liang-Chieh Chen, Yukun Zhu, George Papandreou, Florian Schroff, and Hartwig Adam. Encoder-decoder with atrous separable convolution for semantic image segmentation. In Proceedings of the European conference on computer vision (ECCV), pages 801–818, 2018."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[6] Yifeng Chen, Guangchen Lin, Songyuan Li, Omar Bourahla, Yiming Wu, Fangfang Wang, Junyi Feng, Mingliang Xu, and Xi Li. Banet: Bidirectional aggregation network with occlusion handling for panoptic segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 3793–3802, 2020."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[7] MMSegmentation Contributors. MMSegmentation: Openmmlab semantic segmentation toolbox and benchmark. https://github.com/open-mmlab/ mmsegmentation, 2020."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[8] Mathieu Delalandre, Ernest Valveny, Tony Pridmore, and Dimosthenis Karatzas. Generation of synthetic documents for performance evaluation of symbol recognition & spotting systems. International Journal on Document Analysis and Recognition (IJDAR), 13(3):187–207, 2010."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[9] Philippe Dosch, G´erald Masini, and Vitor Vasconce-los Ara´ujo Silva. Qgar. https://raweb.inria.fr/ rapportsactivite/RA2008/qgar/uid18.html, 2021. [Online; accessed 18-February-2021]."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[10] Anjan Dutta, Josep Llad´os, Horst Bunke, and Umapada Pal. Near convex region adjacency graph and approximate neighborhood string matching for symbol spotting in graphical documents. In 2013 12th International Conference on Doc-ument Analysis and Recognition, pages 1078–1082. IEEE, 2013."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[11] Anjan Dutta, Josep Llad´os, and Umapada Pal. Symbol spotting in line drawings through graph paths hashing. In 2011 International Conference on Document Analysis and Recog-nition, pages 982–986. IEEE, 2011."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[12] Anjan Dutta, Josep Llad´os, and Umapada Pal. A symbol spotting approach in graphical documents by hashing serialized graphs. Pattern Recognition, 46(3):752–768, 2013."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[13] Shreya Goyal, Vishesh Mistry, Chiranjoy Chattopadhyay, and Gaurav Bhatnagar. Bridge: Building plan repository for image description generation, and evaluation. In 2019 Inter-national Conference on Document Analysis and Recognition (ICDAR), pages 1071–1076. IEEE, 2019."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[14] Kaiming He, Georgia Gkioxari, Piotr Doll´ar, and Ross Gir-shick. Mask r-cnn. In Proceedings of the IEEE international conference on computer vision, pages 2961–2969, 2017."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[15] Xavier Hilaire and Karl Tombre. Robust and accurate vectorization of line drawings. IEEE Transactions on Pattern Analysis and Machine Intelligence, 28(6):890–904, 2006."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[16] Zhe Huang, Hongbo Fu, and Rynson WH Lau. Data-driven segmentation and labeling of freehand sketches. ACM Trans-actions on Graphics (TOG), 33(6):1–10, 2014."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[17] Thomas N Kipf and Max Welling. Semi-supervised classification with graph convolutional networks. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[18] Alexander Kirillov, Ross Girshick, Kaiming He, and Piotr Doll´ar. Panoptic feature pyramid networks. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pat-tern Recognition, pages 6399–6408, 2019."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[19] Alexander Kirillov, Kaiming He, Ross Girshick, Carsten Rother, and Piotr Doll´ar. Panoptic segmentation. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 9404–9413, 2019."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[20] Pierre Le Bodic, Pierre H´eroux, S´ebastien Adam, and Yves Lecourtier. An integer linear program for substitutiontolerant subgraph isomorphism and its use for symbol spotting in technical drawings. Pattern Recognition, 45(12):4214–4224, 2012."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[21] Pierre Le Bodic, Pierre H´eroux, S´ebastien Adam, and Yves Lecourtier. An integer linear program for substitutiontolerant subgraph isomorphism and its use for symbol spotting in technical drawings. Pattern Recognition, 45(12):4214–4224, 2012."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[22] Lei Li, Hongbo Fu, and Chiew-Lan Tai. Fast sketch segmentation and labeling with deep learning. IEEE computer graphics and applications, 39(2):38–51, 2018."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[23] Tsung-Yi Lin, Piotr Doll´ar, Ross Girshick, Kaiming He, Bharath Hariharan, and Serge Belongie. Feature pyramid networks for object detection. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 2117–2125, 2017."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[24] Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Doll´ar. Focal loss for dense object detection. In Pro-ceedings of the IEEE international conference on computer vision, pages 2980–2988, 2017."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[25] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Doll´ar, and C Lawrence Zitnick. Microsoft coco: Common objects in context. In European conference on computer vision, pages 740–755. Springer, 2014."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[26] Ilya Loshchilov and Frank Hutter. Sgdr: Stochas-tic gradient descent with warm restarts. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[27] Thi-Oanh Nguyen, Salvatore Tabbone, and Alain Boucher. A symbol spotting approach based on the vector model and a visual vocabulary. In 2009 10th International Conference on Document Analysis and Recognition, pages 708–712. IEEE, 2009."
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[28] Thi Oanh Nguyen, Salvatore Tabbone, and O Ramos Ter-rades. Symbol descriptor based on shape context and vector model of information retrieval. In 2008 The Eighth IAPR In-ternational Workshop on Document Analysis Systems, pages 191–197. IEEE, 2008."
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[29] Joseph Redmon and Ali Farhadi. Yolov3: An incremental improvement. arXiv preprint arXiv:1804.02767, 2018."
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[30] Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun. Faster r-cnn: towards real-time object detection with region proposal networks. IEEE transactions on pattern analysis and machine intelligence, 39(6):1137–1149, 2016."
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[31] Alireza Rezvanifar, Melissa Cote, and Alexandra Branzan Albu. Symbol spotting for architectural drawings: state-of-the-art and new industry-driven developments. IPSJ Trans-actions on Computer Vision and Applications, 11(1):2, 2019."
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[32] Alireza Rezvanifar, Melissa Cote, and Alexandra Branzan Albu. Symbol spotting on digital architectural floor plans using a deep learning-based framework. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops, pages 568–569, 2020."
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[33] Marc¸al Rusi˜nol, Agn´es Borr`as, and Josep Llad´os. Relational indexing of vectorial primitives for symbol spotting in linedrawing images. Pattern Recognition Letters, 31(3):188– 201, 2010."
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[34] Marc¸al Rusi˜nol and Josep Llad´os. Symbol Spotting in Digital Libraries, volume 1. Springer, 2010."
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[35] Marc¸al Rusi˜nol, Josep Llad´os, and Gemma S´anchez. Symbol spotting in vectorized technical drawings through a lookup table of region strings. Pattern Analysis and Applications, 13(3):321–331, 2010."
+          }
+        },
+        {
+          "id": "refs-36",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[36] Olga Russakovsky, Jia Deng, Hao Su, Jonathan Krause, San-jeev Satheesh, Sean Ma, Zhiheng Huang, Andrej Karpathy, Aditya Khosla, Michael Bernstein, et al. Imagenet large scale visual recognition challenge. International journal of computer vision, 115(3):211–252, 2015."
+          }
+        },
+        {
+          "id": "refs-37",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[37] Mark Sandler, Andrew Howard, Menglong Zhu, Andrey Zh-moginov, and Liang-Chieh Chen. Mobilenetv2: Inverted residuals and linear bottlenecks. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 4510–4520, 2018."
+          }
+        },
+        {
+          "id": "refs-38",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[38] KC Santosh. Document image analysis: Current trends and challenges in graphics recognition. 2018."
+          }
+        },
+        {
+          "id": "refs-39",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[39] Zhenbang Sun, Changhu Wang, Liqing Zhang, and Lei Zhang. Free hand-drawn sketch segmentation. In European Conference on Computer Vision, pages 626–639. Springer, 2012."
+          }
+        },
+        {
+          "id": "refs-40",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[40] Zhi Tian, Chunhua Shen, Hao Chen, and Tong He. Fcos: Fully convolutional one-stage object detection. In Proceed-ings of the IEEE/CVF International Conference on Com-puter Vision, pages 9627–9636, 2019."
+          }
+        },
+        {
+          "id": "refs-41",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[41] Feng Wang, Jian Cheng, Weiyang Liu, and Haijun Liu. Ad-ditive margin softmax for face verification. IEEE Signal Pro-cessing Letters, 25(7):926–930, 2018."
+          }
+        },
+        {
+          "id": "refs-42",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[42] Jingdong Wang, Ke Sun, Tianheng Cheng, Borui Jiang, Chaorui Deng, Yang Zhao, Dong Liu, Yadong Mu, Mingkui Tan, Xinggang Wang, et al. Deep high-resolution representation learning for visual recognition. IEEE transactions on pattern analysis and machine intelligence, 2020."
+          }
+        },
+        {
+          "id": "refs-43",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[43] Nanyang Wang, Yinda Zhang, Zhuwen Li, Yanwei Fu, Wei Liu, and Yu-Gang Jiang. Pixel2mesh: Generating 3d mesh models from single rgb images. In ECCV, 2018."
+          }
+        },
+        {
+          "id": "refs-44",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[44] Yangxin Wu, Gengwei Zhang, Yiming Gao, Xiajun Deng, Ke Gong, Xiaodan Liang, and Liang Lin. Bidirectional graph reasoning network for panoptic segmentation. In Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 9080–9089, 2020."
+          }
+        },
+        {
+          "id": "refs-45",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[45] Yuwen Xiong, Renjie Liao, Hengshuang Zhao, Rui Hu, Min Bai, Ersin Yumer, and Raquel Urtasun. Upsnet: A unified panoptic segmentation network. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8818–8826, 2019."
+          }
+        },
+        {
+          "id": "refs-46",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[46] Lumin Yang, Jiajie Zhuang, Hongbo Fu, Kun Zhou, and Youyi Zheng. Sketchgcn: Semantic sketch segmentation with graph convolutional networks. arXiv preprint"
+          }
+        }
+      ]
+    }
+  ]
+}
