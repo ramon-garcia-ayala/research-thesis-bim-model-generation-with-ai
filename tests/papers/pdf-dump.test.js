@@ -38,6 +38,7 @@ describe.skipIf(!hasPyMuPDF)('pdf_dump.py', () => {
     expect(raw.pages[0]).toMatchObject({ n: 1, w: 612, h: 792 })
     expect(raw.pages[0].blocks.flatMap((b) => b.lines.map((l) => l.text))).toEqual(['A heading', 'Body text here.'])
     expect(raw.pages[0].blocks[0].lines[0].size).toBe(16)
+    expect(raw.pages[0].blocks[0].lines[0].bbox).toHaveLength(4)
     expect(raw.pages[0].drawings).toHaveLength(1)
   })
 

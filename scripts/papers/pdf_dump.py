@@ -54,7 +54,7 @@ def dump_page(page):
             text = ''.join(s['text'] for s in line['spans']).strip()
             size = max(s['size'] for s in spans)
             bold = all(s['flags'] & BOLD or 'Bold' in s['font'] for s in spans)
-            lines.append({'text': text, 'size': r(size), 'bold': bool(bold)})
+            lines.append({'text': text, 'size': r(size), 'bold': bool(bold), 'bbox': box(line['bbox'])})
         if lines:
             blocks.append({'bbox': box(b['bbox']), 'lines': lines})
     images = [box(i['bbox']) for i in page.get_image_info() if i['bbox'][2] > i['bbox'][0]]

@@ -9,6 +9,8 @@ const EDGE = 0.08 // top and bottom share of the page where running heads and fe
 const NEAR = 12 // pt: a label this close to a figure's drawings belongs to the figure
 const NUMBERED = /^(\d+(?:\.\d+)*|[IVX]+|[A-Z](?:\.\d+)*)\.?\s+\S/
 const REFERENCES = /^(?:\d+\.?\s*)?(?:References|Bibliography)$/i
+const SUBCAPTION = /^\([a-z]\)\s/ // "(a) Examples of assets…": part of the figure above it
+const CONTENTS_LINE = /^(?:[A-Z]|\d+)(?:\.\d+)*\.?\s+\S.*?(?:\s*\.)*\s+\d{1,3}$/
 
 const textOfBlock = (b) => joinLines(b.lines.map((l) => l.text))
 const centreX = (b) => (b.bbox[0] + b.bbox[2]) / 2
@@ -44,6 +46,14 @@ export function dropRunning(pages) {
     ...p,
     blocks: p.blocks.map((b) => ({ ...b, lines: b.lines.filter((l) => keep(p, b, l)) })).filter((b) => b.lines.length > 0),
   }))
+}
+
+/** A table of contents (five or more "B.1 Examples . . . 18" blocks on a page) removed; it is not the paper's text. */
+export function dropContents(pages) {
+  return pages.map((p) => {
+    const entries = p.blocks.filter((b) => CONTENTS_LINE.test(textOfBlock(b)))
+    return entries.length >= 5 ? { ...p, blocks: p.blocks.filter((b) => !entries.includes(b)) } : p
+  })
 }
 
 /** A page's blocks in reading order: bands split by full-width blocks; in a band, the left column, then the right. */
@@ -95,49 +105,64 @@ const isHeading = (b, body) => {
   return b.lines.every((l) => l.size >= 1.15 * body) || (b.lines.every((l) => l.bold) && NUMBERED.test(t))
 }
 
-/** Running text, as opposed to the labels and numbers inside a figure or a table. */
+/**
+ * Running text, as opposed to the labels and numbers inside a figure or a table: long lines (labels and table cells
+ * come as many short lines side by side), mostly letters.
+ */
 const isProse = (b) => {
   const t = textOfBlock(b)
   const visible = t.replace(/\s/g, '')
-  return b.lines.length >= 2 && t.length >= 60 && (visible.match(/\p{L}/gu) ?? []).length >= 0.6 * visible.length
+  return t.length >= 50 && t.length / b.lines.length >= 35 && (visible.match(/\p{L}/gu) ?? []).length >= 0.6 * visible.length
 }
 
 /**
- * The region to crop for the figure (above its caption) or the table (below it): the gap between the caption and the
- * nearest running text of its column, narrowed to the images and drawings in it and the labels next to them.
+ * The region to crop for a caption's figure or table: the gap between the caption and the nearest running text of its
+ * column, on the side whose content (images, drawings, labels) is closest to the caption (a tie goes above for a
+ * figure, below for a table), narrowed to the images and drawings in it and the labels next to them. `body` is the
+ * paper's body text size: on a page of tiny labels, the page's own most common size would make labels look like headings.
  */
-export function figureRegion(page, caption, kind) {
+export function figureRegion(page, caption, kind, body = bodySize(page.blocks)) {
   const mid = page.w / 2
-  const body = bodySize(page.blocks)
   const [, cy0, , cy1] = caption.bbox
   const [x0, x1] = isFull(caption.bbox, page.w) ? [0, page.w] : centreX(caption) < mid ? [0, mid] : [mid, page.w]
   const inColumn = (r) => r[0] < x1 && r[2] > x0
   const bounds = page.blocks.filter(
-    (b) => b !== caption && inColumn(b.bbox) && (isProse(b) || isHeading(b, body) || captionOf(textOfBlock(b))),
+    (b) =>
+      b !== caption &&
+      inColumn(b.bbox) &&
+      !SUBCAPTION.test(textOfBlock(b)) &&
+      (isProse(b) || isHeading(b, body) || captionOf(textOfBlock(b))),
   )
-  const gap =
-    kind === 'figure'
-      ? [x0, Math.max(0, ...bounds.filter((b) => b.bbox[3] <= cy0 + 1).map((b) => b.bbox[3])), x1, cy0]
-      : [x0, cy1, x1, Math.min(page.h, ...bounds.filter((b) => b.bbox[1] >= cy1 - 1).map((b) => b.bbox[1]))]
-  const inGap = (r) => {
-    const cx = (r[0] + r[2]) / 2
-    const cy = (r[1] + r[3]) / 2
-    return cx >= gap[0] && cx <= gap[2] && cy >= gap[1] && cy <= gap[3]
-  }
-  const rects = [...page.images, ...page.drawings].filter(inGap)
-  if (rects.length === 0) return gap.map(round)
-  const union = (rs) => [Math.min(...rs.map((r) => r[0])), Math.min(...rs.map((r) => r[1])), Math.max(...rs.map((r) => r[2])), Math.max(...rs.map((r) => r[3]))]
-  const u = union(rects)
+  const contents = (gap) => ({
+    gap,
+    rects: [...page.images, ...page.drawings].filter((r) => inside(r, gap, 0)),
+    labels: page.blocks.filter((b) => b !== caption && !bounds.includes(b) && inside(b.bbox, gap, 0)).map((b) => b.bbox),
+  })
+  const above = contents([x0, Math.max(0, ...bounds.filter((b) => b.bbox[3] <= cy0 + 1).map((b) => b.bbox[3])), x1, cy0])
+  const below = contents([x0, cy1, x1, Math.min(page.h, ...bounds.filter((b) => b.bbox[1] >= cy1 - 1).map((b) => b.bbox[1]))])
+  const all = (c) => [...c.rects, ...c.labels]
+  const fromAbove = all(above).length ? cy0 - Math.max(...all(above).map((r) => r[3])) : Infinity
+  const fromBelow = all(below).length ? Math.min(...all(below).map((r) => r[1])) - cy1 : Infinity
+  const side = fromAbove === fromBelow ? (kind === 'figure' ? above : below) : fromAbove < fromBelow ? above : below
+
+  if (side.rects.length === 0) return (side.labels.length ? union(side.labels) : side.gap).map(round)
+  const u = union(side.rects)
   const near = (r) => r[0] < u[2] + NEAR && r[2] > u[0] - NEAR && r[1] < u[3] + NEAR && r[3] > u[1] - NEAR
-  const labels = page.blocks.filter((b) => b !== caption && !bounds.includes(b) && inGap(b.bbox) && near(b.bbox)).map((b) => b.bbox)
-  return union([u, ...labels]).map(round)
+  const [r0, r1, r2, r3] = union([u, ...side.labels.filter(near)])
+  const g = side.gap // an image clipped in the PDF reports its whole size: keep to the gap
+  return [Math.max(r0, g[0]), Math.max(r1, g[1]), Math.min(r2, g[2]), Math.min(r3, g[3])].map(round)
 }
 
-const inside = (r, region) => {
+const union = (rs) => [Math.min(...rs.map((r) => r[0])), Math.min(...rs.map((r) => r[1])), Math.max(...rs.map((r) => r[2])), Math.max(...rs.map((r) => r[3]))]
+
+/** True when the centre of rectangle `r` lies in `region` (grown by `margin`). */
+function inside(r, region, margin = 2) {
   const cx = (r[0] + r[2]) / 2
   const cy = (r[1] + r[3]) / 2
-  return cx >= region[0] - 2 && cx <= region[2] + 2 && cy >= region[1] - 2 && cy <= region[3] + 2
+  return cx >= region[0] - margin && cx <= region[2] + margin && cy >= region[1] - margin && cy <= region[3] + margin
 }
+
+const slug = (t) => t.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'back'
 
 const romanValue = (s) => {
   const v = { I: 1, V: 5, X: 10, L: 50 }
@@ -146,15 +171,16 @@ const romanValue = (s) => {
 
 /**
  * The paper.json of a dump, plus the crops for its figures and tables. `overrides` (papers/<id>/overrides.json) can
- * drop lines matching regexes and replace a crop: `{ drop: string[], crops: { [id]: { page, bbox } } }`.
+ * drop lines (or whole blocks) matching regexes and replace a crop: `{ drop: string[], crops: { [id]: { page, bbox } } }`.
  */
 export function structure(raw, { node, title, source, overrides = {} }) {
   const drop = (overrides.drop ?? []).map((r) => new RegExp(r))
-  const pages = dropRunning(raw.pages).map((p) => ({
+  const pages = dropContents(dropRunning(raw.pages)).map((p) => ({
     ...p,
     blocks: p.blocks
+      .filter((b) => !drop.some((r) => r.test(textOfBlock(b))))
       .map((b) => ({ ...b, lines: b.lines.filter((l) => !drop.some((r) => r.test(l.text.trim()))) }))
-      .filter((b) => b.lines.length > 0),
+      .filter((b) => b.lines.length > 0 && /[\p{L}\p{N}]/u.test(textOfBlock(b))),
   }))
   const body = bodySize(pages.flatMap((p) => p.blocks))
   const heading = (b) => isHeading(b, body)
@@ -199,13 +225,17 @@ export function structure(raw, { node, title, source, overrides = {} }) {
       for (let k = 2; figureIds.has(id); k++) id = `${base}-${k}`
       figureIds.add(id)
       const o = overrides.crops?.[id]
-      figures.set(b, { id, kind: cap.kind, page: o?.page ?? p.n, bbox: o?.bbox ?? figureRegion(p, b, cap.kind) })
+      figures.set(b, { id, kind: cap.kind, page: o?.page ?? p.n, bbox: o?.bbox ?? figureRegion(p, b, cap.kind, body), fixed: Boolean(o), subs: [] })
     }
-    const regions = [...figures.values()].filter((f) => f.page === p.n).map((f) => f.bbox)
-    let blocks = orderBlocks({
-      ...p,
-      blocks: p.blocks.filter((b) => figures.has(b) || heading(b) || isProse(b) || !regions.some((r) => inside(b.bbox, r))),
-    })
+    const onPage = [...figures.values()].filter((f) => f.page === p.n)
+    const kept = []
+    for (const b of orderBlocks(p)) {
+      const sub = SUBCAPTION.test(textOfBlock(b)) && onPage.find((f) => inside(b.bbox, f.bbox))
+      if (sub) sub.subs.push(textOfBlock(b))
+      else if (!figures.has(b) && onPage.some((f) => f.fixed && inside(b.bbox, f.bbox))) continue // a crop drawn by hand takes all
+      else if (figures.has(b) || heading(b) || isProse(b) || !onPage.some((f) => inside(b.bbox, f.bbox))) kept.push(b)
+    }
+    let blocks = kept
     if (p.n === 1) {
       // The front page: the title is in the reader's bar; what comes before the abstract is authors and affiliations.
       const top = Math.max(...blocks.flatMap((b) => b.lines.map((l) => l.size)))
@@ -218,7 +248,7 @@ export function structure(raw, { node, title, source, overrides = {} }) {
       const t = textOfBlock(b)
       const f = figures.get(b)
       if (f) {
-        add(f.kind, t, p.n, { id: f.id, image: `fig/${f.id}.png` })
+        add(f.kind, [t, ...f.subs].join(' '), p.n, { id: f.id, image: `fig/${f.id}.png` })
         crops.push({ id: f.id, page: f.page, bbox: f.bbox })
       } else if (heading(b)) {
         const top = topLevel(t)
@@ -228,6 +258,7 @@ export function structure(raw, { node, title, source, overrides = {} }) {
         } else if (top && !afterRefs) open(`s${/\d/.test(top[1]) ? top[1] : romanValue(top[1])}`, t)
         else if (afterRefs && /^[A-Z]\.?\s+\S/.test(t)) open(`app-${t[0].toLowerCase()}`, t)
         else if (/^abstract$/i.test(t) && !cur) open('s0', t)
+        else if (cur?.id === 'refs') open(slug(t), t)
         else if (!numbered && !afterRefs) open(`s${sections.filter((s) => s.id !== 's0').length + 1}`, t)
         else add('heading', t, p.n)
       } else if (t.includes('=') && /\(\d+\)$/.test(t) && t.length < 200) add('equation', t, p.n)
