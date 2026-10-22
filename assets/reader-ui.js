@@ -74,6 +74,8 @@ export const LABELS = {
     you: 'You',
     companion: 'Claude',
     drafting: 'Writing the note entry…',
+    noAnswer: 'The answer stopped before it ended.',
+    notSaved: 'Could not save your reading:',
     voiceHint: 'This browser offers no natural voice: open the map in Microsoft Edge to listen with its natural voices.',
   },
   es: {
@@ -119,6 +121,8 @@ export const LABELS = {
     you: 'Tú',
     companion: 'Claude',
     drafting: 'Redactando la entrada de la nota…',
+    noAnswer: 'La respuesta se cortó antes de terminar.',
+    notSaved: 'No se pudo guardar tu lectura:',
     voiceHint: 'Este navegador no ofrece voces naturales: abre el mapa en Microsoft Edge para escucharlo con sus voces naturales.',
   },
 }
@@ -178,7 +182,9 @@ export function mountReader(
   const persist = (change = {}) => {
     if (!live || !now || !reading) return
     reading = { ...reading, ...change }
-    live.save(now.nodeId, reading)
+    // Only what the page owns: the chats are the server's to write.
+    const { chats, ...own } = reading
+    live.save(now.nodeId, own)
   }
   const L = () => LABELS[lang]
   const narrow = () => (win.innerWidth || 1024) < 700
@@ -277,7 +283,7 @@ export function mountReader(
     if (!speaker) return void bar.replaceChildren()
     const state = speaker.state()
     const voices = speaker.voicesFor(lang)
-    const chosen = bar.querySelector('.reader__voices')?.value
+    const chosen = speaker.voiceFor(lang)?.name // what will actually speak this language
     const button = (act, label, glyph) => `<button type="button" data-voice="${act}" aria-label="${esc(label)}" title="${esc(label)}">${glyph}</button>`
     bar.innerHTML = `
       ${button('play', L().play, '▶')}
@@ -309,6 +315,7 @@ export function mountReader(
 
   function speakFrom(from, only = null) {
     if (!speaker || !now) return
+    speaker.setLang(lang)
     speaker.play(buildQueue(now.paper, lang, from, only))
   }
 

@@ -31,6 +31,12 @@ describe('claudeArgs', () => {
     expect(a).toEqual(expect.arrayContaining(['--output-format', 'stream-json', '--verbose', '--include-partial-messages']))
     expect(a).not.toContain('--effort')
   })
+
+  it('allows the tools it names, since naming them alone does not let them run in -p mode', () => {
+    const a = claudeArgs({ model: 'm', tools: ['Read', 'WebSearch'] })
+    expect(a[a.indexOf('--allowedTools') + 1]).toBe('Read,WebSearch')
+    expect(claudeArgs({ model: 'm' })).not.toContain('--allowedTools')
+  })
 })
 
 describe('parseStreamLine', () => {

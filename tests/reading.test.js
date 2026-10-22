@@ -72,6 +72,15 @@ describe('the client', () => {
     vi.useRealTimers()
   })
 
+  it('reports a save the server refused', async () => {
+    const onSaveError = vi.fn()
+    const fetch = vi.fn(() => Promise.resolve({ ok: false, status: 400, json: () => Promise.resolve({ error: 'lang "fr" is not en or es' }) }))
+    const client = createClient({ fetch, wait: 10000, onSaveError })
+    client.save('a', { n: 1 })
+    await client.flush()
+    expect(onSaveError).toHaveBeenCalledWith('lang "fr" is not en or es')
+  })
+
   it('flushes a pending save at once', async () => {
     const fetch = vi.fn(() => ok({ ok: true }))
     const client = createClient({ fetch, wait: 10000 })

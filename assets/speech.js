@@ -42,6 +42,7 @@ export function createSpeaker({ synth, Utterance, onSentence = () => {}, onIdle 
   let state = 'idle'
   let rate = 1
   let voiceName = null
+  let lang = null // 'en' | 'es': the voice is one of that language's
   let turn = 0 // each utterance belongs to a turn; an interrupted one must not move the queue on
 
   const voices = () => synth.getVoices?.() ?? []
@@ -58,11 +59,13 @@ export function createSpeaker({ synth, Utterance, onSentence = () => {}, onIdle 
     const item = queue[index]
     const u = new Utterance(item.text)
     u.rate = rate
-    const voice = voices().find((v) => v.name === voiceName)
+    // The chosen voice if it speaks this language, else this language's first (natural ones come first).
+    const own = lang ? voicesFor(lang) : voices()
+    const voice = own.find((v) => v.name === voiceName) ?? (lang ? own[0] : null)
     if (voice) {
       u.voice = voice
       u.lang = voice.lang
-    }
+    } else if (lang) u.lang = lang
     u.onend = () => {
       if (mine === turn && state === 'playing') speakAt(index + 1)
     }
@@ -70,6 +73,14 @@ export function createSpeaker({ synth, Utterance, onSentence = () => {}, onIdle 
     state = 'playing'
     onSentence(item)
     synth.speak(u)
+  }
+
+  /** The voices for `l` ('en' | 'es'), natural ones and Mexico's first. */
+  function voicesFor(l) {
+    const score = (v) => (/natural/i.test(v.name) ? 0 : 2) + (v.lang === 'es-MX' ? 0 : 1)
+    return voices()
+      .filter((v) => String(v.lang).toLowerCase().startsWith(l))
+      .sort((a, b) => score(a) - score(b))
   }
 
   function interrupt() {
@@ -121,12 +132,15 @@ export function createSpeaker({ synth, Utterance, onSentence = () => {}, onIdle 
         speakAt(index)
       }
     },
-    /** The voices for `lang` ('en' | 'es'), natural ones and Mexico's first. */
-    voicesFor(lang) {
-      const score = (v) => (/natural/i.test(v.name) ? 0 : 2) + (v.lang === 'es-MX' ? 0 : 1)
-      return voices()
-        .filter((v) => String(v.lang).toLowerCase().startsWith(lang))
-        .sort((a, b) => score(a) - score(b))
+    voicesFor,
+    /** The language of what is read next: its voices are used. */
+    setLang(l) {
+      lang = l
+    },
+    /** The voice actually used for the language: the chosen one if it speaks it, else the language's first. */
+    voiceFor(l) {
+      const own = voicesFor(l)
+      return own.find((v) => v.name === voiceName) ?? own[0] ?? null
     },
     state: () => state,
     at: () => (state === 'idle' ? null : (queue[index] ?? null)),

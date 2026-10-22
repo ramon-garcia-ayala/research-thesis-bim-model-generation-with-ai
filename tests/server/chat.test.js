@@ -123,6 +123,31 @@ describe('the chat', () => {
     expect(saved().chats[0].messages.map((m) => m.role)).toEqual(['user'])
   })
 
+  it('keeps what the reader saved while the answer was being written', async () => {
+    env.FAKE_CLAUDE_REPLY = 'COVERED\nSí.'
+    const turn = post('/api/chat', { conv: 'sample-a', papers: ['sample-a'], mode: 'ask', message: 'x', attach: [], lang: 'es', model: 'sonnet' })
+    await new Promise((r) => setTimeout(r, 30)) // the question is stored; claude is still answering
+    const underline = { id: 'u1', block: 's2-p1', lang: 'es', start: 0, end: 3, text: 'Un ', date: '2026-10-23' }
+    await new Promise((resolve, reject) => {
+      const req = request(
+        { host: '127.0.0.1', port, method: 'PUT', path: '/api/state/sample-a', headers: { Host: `localhost:${port}`, 'Content-Type': 'application/json' } },
+        (res) => res.resume().on('end', resolve),
+      )
+      req.on('error', reject)
+      req.end(JSON.stringify({ version: 1, position: null, lang: 'es', voice: null, rate: 1, underlines: [underline] }))
+    })
+    await turn
+    expect(saved().underlines).toEqual([underline])
+    expect(saved().chats[0].messages.map((m) => m.role)).toEqual(['user', 'assistant'])
+  })
+
+  it('reports a broken paper as an error event, not a silent end', async () => {
+    const { writeFileSync } = await import('node:fs')
+    writeFileSync(join(root, 'papers/sample-a/graph.json'), '{ broken')
+    const ev = await chatEvents({ mode: 'ask', message: 'x' }, reply('COVERED\nA.'))
+    expect(ev.at(-1).event).toBe('error')
+  })
+
   it('refuses a chat about a paper that is not prepared', async () => {
     const r = await post('/api/chat', { conv: 'sample-b', papers: ['sample-b'], mode: 'ask', message: 'x', attach: [], lang: 'es', model: 'sonnet' })
     expect(r.status).toBe(404)

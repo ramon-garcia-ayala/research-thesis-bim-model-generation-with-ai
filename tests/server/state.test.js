@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { cpSync, existsSync, mkdtempSync, readFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { request } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -47,6 +47,19 @@ describe('the reading state', () => {
   it('keeps the across-papers chat under _across', async () => {
     expect((await call('PUT', '/api/state/_across', emptyReading())).status).toBe(200)
     expect(existsSync(join(root, 'reading/_across.json'))).toBe(true)
+  })
+
+  it('keeps the stored chats: the reader saves only its own fields', async () => {
+    const chats = [{ id: 'c1', papers: ['sample-a'], messages: [{ role: 'user', mode: 'ask', text: 'Hola', date: '2026-10-22' }] }]
+    writeFileSync(join(root, 'reading/sample-a.json'), JSON.stringify({ ...emptyReading(), chats })) // written by a chat turn
+    const fromReader = { version: 1, position: { block: 's1-p1', sentence: 0 }, lang: 'es', voice: null, rate: 1.25, underlines: [] }
+    expect((await call('PUT', '/api/state/sample-a', fromReader)).status).toBe(200)
+    const stored = (await call('GET', '/api/state/sample-a')).body
+    expect(stored.rate).toBe(1.25)
+    expect(stored.chats).toEqual(chats)
+    // a stale or broken copy of the chats from the page changes nothing
+    expect((await call('PUT', '/api/state/sample-a', { ...fromReader, chats: [{ id: 'c9', papers: [], messages: [{ role: 'user', text: 'x' }] }] })).status).toBe(200)
+    expect((await call('GET', '/api/state/sample-a')).body.chats).toEqual(chats)
   })
 
   it('refuses an unknown paper and an invalid reading', async () => {

@@ -26,7 +26,7 @@ export function parseSSE(buffer) {
 }
 
 /** The client of the server that served the page; `wait` is how long a save waits for more changes. */
-export function createClient({ fetch = (...a) => globalThis.fetch(...a), wait = 800 } = {}) {
+export function createClient({ fetch = (...a) => globalThis.fetch(...a), wait = 800, onSaveError = () => {} } = {}) {
   const pending = new Map() // id → the last reading to save
   let timer = null
   const json = (body) => ({ method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -36,7 +36,14 @@ export function createClient({ fetch = (...a) => globalThis.fetch(...a), wait = 
   async function flush() {
     clearTimeout(timer)
     timer = null
-    const jobs = [...pending].map(([id, reading]) => fetch(`api/state/${encodeURIComponent(id)}`, json(reading)).catch(() => null))
+    const jobs = [...pending].map(async ([id, reading]) => {
+      try {
+        const r = await fetch(`api/state/${encodeURIComponent(id)}`, json(reading))
+        if (!r.ok) onSaveError(await errorOf(r))
+      } catch (e) {
+        onSaveError(e.message)
+      }
+    })
     pending.clear()
     await Promise.all(jobs)
   }

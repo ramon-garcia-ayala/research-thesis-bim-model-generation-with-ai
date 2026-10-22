@@ -242,6 +242,16 @@ describe('voice', () => {
     expect(lastSpoken().text).toBe(textOfBlock('s2-p1').en)
   })
 
+  it('a language switch while reading changes to a voice of that language', async () => {
+    await withVoice([{ name: 'Dalia (Natural)', lang: 'es-MX' }, { name: 'Aria (Natural)', lang: 'en-US' }])
+    await read('sample-a')
+    $('[data-voice="play"]').click()
+    expect(lastSpoken().lang).toBe('es-MX')
+    view.reader.setLang('en')
+    expect(lastSpoken().lang).toBe('en-US')
+    expect($('.reader__voices').value).toBe('Aria (Natural)')
+  })
+
   it('pauses, resumes and stops from the bar', async () => {
     await withVoice()
     await read('sample-a')
@@ -357,6 +367,16 @@ describe('underlines and the remembered place', () => {
     delete Element.prototype.scrollIntoView
   })
 
+  it('never sends the chats: the server alone writes them', async () => {
+    const reading = { ...emptyReading(), chats: [{ id: 'c1', papers: ['sample-a'], messages: [{ role: 'user', mode: 'ask', text: 'Hola', date: '2026-10-22' }] }] }
+    await withClient(fakeClient(reading))
+    await read('sample-a')
+    select('s2-p1', 12)
+    $('.reader__pop [data-act="underline"]').click()
+    expect(lastSaved()).not.toHaveProperty('chats')
+    expect(lastSaved().underlines).toHaveLength(1)
+  })
+
   it('saves the language chosen', async () => {
     await withClient(fakeClient())
     await read('sample-a')
@@ -385,6 +405,19 @@ describe('underlines and the remembered place', () => {
     $('.reader__chat button[data-cite="s2-p2"]').click()
     expect(seen).toContain('s2-p2')
     delete Element.prototype.scrollIntoView
+  })
+
+  it('lets the author type "/" and press Esc in the chat box', async () => {
+    await withClient(fakeClient())
+    await read('sample-a')
+    const box = $('.chat__input')
+    box.focus()
+    const slash = new KeyboardEvent('keydown', { key: '/', bubbles: true, cancelable: true })
+    box.dispatchEvent(slash)
+    expect(slash.defaultPrevented).toBe(false)
+    expect(document.activeElement).toBe(box)
+    box.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    expect(view.reader.isOpen()).toBe(true)
   })
 
   it('offers no Underline when the server does not answer', async () => {

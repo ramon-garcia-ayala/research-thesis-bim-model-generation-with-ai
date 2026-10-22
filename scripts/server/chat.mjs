@@ -94,25 +94,31 @@ function readStatus(full) {
 export async function chat(body, { root, claude, send, now = () => new Date() }) {
   const { conv, chatId, papers: ids, mode, scope, attach, message, lang, model } = checkChat(body, root)
   const date = dayOf(now())
-  const map = readJson(join(root, 'map.json'))
-  const papers = ids.map((id) => {
-    const paper = readJson(join(root, 'papers', id, 'paper.json'))
-    const file = join(root, 'papers', id, 'graph.json')
-    return { node: id, title: paper.title, paper, graph: existsSync(file) ? readJson(file) : null }
-  })
-
-  const reading = loadReading(root, conv)
-  let thread = chatId ? reading.chats.find((c) => c.id === chatId) : null
-  if (!thread) {
-    const n = Math.max(0, ...reading.chats.map((c) => Number(c.id.slice(1)) || 0)) + 1
-    thread = { id: `c${n}`, papers: ids, messages: [] }
-    reading.chats.push(thread)
+  // Every write reloads the reading first: the page may have saved underlines or its place while Claude answered.
+  const append = (threadId, message) => {
+    const r = loadReading(root, conv)
+    let t = threadId ? r.chats.find((c) => c.id === threadId) : null
+    if (!t) {
+      const n = Math.max(0, ...r.chats.map((c) => Number(c.id.slice(1)) || 0)) + 1
+      t = { id: `c${n}`, papers: ids, messages: [] }
+      r.chats.push(t)
+    }
+    t.messages.push(message)
+    writeReading(root, conv, r)
+    return t
   }
-  const history = [...thread.messages]
-  thread.messages.push({ role: 'user', mode, text: message, ...(attach.length ? { attach } : {}), ...(scope ? { scope } : {}), date })
-  writeReading(root, conv, reading) // the question is kept even if the answer fails
 
   try {
+    const map = readJson(join(root, 'map.json'))
+    const papers = ids.map((id) => {
+      const paper = readJson(join(root, 'papers', id, 'paper.json'))
+      const file = join(root, 'papers', id, 'graph.json')
+      return { node: id, title: paper.title, paper, graph: existsSync(file) ? readJson(file) : null }
+    })
+    const reading = loadReading(root, conv)
+    const history = [...(reading.chats.find((c) => c.id === chatId)?.messages ?? [])]
+    // The question is kept even if the answer fails.
+    const thread = append(chatId, { role: 'user', mode, text: message, ...(attach.length ? { attach } : {}), ...(scope ? { scope } : {}), date })
     const underlines = conv === '_across' ? [] : reading.underlines.map((u) => ({ block: u.block, text: u.text }))
     const { system, prompt } = chatPrompt({
       mode,
@@ -158,8 +164,7 @@ export async function chat(body, { root, claude, send, now = () => new Date() })
         }
       }
     }
-    thread.messages.push({ role: 'assistant', mode, text, date })
-    writeReading(root, conv, reading)
+    append(thread.id, { role: 'assistant', mode, text, date })
     send('done', { chatId: thread.id, text, cites: citesOf(text), graphAdded })
   } catch (e) {
     send('error', { message: e.message })

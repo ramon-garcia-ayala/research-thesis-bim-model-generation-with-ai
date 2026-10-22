@@ -163,10 +163,19 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
             resolve()
           }
         })
-        .then(resolve, (e) => {
-          bubble.innerHTML = `<p class="chat__error">${esc(e.message)} <button type="button" data-retry>${esc(L().retry)}</button></p>`
-          resolve()
-        })
+        .then(
+          () => {
+            // The stream ended without done or error (the connection dropped, the server failed): say so.
+            if (!busy) return
+            bubble.classList.remove('pending')
+            bubble.innerHTML = `<p class="chat__error">${esc(L().noAnswer)} <button type="button" data-retry>${esc(L().retry)}</button></p>`
+            resolve()
+          },
+          (e) => {
+            bubble.innerHTML = `<p class="chat__error">${esc(e.message)} <button type="button" data-retry>${esc(L().retry)}</button></p>`
+            resolve()
+          },
+        )
     })
     await done
     log.scrollTop = log.scrollHeight
@@ -219,10 +228,10 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
       if (c.dataset.conv === 'across') {
         conv = '_across'
         const reading = await client.load('_across').catch(() => null)
-        thread = reading?.chats?.at(-1) ?? null
+        thread = structuredClone(reading?.chats?.at(-1) ?? null)
       } else if (paperConv) {
         conv = paperConv.id
-        thread = paperConv.reading?.chats?.at(-1) ?? null
+        thread = structuredClone(paperConv.reading?.chats?.at(-1) ?? null)
       }
       renderChrome()
       return renderLog()
@@ -300,7 +309,7 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
     setConversation(nodeId, reading = null) {
       if (nodeId !== '_across') paperConv = { id: nodeId, reading }
       conv = nodeId
-      thread = reading?.chats?.at(-1) ?? null
+      thread = structuredClone(reading?.chats?.at(-1) ?? null) // the reader's reading is not this chat's to change
       chips = []
       renderChrome()
       renderChips()

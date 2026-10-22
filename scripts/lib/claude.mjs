@@ -11,6 +11,8 @@ export const defaultBin = () => (process.env.CLAUDE_BIN ? [process.env.CLAUDE_BI
 /** The arguments of one isolated `claude -p` call. */
 export function claudeArgs({ model, effort, tools = [], system, stream = false }) {
   const args = ['-p', '--model', model, '--no-session-persistence', '--setting-sources', '', '--strict-mcp-config', '--tools', tools.join(',')]
+  // --tools limits which tools exist; in -p mode with no settings each must also be allowed to run without asking.
+  if (tools.length) args.push('--allowedTools', tools.join(','))
   if (effort) args.push('--effort', effort)
   if (system) args.push('--append-system-prompt', system)
   if (stream) args.push('--output-format', 'stream-json', '--verbose', '--include-partial-messages')

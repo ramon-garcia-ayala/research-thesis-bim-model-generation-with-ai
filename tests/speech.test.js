@@ -94,6 +94,22 @@ describe('createSpeaker', () => {
     expect(u.voice).toBe(voices[0])
   })
 
+  it('speaks in its language, with that language’s first voice when none was chosen', () => {
+    const { synth, speaker } = setup()
+    speaker.setLang('es')
+    speaker.play(queue())
+    expect(synth.spoken.at(-1).voice).toBe(voices[0])
+    expect(synth.spoken.at(-1).lang).toBe('es-MX')
+  })
+
+  it('a chosen voice of the other language gives way to this language’s', () => {
+    const { synth, speaker } = setup()
+    speaker.setVoice(voices[0].name)
+    speaker.setLang('en')
+    speaker.play(queue())
+    expect(synth.spoken.at(-1).voice).toBe(voices[2])
+  })
+
   it('filters voices by language, natural ones first', () => {
     const { speaker } = setup()
     expect(speaker.voicesFor('es').map((v) => v.lang)).toEqual(['es-MX', 'es-ES'])

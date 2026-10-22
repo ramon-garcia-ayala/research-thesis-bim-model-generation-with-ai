@@ -165,6 +165,22 @@ describe('the chat', () => {
     expect(client.chat.mock.calls[1][0].message).toBe('x')
   })
 
+  it('leaves the reading it was given untouched', async () => {
+    const reading = { ...emptyReading(), chats: [{ id: 'c1', papers: ['sample-a'], messages: [{ role: 'user', mode: 'ask', text: 'Uno', date: '2026-10-22' }] }] }
+    chat.setConversation('sample-a', reading)
+    await send('dos')
+    expect(reading.chats[0].messages).toHaveLength(1)
+  })
+
+  it('shows an error and retry when the answer stops without an end', async () => {
+    await send('x')
+    finish()
+    await Promise.resolve()
+    await Promise.resolve()
+    expect($('.chat__error')).not.toBeNull()
+    expect($('[data-retry]')).not.toBeNull()
+  })
+
   it('shows the stored transcript', () => {
     const reading = { ...emptyReading(), chats: [{ id: 'c1', papers: ['sample-a'], messages: [
       { role: 'user', mode: 'ask', text: 'Pregunta', date: '2026-10-22' },

@@ -480,6 +480,12 @@ export function createView(root, map, notes, { index = null, papers = [], read =
   })
   showTheme()
   root.ownerDocument.addEventListener('keydown', (e) => {
+    // While the author types (the chat, a note draft), keys are theirs: "/" is a character, Esc only leaves the box.
+    const typing = e.target?.closest?.('textarea, [contenteditable="true"]')
+    if (typing) {
+      if (e.key === 'Escape') e.target.blur()
+      return
+    }
     if (e.key === 'Escape') {
       // Esc closes the menus first, then the reader (an enlarged figure before it), then the panel.
       if (ui && !root.querySelector('.menu').hidden) return void toggleMenu(false)

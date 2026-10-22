@@ -44,6 +44,8 @@ function readBody(req) {
 
 // ---- The reading state: reading/<node-id>.json, or reading/_across.json for the across-papers chat ----
 
+const READER_FIELDS = ['position', 'lang', 'voice', 'rate', 'underlines']
+
 /** The id of a prepared paper or `_across`; anything else is not found. */
 export function readingId(root, id) {
   if (id === '_across') return id
@@ -76,7 +78,13 @@ export const routes = [
     'PUT',
     /^\/api\/state\/([^/]+)$/,
     ({ params, body }, { root }) => {
-      writeReading(root, decodeURIComponent(params[0]), body)
+      // The page owns the place, the language, the voice and the underlines; the chats are written by the server only,
+      // so a page's (stale) copy of them never overwrites a turn just answered.
+      const id = decodeURIComponent(params[0])
+      if (!body || typeof body !== 'object') throw new HttpError(400, 'the reading is not an object')
+      const stored = loadReading(root, id)
+      const own = Object.fromEntries(READER_FIELDS.filter((k) => k in body).map((k) => [k, body[k]]))
+      writeReading(root, id, { ...stored, ...own, version: 1, chats: stored.chats })
       return { ok: true }
     },
   ],
