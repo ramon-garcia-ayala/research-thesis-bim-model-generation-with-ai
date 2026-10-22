@@ -1,8 +1,8 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { checkFolder } from '../scripts/check.mjs'
+import { checkFolder, indexPapers } from '../scripts/check.mjs'
 
 const map = {
   version: 1,
@@ -23,7 +23,10 @@ const folder = (files) => {
   const dir = mkdtempSync(join(tmpdir(), 'research-map-'))
   mkdirSync(join(dir, 'notes'))
   mkdirSync(join(dir, 'files'))
-  for (const [path, text] of Object.entries(files)) writeFileSync(join(dir, path), text)
+  for (const [path, text] of Object.entries(files)) {
+    mkdirSync(dirname(join(dir, path)), { recursive: true })
+    writeFileSync(join(dir, path), text)
+  }
   return dir
 }
 const noRemote = () => ''
@@ -54,5 +57,56 @@ describe('checkFolder', () => {
 
   it('invalid JSON is one problem, not a crash', () => {
     expect(checkFolder(folder({ 'map.json': '{ nope' }), { gitRemote: noRemote })[0]).toMatch(/map\.json/)
+  })
+
+  describe('papers', () => {
+    const paper = {
+      version: 1, node: 'procthor', title: 'ProcTHOR', source: 'files/procthor.pdf',
+      sections: [{ id: 's1', title: { en: '1 Intro' }, blocks: [
+        { id: 's1-p1', type: 'paragraph', page: 1, text: { en: 'Houses.' } },
+        { id: 'fig-1', type: 'figure', page: 1, image: 'fig/fig-1.png', text: { en: 'Figure 1: A house.' } },
+      ] }],
+    }
+    const graph = {
+      version: 1, node: 'procthor', built: { date: '2026-10-22', model: 'claude-sonnet-5-5', effort: 'xhigh' },
+      ideas: [{ id: 'i1', kind: 'claim', en: 'Houses.', es: 'Casas.', blocks: ['s1-p1'], origin: 'read' }], edges: [], thesis: [],
+    }
+    const index = { papers: [{ node: 'procthor', title: 'ProcTHOR', figures: 1, es: false, graph: true }] }
+    /** A complete folder with ProcTHOR prepared, changed by `files`. */
+    const prepared = (files = {}) => folder({
+      'map.json': JSON.stringify(map), 'notes/procthor.md': '## 2026-10-18 · Summary\nx', 'files/procthor.pdf': '%PDF',
+      'papers/procthor/paper.json': JSON.stringify(paper), 'papers/procthor/graph.json': JSON.stringify(graph),
+      'papers/procthor/fig/fig-1.png': 'png', 'papers/index.json': JSON.stringify(index), ...files,
+    })
+
+    it('passes a prepared paper', () => expect(checkFolder(prepared(), { gitRemote: noRemote })).toEqual([]))
+
+    it('indexes what the folders hold', () => expect(indexPapers(prepared())).toEqual(index))
+
+    it('names a papers folder with no paper node', () => {
+      const ghost = { ...paper, node: 'ghost' }
+      const dir = prepared({ 'papers/ghost/paper.json': JSON.stringify(ghost) })
+      writeFileSync(join(dir, 'papers/index.json'), JSON.stringify(indexPapers(dir)))
+      expect(checkFolder(dir, { gitRemote: noRemote })).toContain('papers/ghost: no paper node has this id')
+    })
+
+    it('names a missing figure image', () => {
+      const dir = prepared()
+      rmSync(join(dir, 'papers/procthor/fig/fig-1.png'))
+      expect(checkFolder(dir, { gitRemote: noRemote })).toContain('papers/procthor/paper.json: fig/fig-1.png is missing')
+    })
+
+    it('names an invalid graph', () => {
+      const bad = { ...graph, ideas: [{ ...graph.ideas[0], blocks: ['s9-p9'] }] }
+      const problems = checkFolder(prepared({ 'papers/procthor/graph.json': JSON.stringify(bad) }), { gitRemote: noRemote })
+      expect(problems.some((p) => p.startsWith('papers/procthor/graph.json: '))).toBe(true)
+    })
+
+    it('names a stale papers/index.json', () => {
+      const stale = { papers: [{ ...index.papers[0], graph: false }] }
+      expect(checkFolder(prepared({ 'papers/index.json': JSON.stringify(stale) }), { gitRemote: noRemote })).toContain(
+        'papers/index.json does not match the papers folders',
+      )
+    })
   })
 })
