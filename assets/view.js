@@ -9,6 +9,7 @@ import { parseNote, renderMarkdown } from './notes.js'
 import { loadIndex, slidesUsing } from './presentations.js'
 import { mountPresentations } from './presentations-ui.js'
 import { mountReader } from './reader-ui.js'
+import { createClient } from './reading-client.js'
 import { effectiveTheme, toggleTheme } from './theme.js'
 
 const SVG = 'http://www.w3.org/2000/svg'
@@ -24,8 +25,9 @@ const fetchText = (path) => fetch(path).then((r) => (r.ok ? r.text() : null)).ca
 /**
  * Loads map.json and every node's note (from the folder `dir`, default the map's own), then draws it into `root`.
  * The presentations (menu, viewer, highlight) come with the map's own folder only; `index` replaces what is loaded.
+ * `client` talks to the local server (underlines, chat); by default only for the map's own folder.
  */
-export async function start(root, { load = fetchText, dir = '', index } = {}) {
+export async function start(root, { load = fetchText, dir = '', index, client } = {}) {
   if (dir !== '' && !/^[\w./-]+\/$/.test(dir)) dir = ''
   const read = (path) => load(dir + path)
   const text = await read('map.json')
@@ -49,7 +51,8 @@ export async function start(root, { load = fetchText, dir = '', index } = {}) {
   } catch {
     papers = []
   }
-  return createView(root, map, notes, { index: presentations, papers, read, base: dir })
+  const server = client === undefined ? (dir === '' ? createClient() : null) : client
+  return createView(root, map, notes, { index: presentations, papers, read, base: dir, client: server })
 }
 
 /**
@@ -57,7 +60,7 @@ export async function start(root, { load = fetchText, dir = '', index } = {}) {
  * `index` (from `loadIndex`) it also mounts the menu and the viewer; with prepared `papers` (papers/index.json), the
  * reader, which loads them through `read` (`base` prefixes their images).
  */
-export function createView(root, map, notes, { index = null, papers = [], read = fetchText, base = '' } = {}) {
+export function createView(root, map, notes, { index = null, papers = [], read = fetchText, base = '', client = null } = {}) {
   const problems = validate(map)
   const fresh = isNew(map, notes)
   // `lit`: the ids the slide shown uses (null = none). `manual`: the author moved the view since the last fit.
@@ -520,6 +523,7 @@ export function createView(root, map, notes, { index = null, papers = [], read =
         map,
         load: read,
         base,
+        client,
         onShow: () => {
           select(null)
           ui?.close()

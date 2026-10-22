@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LABELS } from '../assets/reader-ui.js'
+import { emptyReading } from '../assets/reading.js'
 import { start } from '../assets/view.js'
 import { Utterance, fakeSynth } from './fake-speech.js'
 
@@ -280,5 +281,94 @@ describe('voice', () => {
     view.reader.close()
     await read('sample-a')
     expect($('.reader__hint').hidden).toBe(true)
+  })
+})
+
+describe('underlines and the remembered place', () => {
+  let client
+  /** A fake client of the local server; `reading` is what it has stored for the paper. */
+  const fakeClient = (reading = emptyReading(), up = true) => ({
+    available: vi.fn(async () => up),
+    load: vi.fn(async () => structuredClone(reading)),
+    save: vi.fn(),
+    flush: vi.fn(async () => {}),
+    chat: vi.fn(),
+    draftNote: vi.fn(),
+    saveNote: vi.fn(),
+  })
+  const withClient = async (c) => {
+    client = c
+    document.body.innerHTML = '<main id="app"></main>'
+    root = document.getElementById('app')
+    view = await start(root, { load: fromDisk, dir: 'tests/fixture/', index, client })
+  }
+  const select = (id, n = 5) => {
+    const el = block(id)
+    const range = document.createRange()
+    range.setStart(el.firstChild, 0)
+    range.setEnd(el.firstChild, n)
+    window.getSelection().removeAllRanges()
+    window.getSelection().addRange(range)
+    el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+  }
+  const lastSaved = () => client.save.mock.calls.at(-1)[1]
+
+  it('underlines a selection and saves it', async () => {
+    await withClient(fakeClient())
+    await read('sample-a')
+    select('s2-p1', 12)
+    $('.reader__pop [data-act="underline"]').click()
+    expect(block('s2-p1').querySelector('mark[data-u="u1"]').textContent).toBe(es_s2p1.slice(0, 12))
+    expect(client.save).toHaveBeenCalled()
+    expect(client.save.mock.calls.at(-1)[0]).toBe('sample-a')
+    expect(lastSaved().underlines[0]).toMatchObject({ id: 'u1', block: 's2-p1', lang: 'es', start: 0, end: 12, text: es_s2p1.slice(0, 12) })
+  })
+
+  it('shows a margin mark in the other language', async () => {
+    const reading = { ...emptyReading(), underlines: [{ id: 'u1', block: 's2-p1', lang: 'es', start: 0, end: 12, text: 'x', date: '2026-10-22' }] }
+    await withClient(fakeClient(reading))
+    await read('sample-a')
+    expect(block('s2-p1').querySelector('mark')).not.toBeNull()
+    view.reader.setLang('en')
+    expect(block('s2-p1').classList.contains('has-underline')).toBe(true)
+    expect(block('s2-p1').querySelector('mark')).toBeNull()
+  })
+
+  it('removes an underline from its mark', async () => {
+    const reading = { ...emptyReading(), underlines: [{ id: 'u1', block: 's2-p1', lang: 'es', start: 0, end: 12, text: 'x', date: '2026-10-22' }] }
+    await withClient(fakeClient(reading))
+    await read('sample-a')
+    block('s2-p1').querySelector('mark').click()
+    $('.reader__pop [data-act="remove-underline"]').click()
+    expect(block('s2-p1').querySelector('mark')).toBeNull()
+    expect(lastSaved().underlines).toEqual([])
+  })
+
+  it('reopens at the remembered block and language', async () => {
+    const seen = []
+    Element.prototype.scrollIntoView = function () {
+      seen.push(this.dataset?.block)
+    }
+    await withClient(fakeClient({ ...emptyReading(), lang: 'en', position: { block: 's2-p2', sentence: 0 } }))
+    await read('sample-a')
+    expect(view.reader.lang()).toBe('en')
+    expect(block('s2-p1').textContent).toBe(textOfBlock('s2-p1').en)
+    expect(seen).toContain('s2-p2')
+    delete Element.prototype.scrollIntoView
+  })
+
+  it('saves the language chosen', async () => {
+    await withClient(fakeClient())
+    await read('sample-a')
+    view.reader.setLang('en')
+    expect(lastSaved().lang).toBe('en')
+  })
+
+  it('offers no Underline when the server does not answer', async () => {
+    await withClient(fakeClient(emptyReading(), false))
+    await read('sample-a')
+    select('s2-p1')
+    expect($('.reader__pop [data-act="underline"]')).toBeNull()
+    expect(client.load).not.toHaveBeenCalled()
   })
 })

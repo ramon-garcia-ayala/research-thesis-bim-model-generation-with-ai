@@ -5,7 +5,7 @@
  * (`client`); without it the reader still shows the text and the figures.
  */
 import { blocksOf, paraLabel, textOf } from './paper.js'
-import { segments } from './reading.js'
+import { addUnderline, emptyReading, removeUnderline, segments } from './reading.js'
 import { buildQueue, createSpeaker } from './speech.js'
 
 export const MODE_KEY = 'research-map-reader-mode'
@@ -54,6 +54,7 @@ export const LABELS = {
     rate: 'Speed',
     voice: 'Voice',
     readSelection: '▶ Read selection',
+    removeUnderline: 'Remove underline',
     voiceHint: 'This browser offers no natural voice: open the map in Microsoft Edge to listen with its natural voices.',
   },
   es: {
@@ -80,6 +81,7 @@ export const LABELS = {
     rate: 'Velocidad',
     voice: 'Voz',
     readSelection: '▶ Leer selección',
+    removeUnderline: 'Quitar subrayado',
     voiceHint: 'Este navegador no ofrece voces naturales: abre el mapa en Microsoft Edge para escucharlo con sus voces naturales.',
   },
 }
@@ -121,6 +123,25 @@ export function mountReader(
   let pending = Promise.resolve()
   let speaking = null // the sentence being read: { block, start, end }
   let picked = null // the selection the menu acts on: { block, start, end, text }
+  // The local server, once it answers (null without it); the reading of the open paper (underlines, place, voice).
+  let live = null
+  let reading = null
+  const availability = client
+    ? Promise.resolve()
+        .then(() => client.available())
+        .then((ok) => (live = ok ? client : null))
+        .catch(() => (live = null))
+    : Promise.resolve(null)
+  const today = () => {
+    const d = new Date()
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
+  }
+  /** Keeps the reading on the server (the client waits for a pause before writing). */
+  const persist = (change = {}) => {
+    if (!live || !now || !reading) return
+    reading = { ...reading, ...change }
+    live.save(now.nodeId, reading)
+  }
   const L = () => LABELS[lang]
   const narrow = () => (win.innerWidth || 1024) < 700
   const effectiveMode = () => (narrow() ? 'full' : mode)
@@ -161,8 +182,11 @@ export function mountReader(
   const blockEl = (id) => text.querySelector(`[data-block="${CSS.escape(id)}"]`)
   const blockById = (id) => blocksOf(now?.paper).find((b) => b.id === id)
 
-  /** The highlighted runs of a block's text: the sentence being read (underlines join in later). */
-  const rangesOf = (id) => (speaking?.block === id ? [{ start: speaking.start, end: speaking.end, id: 'speaking' }] : [])
+  /** The highlighted runs of a block's text: the author's underlines in this language, the sentence being read. */
+  const rangesOf = (id) => [
+    ...(reading?.underlines ?? []).filter((u) => u.block === id && u.lang === lang).map((u) => ({ start: u.start, end: u.end, id: u.id })),
+    ...(speaking?.block === id ? [{ start: speaking.start, end: speaking.end, id: 'speaking' }] : []),
+  ]
 
   /** Re-draws the text of block `id` with its highlights. */
   function decorate(id) {
@@ -171,9 +195,16 @@ export function mountReader(
     if (!b || !holder) return
     const t = textOf(b, lang)
     const ranges = rangesOf(id)
+    // An underline made in the other language cannot be placed in this text: the paragraph gets a margin mark.
+    blockEl(id).classList.toggle('has-underline', (reading?.underlines ?? []).some((u) => u.block === id && u.lang !== lang))
     if (!ranges.length) return void (holder.textContent = t)
     holder.innerHTML = segments(t, ranges)
-      .map((r) => (r.ids.includes('speaking') ? `<span class="speaking">${esc(r.text)}</span>` : esc(r.text)))
+      .map((r) => {
+        let html = esc(r.text)
+        if (r.ids.includes('speaking')) html = `<span class="speaking">${html}</span>`
+        const u = r.ids.find((x) => x !== 'speaking')
+        return u ? `<mark data-u="${esc(u)}">${html}</mark>` : html
+      })
       .join('')
   }
 
@@ -192,6 +223,7 @@ export function mountReader(
           if (item) {
             decorate(item.block)
             blockEl(item.block)?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+            persist({ position: { block: item.block, sentence: 0 } })
           }
           renderVoice()
         },
@@ -251,7 +283,7 @@ export function mountReader(
       )
       .join('')
     for (const img of text.querySelectorAll('figure.blk img')) img.addEventListener('error', () => missing(img))
-    if (speaking) decorate(speaking.block)
+    for (const id of new Set([...(reading?.underlines ?? []).map((u) => u.block), ...(speaking ? [speaking.block] : [])])) decorate(id)
   }
 
   function blockHtml(paper, b) {
@@ -301,8 +333,8 @@ export function mountReader(
     $('.reader__close').title = L().close
     $('.reader__zoom-close').setAttribute('aria-label', L().zoomClose)
     side.hidden = m !== 'full'
-    $('.reader__chat').hidden = !client
-    $('.reader__chat-toggle').hidden = !client || m !== 'half'
+    $('.reader__chat').hidden = !live
+    $('.reader__chat-toggle').hidden = !live || m !== 'half'
     renderVoice()
   }
 
@@ -346,11 +378,18 @@ export function mountReader(
         return
       }
       speaker?.stop()
+      await availability
+      reading = live ? await live.load(nodeId).catch(() => emptyReading()) : null
+      // What the author chose for this paper wins over the browser's defaults.
+      if (reading?.lang === 'en' || reading?.lang === 'es') lang = reading.lang
+      if (speaker && reading?.rate) speaker.setRate((rate = reading.rate))
+      if (speaker && reading?.voice) speaker.setVoice(reading.voice)
       now = { nodeId, paper }
       render()
       voiceHint()
       text.scrollTop = 0
-      if (at?.block) goTo(at.block)
+      const place = at?.block ?? reading?.position?.block
+      if (place) goTo(place)
       const linked = (map?.links ?? []).flatMap((l) => (l.from === nodeId ? [l.to] : l.to === nodeId ? [l.from] : []))
       onLit([nodeId, ...linked])
     })()
@@ -375,6 +414,7 @@ export function mountReader(
     if (reading) speaker.stop()
     lang = l
     remember(win, LANG_KEY, l)
+    persist({ lang: l })
     render()
     renderChrome()
     if (keep) goTo(keep)
@@ -405,7 +445,7 @@ export function mountReader(
     if (!at) return void (pop.hidden = true)
     picked = { block: target.dataset.block, ...at, text: range.toString() }
     const acts = [
-      ...(client ? [['underline', L().underline], ['ask', L().ask]] : []),
+      ...(live ? [['underline', L().underline], ['ask', L().ask]] : []),
       ...(speaker ? [['read-from', L().readFrom], ['read-selection', L().readSelection]] : []),
     ]
     if (!acts.length) return void (pop.hidden = true)
@@ -444,12 +484,37 @@ export function mountReader(
       return renderVoice()
     }
     const action = t.closest('.reader__pop [data-act]')
+    if (action?.dataset.act === 'remove-underline') {
+      pop.hidden = true
+      const u = reading?.underlines.find((x) => x.id === action.dataset.u)
+      if (!u) return
+      reading = removeUnderline(reading, u.id)
+      persist()
+      return decorate(u.block)
+    }
     if (action && picked) {
       const { block, start, end } = picked
       pop.hidden = true
       win.getSelection?.()?.removeAllRanges()
       if (action.dataset.act === 'read-from') speakFrom({ block, offset: start })
       if (action.dataset.act === 'read-selection') speakFrom(null, { block, start, end })
+      if (action.dataset.act === 'underline' && reading) {
+        reading = addUnderline(reading, { block, lang, start, end, text: picked.text }, today())
+        persist()
+        decorate(block)
+      }
+      return
+    }
+    const mark = t.closest('.reader__text mark[data-u]')
+    if (mark && live) {
+      pop.innerHTML = `<button type="button" data-act="remove-underline" data-u="${esc(mark.dataset.u)}">${esc(L().removeUnderline)}</button>`
+      const r = mark.getBoundingClientRect?.()
+      const box = el.getBoundingClientRect()
+      if (r) {
+        pop.style.left = `${Math.max(8, r.left - box.left)}px`
+        pop.style.top = `${Math.max(8, r.top - box.top - 40)}px`
+      }
+      pop.hidden = false
       return
     }
     const go = t.closest('[data-goto]')
@@ -476,9 +541,20 @@ export function mountReader(
     if (e.target.matches('.reader__rate')) {
       rate = Number(e.target.value)
       speaker.setRate(rate)
+      persist({ rate })
     }
-    if (e.target.matches('.reader__voices')) speaker.setVoice(e.target.value)
+    if (e.target.matches('.reader__voices')) {
+      speaker.setVoice(e.target.value)
+      persist({ voice: e.target.value })
+    }
   })
+
+  // The place: the first paragraph in view, kept a moment after scrolling stops (the client waits too).
+  text.addEventListener('scroll', () => {
+    const id = speaker?.state() === 'playing' ? null : firstVisible()
+    if (id) persist({ position: { block: id, sentence: 0 } })
+  })
+  win.addEventListener('pagehide', () => live?.flush())
 
   win.addEventListener('resize', () => now && renderChrome())
   renderChrome()
