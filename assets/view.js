@@ -8,6 +8,7 @@ import { isNew, linkKey, validate } from './model.js'
 import { parseNote, renderMarkdown } from './notes.js'
 import { loadIndex, slidesUsing } from './presentations.js'
 import { mountPresentations } from './presentations-ui.js'
+import { mountReader } from './reader-ui.js'
 import { effectiveTheme, toggleTheme } from './theme.js'
 
 const SVG = 'http://www.w3.org/2000/svg'
@@ -42,14 +43,21 @@ export async function start(root, { load = fetchText, dir = '', index } = {}) {
     }),
   )
   const presentations = index ?? (dir === '' ? await loadIndex(load).catch(() => null) : null)
-  return createView(root, map, notes, { index: presentations })
+  let papers = []
+  try {
+    papers = JSON.parse((await read('papers/index.json')) ?? '{}').papers ?? []
+  } catch {
+    papers = []
+  }
+  return createView(root, map, notes, { index: presentations, papers, read, base: dir })
 }
 
 /**
  * Draws `map` with its parsed notes into `root`; returns the verbs the toolbar and tests use. With a presentations
- * `index` (from `loadIndex`) it also mounts the menu and the viewer.
+ * `index` (from `loadIndex`) it also mounts the menu and the viewer; with prepared `papers` (papers/index.json), the
+ * reader, which loads them through `read` (`base` prefixes their images).
  */
-export function createView(root, map, notes, { index = null } = {}) {
+export function createView(root, map, notes, { index = null, papers = [], read = fetchText, base = '' } = {}) {
   const problems = validate(map)
   const fresh = isNew(map, notes)
   // `lit`: the ids the slide shown uses (null = none). `manual`: the author moved the view since the last fit.
@@ -64,6 +72,7 @@ export function createView(root, map, notes, { index = null } = {}) {
         map.lastPresentation ? `New since ${esc(map.lastPresentation)}` : 'New: everything (no thesis presentation yet)'
       }</button>
       ${index ? '<button type="button" class="presentations" aria-pressed="false">Presentations</button>' : ''}
+      ${papers.length ? '<button type="button" class="papers" aria-pressed="false" aria-haspopup="true">Papers</button>' : ''}
       <span class="zoom">
         <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
         <button type="button" data-zoom="fit">Fit</button>
@@ -75,6 +84,13 @@ export function createView(root, map, notes, { index = null } = {}) {
       <svg class="canvas" xmlns="${SVG}"><g class="world"><g class="links"></g><g class="cards"></g></g></svg>
     </div>
     <aside class="panel" hidden></aside>
+    ${
+      papers.length
+        ? `<nav class="papers-menu" hidden aria-label="Papers">${papers
+            .map((p) => `<button type="button" data-read="${esc(p.node)}"><span>${esc(p.title)}</span><i>${p.es ? 'EN · ES' : 'EN'}</i></button>`)
+            .join('')}</nav>`
+        : ''
+    }
     <section class="problems" ${problems.length ? '' : 'hidden'}>
       <h2>map.json has ${problems.length} problem(s)</h2>
       <ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
@@ -85,6 +101,7 @@ export function createView(root, map, notes, { index = null } = {}) {
   const world = $('.world')
   const panel = $('.panel')
   const nodeById = Object.fromEntries((map.nodes ?? []).map((n) => [n.id, n]))
+  const prepared = new Set(papers.map((p) => p.node))
   const groupById = Object.fromEntries((map.groups ?? []).map((g) => [g.id, g]))
   let picture = null
 
@@ -281,6 +298,7 @@ export function createView(root, map, notes, { index = null } = {}) {
       <p class="kind">${esc(n.kind)} · ${esc(group?.title)} · ${esc(n.date)}</p>
       <h2>${esc(n.title)}</h2>
       ${n.cite ? `<p class="cite">${esc(n.cite)}</p>` : ''}
+      ${prepared.has(n.id) ? `<p class="read"><button type="button" data-read="${esc(n.id)}">Read</button></p>` : ''}
       ${source}
       ${entries || '<p class="empty">No note yet.</p>'}
       ${links ? `<h3 class="section">Links</h3><ul class="related">${links}</ul>` : ''}
@@ -362,7 +380,7 @@ export function createView(root, map, notes, { index = null } = {}) {
     const y1 = Math.max(...all.map((b) => b.y + b.h / 2))
     const pad = 48
     const top = ($('.toolbar').offsetHeight || 0) + 32
-    const right = panel.hidden ? 0 : panel.offsetWidth + 16
+    const right = Math.max(panel.hidden ? 0 : panel.offsetWidth + 16, reader?.insets().right ?? 0)
     const { left, viewer } = ui?.insets() ?? { left: 0, viewer: null }
     // The viewer sits bottom right: leave its column or its row clear, whichever keeps the cards larger.
     const frames = (viewer ? [{ r: viewer.w, b: 0 }, { r: 0, b: viewer.h }] : [{ r: 0, b: 0 }]).map(({ r, b }) => {
@@ -414,6 +432,12 @@ export function createView(root, map, notes, { index = null } = {}) {
   // ---- Wiring ----
 
   root.addEventListener('click', (e) => {
+    const toRead = e.target.closest('[data-read]')
+    if (toRead && reader) {
+      togglePapers(false)
+      return void reader.open(toRead.dataset.read)
+    }
+    if (e.target.closest('.toolbar .papers')) return void togglePapers()
     const go = e.target.closest('[data-go]')
     if (go) return select(go.dataset.go)
     const open = e.target.closest('.panel [data-open]')
@@ -454,8 +478,10 @@ export function createView(root, map, notes, { index = null } = {}) {
   showTheme()
   root.ownerDocument.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      // Esc closes the menu first; the next one closes the panel.
+      // Esc closes the menus first, then the reader (an enlarged figure before it), then the panel.
       if (ui && !root.querySelector('.menu').hidden) return void toggleMenu(false)
+      if (papersMenu && !papersMenu.hidden) return void togglePapers(false)
+      if (reader?.escape()) return
       select(null)
     }
     if (e.key === '/' && root.ownerDocument.activeElement?.tagName !== 'INPUT') {
@@ -479,6 +505,32 @@ export function createView(root, map, notes, { index = null } = {}) {
     if (e.target.closest('.menu__close')) presentationsButton.setAttribute('aria-pressed', 'false')
   })
 
+  // ---- The paper reader ----
+
+  const papersMenu = $('.papers-menu')
+  const papersButton = $('.toolbar .papers')
+  function togglePapers(show = papersMenu?.hidden) {
+    if (!papersMenu) return
+    papersMenu.hidden = !show
+    papersButton.setAttribute('aria-pressed', String(Boolean(show)))
+  }
+  const reader = papers.length
+    ? mountReader(root, {
+        papers,
+        map,
+        load: read,
+        base,
+        onShow: () => {
+          select(null)
+          ui?.close()
+        },
+        onLit: (ids) => {
+          state.manual = false
+          setLit(ids)
+        },
+      })
+    : null
+
   draw()
   place()
   fit()
@@ -494,5 +546,6 @@ export function createView(root, map, notes, { index = null } = {}) {
     toggleNew: () => $('.new').click(),
     setLit,
     fit,
+    reader,
   }
 }

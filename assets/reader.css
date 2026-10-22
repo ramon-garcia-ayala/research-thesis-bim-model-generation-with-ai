@@ -1,0 +1,447 @@
+/*
+ * The paper reader: docked over the right half of the map (half) or covering it in three columns (full, study mode).
+ * Reading text in Newsreader; only the map's tokens (map.css), so light and dark follow the theme.
+ */
+
+/* ---- Papers in the toolbar ---- */
+
+.papers-menu {
+  position: absolute;
+  top: 78px;
+  left: 16px;
+  z-index: 4;
+  width: min(380px, calc(100% - 32px));
+  max-height: calc(100% - 100px);
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: var(--radius-panel);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--shadow-panel);
+}
+
+.papers-menu button {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  text-align: left;
+  font: 14px/1.35 var(--font-serif);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.papers-menu button:hover {
+  background: var(--hover);
+}
+
+.papers-menu span {
+  flex: 1;
+}
+
+.papers-menu i {
+  font: normal 10px var(--font-mono);
+  color: var(--ink-tertiary);
+}
+
+.panel .read button {
+  height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--ink);
+  color: var(--panel);
+  font: 500 12px var(--font-sans);
+  cursor: pointer;
+}
+
+/* ---- The reader ---- */
+
+.reader {
+  position: absolute;
+  top: 78px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 3;
+  width: calc(50% - 24px);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
+}
+
+.reader[hidden] {
+  display: none;
+}
+
+.reader[data-mode='full'] {
+  inset: 0;
+  z-index: 5;
+  width: auto;
+  border-radius: 0;
+}
+
+.reader__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px 8px 16px;
+  border-bottom: 1px solid var(--separator);
+  background: var(--panel-sunken);
+}
+
+.reader__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 500 15px var(--font-serif);
+}
+
+.reader__langs {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--radius-control);
+  background: var(--fill);
+}
+
+.reader__bar button,
+.reader__bar select {
+  height: 28px;
+  min-width: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  font: 11px var(--font-mono);
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.reader__bar button:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+.reader__lang {
+  height: 24px !important;
+}
+
+.reader__lang[aria-pressed='true'] {
+  background: var(--panel) !important;
+  color: var(--ink) !important;
+  box-shadow: var(--shadow-card);
+}
+
+.reader__voice {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.reader__voice:empty {
+  display: none;
+}
+
+.reader__close {
+  font-size: 18px !important;
+}
+
+/* Body: text with the chat under it (half); contents | text | chat (full). */
+.reader__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.reader[data-mode='full'] .reader__body {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 360px;
+}
+
+.reader[data-mode='full'] .reader__chat-wrap:has(.reader__chat[hidden]) {
+  display: none;
+}
+
+.reader[data-mode='full'] .reader__body:has(.reader__chat[hidden]) {
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+
+.reader__side {
+  overflow-y: auto;
+  padding: 16px 12px 24px;
+  border-right: 1px solid var(--separator);
+  background: var(--panel-sunken);
+  font-size: 13px;
+}
+
+.reader__side h3 {
+  margin: 14px 4px 6px;
+  font: 500 10px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-tertiary);
+}
+
+.reader__side h3:first-child {
+  margin-top: 0;
+}
+
+.reader__toc {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reader__toc button,
+.reader__thumbs button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.reader__toc button {
+  padding: 4px 6px;
+  border-radius: 6px;
+  text-align: left;
+  font: 13px/1.35 var(--font-sans);
+}
+
+.reader__toc button:hover,
+.reader__thumbs button:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+.reader__thumbs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.reader__thumbs button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 6px;
+  font: 10px var(--font-mono);
+}
+
+.reader__thumbs img {
+  width: 100%;
+  height: 54px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: var(--panel);
+}
+
+.reader__text {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px clamp(18px, 4vw, 48px) 64px;
+  font: 17px/1.6 var(--font-serif);
+  color: var(--ink);
+  outline: none;
+}
+
+.reader__text > * {
+  max-width: 70ch;
+  margin-inline: auto;
+}
+
+.reader__section h2 {
+  margin: 28px 0 10px;
+  font: 600 13px var(--font-sans);
+  letter-spacing: 0.01em;
+  color: var(--ink-secondary);
+}
+
+.reader__section:first-child h2 {
+  margin-top: 0;
+}
+
+.reader__text h3.blk {
+  margin: 18px 0 6px;
+  font: 600 15px var(--font-serif);
+}
+
+.reader__text p.blk {
+  position: relative;
+  margin: 0 0 12px;
+}
+
+/* The paragraph's citation label (¶ 3.2) in the margin, on hover. */
+.reader__text p.blk:hover::before {
+  content: '¶ ' attr(data-label);
+  position: absolute;
+  right: 100%;
+  margin-right: 10px;
+  font: 10px/2.4 var(--font-mono);
+  color: var(--ink-tertiary);
+  white-space: nowrap;
+}
+
+.reader__section.refs p.blk {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-secondary);
+}
+
+.reader__text pre.blk {
+  overflow-x: auto;
+  margin: 0 0 12px;
+  font: 13px var(--font-mono);
+}
+
+.reader__text figure.blk {
+  margin: 18px auto 20px;
+  padding: 10px;
+  border-radius: var(--radius-card);
+  background: var(--panel-sunken);
+  box-shadow: inset 0 0 0 1px var(--separator);
+}
+
+.reader__text figure.blk img {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  margin: 0 auto 8px;
+  border-radius: 4px;
+  background: #fff;
+  cursor: zoom-in;
+}
+
+.reader__text figcaption {
+  font: 13px/1.45 var(--font-sans);
+  color: var(--ink-secondary);
+}
+
+.reader__text figure.missing figcaption::before {
+  content: '▢ ';
+  color: var(--ink-tertiary);
+}
+
+.reader__empty {
+  color: var(--ink-tertiary);
+  font-style: italic;
+}
+
+/* ---- Chat (filled in when the local server is running) ---- */
+
+.reader__chat-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.reader[data-mode='half'] .reader__chat-wrap {
+  flex: 0 0 auto;
+  max-height: 45%;
+  border-top: 1px solid var(--separator);
+}
+
+.reader[data-mode='half'].chat-collapsed .reader__chat {
+  display: none;
+}
+
+.reader[data-mode='full'] .reader__chat-wrap {
+  border-left: 1px solid var(--separator);
+  background: var(--panel-sunken);
+}
+
+.reader__chat-toggle {
+  height: 26px;
+  border: 0;
+  background: var(--panel-sunken);
+  font: 10px var(--font-mono);
+  color: var(--ink-tertiary);
+  cursor: pointer;
+}
+
+.reader__chat {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- The selection menu and the enlarged figure ---- */
+
+.reader__pop {
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-control);
+  background: var(--ink);
+  box-shadow: var(--shadow-panel);
+}
+
+.reader__pop[hidden] {
+  display: none;
+}
+
+.reader__pop button {
+  height: 26px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font: 12px var(--font-sans);
+  color: var(--panel);
+  cursor: pointer;
+}
+
+.reader__pop button:hover {
+  background: rgba(127, 127, 127, 0.3);
+}
+
+.reader__zoom {
+  max-width: 96vw;
+  max-height: 96vh;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  box-shadow: var(--shadow-panel);
+  cursor: zoom-out;
+}
+
+.reader__zoom::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.reader__zoom img {
+  display: block;
+  max-width: calc(96vw - 24px);
+  max-height: calc(96vh - 24px);
+  background: #fff;
+}
+
+.reader__zoom-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--glass-bg);
+  font-size: 18px;
+  color: var(--ink);
+  cursor: pointer;
+}
