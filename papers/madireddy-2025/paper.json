@@ -1,0 +1,1055 @@
+{
+  "version": 1,
+  "node": "madireddy-2025",
+  "title": "Large Language Model-Driven Code Compliance Checking in Building Information Modeling",
+  "source": "files/madireddy-2025.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Abstract: This research addresses the time-consuming and error-prone nature of manual code compliance checking in Building Information Modeling (BIM) by introducing a Large Language Model (LLM)-driven approach to semi-automate this critical process. The developed system integrates LLMs such as ChatGPT, Claude, Gemini, and Llama, with Revit software to interpret building codes, generate Python scripts, and perform semi-automated compliance checks within the BIM environment. Case studies on a single-family residential project and an office building project demonstrated the system’s ability to reduce the time and effort required for compliance checks while improving accuracy. It streamlined the identification of violations, such as non-compliant room dimensions, material usage, and object placements, by automatically assessing relationships and generating actionable reports. Compared to manual methods, the system eliminated repetitive tasks, simplified complex regulations, and ensured reliable adherence to standards. By offering a comprehensive, adaptable, and cost-effective solution, this proposed approach offers a promising advancement in BIM-based compliance checking, with potential applications across diverse regulatory documents in construction projects.",
+            "es": "Resumen: Esta investigación aborda el carácter laborioso y propenso a errores de la verificación manual del cumplimiento normativo en el Modelado de Información de Construcción (Building Information Modeling, BIM) mediante la introducción de un enfoque impulsado por Modelos de Lenguaje de Gran Escala (Large Language Models, LLM) para semiautomatizar este proceso crítico. El sistema desarrollado integra LLM como ChatGPT, Claude, Gemini y Llama con el software Revit para interpretar códigos de construcción, generar scripts de Python y realizar verificaciones de cumplimiento semiautomatizadas dentro del entorno BIM. Los estudios de caso sobre un proyecto residencial unifamiliar y un proyecto de edificio de oficinas demostraron la capacidad del sistema para reducir el tiempo y el esfuerzo requeridos en las verificaciones de cumplimiento, al tiempo que mejora la precisión. Agilizó la identificación de infracciones, como dimensiones de habitaciones, uso de materiales y colocación de objetos que no cumplen la normativa, al evaluar automáticamente las relaciones y generar informes accionables. En comparación con los métodos manuales, el sistema eliminó las tareas repetitivas, simplificó las regulaciones complejas y aseguró un apego confiable a los estándares. Al ofrecer una solución integral, adaptable y rentable, este enfoque propuesto representa un avance prometedor en la verificación de cumplimiento basada en BIM, con posibles aplicaciones en diversos documentos normativos en proyectos de construcción."
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Keywords: BIM; semi-automated compliance checking; code compliance checking; AI; LLM",
+            "es": "Palabras clave: BIM; verificación semiautomatizada del cumplimiento; verificación del cumplimiento de códigos; IA; LLM"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1. Introduction",
+        "es": "1. Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "1.1. Code Compliance",
+            "es": "1.1. Cumplimiento de códigos"
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Ensuring that construction projects adhere to building codes and regulations is a critical aspect of the architecture, engineering, and construction (AEC) industry [1]. Tradition-ally, this process has been manual, relying on senior professionals to review designs using Computer-Aided Design (CAD) drawings and specifications, which is time-consuming, inefficient, and prone to errors [2]. Automated compliance checking (ACC) has emerged as a solution to improve accuracy and efficiency by using computer programs to check building projects against codes. The use of Building Information Modeling (BIM) has enhanced ACC by providing a digital representation of a building, enabling better collaboration and information exchange [3]. https://doi.org/10.3390/electronics14112146",
+            "es": "Garantizar que los proyectos de construcción se apeguen a los códigos y reglamentos de construcción es un aspecto crítico de la industria de la arquitectura, la ingeniería y la construcción (architecture, engineering, and construction, AEC) [1]. Tradicionalmente, este proceso ha sido manual y depende de profesionales senior que revisan los diseños mediante planos de diseño asistido por computadora (Computer-Aided Design, CAD) y especificaciones, lo cual consume mucho tiempo, es ineficiente y propenso a errores [2]. La verificación automatizada del cumplimiento (automated compliance checking, ACC) ha surgido como una solución para mejorar la precisión y la eficiencia mediante el uso de programas de computadora que revisan los proyectos de edificación frente a los códigos. El uso del Modelado de Información de Construcción (BIM) ha potenciado la ACC al proporcionar una representación digital de un edificio, lo que permite una mejor colaboración e intercambio de información [3]. https://doi.org/10.3390/electronics14112146"
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The core of ACC involves translating building codes and regulations into a machineinterpretable format [4]. This process includes several key steps: rule interpretation, building model preparation, rule execution, and result reporting [5]. Rule interpretation is considered the most vital and complex stage, often involving techniques like using existing software, creating plug-in applications, or adopting object-based, logical, or ontological approaches [3]. The use of natural language processing (NLP) is also important for interpreting regulatory texts and converting them into computable rules [6]. The building model is prepared by extracting the necessary information from BIM models, including geometric and property data. During rule execution, the interpreted rules are applied to the prepared model, and any violations are recorded [7].",
+            "es": "El núcleo de la ACC consiste en traducir los códigos y reglamentos de construcción a un formato interpretable por máquina [4]. Este proceso incluye varios pasos clave: interpretación de reglas, preparación del modelo del edificio, ejecución de reglas y reporte de resultados [5]. La interpretación de reglas se considera la etapa más vital y compleja, y con frecuencia implica técnicas como el uso de software existente, la creación de aplicaciones de complemento (plug-in) o la adopción de enfoques basados en objetos, lógicos u ontológicos [3]. El uso del procesamiento de lenguaje natural (natural language processing, NLP) también es importante para interpretar los textos normativos y convertirlos en reglas computables [6]. El modelo del edificio se prepara extrayendo la información necesaria de los modelos BIM, incluidos los datos geométricos y de propiedades. Durante la ejecución de reglas, las reglas interpretadas se aplican al modelo preparado y se registran las infracciones [7]."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "These steps are increasingly supported by advanced digital technologies, such as BIM, NLP, and machine learning, which significantly improve the accuracy and speed of compliance checks [8]. For example, Li et al. [9] proposed an integrative framework for automated compliance checking in BIM models, utilizing knowledge graphs and NLP to identify errors based on building standards, specifically in architectural and fire safety contexts. Lange et al. [10] developed a machine learning system to automate accessibility compliance checking in BIM designs; the system utilized a Convolutional Neural Network (CNN) to analyze BIM models and identify accessibility issues, such as urban surfaces or excessive ramp slopes with an accuracy of 95%.",
+            "es": "Estos pasos cuentan cada vez más con el apoyo de tecnologías digitales avanzadas, como BIM, NLP y aprendizaje automático (machine learning), que mejoran significativamente la precisión y la rapidez de las verificaciones de cumplimiento [8]. Por ejemplo, Li et al. [9] propusieron un marco integrador para la verificación automatizada del cumplimiento en modelos BIM, que utiliza grafos de conocimiento (knowledge graphs) y NLP para identificar errores con base en normas de construcción, específicamente en contextos arquitectónicos y de seguridad contra incendios. Lange et al. [10] desarrollaron un sistema de aprendizaje automático para automatizar la verificación del cumplimiento de accesibilidad en diseños BIM; el sistema utilizó una Red Neuronal Convolucional (Convolutional Neural Network, CNN) para analizar modelos BIM e identificar problemas de accesibilidad, como superficies urbanas o pendientes excesivas de rampas, con una precisión del 95%."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "1.2. Challenges in Current ACC Systems",
+            "es": "1.2. Desafíos de los sistemas ACC actuales"
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The current ACC systems face several persistent challenges that hinder their widespread implementation and effectiveness. A significant issue lies in translating the complex and often ambiguous language of building codes into a machine-interpretable format [11]. Building codes frequently change, with new requirements added regularly, making it difficult to maintain and update these systems, especially when they rely on hardcoded rules [12]. Also, the interpretation of regulatory texts using NLP tools is complicated by the legal and technical nuances of the text [13].",
+            "es": "Los sistemas ACC actuales enfrentan varios desafíos persistentes que obstaculizan su implementación y eficacia generalizadas. Un problema importante radica en traducir el lenguaje complejo y a menudo ambiguo de los códigos de construcción a un formato interpretable por máquina [11]. Los códigos de construcción cambian con frecuencia y se añaden nuevos requisitos de forma regular, lo que dificulta mantener y actualizar estos sistemas, especialmente cuando dependen de reglas codificadas de forma fija (hardcoded) [12]. Además, la interpretación de textos normativos mediante herramientas de NLP se complica por los matices legales y técnicos del texto [13]."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Another critical challenge is the reliance on detailed, accurate, and complete building information, as deficiencies in BIM models, such as missing or incorrect data, can significantly hinder the automated checking process [14]. The lack of standardization in BIM data further exacerbates these problems, often necessitating extensive manual preprocessing to correct inconsistencies and omissions [15]. Furthermore, existing ACC systems often operate as “black boxes”, lacking transparency and flexibility, which makes them difficult to understand or modify for specific user needs [4]. These systems also struggle with addressing qualitative aspects of building codes, such as aesthetics and spatial functionality, and face scalability issues as building designs become increasingly complex [16].",
+            "es": "Otro desafío crítico es la dependencia de información del edificio detallada, precisa y completa, ya que las deficiencias en los modelos BIM, como datos faltantes o incorrectos, pueden obstaculizar significativamente el proceso de verificación automatizada [14]. La falta de estandarización en los datos BIM agrava aún más estos problemas, y con frecuencia exige un extenso preprocesamiento manual para corregir inconsistencias y omisiones [15]. Asimismo, los sistemas ACC existentes suelen operar como “cajas negras” (black boxes), con falta de transparencia y flexibilidad, lo que dificulta entenderlos o modificarlos para necesidades específicas de los usuarios [4]. Estos sistemas también tienen dificultades para abordar los aspectos cualitativos de los códigos de construcción, como la estética y la funcionalidad espacial, y enfrentan problemas de escalabilidad a medida que los diseños de edificios se vuelven cada vez más complejos [16]."
+          }
+        },
+        {
+          "id": "s1-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Despite these challenges, ACC systems have demonstrated significant potential to improve the speed, accuracy, and consistency of code compliance checks. By leveraging advanced digital technologies such as BIM, NLP, and machine learning, these systems can save time and resources while reducing the likelihood of human error [8].",
+            "es": "A pesar de estos desafíos, los sistemas ACC han demostrado un potencial significativo para mejorar la rapidez, la precisión y la consistencia de las verificaciones de cumplimiento de códigos. Al aprovechar tecnologías digitales avanzadas como BIM, NLP y aprendizaje automático, estos sistemas pueden ahorrar tiempo y recursos y reducir la probabilidad de error humano [8]."
+          }
+        },
+        {
+          "id": "s1-p9",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "1.3. Emergence of LLMs and Its Transformative Potential",
+            "es": "1.3. Surgimiento de los LLM y su potencial transformador"
+          }
+        },
+        {
+          "id": "s1-p10",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The emergence of LLMs has introduced a transformative potential for ACC by offering advanced capabilities in natural language processing [5]. LLMs, pre-trained on vast amounts of data, demonstrate a strong ability to understand and generate human language with minimal task-specific training. This enables them to interpret complex regulatory texts and potentially convert them into computable rules more efficiently than previous methods [17]. LLMs can also adapt to new regulations and extract structured information from regulatory texts. LLMs also show promise in generating formal representations of regulations, potentially replacing the need for manual rule creation and improving the overall efficiency and effectiveness of checking processes [18]. However, despite their great potential, there are still challenges to be addressed, such as ensuring the accuracy of the generated outputs and the dependence on prompt engineering to guide their responses effectively. These challenges show that more research is needed to make full use of LLMs for automated compliance checking.",
+            "es": "El surgimiento de los LLM ha introducido un potencial transformador para la ACC al ofrecer capacidades avanzadas en el procesamiento de lenguaje natural [5]. Los LLM, preentrenados con grandes cantidades de datos, demuestran una gran capacidad para comprender y generar lenguaje humano con un entrenamiento mínimo específico para cada tarea. Esto les permite interpretar textos normativos complejos y, potencialmente, convertirlos en reglas computables con mayor eficiencia que los métodos anteriores [17]. Los LLM también pueden adaptarse a nuevas regulaciones y extraer información estructurada de los textos normativos. Además, los LLM se muestran prometedores para generar representaciones formales de las regulaciones, lo que podría reemplazar la necesidad de crear reglas manualmente y mejorar la eficiencia y la eficacia generales de los procesos de verificación [18]. Sin embargo, a pesar de su gran potencial, todavía hay desafíos por resolver, como garantizar la precisión de los resultados generados y la dependencia de la ingeniería de prompts (prompt engineering) para guiar sus respuestas de manera eficaz. Estos desafíos muestran que se necesita más investigación para aprovechar plenamente los LLM en la verificación automatizada del cumplimiento."
+          }
+        },
+        {
+          "id": "s1-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "1.4. Objectives of This Research",
+            "es": "1.4. Objetivos de esta investigación"
+          }
+        },
+        {
+          "id": "s1-p12",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "While previous research has explored the application of LLMs to ACC, there are still challenges that remain unresolved. Existing compliance-checking models lack integration with BIM environments. Many platforms are restricted to specific regulations and difficult to adapt to changes. To address this, we propose an LLM-based approach that converts regulations into executable Python 3.13.2 scripts for real-time compliance checking in Revit 2024.",
+            "es": "Si bien investigaciones previas han explorado la aplicación de los LLM a la ACC, aún quedan desafíos sin resolver. Los modelos de verificación de cumplimiento existentes carecen de integración con los entornos BIM. Muchas plataformas están restringidas a regulaciones específicas y son difíciles de adaptar a los cambios. Para abordar esto, proponemos un enfoque basado en LLM que convierte las regulaciones en scripts ejecutables de Python 3.13.2 para la verificación de cumplimiento en tiempo real en Revit 2024."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2. Literature Review",
+        "es": "2. Revisión de la literatura"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "2.1. Importance of Code Compliance in Construction",
+            "es": "2.1. Importancia del cumplimiento normativo en la construcción"
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Code compliance in construction is crucial for building safety, legal adherence, and efficiency through automation [19]. Building codes are legal documents designed to protect public safety by establishing minimum standards for construction [20]. They specify requirements for various aspects of building design and construction, such as fire safety, accessibility, and structural integrity [21]. By adhering to these codes, construction projects can avoid safety hazards that may lead to accidents, injuries, or even fatalities [22]. ACC systems play a crucial role in enhancing safety by reducing human error during the design, review, and construction planning phases [1]. These systems can identify potential safety issues early in the design process, allowing for timely modifications and preventing costly and potentially dangerous rework. Moreover, automated systems can check for specific safety concerns like fall hazards and spatial relationships, ensuring a safer environment for both construction workers and future building occupants [22].",
+            "es": "El cumplimiento normativo (code compliance) en la construcción es fundamental para la seguridad de los edificios, el apego legal y la eficiencia mediante la automatización [19]. Los códigos de construcción (building codes) son documentos legales diseñados para proteger la seguridad pública al establecer estándares mínimos de construcción [20]. Especifican requisitos para diversos aspectos del diseño y la construcción de edificios, como la seguridad contra incendios, la accesibilidad y la integridad estructural [21]. Al apegarse a estos códigos, los proyectos de construcción pueden evitar riesgos de seguridad que podrían provocar accidentes, lesiones o incluso muertes [22]. Los sistemas ACC desempeñan un papel fundamental en la mejora de la seguridad al reducir el error humano durante las fases de diseño, revisión y planeación de la construcción [1]. Estos sistemas pueden identificar posibles problemas de seguridad al inicio del proceso de diseño, lo que permite realizar modificaciones oportunas y evitar retrabajos costosos y potencialmente peligrosos. Además, los sistemas automatizados pueden verificar aspectos de seguridad específicos, como los riesgos de caída y las relaciones espaciales, garantizando un entorno más seguro tanto para los trabajadores de la construcción como para los futuros ocupantes del edificio [22]."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Code compliance also significantly impacts the efficiency of construction projects [4]. Manual code checking is a time-consuming and error-prone process, often requiring extensive resources and leading to project delays and increased costs [3]. However, ACC systems offer a solution by streamlining the process, saving time, money, and labor [22]. BIM technology facilitates automated checking by providing a digital representation of building designs and related data, making it possible to perform checks more quickly and accurately [13]. By detecting and addressing potential issues during the design phase, ACC helps to prevent costly rework [20]. Furthermore, ACC can streamline the building permit process, promote better collaboration among project participants, and produce inspection reports quickly [21].",
+            "es": "El cumplimiento normativo también influye de manera significativa en la eficiencia de los proyectos de construcción [4]. La revisión manual de códigos es un proceso que consume mucho tiempo y es propenso a errores; con frecuencia requiere recursos considerables y provoca retrasos en los proyectos y mayores costos [3]. Sin embargo, los sistemas ACC ofrecen una solución al agilizar el proceso, ahorrando tiempo, dinero y mano de obra [22]. La tecnología BIM facilita la revisión automatizada al proporcionar una representación digital de los diseños de los edificios y de los datos relacionados, lo que permite realizar las verificaciones con mayor rapidez y precisión [13]. Al detectar y atender posibles problemas durante la fase de diseño, el ACC ayuda a prevenir retrabajos costosos [20]. Además, el ACC puede agilizar el proceso de obtención de permisos de construcción, promover una mejor colaboración entre los participantes del proyecto y producir informes de inspección con rapidez [21]."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Furthermore, code compliance is critical for legal adherence [2]. Building codes are legally binding and failure to comply can result in significant legal disputes, project delays, and financial penalties. Standardized codes and automated systems also promote greater consistency across jurisdictions, reducing confusion for designers and builders [22]. A system that can perform checks with integrity and credibility is essential for maintaining trust and preventing legal problems in construction projects [16].",
+            "es": "Asimismo, el cumplimiento normativo es esencial para el apego legal [2]. Los códigos de construcción son jurídicamente vinculantes y su incumplimiento puede dar lugar a disputas legales importantes, retrasos en los proyectos y sanciones económicas. Los códigos estandarizados y los sistemas automatizados también promueven una mayor consistencia entre jurisdicciones, lo que reduce la confusión para diseñadores y constructores [22]. Un sistema capaz de realizar verificaciones con integridad y credibilidad es esencial para mantener la confianza y evitar problemas legales en los proyectos de construcción [16]."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "2.2. Methods for Ensuring Compliance",
+            "es": "2.2. Métodos para garantizar el cumplimiento normativo"
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The development of methods for ensuring compliance in the AEC industry has progressed from manual, error-prone processes to sophisticated automated systems, driven by technological advancements, the increasing complexity of building codes, and the need for efficiency and accuracy [22]. Initially, compliance relied on manual interpretation and review of design drawings and specifications by experienced professionals [7]. This involved a time-consuming and costly process where senior personnel examined drawings, often repeating similar checks, and was highly susceptible to errors [13]. These manual checks were limited by the fact that professionals could not memorize all the codes, which were often contradictory [1].",
+            "es": "El desarrollo de métodos para garantizar el cumplimiento normativo en la industria AEC ha avanzado desde procesos manuales propensos a errores hasta sistemas automatizados sofisticados, impulsado por los avances tecnológicos, la creciente complejidad de los códigos de construcción y la necesidad de eficiencia y precisión [22]. Inicialmente, el cumplimiento dependía de la interpretación y revisión manual de los planos de diseño y las especificaciones por parte de profesionales con experiencia [7]. Esto implicaba un proceso largo y costoso en el que personal con mayor antigüedad examinaba los planos, a menudo repitiendo revisiones similares, y que era muy susceptible a errores [13]. Estas revisiones manuales estaban limitadas por el hecho de que los profesionales no podían memorizar todos los códigos, que con frecuencia eran contradictorios [1]."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The introduction of computer-aided design (CAD) in the 1980s brought a transition to digital methods, but early CAD systems still relied on manual checking of drawings and textual descriptions, simply digitizing existing workflows. These systems lacked the ability to perform intelligent rule-based checks and were essentially digital versions of the manual process [1]. BIM marked a significant shift in compliance checking by integrating building information with rule-based checking [5]. BIM is a digital model that captures the physical and functional characteristics of a facility. It acts as a shared knowledge resource to aid decision-making throughout a facility’s life [23]. BIM technology has revolutionized the construction industry by improving collaboration, accuracy, and project management [24]. Initially focused on 3D modeling, BIM has expanded to incorporate 4D (time), 5D (cost), and 6D (sustainability) [25]. BIM allowed for the creation of digital models containing not only the geometry of a building but also extensive data about its components and systems. Early BIM-based approaches used hard-coded rules directly into software, where compliance rules were embedded within the software’s code [26]. These early systems were inflexible, difficult to modify, and often lacked transparency, acting as “black boxes” [19].",
+            "es": "La introducción del diseño asistido por computadora (computer-aided design, CAD) en la década de 1980 trajo consigo una transición hacia los métodos digitales, pero los primeros sistemas CAD seguían dependiendo de la revisión manual de planos y descripciones textuales, limitándose a digitalizar los flujos de trabajo existentes. Estos sistemas carecían de la capacidad de realizar revisiones inteligentes basadas en reglas y eran, en esencia, versiones digitales del proceso manual [1]. BIM marcó un cambio significativo en la verificación del cumplimiento al integrar la información del edificio con la revisión basada en reglas [5]. BIM es un modelo digital que captura las características físicas y funcionales de una instalación. Actúa como un recurso de conocimiento compartido que apoya la toma de decisiones a lo largo de la vida de una instalación [23]. La tecnología BIM ha revolucionado la industria de la construcción al mejorar la colaboración, la precisión y la gestión de proyectos [24]. Aunque inicialmente se centraba en el modelado 3D, BIM se ha ampliado para incorporar 4D (tiempo), 5D (costo) y 6D (sostenibilidad) [25]. BIM permitió crear modelos digitales que contienen no solo la geometría de un edificio, sino también datos extensos sobre sus componentes y sistemas. Los primeros enfoques basados en BIM utilizaban reglas codificadas directamente en el software (hard-coded rules), en las que las reglas de cumplimiento estaban incrustadas en el código del software [26]. Estos primeros sistemas eran inflexibles, difíciles de modificar y con frecuencia carecían de transparencia, actuando como “cajas negras” (black boxes) [19]."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "To address the limitations of inflexibility and lack of transparency, semi-automated methods were introduced [5]. These methods aimed to translate regulatory text into machine-processable formats using logical operators, while still requiring some manual effort. The use of predicate logic allowed for the validation of checking methods, calculations, and conditions in the rules, expressing rules as logical conditions that could be evaluated. The deontological approach, using deontic logic, was introduced for more complex knowledge representation and reasoning [27].",
+            "es": "Para abordar las limitaciones de inflexibilidad y falta de transparencia, se introdujeron métodos semiautomatizados [5]. Estos métodos buscaban traducir el texto normativo a formatos procesables por máquina mediante operadores lógicos, aunque todavía requerían cierto esfuerzo manual. El uso de la lógica de predicados (predicate logic) permitió validar los métodos de verificación, los cálculos y las condiciones de las reglas, expresando las reglas como condiciones lógicas que podían evaluarse. El enfoque deontológico, que utiliza la lógica deóntica (deontic logic), se introdujo para una representación del conocimiento y un razonamiento más complejos [27]."
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Further advancements included the use of NLP techniques to automate the extraction of information from regulatory texts [5]. These techniques converted unstructured text into structured information for automated reasoning. Early NLP approaches included both rule-based and statistical methods, with rule-based methods generally offering better accuracy but requiring more human labor. Researchers explored methods to extract semantic and syntactic information and to categorize text in regulatory documents to improve efficiency [28]. The development of ontologies also played a key role, enabling the representation of domain knowledge and supporting semantic reasoning [29].",
+            "es": "Otros avances incluyeron el uso de técnicas de PLN (procesamiento de lenguaje natural, NLP) para automatizar la extracción de información de los textos normativos [5]. Estas técnicas convertían el texto no estructurado en información estructurada para el razonamiento automatizado. Los primeros enfoques de PLN incluían métodos tanto basados en reglas como estadísticos; los métodos basados en reglas generalmente ofrecían mayor precisión, pero requerían más trabajo humano. Los investigadores exploraron métodos para extraer información semántica y sintáctica y para categorizar el texto de los documentos normativos con el fin de mejorar la eficiencia [28]. El desarrollo de las ontologías (ontologies) también desempeñó un papel clave, al permitir la representación del conocimiento del dominio y apoyar el razonamiento semántico [29]."
+          }
+        },
+        {
+          "id": "s2-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "More recently, there has been a focus on utilizing visual programming languages to make rule-making and compliance checking more accessible to non-programmers. The Visual Code Checking Language (VCCL) allows users to visually translate codes and formalize them [19]. Domain-specific languages, such as the Building Environment and Analysis Language (BERA), provide a mean to encode complex rules regarding spatial and circulation requirements [4].",
+            "es": "Más recientemente, se ha puesto el enfoque en el uso de lenguajes de programación visual (visual programming languages) para que la creación de reglas y la verificación del cumplimiento sean más accesibles para personas que no programan. El Visual Code Checking Language (VCCL) permite a los usuarios traducir visualmente los códigos y formalizarlos [19]. Los lenguajes específicos de dominio (domain-specific languages), como el Building Environment and Analysis Language (BERA), proporcionan un medio para codificar reglas complejas relativas a requisitos espaciales y de circulación [4]."
+          }
+        },
+        {
+          "id": "s2-p11",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The emergence of LLMs like ChatGPT has demonstrated the potential to automate the translation of natural language requirements into computable representations [17]. LLMs can address the limitations of deep learning by providing robust language understanding with minimal labeled data, adapting to evolving regulations, and accurately extracting structured information from regulatory texts [5].",
+            "es": "La aparición de los LLM (modelos de lenguaje de gran tamaño, large language models) como ChatGPT ha demostrado el potencial de automatizar la traducción de requisitos en lenguaje natural a representaciones computables [17]. Los LLM pueden abordar las limitaciones del aprendizaje profundo (deep learning) al ofrecer una comprensión sólida del lenguaje con un mínimo de datos etiquetados, adaptarse a normativas en evolución y extraer con precisión información estructurada de los textos normativos [5]."
+          }
+        },
+        {
+          "id": "s2-p12",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Knowledge graphs are also being explored to structure and store knowledge from BIM standards, enabling rule-based systems and machine learning to be used for compliance checking [26]. These methods correlate information, allow for information reuse, and fully express the constraints between building entities. The use of deep learning for preclassifying regulatory texts can improve the accuracy of structured information extraction by LLMs [5].",
+            "es": "También se están explorando los grafos de conocimiento (knowledge graphs) para estructurar y almacenar el conocimiento de los estándares BIM, lo que permite utilizar sistemas basados en reglas y aprendizaje automático (machine learning) para la verificación del cumplimiento [26]. Estos métodos correlacionan la información, permiten su reutilización y expresan plenamente las restricciones entre las entidades del edificio. El uso del aprendizaje profundo para preclasificar los textos normativos puede mejorar la precisión de la extracción de información estructurada por parte de los LLM [5]."
+          }
+        },
+        {
+          "id": "s2-p13",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Current research also includes addressing the complexity of translating natural language rules, dealing with spatial and geometric relationships, and improving the transparency and usability of these systems [13]. There is also a push to create digital libraries of rule sets that can be shared online, subdivided by geographical location, which would unite the controls that must comply with a specific regulation [30]. The development of an open format for these rule sets could guarantee interoperability between model-checking software. Many studies are now focusing on the integration of LLMs, deep learning models, and ontology knowledge models to improve the efficiency and accuracy of compliance checks [5]. Also, there is a growing interest in making these systems more user-friendly and capable of enhancing efficiency and compliance in BIM modeling and procurement processes [15].",
+            "es": "La investigación actual también incluye abordar la complejidad de traducir reglas en lenguaje natural, tratar las relaciones espaciales y geométricas, y mejorar la transparencia y la usabilidad de estos sistemas [13]. Asimismo, se impulsa la creación de bibliotecas digitales de conjuntos de reglas que puedan compartirse en línea, subdivididas por ubicación geográfica, que reunirían los controles que deben cumplir una normativa específica [30]. El desarrollo de un formato abierto para estos conjuntos de reglas podría garantizar la interoperabilidad entre los programas de verificación de modelos. Muchos estudios se centran ahora en la integración de LLM, modelos de aprendizaje profundo y modelos de conocimiento basados en ontologías para mejorar la eficiencia y la precisión de las verificaciones de cumplimiento [5]. Además, hay un interés creciente en hacer que estos sistemas sean más fáciles de usar y capaces de mejorar la eficiencia y el cumplimiento en los procesos de modelado BIM y de adquisiciones [15]."
+          }
+        },
+        {
+          "id": "s2-p14",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "2.3. Current Automated Tools and Their Limitations",
+            "es": "2.3. Herramientas automatizadas actuales y sus limitaciones"
+          }
+        },
+        {
+          "id": "s2-p15",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Current ACC systems face several challenges, primarily stemming from the complexities of translating natural language regulations into machine-readable rules and the difficulties in ensuring the completeness and accuracy of BIM [16]. One significant challenge is the difficulty in translating building code text into machine-readable rules [11]. Building codes are written in natural language, which is not easily interpreted by computers. The language used in building codes can be ambiguous and complex, with cross-references and inconsistent relationship displays, which increases the complexity of interpreting the sentences and creates discrepancies [4]. Moreover, building codes often have national, regional, and cultural variations in wording and application, making it difficult to develop a universally applicable system [16]. This issue is further compounded by the fact that building codes are updated frequently, requiring constant modifications to the automated systems [22]. The lack of a standardized format for building codes and the absence of a unified conclusion in the ACC domain also contribute to interoperability issues between BIM and ACC systems [31].",
+            "es": "Los sistemas ACC actuales enfrentan varios desafíos, que se derivan principalmente de la complejidad de traducir las normativas en lenguaje natural a reglas legibles por máquina y de las dificultades para garantizar la integridad y la precisión de BIM [16]. Un desafío importante es la dificultad de traducir el texto de los códigos de construcción a reglas legibles por máquina [11]. Los códigos de construcción están redactados en lenguaje natural, que las computadoras no interpretan con facilidad. El lenguaje utilizado en los códigos de construcción puede ser ambiguo y complejo, con referencias cruzadas y presentaciones inconsistentes de las relaciones, lo que aumenta la complejidad de la interpretación de las oraciones y genera discrepancias [4]. Además, los códigos de construcción suelen tener variaciones nacionales, regionales y culturales en su redacción y aplicación, lo que dificulta el desarrollo de un sistema de aplicación universal [16]. Este problema se agrava por el hecho de que los códigos de construcción se actualizan con frecuencia, lo que exige modificaciones constantes en los sistemas automatizados [22]. La falta de un formato estandarizado para los códigos de construcción y la ausencia de una conclusión unificada en el campo del ACC también contribuyen a los problemas de interoperabilidad entre BIM y los sistemas ACC [31]."
+          }
+        },
+        {
+          "id": "s2-p16",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Another major challenge is the need for extensive preprocessing and preparation of BIM models for checking [14]. Existing platforms often require users to manually supplement missing information, correct inaccuracies, or address incomplete data in the model before checking can begin. This process, known as normalization, is labor-intensive, time-consuming, and prone to errors. Furthermore, the complexity of building designs increases the difficulty of ensuring that all necessary information is included and accurate in the model [3]. The lack of clearly defined information requirements and variations in modeling practices also contribute to inconsistencies and errors in BIM data [15]. Moreover, many systems are too focused on specific domains, such as particular building codes or safety regulations, which limits their general applicability and integration with other systems [32].",
+            "es": "Otro desafío importante es la necesidad de un preprocesamiento y una preparación extensos de los modelos BIM antes de su verificación [14]. Las plataformas existentes suelen exigir que los usuarios complementen manualmente la información faltante, corrijan imprecisiones o resuelvan datos incompletos del modelo antes de poder iniciar la verificación. Este proceso, conocido como normalización (normalization), requiere mucha mano de obra, consume mucho tiempo y es propenso a errores. Además, la complejidad de los diseños de edificios aumenta la dificultad de asegurar que toda la información necesaria esté incluida y sea correcta en el modelo [3]. La falta de requisitos de información claramente definidos y las variaciones en las prácticas de modelado también contribuyen a inconsistencias y errores en los datos BIM [15]. Por otra parte, muchos sistemas están demasiado enfocados en dominios específicos, como determinados códigos de construcción o normas de seguridad, lo que limita su aplicabilidad general y su integración con otros sistemas [32]."
+          }
+        },
+        {
+          "id": "s2-p17",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To address these challenges, several software tools have been developed to automate compliance checking directly within BIM environments, particularly Revit. For instance, UpCodes AI provides real-time in-model checking using AI, flagging violations related to stairs, doors, ramps, and clearances while linking them to the relevant code sections [33]. SMARTreview offers in-depth analysis of the International Building Code (IBC) through its Revit plugin and generates formal compliance reports accepted by some city permitting departments [34]. Solibri, while external, allows for extensive rule-based checking, including accessibility and egress, by importing Revit models through IFC [35]. Autodesk’s own Model Checker is a free, configurable tool within Revit, enabling users to create custom code rules [36]. icheck focuses on California’s accessibility code (CBC Chapter 11B) [37], and EvolveLAB’s Revit Code Tools automate occupancy, egress, and plumbing calculations using Revit schedules and tags [38].",
+            "es": "Para abordar estos desafíos, se han desarrollado varias herramientas de software que automatizan la verificación del cumplimiento directamente dentro de entornos BIM, en particular Revit. Por ejemplo, UpCodes AI ofrece verificación en tiempo real dentro del modelo mediante IA, señalando infracciones relacionadas con escaleras, puertas, rampas y espacios libres, y vinculándolas con las secciones pertinentes del código [33]. SMARTreview ofrece un análisis detallado del International Building Code (IBC) a través de su complemento (plugin) para Revit y genera informes formales de cumplimiento aceptados por algunos departamentos municipales de permisos [34]. Solibri, aunque es externo, permite una verificación extensa basada en reglas, incluidas la accesibilidad y la evacuación, al importar modelos de Revit mediante IFC [35]. El propio Model Checker de Autodesk es una herramienta gratuita y configurable dentro de Revit que permite a los usuarios crear reglas de código personalizadas [36]. icheck se centra en el código de accesibilidad de California (CBC Chapter 11B) [37], y Revit Code Tools de EvolveLAB automatiza los cálculos de ocupación, evacuación y plomería mediante tablas de planificación y etiquetas de Revit [38]."
+          }
+        },
+        {
+          "id": "s2-p18",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Although these tools offer varying levels of automation and sophistication, they are not without limitations. Many of them rely on hard-coded rules, which restrict flexibility, making it difficult to adapt to new or changing regulations. Others may struggle with complex geometric relationships, require extensive manual configuration, or are constrained by their focus on specific code standards. These limitations reduce their ability to dynamically adapt to diverse regulatory requirements and complex BIM models.",
+            "es": "Aunque estas herramientas ofrecen distintos niveles de automatización y sofisticación, no están exentas de limitaciones. Muchas de ellas dependen de reglas codificadas directamente en el software, lo que restringe la flexibilidad y dificulta la adaptación a normativas nuevas o cambiantes. Otras pueden tener dificultades con relaciones geométricas complejas, requerir una configuración manual extensa o estar limitadas por su enfoque en estándares de código específicos. Estas limitaciones reducen su capacidad para adaptarse de forma dinámica a requisitos normativos diversos y a modelos BIM complejos."
+          }
+        },
+        {
+          "id": "s2-p19",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Furthermore, many existing ACC systems also suffer from a lack of transparency and flexibility [4]. Hard-coded rules, while enabling the checking of specific provisions, are difficult to maintain, modify, and scale [22]. Users are often limited to predefined checking capabilities and cannot customize or adjust the rules to meet their specific project needs [39]. This lack of user involvement and transparency reduces the acceptance of these systems among domain experts [19]. On top of that, current systems may lack the ability to check complex, geometric relationships between components [6].",
+            "es": "Además, muchos sistemas ACC existentes también adolecen de falta de transparencia y flexibilidad [4]. Las reglas codificadas directamente en el software, aunque permiten verificar disposiciones específicas, son difíciles de mantener, modificar y escalar [22]. Los usuarios suelen estar limitados a capacidades de verificación predefinidas y no pueden personalizar ni ajustar las reglas para satisfacer las necesidades específicas de su proyecto [39]. Esta falta de participación del usuario y de transparencia reduce la aceptación de estos sistemas entre los expertos del dominio [19]. Aunado a ello, los sistemas actuales pueden carecer de la capacidad de verificar relaciones geométricas complejas entre componentes [6]."
+          }
+        },
+        {
+          "id": "s2-p20",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "2.4. Applications of Large Language Models in AEC",
+            "es": "2.4. Aplicaciones de los modelos de lenguaje de gran tamaño en AEC"
+          }
+        },
+        {
+          "id": "s2-p21",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "LLMs represent a major advancement in artificial intelligence (AI), showcasing transformative potential across various sectors, including the AEC industry [22]. These models, built on transformer architectures and trained on extensive datasets, excel at complex language-related tasks such as translation, summarization, and content generation [40]. In construction management, LLMs have been increasingly utilized to automate tasks like translating building regulations into computable formats and integrating regulatory requirements into compliance systems. For example, Fuchs et al. [18] demonstrated how GPT-3.5 and GPT-4 could structure regulatory texts into machine-readable formats, while Zhang [17] showed that ChatGPT could generate Python code from regulations, showcasing the scalability of LLMs in compliance automation.",
+            "es": "Los LLM representan un avance importante en la inteligencia artificial (IA), con un potencial transformador en diversos sectores, incluida la industria AEC [22]. Estos modelos, construidos sobre arquitecturas de transformadores (transformer architectures) y entrenados con conjuntos de datos extensos, sobresalen en tareas complejas relacionadas con el lenguaje, como la traducción, el resumen y la generación de contenido [40]. En la gestión de la construcción, los LLM se han utilizado cada vez más para automatizar tareas como la traducción de normativas de construcción a formatos computables y la integración de requisitos normativos en sistemas de cumplimiento. Por ejemplo, Fuchs et al. [18] demostraron cómo GPT-3.5 y GPT-4 podían estructurar textos normativos en formatos legibles por máquina, mientras que Zhang [17] mostró que ChatGPT podía generar código Python a partir de las normativas, lo que evidencia la escalabilidad de los LLM en la automatización del cumplimiento."
+          }
+        },
+        {
+          "id": "s2-p22",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "A key strength of LLMs lies in their robust natural language understanding and generation, enabled by pre-training on diverse and large-scale datasets. This equips them with the ability to identify complex patterns in language and adapt to downstream tasks with minimal fine-tuning through emergent capabilities like in-context and few-shot learning [5]. These features make LLMs particularly suitable for automating resourceintensive tasks in the AEC industry, such as ACC. Traditionally, ACC has been laborintensive, requiring manual analysis of complex and ambiguous regulatory texts. LLMs streamline this process by extracting structured information, improving accuracy, and reducing errors [18].",
+            "es": "Una fortaleza clave de los LLM radica en su sólida comprensión y generación del lenguaje natural, posibilitada por el preentrenamiento con conjuntos de datos diversos y de gran escala. Esto les permite identificar patrones complejos en el lenguaje y adaptarse a tareas posteriores con un ajuste fino (fine-tuning) mínimo mediante capacidades emergentes como el aprendizaje en contexto (in-context learning) y con pocos ejemplos (few-shot learning) [5]. Estas características hacen que los LLM sean especialmente adecuados para automatizar tareas que demandan muchos recursos en la industria AEC, como el ACC. Tradicionalmente, el ACC ha requerido mucha mano de obra, ya que exige el análisis manual de textos normativos complejos y ambiguos. Los LLM agilizan este proceso al extraer información estructurada, mejorar la precisión y reducir los errores [18]."
+          }
+        },
+        {
+          "id": "s2-p23",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Generative AI models like the GPT series have also demonstrated potential in architectural design through integration with BIM tools. Jang and Lee [41] showcased their use as design assistants, interpreting user inputs, suggesting materials, and updating BIM models with AI-driven recommendations. Similarly, He et al. [42] developed a framework using LLMs and a Physics-Based Conditional Diffusion Model (PCDM) to optimize structural designs, such as shear wall layouts, based on real-world conditions like seismic intensities and building heights.",
+            "es": "Los modelos de IA generativa (generative AI) como la serie GPT también han demostrado potencial en el diseño arquitectónico mediante la integración con herramientas BIM. Jang y Lee [41] mostraron su uso como asistentes de diseño, interpretando las entradas del usuario, sugiriendo materiales y actualizando los modelos BIM con recomendaciones impulsadas por IA. De manera similar, He et al. [42] desarrollaron un marco que utiliza LLM y un modelo de difusión condicional basado en la física (Physics-Based Conditional Diffusion Model, PCDM) para optimizar diseños estructurales, como la disposición de muros de cortante, con base en condiciones reales como las intensidades sísmicas y las alturas de los edificios."
+          }
+        },
+        {
+          "id": "s2-p24",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "By reducing dependence on large, annotated datasets and extensive manual feature engineering, LLMs overcome limitations of traditional methods, offering a more efficient and scalable approach to automation [18]. They also enhance the compliance process by employing pre-classification techniques and leveraging deep learning models to handle nested conditional statements and ambiguous regulatory language. These advancements highlight their potential to improve productivity, accuracy, and the overall quality of construction processes [5].",
+            "es": "Al reducir la dependencia de grandes conjuntos de datos anotados y de una extensa ingeniería manual de características (feature engineering), los LLM superan las limitaciones de los métodos tradicionales y ofrecen un enfoque de automatización más eficiente y escalable [18]. También mejoran el proceso de cumplimiento al emplear técnicas de preclasificación y aprovechar modelos de aprendizaje profundo para manejar enunciados condicionales anidados y lenguaje normativo ambiguo. Estos avances resaltan su potencial para mejorar la productividad, la precisión y la calidad general de los procesos de construcción [5]."
+          }
+        },
+        {
+          "id": "s2-p25",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "However, the application of LLMs in ACC is not without challenges. LLMs can still have difficulty handling highly complex regulatory texts with intricate structures, nested clauses, and conditional statements [5]. Furthermore, some studies have primarily focused on simpler regulatory texts, suggesting that more advanced strategies may be necessary to effectively process more complex information. Despite these limitations, LLMs offer promising solutions for automating the interpretation of regulatory texts, enhancing the efficiency and accuracy of compliance checking in the construction sector [17]. The ability to translate natural language into computable formats is a key advantage that LLMs bring to the AEC-FM field.",
+            "es": "Sin embargo, la aplicación de los LLM en el ACC no está exenta de desafíos. Los LLM aún pueden tener dificultades para manejar textos normativos muy complejos, con estructuras intrincadas, cláusulas anidadas y enunciados condicionales [5]. Además, algunos estudios se han centrado principalmente en textos normativos más sencillos, lo que sugiere que podrían ser necesarias estrategias más avanzadas para procesar de manera eficaz información más compleja. A pesar de estas limitaciones, los LLM ofrecen soluciones prometedoras para automatizar la interpretación de los textos normativos, mejorando la eficiencia y la precisión de la verificación del cumplimiento en el sector de la construcción [17]. La capacidad de traducir el lenguaje natural a formatos computables es una ventaja clave que los LLM aportan al campo AEC-FM."
+          }
+        },
+        {
+          "id": "s2-p26",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "2.5. Research Gap",
+            "es": "2.5. Brecha de investigación"
+          }
+        },
+        {
+          "id": "s2-p27",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Despite previous studies’ efforts to apply LLMs to ACC, several challenges persist in the field. There is still a lack of integration of compliance-checking models directly within the BIM environment, making it difficult to visually recognize compliance and its implications. Besides, there are limitations in utilizing certain types of regulatory documents, as many commercial rule-checking platforms are restricted to specific countryor state-based regulations and are not customizable to meet diverse needs. Existing systems often struggle to dynamically update compliance-checking processes when regulations change. To address these challenges, we investigated an LLM-based approach that can automatically convert regulations into executable Python scripts within a BIM environment.",
+            "es": "A pesar de los esfuerzos de estudios previos por aplicar los LLM al ACC, persisten varios desafíos en el campo. Todavía falta integrar los modelos de verificación del cumplimiento directamente dentro del entorno BIM, lo que dificulta reconocer visualmente el cumplimiento y sus implicaciones. Además, existen limitaciones en el uso de ciertos tipos de documentos normativos, ya que muchas plataformas comerciales de verificación de reglas están restringidas a normativas específicas de un país o estado y no se pueden personalizar para satisfacer necesidades diversas. Los sistemas existentes suelen tener dificultades para actualizar de forma dinámica los procesos de verificación del cumplimiento cuando cambian las normativas. Para abordar estos desafíos, investigamos un enfoque basado en LLM que puede convertir automáticamente las normativas en scripts de Python ejecutables dentro de un entorno BIM."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3. Methodology",
+        "es": "3. Metodología"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Figure 1 illustrates an LLM-based framework designed to streamline and enhance compliance verification within BIM platforms by leveraging the capabilities of Large Language Models (LLMs), such as GPT-3.5 and GPT-4. The semi-automated framework is divided into four interconnected components: input data, AI-based interpretation, rulechecking algorithm, and output.",
+            "es": "La Figura 1 ilustra un marco de trabajo (framework) basado en LLM, diseñado para agilizar y mejorar la verificación del cumplimiento normativo en plataformas BIM aprovechando las capacidades de los modelos de lenguaje de gran tamaño (Large Language Models, LLMs), como GPT-3.5 y GPT-4. El marco semiautomatizado se divide en cuatro componentes interconectados: datos de entrada, interpretación basada en IA, algoritmo de verificación de reglas (rule-checking algorithm) y resultados."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The process begins with the input data phase, which integrates two primary sources of information: the BIM model and regulatory documents. The BIM model provides a detailed digital representation of the building/structure’s design, including geometry, spatial relationships, construction elements, and associated metadata. Regulatory documents, on the other hand, include the legal and technical compliance standards that buildings must adhere to. These documents define rules, such as fire safety, accessibility, and structural integrity requirements, which the framework must validate against the BIM model.",
+            "es": "El proceso comienza con la fase de datos de entrada, que integra dos fuentes principales de información: el modelo BIM y los documentos normativos. El modelo BIM proporciona una representación digital detallada del diseño del edificio o estructura, incluidas la geometría, las relaciones espaciales, los elementos de construcción y los metadatos asociados. Los documentos normativos, por su parte, incluyen los estándares legales y técnicos de cumplimiento a los que deben ajustarse los edificios. Estos documentos definen reglas, como los requisitos de seguridad contra incendios, accesibilidad e integridad estructural, que el marco debe validar contra el modelo BIM."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The AI-based interpretation phase is the core of the framework, utilizing the NLP capabilities of LLMs such as GPT, Claude, Gemini, and Llama. During this phase, the LLMs analyze and interpret the regulatory documents. These models are capable of processing complex and unstructured textual information, converting human-readable regulatory standards into machine-readable logic. Based on the interpreted regulations, the LLMs generate Python scripts tailored for automated rule-checking. These scripts are executed within the Revit environment. If errors are produced in executing the generated scripts, the framework sends the error details back to the LLM for refinement. This feedback mechanism ensures the final scripts are functional and reduce the need for manual intervention.",
+            "es": "La fase de interpretación basada en IA es el núcleo del marco y utiliza las capacidades de procesamiento de lenguaje natural (NLP) de los LLMs como GPT, Claude, Gemini y Llama. Durante esta fase, los LLMs analizan e interpretan los documentos normativos. Estos modelos son capaces de procesar información textual compleja y no estructurada, y de convertir estándares normativos legibles para las personas en lógica legible por máquina. A partir de las normativas interpretadas, los LLMs generan scripts de Python diseñados para la verificación automatizada de reglas. Estos scripts se ejecutan dentro del entorno de Revit. Si se producen errores al ejecutar los scripts generados, el marco envía los detalles del error de vuelta al LLM para su refinamiento. Este mecanismo de retroalimentación (feedback) garantiza que los scripts finales sean funcionales y reduce la necesidad de intervención manual."
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The rule-checking algorithm phase executes the Python scripts generated in the previous phase to evaluate compliance. The scripts are executed within the Python shell of Revit. If the script execution encounters errors, such as syntax issues, missing data, or logical inconsistencies, these errors are extracted and sent back to the AI-based interpretation phase for refinement. When the scripts execute successfully, the framework generates detailed compliance or non-compliance reports. These reports highlight areas where the BIM model meets the regulations and identify deviations or violations.",
+            "es": "La fase del algoritmo de verificación de reglas ejecuta los scripts de Python generados en la fase anterior para evaluar el cumplimiento. Los scripts se ejecutan dentro de la consola de Python (Python shell) de Revit. Si la ejecución del script encuentra errores, como problemas de sintaxis, datos faltantes o inconsistencias lógicas, estos errores se extraen y se envían de vuelta a la fase de interpretación basada en IA para su refinamiento. Cuando los scripts se ejecutan con éxito, el marco genera informes detallados de cumplimiento o incumplimiento. Estos informes destacan las áreas en las que el modelo BIM cumple con las normativas e identifican las desviaciones o infracciones."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The output phase consolidates and presents the results of the rule-checking process. For compliant models, the framework generates a comprehensive report confirming adherence to all relevant regulations. For non-compliant models, it provides targeted recommendations to address the identified issues. These recommendations are actionable and guide users toward necessary modifications. Beyond basic compliance, the framework also offers additional insights, such as optimization suggestions for improving the BIM model’s design and risk assessments to warn about potential issues related to non-compliance.",
+            "es": "La fase de resultados consolida y presenta los resultados del proceso de verificación de reglas. Para los modelos que cumplen, el marco genera un informe integral que confirma el apego a todas las normativas pertinentes. Para los modelos que no cumplen, proporciona recomendaciones específicas para atender los problemas identificados. Estas recomendaciones son accionables y guían a los usuarios hacia las modificaciones necesarias. Más allá del cumplimiento básico, el marco también ofrece información adicional, como sugerencias de optimización para mejorar el diseño del modelo BIM y evaluaciones de riesgo que advierten sobre posibles problemas relacionados con el incumplimiento."
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The framework incorporates a feedback that connects the rule-checking algorithm and AI-based interpretation phases. This loop ensures continuous improvement of the Python scripts. By combining the interpretive power of LLMs with the computational capabilities of BIM tools like Revit, the framework will reduce the time and effort required for compliance checks while enhancing accuracy and reliability.",
+            "es": "El marco incorpora un ciclo de retroalimentación (feedback loop) que conecta las fases del algoritmo de verificación de reglas y de interpretación basada en IA. Este ciclo asegura la mejora continua de los scripts de Python. Al combinar la capacidad interpretativa de los LLMs con las capacidades computacionales de herramientas BIM como Revit, el marco reducirá el tiempo y el esfuerzo necesarios para las verificaciones de cumplimiento, al tiempo que mejora la exactitud y la fiabilidad."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1. LLM-based framework for rule-checking in BIM.",
+            "es": "Figura 1. Marco basado en LLM para la verificación de reglas en BIM."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4. Case Study",
+        "es": "4. Caso de estudio"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "In this research, we conducted two case studies: one focused on a single-family residential project and the other on an office building.",
+            "es": "En esta investigación realizamos dos casos de estudio: uno centrado en un proyecto residencial unifamiliar y otro en un edificio de oficinas."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "4.1. Sample Rules",
+            "es": "4.1. Reglas de muestra"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "In the case studies, 12 sample rules were selected from sources such as the Interna-tional Residential Code (IRC) [43], International Mechanical Code (IMC) [44], and other sources. These rules were converted into Python scripts, as shown in Table 1. These rules address dimensions, object relationships, materials, specific features and fixtures, structural elements, and mechanical components.",
+            "es": "En los casos de estudio se seleccionaron 12 reglas de muestra de fuentes como el International Residential Code (IRC) [43], el International Mechanical Code (IMC) [44] y otras fuentes. Estas reglas se convirtieron en scripts de Python, como se muestra en la Tabla 1. Estas reglas abordan dimensiones, relaciones entre objetos, materiales, características y accesorios específicos, elementos estructurales y componentes mecánicos."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 9,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1. Building code rules and references.",
+            "es": "Tabla 1. Reglas de códigos de construcción y referencias."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "4.2. Prompt Engineering",
+            "es": "4.2. Ingeniería de prompts"
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "As part of this research, we developed prompt engineering techniques to enhance the effectiveness of prompts used with LLMs like GPT-4. Figure 2 shows an example of the results of two different prompts using Rule 1 in Table 1 as an example. The initial prompt tested, shown as “Prompt A” in Figure 2, when given to an LLM model, generated a Python script. That script, when executed in Revit’s PythonShell, returned an output with an error message, as shown in Result A in Figure 2. To generate a Python script that works in Revit, we tried a number of approaches, including sending the error message back to the LLM, using different phrasing for the prompts, and instructing the LLM to avoid certain types of errors. After several trial-and-error attempts, we were able to identify the optimized prompt structure that is guaranteed to generate an error-free Python script in the Revit PythonShell environment. The optimized prompt, Prompt B in Figure 2, was then applied to Rule 1 again, and the correct result was returned, as shown in Result B in Figure 2.",
+            "es": "Como parte de esta investigación, desarrollamos técnicas de ingeniería de prompts (prompt engineering) para mejorar la eficacia de los prompts utilizados con LLMs como GPT-4. La Figura 2 muestra un ejemplo de los resultados de dos prompts diferentes usando la Regla 1 de la Tabla 1 como ejemplo. El prompt inicial que se probó, mostrado como “Prompt A” en la Figura 2, al ser proporcionado a un modelo LLM, generó un script de Python. Ese script, al ejecutarse en el PythonShell de Revit, devolvió una salida con un mensaje de error, como se muestra en el Resultado A de la Figura 2. Para generar un script de Python que funcione en Revit, probamos varios enfoques, entre ellos enviar el mensaje de error de vuelta al LLM, usar redacciones distintas para los prompts e indicarle al LLM que evitara ciertos tipos de errores. Tras varios intentos de prueba y error, logramos identificar la estructura de prompt optimizada que garantiza generar un script de Python sin errores en el entorno PythonShell de Revit. El prompt optimizado, el Prompt B de la Figura 2, se aplicó entonces de nuevo a la Regla 1 y se obtuvo el resultado correcto, como se muestra en el Resultado B de la Figura 2."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2. Example showcasing the result of Prompt A & Prompt B on LLM-generated Python script.",
+            "es": "Figura 2. Ejemplo que muestra el resultado del Prompt A y del Prompt B sobre el script de Python generado por el LLM."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The optimized prompt’s general structure is shown in Table 2. It consists of four components: the basic prompt, rule description, general instructions, and rule-specific instructions. The first component is the basic prompt, where we define the task that needs to be performed by the LLM. The second component is the rule description, where we provide the actual rule from the regulatory documents that needs to be verified. The third component is the general instructions, which ensure compatibility in the generated script. These instructions specify the versions of PythonShell and Revit being used to provide detailed technical context for the task. Also, since IronPython does not support f-strings, the instructions state that no f-strings should be used in the script to avoid compatibility issues. To further minimize errors, the general instructions emphasize avoiding syntax mistakes and ensuring the script adheres to Revit’s requirements. They also address specific elements such as FamilySymbol and DisplayUnitType, and they guide the LLM to generate code that properly interacts with these components within the Revit environment. The last component, rule-specific instructions, focuses on those rules that need to access specific Revit elements, categories, or data attributes, which differ from rule to rule.",
+            "es": "La estructura general del prompt optimizado se muestra en la Tabla 2. Consta de cuatro componentes: el prompt básico, la descripción de la regla, las instrucciones generales y las instrucciones específicas de la regla. El primer componente es el prompt básico, en el que definimos la tarea que debe realizar el LLM. El segundo componente es la descripción de la regla, en la que proporcionamos la regla real, tomada de los documentos normativos, que debe verificarse. El tercer componente son las instrucciones generales, que garantizan la compatibilidad del script generado. Estas instrucciones especifican las versiones de PythonShell y de Revit que se utilizan, a fin de proporcionar un contexto técnico detallado para la tarea. Además, dado que IronPython no admite f-strings, las instrucciones establecen que no se deben usar f-strings en el script para evitar problemas de compatibilidad. Para minimizar aún más los errores, las instrucciones generales hacen hincapié en evitar errores de sintaxis y en asegurar que el script cumpla con los requisitos de Revit. También abordan elementos específicos como FamilySymbol y DisplayUnitType, y orientan al LLM para generar código que interactúe correctamente con estos componentes dentro del entorno de Revit. El último componente, las instrucciones específicas de la regla, se centra en aquellas reglas que necesitan acceder a elementos, categorías o atributos de datos específicos de Revit, los cuales difieren de una regla a otra."
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Table 3 below provides a set of rule-specific instructions that enable LLMs to generate context-appropriate outputs by focusing on relevant Revit elements (e.g., doors, stairs, windows), categories (e.g., ost_stairs, ost_plumbingfixtures), and data attributes (e.g., width, height, material properties). These instructions serve as examples for 10 IRC rules derived from Table 1. These rule-specific instructions are needed primarily because objects in a BIM model are defined differently by various users, and LLMs require instructions to generate scripts that can accurately extract information from the correct object.",
+            "es": "La Tabla 3 a continuación proporciona un conjunto de instrucciones específicas de regla que permiten a los LLMs generar resultados apropiados al contexto, al centrarse en elementos de Revit relevantes (p. ej., puertas, escaleras, ventanas), categorías (p. ej., ost_stairs, ost_plumbingfixtures) y atributos de datos (p. ej., ancho, altura, propiedades de los materiales). Estas instrucciones sirven como ejemplos para 10 reglas del IRC derivadas de la Tabla 1. Estas instrucciones específicas de regla son necesarias principalmente porque los objetos de un modelo BIM son definidos de manera distinta por los diferentes usuarios, y los LLMs requieren instrucciones para generar scripts que puedan extraer con exactitud la información del objeto correcto."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 11,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2. Components of the prompt for rule-based Python script generation.",
+            "es": "Tabla 2. Componentes del prompt para la generación de scripts de Python basados en reglas."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 11,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3. Rule-specific instructions for LLMs.",
+            "es": "Tabla 3. Instrucciones específicas de regla para los LLMs."
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "4.3. Case Study 1",
+            "es": "4.3. Caso de estudio 1"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "A case study of a single-family residential project, shown in Figure 3, was conducted to demonstrate the effectiveness of the proposed rule-checking framework. The project includes detailed architectural layouts, room dimensions, and refuge areas, providing a suitable dataset for evaluation. Although a small-scale model was used for testing, the compliance-checking process remains consistent across models of any scale.",
+            "es": "Se realizó un caso de estudio de un proyecto residencial unifamiliar, mostrado en la Figura 3, para demostrar la eficacia del marco de verificación de reglas propuesto. El proyecto incluye distribuciones arquitectónicas detalladas, dimensiones de los espacios y áreas de refugio, lo que proporciona un conjunto de datos adecuado para la evaluación. Aunque se utilizó un modelo de pequeña escala para las pruebas, el proceso de verificación de cumplimiento se mantiene consistente en modelos de cualquier escala."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3. BIM model of a single-family house.",
+            "es": "Figura 3. Modelo BIM de una casa unifamiliar."
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Using the optimized prompt structure discussed above, we generated Python scripts for the rules listed in Table 1. The scripts successfully identified both compliant and noncompliant aspects of the BIM model, and the details of the results are discussed in the section below. Figure 4 displays a list of compliant and non-compliant doors for Rule 1 from Table 1. It includes information about the Door ID along with its width and height dimensions. Doors that meet the minimum width of 36 inches and height of 80 inches are marked as compliant, while those with dimensions below these thresholds, such as a width of 30 inches or less, are classified as non-compliant. Users can utilize the Element ID search in Revit to locate and address the non-compliant elements.",
+            "es": "Utilizando la estructura de prompt optimizada descrita anteriormente, generamos scripts de Python para las reglas enumeradas en la Tabla 1. Los scripts identificaron con éxito tanto los aspectos que cumplen como los que no cumplen del modelo BIM, y los detalles de los resultados se analizan en la sección siguiente. La Figura 4 muestra una lista de puertas que cumplen y que no cumplen para la Regla 1 de la Tabla 1. Incluye información sobre el ID de la puerta junto con sus dimensiones de ancho y altura. Las puertas que cumplen con el ancho mínimo de 36 pulgadas y la altura de 80 pulgadas se marcan como conformes, mientras que aquellas con dimensiones por debajo de estos umbrales, como un ancho de 30 pulgadas o menos, se clasifican como no conformes. Los usuarios pueden utilizar la búsqueda por Element ID en Revit para localizar y atender los elementos no conformes."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4. Script displaying both compliant and non-compliant doors.",
+            "es": "Figura 4. Script que muestra puertas conformes y no conformes."
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Figure 5 measures the clear width of each stairway to verify if it meets the minimum width requirement of 36 inches (914 mm), as specified in Rule 2 from Table 1. The script extracts the relevant dimensions from the BIM model, converts the units if necessary, and compares them against the IRC requirements. The result demonstrates that the staircase is compliant.",
+            "es": "La Figura 5 mide el ancho libre de cada escalera para verificar si cumple con el requisito de ancho mínimo de 36 pulgadas (914 mm), según lo especificado en la Regla 2 de la Tabla 1. El script extrae las dimensiones relevantes del modelo BIM, convierte las unidades si es necesario y las compara con los requisitos del IRC. El resultado demuestra que la escalera cumple con la norma."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5. Verifying stairway width compliance with IRC 2021 in Revit using Python script.",
+            "es": "Figura 5. Verificación del cumplimiento del ancho de las escaleras con el IRC 2021 en Revit mediante un script de Python."
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Figure 6 is based on Rule 6 from Table 1. The Python script iterates through the habitable rooms, referencing the room tags, and checks whether the rooms have less than 120 square feet of gross floor area. It flags the floor IDs that fall below the minimum standard as non-compliant. For rules like these, the parameters within Revit play a major role. The BIM model must be well-developed with accurate room tags, names, and boundaries to ensure that the correct elements or areas are verified, rather than all rooms.",
+            "es": "La Figura 6 se basa en la Regla 6 de la Tabla 1. El script de Python recorre los espacios habitables, haciendo referencia a las etiquetas de los espacios, y verifica si estos tienen menos de 120 pies cuadrados de área bruta de piso. Marca como no conformes los ID de piso que quedan por debajo del estándar mínimo. Para reglas como estas, los parámetros dentro de Revit desempeñan un papel importante. El modelo BIM debe estar bien desarrollado, con etiquetas, nombres y límites de espacios precisos, para asegurar que se verifiquen los elementos o áreas correctos, y no todos los espacios."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6. Compliance verification of room size standards using Python integration in Revit.",
+            "es": "Figura 6. Verificación del cumplimiento de los estándares de tamaño de los espacios mediante la integración de Python en Revit."
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Figure 7 demonstrates the results for Rule 3, which requires guardrails on elevated surfaces to be at least 36 inches (914 mm) in height. The script in Figure 7 evaluates each guardrail in the model against this height requirement and flags any non-compliant elements. For instance, a non-compliant guardrail is flagged as Element ID: 654321, with a height of 35 inches and a guard height of 32 inches. Other examples of evaluating relationships between different objects include checking window-to-wall ratio compliance and clear space in front of bathroom fixtures.",
+            "es": "La Figura 7 muestra los resultados de la Regla 3, que exige que los barandales (guardrails) en superficies elevadas tengan una altura de al menos 36 pulgadas (914 mm). El script de la Figura 7 evalúa cada barandal del modelo frente a este requisito de altura y marca cualquier elemento no conforme. Por ejemplo, un barandal no conforme se marca como Element ID: 654321, con una altura de 35 pulgadas y una altura de protección de 32 pulgadas. Otros ejemplos de evaluación de relaciones entre distintos objetos incluyen la verificación del cumplimiento de la relación ventana-muro y del espacio libre frente a los muebles sanitarios del baño."
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Figure 8 verifies Rule 4 from Table 1. This rule checks whether all habitable spaces have a ceiling height of at least 7 feet. The output relies on the elevation-level parameters to verify the level difference between the floor and ceiling for these rooms. The image below shows that the ceiling height is 9.84 feet and also provides the floor level. The final output confirms that the building is compliant with this rule.",
+            "es": "La Figura 8 verifica la Regla 4 de la Tabla 1. Esta regla comprueba si todos los espacios habitables tienen una altura de techo de al menos 7 pies. El resultado se basa en los parámetros de nivel de elevación para verificar la diferencia de nivel entre el piso y el techo de estos espacios. La imagen siguiente muestra que la altura del techo es de 9.84 pies y también indica el nivel del piso. El resultado final confirma que el edificio cumple con esta regla."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 14,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7. Python script in Revit verifying guardrail height compliance with IRC 2021.",
+            "es": "Figura 7. Script de Python en Revit que verifica el cumplimiento de la altura de los barandales con el IRC 2021."
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 14,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Figure 8. Python script validating ceiling height compliance in Revit.",
+            "es": "Figura 8. Script de Python que valida el cumplimiento de la altura del techo en Revit."
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Figure 9 shows the results for Rule 10, which outlines material specifications and specifies the required thickness and span rating for these panels. It identifies the room boundary, flooring material, floor level, Element ID, and other details essential for ensuring compliance with floor specifications.",
+            "es": "La Figura 9 muestra los resultados de la Regla 10, que describe las especificaciones de los materiales y especifica el espesor y la clasificación de claro requeridos para estos paneles. Identifica el límite del espacio, el material del piso, el nivel del piso, el Element ID y otros detalles esenciales para asegurar el cumplimiento de las especificaciones del piso."
+          }
+        },
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 14,
+          "image": "fig/fig-9.png",
+          "text": {
+            "en": "Figure 9. Process of performing compliance check for the flooring material in Revit.",
+            "es": "Figura 9. Proceso de realización de la verificación de cumplimiento del material del piso en Revit."
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Figure 10 shows the compliance output for Rule 8. The Python script interacts with Revit to detect all toilet fixtures and their properties. It verifies the fixture type, placement coordinates, and spatial relationships with nearby items. The output displays toilet fixtures and their components, including water closets (W.C.) and washbasins, along with their design specifications.",
+            "es": "La Figura 10 muestra el resultado de cumplimiento de la Regla 8. El script de Python interactúa con Revit para detectar todos los inodoros y sus propiedades. Verifica el tipo de mueble, las coordenadas de colocación y las relaciones espaciales con los elementos cercanos. El resultado muestra los inodoros y sus componentes, incluidos los excusados (W.C.) y los lavabos, junto con sus especificaciones de diseño."
+          }
+        },
+        {
+          "id": "fig-10",
+          "type": "figure",
+          "page": 15,
+          "image": "fig/fig-10.png",
+          "text": {
+            "en": "Figure 10. Python script in Revit identifying specific toilet fixtures, detailing their attributes.",
+            "es": "Figura 10. Script de Python en Revit que identifica inodoros específicos y detalla sus atributos."
+          }
+        },
+        {
+          "id": "s4-p17",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Figure 11 shows the compliance verification output based on Rule 9. In compliance verification, it is critical to check for the presence of required elements in designated spaces. In compliance verification, it is critical to check for the presence of required elements in designated spaces. This process facilitates such checks. The results indicate that the sink is missing from the kitchen, resulting in a non-compliant status. Moreover, the output provides details such as the room number or name, depending on the parameters available in Revit.",
+            "es": "La Figura 11 muestra el resultado de la verificación de cumplimiento basada en la Regla 9. En la verificación de cumplimiento, es fundamental comprobar la presencia de los elementos requeridos en los espacios designados. En la verificación de cumplimiento, es fundamental comprobar la presencia de los elementos requeridos en los espacios designados. Este proceso facilita dichas comprobaciones. Los resultados indican que falta el fregadero en la cocina, lo que da como resultado un estado de incumplimiento. Además, el resultado proporciona detalles como el número o el nombre del espacio, según los parámetros disponibles en Revit."
+          }
+        },
+        {
+          "id": "fig-11",
+          "type": "figure",
+          "page": 15,
+          "image": "fig/fig-11.png",
+          "text": {
+            "en": "Figure 11. Kitchen compliance check in Revit for required components.",
+            "es": "Figura 11. Verificación de cumplimiento de la cocina en Revit para los componentes requeridos."
+          }
+        },
+        {
+          "id": "s4-p18",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "4.4. Case Study 2",
+            "es": "4.4. Caso de estudio 2"
+          }
+        },
+        {
+          "id": "s4-p19",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "In the second case study, we apply the proposed methodology to the office building model. Figure 12 illustrates the office building model with the selected eight rules from Table 1. While the other rules remain consistent with those in Case Study 1, Rule 11 assesses compliance with the requirement that the edge-to-edge distance between any two footings must be at least equal to the width of the larger footing. Rule 12 defines the minimum outdoor air ventilation rate required for occupied indoor spaces, specifically for office spaces (business occupancy) in accordance with the International Mechanical Code (IMC). The script first identifies all rooms in the model and then collects all air terminals (such as diffusers). It iterates through each diffuser, checking if it has a flow parameter (CFM). If the flow data are available, the script assigns that diffuser’s flow to the corresponding room. After calculating the airflow for each room, the script verifies if it meets the area-based requirement (0.06 CFM per square foot of floor area). If a room’s airflow is insufficient, it is marked as non-compliant.",
+            "es": "En el segundo caso de estudio aplicamos la metodología propuesta al modelo del edificio de oficinas. La Figura 12 ilustra el modelo del edificio de oficinas con las ocho reglas seleccionadas de la Tabla 1. Mientras que las demás reglas son consistentes con las del Caso de estudio 1, la Regla 11 evalúa el cumplimiento del requisito de que la distancia de borde a borde entre dos zapatas (footings) cualesquiera debe ser al menos igual al ancho de la zapata más grande. La Regla 12 define la tasa mínima de ventilación con aire exterior requerida para los espacios interiores ocupados, específicamente para espacios de oficina (ocupación comercial), de acuerdo con el International Mechanical Code (IMC). El script primero identifica todos los espacios del modelo y luego recopila todas las terminales de aire (como los difusores). Recorre cada difusor y comprueba si tiene un parámetro de flujo (CFM). Si los datos de flujo están disponibles, el script asigna el flujo de ese difusor al espacio correspondiente. Tras calcular el flujo de aire de cada espacio, el script verifica si cumple con el requisito basado en el área (0.06 CFM por pie cuadrado de área de piso). Si el flujo de aire de un espacio es insuficiente, se marca como no conforme."
+          }
+        },
+        {
+          "id": "fig-12",
+          "type": "figure",
+          "page": 16,
+          "image": "fig/fig-12.png",
+          "text": {
+            "en": "Figure 12. Case Study 2 model. (a) Rule 2: stairways; (b) Rule 4: habitable spaces; (c) Rule 5: windowsto-wall ratio; (d) Rule 6: floor area; (e) Rule 8: toilet; (f) Rule 10: floor; (g) Rule 11: edge-to-edge distance; (h) Rule 12: ventilation.",
+            "es": "Figura 12. Modelo del Caso de estudio 2. (a) Regla 2: escaleras; (b) Regla 4: espacios habitables; (c) Regla 5: relación ventanas-muro; (d) Regla 6: área de piso; (e) Regla 8: inodoro; (f) Regla 10: piso; (g) Regla 11: distancia de borde a borde; (h) Regla 12: ventilación."
+          }
+        },
+        {
+          "id": "s4-p20",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "4.5. Generating Compliance Reports Using LLMs’ API",
+            "es": "4.5. Generación de informes de cumplimiento mediante la API de los LLMs"
+          }
+        },
+        {
+          "id": "s4-p21",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "This study also utilized LLMs’ API to generate compliance reports, as shown in Figure 13, for BIM models by analyzing the output from Revit and providing recommendations for elements that did not meet the standards. The API key was obtained, and the necessary libraries were installed to facilitate the setup. A Python script was developed to extract BIM data. These reports include summaries of key issues, descriptions of non-compliant elements, corrective recommendations, and their impacts on safety and functionality. Figure 13 shows a sample prompt and the report generated for Rule 1.",
+            "es": "Este estudio también utilizó la API de los LLMs para generar informes de cumplimiento, como se muestra en la Figura 13, para modelos BIM, analizando el resultado de Revit y proporcionando recomendaciones para los elementos que no cumplieron con los estándares. Se obtuvo la clave de API y se instalaron las bibliotecas necesarias para facilitar la configuración. Se desarrolló un script de Python para extraer los datos del BIM. Estos informes incluyen resúmenes de los problemas clave, descripciones de los elementos no conformes, recomendaciones correctivas y sus impactos en la seguridad y la funcionalidad. La Figura 13 muestra un prompt de muestra y el informe generado para la Regla 1."
+          }
+        },
+        {
+          "id": "fig-13",
+          "type": "figure",
+          "page": 16,
+          "image": "fig/fig-13.png",
+          "text": {
+            "en": "Figure 13. Sample prompt and compliance report for Rule 1.",
+            "es": "Figura 13. Prompt de muestra e informe de cumplimiento para la Regla 1."
+          }
+        },
+        {
+          "id": "s4-p22",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "4.6. Comparison Between Different Large Language Models",
+            "es": "4.6. Comparación entre diferentes modelos de lenguaje de gran tamaño"
+          }
+        },
+        {
+          "id": "s4-p23",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "Table 4 presents the performance of various LLMs using three evaluation metrics:",
+            "es": "La Tabla 4 presenta el desempeño de varios LLMs mediante tres métricas de evaluación:"
+          }
+        },
+        {
+          "id": "s4-p24",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "• Processing Time: The duration (in seconds) required by each LLM to generate Python scripts, as reported by the models themselves. • Correction Attempts: The number of attempts needed for each LLM to produce a functional script without errors. This metric indicates the level of iterative adjustments required. • Status: A binary indicator of whether the LLM successfully generated a functional script on any of its attempts.",
+            "es": "• Tiempo de procesamiento (Processing Time): La duración (en segundos) que requiere cada LLM para generar los scripts de Python, según lo informado por los propios modelos. • Intentos de corrección (Correction Attempts): El número de intentos que necesita cada LLM para producir un script funcional sin errores. Esta métrica indica el nivel de ajustes iterativos requeridos. • Estado (Status): Un indicador binario de si el LLM generó con éxito un script funcional en alguno de sus intentos."
+          }
+        },
+        {
+          "id": "s4-p25",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "Moreover, we introduced a quantitative metric, success rate, calculated using the following formula:",
+            "es": "Además, introdujimos una métrica cuantitativa, la tasa de éxito (success rate), calculada con la siguiente fórmula:"
+          }
+        },
+        {
+          "id": "s4-p26",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "Success Rate (%) = Number of Correctly Executed Scripts",
+            "es": "Tasa de éxito (%) = Número de scripts ejecutados correctamente"
+          }
+        },
+        {
+          "id": "s4-p27",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "Number of Attempts × 100 (1)",
+            "es": "Número de intentos × 100 (1)"
+          }
+        },
+        {
+          "id": "s4-p28",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "This formula measures the LLM’s efficiency in producing functional, error-free Python scripts relative to the number of correction attempts made. A higher success rate indicates that the model required fewer attempts to generate a working script.",
+            "es": "Esta fórmula mide la eficiencia del LLM para producir scripts de Python funcionales y sin errores en relación con el número de intentos de corrección realizados. Una tasa de éxito más alta indica que el modelo requirió menos intentos para generar un script que funcione."
+          }
+        },
+        {
+          "id": "s4-p29",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "Eight LLMs were evaluated: ChatGPT 4.0 ($30/$60 per 1M tokens), Claude Sonnet 3.5 ($3/$15 per 1M tokens), Meta LLaMA 3.1-405B ($3.50/$3.50 per 1M tokens), Microsoft Copilot (subscription-based, API price not public), Gemini ($1.25/$10 per 1M tokens), Per-plexity.AI ($3/$15 per 1M tokens), Grok ($3/$15 per 1M tokens), and Deepseek ($0.55/$2.19 per 1M tokens). Meta LLaMA 3.1-405B and Microsoft Copilot failed to generate any working scripts. Gemini and Perplexity.AI were relatively fast but produced incorrect scripts for several rules, with success rates below 15%. Deepseek, the lowest-cost option, achieved a moderate 33% average success rate with few correction attempts. ChatGPT 4.0 and Claude Sonnet 3.5 completed all rule checks; Claude required fewer iterations (3.4 versus 6.8) and delivered a higher average success rate (23.7%) at roughly one-tenth of ChatGPT’s token cost. Grok delivered the best overall performance, reaching a 76.7% success rate with virtually no retries while maintaining a mid-range price point.",
+            "es": "Se evaluaron ocho LLMs: ChatGPT 4.0 ($30/$60 por 1M de tokens), Claude Sonnet 3.5 ($3/$15 por 1M de tokens), Meta LLaMA 3.1-405B ($3.50/$3.50 por 1M de tokens), Microsoft Copilot (basado en suscripción, precio de API no público), Gemini ($1.25/$10 por 1M de tokens), Perplexity.AI ($3/$15 por 1M de tokens), Grok ($3/$15 por 1M de tokens) y Deepseek ($0.55/$2.19 por 1M de tokens). Meta LLaMA 3.1-405B y Microsoft Copilot no lograron generar ningún script funcional. Gemini y Perplexity.AI fueron relativamente rápidos, pero produjeron scripts incorrectos para varias reglas, con tasas de éxito por debajo de 15%. Deepseek, la opción de menor costo, logró una tasa de éxito promedio moderada de 33% con pocos intentos de corrección. ChatGPT 4.0 y Claude Sonnet 3.5 completaron todas las verificaciones de reglas; Claude requirió menos iteraciones (3.4 frente a 6.8) y obtuvo una tasa de éxito promedio más alta (23.7%) a aproximadamente una décima parte del costo de tokens de ChatGPT. Grok ofreció el mejor desempeño general, alcanzando una tasa de éxito de 76.7% prácticamente sin reintentos, manteniendo un precio de gama media."
+          }
+        },
+        {
+          "id": "tab-4",
+          "type": "table",
+          "page": 17,
+          "image": "fig/tab-4.png",
+          "text": {
+            "en": "Table 4. Performance capabilities of various LLMs. Success rate is calculated using Equation (1).",
+            "es": "Tabla 4. Capacidades de desempeño de varios LLMs. La tasa de éxito se calcula con la Ecuación (1)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5. Conclusions",
+        "es": "5. Conclusiones"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "In this study, a generative AI-based framework was developed to assist construction professionals in evaluating projects for compliance with regulations. The framework leverages Large Language Models (LLMs) to generate Python scripts that can be executed within a Building Information Modeling (BIM) environment. Its effectiveness and reliability were demonstrated through a case study involving a residential building assessed against the IRC building regulations. The framework successfully identified non-compliance issues by flagging problems in the BIM model.",
+            "es": "En este estudio se desarrolló un marco basado en inteligencia artificial generativa (generative AI) para ayudar a los profesionales de la construcción a evaluar el cumplimiento normativo de los proyectos. El marco aprovecha los Modelos de Lenguaje de Gran Escala (Large Language Models, LLMs) para generar scripts de Python que pueden ejecutarse dentro de un entorno de Modelado de Información de la Construcción (Building Information Modeling, BIM). Su eficacia y confiabilidad se demostraron mediante un estudio de caso con un edificio residencial evaluado conforme a las normas de construcción IRC. El marco identificó con éxito los problemas de incumplimiento al señalar los problemas en el modelo BIM."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "The performance of various LLMs was evaluated in terms of efficiency, speed, and accuracy. Among the models tested, ChatGPT 4.0 and Claude Sonnet 3.5 emerged as the most effective, while Meta Llama 3.1-405B and Microsoft Copilot were unable to generate successful Python scripts, despite multiple attempts.",
+            "es": "Se evaluó el desempeño de varios LLMs en términos de eficiencia, velocidad y precisión. Entre los modelos probados, ChatGPT 4.0 y Claude Sonnet 3.5 resultaron ser los más eficaces, mientras que Meta Llama 3.1-405B y Microsoft Copilot no lograron generar scripts de Python exitosos, a pesar de varios intentos."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "This study highlights the importance of carefully designing prompts to enable LLMs to generate Python scripts that can execute in Revit without errors. An optimized prompt structure was identified, which includes components such as a basic prompt, rule descriptions, general instructions, and rule-specific instructions. In addition, incorporating a functional script for one specific rule in the prompt was found to aid in generating scripts for other rules.",
+            "es": "Este estudio destaca la importancia de diseñar cuidadosamente los prompts (prompts) para que los LLMs generen scripts de Python que se ejecuten en Revit sin errores. Se identificó una estructura de prompt optimizada, que incluye componentes como un prompt básico, descripciones de las reglas, instrucciones generales e instrucciones específicas de cada regla. Además, se observó que incorporar en el prompt un script funcional para una regla específica ayuda a generar scripts para otras reglas."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "It was found that the framework was most effective when applied to well-structured BIM models with accurate room tags, boundaries, and naming conventions, as it relies heavily on Revit model properties for verification. Compatibility between software versions also proved crucial; for instance, ensuring that Revit 2024 and PythonShell 2024 are used together is necessary for proper functionality.",
+            "es": "Se encontró que el marco fue más eficaz cuando se aplicó a modelos BIM bien estructurados, con etiquetas de habitaciones, límites y convenciones de nomenclatura precisos, ya que depende en gran medida de las propiedades del modelo de Revit para la verificación. La compatibilidad entre versiones de software también resultó crucial; por ejemplo, es necesario usar juntos Revit 2024 y PythonShell 2024 para garantizar un funcionamiento adecuado."
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "The proposed tool offers significant scientific and technical contributions to the field of construction compliance checking. First, it introduces a novel framework that can be effectively utilized during the pre-construction phase to identify and resolve compliance issues early, reducing risks and costs. Second, the tool’s design allows for scalability, making it adaptable to a wide range of construction projects, which demonstrates its versatility and broad applicability. Third, the framework is extendable to incorporate additional structural design regulations, showcasing its flexibility and potential for future enhancements. A key technical innovation is its adaptability to changes in building regulations. Finally, the tool significantly reduces the time required for compliance checking.",
+            "es": "La herramienta propuesta ofrece contribuciones científicas y técnicas significativas al campo de la verificación del cumplimiento normativo en la construcción. Primero, introduce un marco novedoso que puede utilizarse eficazmente durante la fase de preconstrucción para identificar y resolver tempranamente los problemas de cumplimiento, reduciendo riesgos y costos. Segundo, el diseño de la herramienta permite la escalabilidad, lo que la hace adaptable a una amplia gama de proyectos de construcción y demuestra su versatilidad y amplia aplicabilidad. Tercero, el marco es extensible para incorporar normas adicionales de diseño estructural, lo que muestra su flexibilidad y su potencial para mejoras futuras. Una innovación técnica clave es su adaptabilidad a los cambios en la normativa de construcción. Finalmente, la herramienta reduce significativamente el tiempo requerido para la verificación del cumplimiento normativo."
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "This research has a few limitations that were identified during the case study: (1) it was tested only on two case studies and evaluated by only 12 rules. The optimized prompt structure may require further improvements when tested on a larger set of rules. (2) The testing was conducted on a limited number of Revit versions, which may not fully represent all possible scenarios. (3) The field of LLMs is rapidly evolving, and newer models in the future might perform better than those tested in this study. (4) Although the framework utilizes LLMs to generate Python scripts, the current workflow requires manual intervention for script execution within Revit, as well as for correcting any errors that occur. One potential approach to achieve full automation is the integration of an LLM agent capable of directly interacting with the Revit API. Such an agent could generate, execute, and debug Python scripts in real-time, eliminating the need for manual script transfer. The LLM agent could be designed to receive feedback from Revit, refine the code, and ensure that all rules are correctly applied without user intervention. Future research should explore this approach to further enhance the framework’s automation capabilities. (5) Another limitation of the proposed framework is its reliance on well-structured BIM models with precise metadata. In real-world collaborative environments, BIM models may often contain incomplete, inconsistent, or outdated information, which can negatively impact the framework’s ability to generate accurate compliance checking scripts. Errors or missing metadata can lead to inaccurate interpretations of the model, reducing the effectiveness of automated compliance verification. This dependency on high-quality BIM data may limit the framework’s applicability in projects where model quality is inconsistent. Future research should focus on enhancing the framework’s robustness to handle incomplete or inconsistent BIM data. One potential approach is to integrate data validation techniques that automatically identify and correct data gaps within BIM models before initiating compliance checking.",
+            "es": "Esta investigación tiene algunas limitaciones que se identificaron durante el estudio de caso: (1) solo se probó en dos estudios de caso y se evaluó con solo 12 reglas. La estructura de prompt optimizada podría requerir mejoras adicionales al probarse con un conjunto más grande de reglas. (2) Las pruebas se realizaron con un número limitado de versiones de Revit, que podrían no representar todos los escenarios posibles. (3) El campo de los LLMs evoluciona rápidamente y los modelos más nuevos del futuro podrían tener un mejor desempeño que los probados en este estudio. (4) Aunque el marco utiliza LLMs para generar scripts de Python, el flujo de trabajo actual requiere intervención manual para ejecutar los scripts dentro de Revit, así como para corregir los errores que ocurran. Un posible enfoque para lograr una automatización total es la integración de un agente LLM (LLM agent) capaz de interactuar directamente con la API de Revit. Dicho agente podría generar, ejecutar y depurar scripts de Python en tiempo real, eliminando la necesidad de transferir los scripts manualmente. El agente LLM podría diseñarse para recibir retroalimentación de Revit, refinar el código y asegurar que todas las reglas se apliquen correctamente sin intervención del usuario. Las investigaciones futuras deberían explorar este enfoque para mejorar aún más las capacidades de automatización del marco. (5) Otra limitación del marco propuesto es su dependencia de modelos BIM bien estructurados con metadatos precisos. En entornos colaborativos del mundo real, los modelos BIM con frecuencia pueden contener información incompleta, inconsistente o desactualizada, lo que puede afectar negativamente la capacidad del marco para generar scripts precisos de verificación del cumplimiento normativo. Los errores o la falta de metadatos pueden llevar a interpretaciones inexactas del modelo, reduciendo la eficacia de la verificación automatizada del cumplimiento. Esta dependencia de datos BIM de alta calidad puede limitar la aplicabilidad del marco en proyectos donde la calidad del modelo es inconsistente. Las investigaciones futuras deberían centrarse en mejorar la robustez del marco para manejar datos BIM incompletos o inconsistentes. Un posible enfoque es integrar técnicas de validación de datos que identifiquen y corrijan automáticamente las lagunas de datos dentro de los modelos BIM antes de iniciar la verificación del cumplimiento."
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Moreover, using LLMs to detect and suggest corrections for missing or erroneous metadata can further improve the framework’s resilience. (6) One limitation of the proposed framework is its dependency on the Revit platform, specifically leveraging the Revit API and its unique BIM data structure to automate compliance checking. While this approach is highly effective within Revit, its applicability is currently restricted to this platform. However, the method has the potential to be adapted for other design and modeling tools that support Python scripting and API calls. For example, with appropriate modifications to the script generation component, it could be extended to AutoCAD (for 2D/3D design), ArchiCAD (for BIM), Navisworks (for model coordination), or Rhino/Grasshopper (for parametric design). Future research will explore the applicability of this approach to other platforms to enhance its versatility and practicality.",
+            "es": "Además, el uso de LLMs para detectar y sugerir correcciones para metadatos faltantes o erróneos puede mejorar aún más la resiliencia del marco. (6) Una limitación del marco propuesto es su dependencia de la plataforma Revit, ya que aprovecha específicamente la API de Revit y su estructura de datos BIM particular para automatizar la verificación del cumplimiento normativo. Si bien este enfoque es muy eficaz dentro de Revit, su aplicabilidad actualmente se limita a esta plataforma. Sin embargo, el método tiene el potencial de adaptarse a otras herramientas de diseño y modelado que admitan scripts de Python y llamadas a API. Por ejemplo, con las modificaciones apropiadas en el componente de generación de scripts, podría extenderse a AutoCAD (para diseño 2D/3D), ArchiCAD (para BIM), Navisworks (para coordinación de modelos) o Rhino/Grasshopper (para diseño paramétrico). Las investigaciones futuras explorarán la aplicabilidad de este enfoque a otras plataformas para mejorar su versatilidad y practicidad."
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Author Contributions: Conceptualization, S.M. and L.G.; methodology, S.M.; software, S.M.; validation, S.M., L.G. and Z.U.D.; formal analysis, S.M.; investigation, S.M.; resources, K.K.; data curation, S.M.; writing, L.G., Z.U.D., K.K., A.S., Z.H. and Y.Z.; visualization, S.M.; supervision, L.G. All authors have read and agreed to the published version of the manuscript.",
+            "es": "Contribuciones de los autores: Conceptualización, S.M. y L.G.; metodología, S.M.; software, S.M.; validación, S.M., L.G. y Z.U.D.; análisis formal, S.M.; investigación, S.M.; recursos, K.K.; curaduría de datos, S.M.; redacción, L.G., Z.U.D., K.K., A.S., Z.H. y Y.Z.; visualización, S.M.; supervisión, L.G. Todos los autores han leído y aceptado la versión publicada del manuscrito."
+          }
+        },
+        {
+          "id": "s5-p9",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Funding: This research received no external funding.",
+            "es": "Financiamiento: Esta investigación no recibió financiamiento externo."
+          }
+        },
+        {
+          "id": "s5-p10",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Data Availability Statement: The data presented in this study are available upon request from the corresponding author.",
+            "es": "Declaración de disponibilidad de datos: Los datos presentados en este estudio están disponibles a solicitud al autor de correspondencia."
+          }
+        },
+        {
+          "id": "s5-p11",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Conflicts of Interest: The authors declare no conflicts of interest.",
+            "es": "Conflictos de interés: Los autores declaran no tener conflictos de interés."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "1. Zhang, J.; Cui, B.; Gao, Y.; Zhang, D. Factors Influencing the Acceptance of BIM-Based Automated Code Compliance Checking in the AEC Industry in China. J. Manag. Eng. 2023, 39, 04023036. [CrossRef] 2. Aydın, M. Building Information Modeling Based Automated Building Regulation Compliance Checking Asp. net Web Software. Intell. Autom. Soft Comput. 2021, 28, 11–25. [CrossRef] 3. Ismail, A.S.; Ali, K.N.; Iahad, N.A. A review on BIM-based automated code compliance checking system. In Proceedings of the 2017 International Conference on Research and Innovation in Information Systems (ICRIIS), Langkawi, Malaysia, 16–17 July 2017; pp. 1–6. 4. Preidel, C.; Borrmann, A. Automated code compliance checking based on a visual language and building information modeling. In Proceedings of the 32nd ISARC 2015, Oulu, Finland, 15–18 June 2015. 5. Chen, N.; Lin, X.; Jiang, H.; An, Y. Automated building information modeling compliance check through a large language model combined with deep learning and ontology. Buildings 2024, 14, 1983. [CrossRef] 6. Wang, Y.; Liu, Y.; Cai, H.; Wang, J.; Zhou, X. An automated fire code compliance checking jointly using building information models and natural language processing. Fire 2023, 6, 358. [CrossRef] 7. Yogana, E.; Latief, Y. Development of system information of building code checking in planning and permitting phase to improve building code compliance based on work breakdown structure (WBS) using building information modeling (BIM). J. Phys. Conf. Ser. 2021, 1858, 012091. [CrossRef] 8. Bus, N.; Roxin, A.; Picinbono, G.; Fahad, M. Towards french smart building code: Compliance checking based on semantic rules. arXiv 2019, arXiv:1910.00334. 9. Li, S.; Wang, J.; Xu, Z. Automated compliance checking for BIM models based on Chinese-NLP and knowledge graph: An integrative conceptual framework. Eng. Constr. Archit. Manag. 2024, ahead of print. [CrossRef] 10. Lange, M.; Kirkham, R.; Tannert, B. Strategically Using Applied Machine Learning for Accessibility Documentation in the Built Environment. In Proceedings of the Human-Computer Interaction–INTERACT 2021: 18th IFIP TC 13 International Conference, Bari, Italy, 30 August–3 September 2021; Proceedings, Part II 18; Springer: Berlin/Heidelberg, Germany, 2021; pp. 426–448. 11. Nawari, N.O.; Ravindran, S. Blockchain and building information modeling (BIM): Review and applications in post-disaster recovery. Buildings 2019, 9, 149. [CrossRef] 12. Preidel, C.; Borrmann, A. Refinement of the visual code checking language for an automated checking of building information models regarding applicable regulations. In Proceedings of the ASCE International Workshop on Computing in Civil Engineering 2017, Seattle, WA, USA, 25–27 June 2017; pp. 157–165. 13. Zhao, X.; Huang, L.; Sun, Z.; Fan, X.; Zhang, M. Compliance Checking on Topological Spatial Relationships of Building Elements Based on Building Information Models and Ontology. Sustainability 2023, 15, 10901. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "14. Bloch, T.; Sacks, R. Clustering information types for semantic enrichment of building information models to support automated code compliance checking. J. Comput. Civ. Eng. 2020, 34, 04020040. [CrossRef] 15. de Marco, G.; Slongo, C.; Siegele, D. Enriching Building Information Modeling Models through Information Delivery Specification. Buildings 2024, 14, 2206. [CrossRef] 16. Lee, J.K.; Cho, K.; Choi, H.; Choi, S.; Kim, S.; Cha, S.H. High-level implementable methods for automated building code compliance checking. Dev. Built Environ. 2023, 15, 100174. [CrossRef] 17. Zhang, J. How can ChatGPT help in automated building code compliance checking? In Proceedings of the 40th ISARC, Chennai, India, 5–7 July 2023; pp. 63–70. 18. Fuchs, S.; Witbrock, M.; Dimyadi, J.; Amor, R. Using large language models for the interpretation of building regulations. arXiv 2024, arXiv:2407.21060. 19. Borrmann, A.; König, M.; Koch, C.; Beetz, J. Building Information Modeling: Why? What? How?; Springer: Berlin/Heidelberg, Germany, 2018. 20. Nguyen, T.H.; Kim, J.L. Building code compliance checking using BIM technology. In Proceedings of the 2011 Winter Simulation Conference (WSC), Phoenix, AZ, USA, 11–14 December 2011; pp. 3395–3400. 21. Lee, Y.; Eastman, C.; Lee, J. Automated rule-based checking for the validation of accessibility and visibility of a building information model. In Proceedings of the 2015 International Workshop on Computing in Civil Engineering 2015, Austin, TX, USA, 21–23 June 2015; pp. 572–579. 22. Anderson, A. Using Building Information Modeling to Transform the Building Codes Compliance Process. In Proceedings of the Construction Research Congress 2020, Tempe, AZ, USA, 8–10 March 2020; American Society of Civil Engineers: Reston, VA, USA, 2020; pp. 1048–1056. 23. Pezeshki, Z.; Ivari, S.A.S. Applications of BIM: A brief review and future outline. Arch. Comput. Methods Eng. 2018, 25, 273–312. [CrossRef] 24. Azhar, S. Building information modeling (BIM): Trends, benefits, risks, and challenges for the AEC industry. Leadersh. Manag. Eng. 2011, 11, 241–252. [CrossRef] 25. Succar, B. Building information modelling maturity matrix. In Handbook of Research on Building Information Modeling and Construction Informatics: Concepts and Technologies; IGI Global: Hershey, PA, USA, 2010; pp. 65–103. 26. Zhu, S.; Zhou, J.; Cheng, L.; Fu, X.; Wang, Y.; Dai, K. Research on a BIM Model Quality Compliance Checking Method Based on a Knowledge Graph. J. Comput. Civ. Eng. 2025, 39, 04024049. [CrossRef] 27. Salama, D.; El-Gohary, N. Semantic modeling for automated compliance checking. In Proceedings of the 2011 ASCE International Workshop on Computing in Civil Engineering (2011), Miami, FL, USA, 19–22 June 2011; pp. 641–648. 28. Zhang, J.; El-Gohary, N.M. Automated information transformation for automated regulatory compliance checking in construction. J. Comput. Civ. Eng. 2015, 29, B4015001. [CrossRef] 29. Zhong, B.; Gan, C.; Luo, H.; Xing, X. Ontology-based framework for building environmental monitoring and compliance checking under BIM environment. Build. Environ. 2018, 141, 127–142. [CrossRef] 30. Andrich, W.; Daniotti, B.; Pavan, A.; Mirarchi, C. Check and validation of building information models in detailed design phase: A check flow to pave the way for BIM based renovation and construction processes. Buildings 2022, 12, 154. [CrossRef] 31. Altınta¸s, Y.D.; ˙Ilal, M.E. Integrating building and context information for automated zoning code checking: A review. J. Inf. Technol. Constr. 2022, 27, 548–570. 32. Fan, S.L.; Chi, H.L.; Pan, P.Q. Rule checking Interface development between building information model and end user. Autom. Constr. 2019, 105, 102842. [CrossRef] 33. UpCodes. UpCodes Official Website. 2025. Available online: https://up.codes (accessed on 6 May 2025). 34. SMARTreview. SMARTreview APR–Automated Plan Review for Revit. 2025. Available online: https://smartreview.biz/apr_ learn_more (accessed on 13 May 2025). 35. Solibri. Solibri–Intelligent Model Checking for BIM. 2025. Available online: https://www.solibri.com/intelligent-model-checking (accessed on 13 May 2025). 36. Autodesk. Autodesk Model Checker for Revit. 2025. Available online: https://interoperability.autodesk.com/modelchecker.php (accessed on 13 May 2025). 37. Bureau Veritas. icheck for Building–Accessibility [CBC]. 2025. Available online: https://apps.autodesk.com/RVT/en/Detail/ Index?appLang=en&id=1041774428548349665&os=Win64 (accessed on 13 May 2025). 38. EvolveLAB. Revit Code Tools. 2025. Available online: https://www.evolvelab.io/product-page/revit-code-tools (accessed on 13 May 2025). 39. Lee, Y.C.; Eastman, C.M.; Lee, J.K. Validations for ensuring the interoperability of data exchange of a building information model. Autom. Constr. 2015, 58, 176–195. [CrossRef] 40. Minaee, S.; Mikolov, T.; Nikzad, N.; Chenaghlu, M.; Socher, R.; Amatriain, X.; Gao, J. Large language models: A survey. arXiv 2024, arXiv:2402.06196."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "41. Jang, S.; Lee, G. Interactive Design by Integrating a Large Pre-Trained Language Model and Building Information Modeling. In Proceedings of the ASCE International Conference on Computing in Civil Engineering 2023, Corvallis, OG, USA, 25–28 June 2022; pp. 291–299. 42. He, Z.; Wang, Y.H.; Zhang, J. Generative AIBIM: An automatic and intelligent structural design pipeline integrating BIM and generative AI. Inf. Fusion 2025, 114, 102654. [CrossRef] 43. International Code Council (ICC). International Residential Code (IRC) 2021; International Code Council: Washington, DC, USA, 2021. 44. International Code Council (ICC). International Mechanical Code (IMC) 2021; International Code Council: Washington, DC, USA, 2021. 45. Bowles, J.E.; Guo, Y. Foundation Analysis and Design; McGraw-Hill: New York, NY, USA, 1996; Volume 5."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "Disclaimer/Publisher’s Note: The statements, opinions and data contained in all publications are solely those of the individual author(s) and contributor(s) and not of MDPI and/or the editor(s). MDPI and/or the editor(s) disclaim responsibility for any injury to people or property resulting from any ideas, methods, instructions or products referred to in the content."
+          }
+        }
+      ]
+    }
+  ]
+}
