@@ -51,7 +51,8 @@ export async function start(root, { load = fetchText, dir = '', index, client } 
   } catch {
     papers = []
   }
-  const server = client === undefined ? (dir === '' ? createClient() : null) : client
+  const onSaveError = (message) => root.dispatchEvent(new CustomEvent('reader-save-error', { detail: message }))
+  const server = client === undefined ? (dir === '' ? createClient({ onSaveError }) : null) : client
   return createView(root, map, notes, { index: presentations, papers, read, base: dir, client: server })
 }
 

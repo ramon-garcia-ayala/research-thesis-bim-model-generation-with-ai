@@ -39,6 +39,7 @@ export const LABELS = {
     half: 'Half screen',
     contents: 'Contents',
     figures: 'Figures and tables',
+    yourUnderlines: 'Your underlines',
     underline: 'Underline',
     ask: 'Ask',
     readFrom: '▶ Read from here',
@@ -86,6 +87,7 @@ export const LABELS = {
     half: 'Media pantalla',
     contents: 'Índice',
     figures: 'Figuras y tablas',
+    yourUnderlines: 'Tus subrayados',
     underline: 'Subrayar',
     ask: 'Preguntar',
     readFrom: '▶ Leer desde aquí',
@@ -350,6 +352,23 @@ export function mountReader(
     img.remove()
   }
 
+  /** The author's underlines in this language, in reading order, each a way back to its place. */
+  function underlinesList() {
+    const order = blocksOf(now.paper).map((b) => b.id)
+    const mine = (reading?.underlines ?? [])
+      .filter((u) => u.lang === lang)
+      .sort((a, b) => order.indexOf(a.block) - order.indexOf(b.block) || a.start - b.start)
+    if (!mine.length) return ''
+    return `<h3>${esc(L().yourUnderlines)}</h3><ul>${mine
+      .map((u) => `<li><button type="button" data-goto="${esc(u.block)}"><span>${esc(paraLabel(now.paper, u.block))}</span> ${esc(u.text)}</button></li>`)
+      .join('')}</ul>`
+  }
+
+  function renderUnderlines() {
+    const box = side.querySelector('.reader__underlines')
+    if (box) box.innerHTML = underlinesList()
+  }
+
   function renderSide() {
     const { paper } = now
     const figures = blocksOf(paper).filter((b) => b.image)
@@ -362,7 +381,8 @@ export function mountReader(
               .map((b) => `<button type="button" data-goto="${esc(b.id)}" title="${esc(textOf(b, lang))}"><img src="${esc(imageUrl(b))}" alt="" loading="lazy" /><span>${esc(paraLabel(paper, b.id))}</span></button>`)
               .join('')}</div>`
           : ''
-      }`
+      }
+      <div class="reader__underlines">${underlinesList()}</div>`
     for (const img of side.querySelectorAll('img')) img.addEventListener('error', () => img.remove())
   }
 
@@ -558,6 +578,7 @@ export function mountReader(
       if (!u) return
       reading = removeUnderline(reading, u.id)
       persist()
+      renderUnderlines()
       return decorate(u.block)
     }
     if (action && picked) {
@@ -573,6 +594,7 @@ export function mountReader(
       if (action.dataset.act === 'underline' && reading) {
         reading = addUnderline(reading, { block, lang, start, end, text: picked.text }, today())
         persist()
+        renderUnderlines()
         decorate(block)
       }
       return
@@ -632,6 +654,12 @@ export function mountReader(
     if (id) persist({ position: { block: id, sentence: 0 } })
   })
   win.addEventListener('pagehide', () => live?.flush())
+  // The client reports a refused save here (view.js): the author should know their underlines may be lost.
+  root.addEventListener('reader-save-error', (e) => {
+    const hint = $('.reader__hint')
+    hint.textContent = `${L().notSaved} ${e.detail}`
+    hint.hidden = false
+  })
 
   win.addEventListener('resize', () => now && renderChrome())
   renderChrome()

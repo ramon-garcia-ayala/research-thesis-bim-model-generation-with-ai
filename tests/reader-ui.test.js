@@ -354,6 +354,28 @@ describe('underlines and the remembered place', () => {
     expect(lastSaved().underlines).toEqual([])
   })
 
+  it('says so when the reading could not be saved', async () => {
+    await withClient(fakeClient())
+    await read('sample-a')
+    root.dispatchEvent(new CustomEvent('reader-save-error', { detail: 'disk full' }))
+    expect($('.reader__hint').hidden).toBe(false)
+    expect($('.reader__hint').textContent).toContain('No se pudo guardar tu lectura: disk full')
+  })
+
+  it('lists the underlines in the side column, kept up to date', async () => {
+    const reading = { ...emptyReading(), underlines: [{ id: 'u1', block: 's2-p1', lang: 'es', start: 0, end: 12, text: 'lo subrayado', date: '2026-10-22' }] }
+    await withClient(fakeClient(reading))
+    await read('sample-a')
+    const listed = () => [...$('.reader__side').querySelectorAll('.reader__underlines [data-goto]')]
+    expect(listed().map((b) => [b.dataset.goto, b.textContent.includes('lo subrayado')])).toEqual([['s2-p1', true]])
+    block('s2-p1').querySelector('mark').click()
+    $('.reader__pop [data-act="remove-underline"]').click()
+    expect(listed()).toEqual([])
+    select('s2-p1', 12)
+    $('.reader__pop [data-act="underline"]').click()
+    expect(listed().map((b) => b.dataset.goto)).toEqual(['s2-p1'])
+  })
+
   it('reopens at the remembered block and language', async () => {
     const seen = []
     Element.prototype.scrollIntoView = function () {
