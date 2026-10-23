@@ -1,0 +1,528 @@
+{
+  "version": 1,
+  "node": "cubicasa5k-2019",
+  "built": {
+    "date": "2026-10-22",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "How can the structured geometry and semantics of a floorplan (rooms, walls, doors, windows, fixtures) be recovered automatically from a rasterized image?",
+      "es": "¿Cómo se puede recuperar de forma automática la geometría y la semántica estructuradas de un plano (cuartos, muros, puertas, ventanas, mobiliario) a partir de una imagen rasterizada?",
+      "blocks": [
+        "s1-p1",
+        "s1-p2",
+        "s1-p3"
+      ],
+      "key": "raster-to-vector",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Floorplans are often drawn in CAD as vector graphics but rasterized for marketing. This discards the structured geometric and semantic information, which makes uses such as 3D virtual tours or plan-based 3D model creation troublesome.",
+      "es": "Los planos suelen dibujarse en CAD como gráficos vectoriales, pero se rasterizan para su difusión comercial. Eso descarta la información geométrica y semántica estructurada y dificulta usos como los recorridos virtuales 3D o la creación de modelos 3D a partir del plano.",
+      "blocks": [
+        "s1-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "question",
+      "en": "Do floorplan models have enough data? The largest annotated dataset available holds less than 1000 images, against millions for image classification and tens of thousands for segmentation. The paper says there is room to study larger, richer datasets for training deep CNNs.",
+      "es": "¿Tienen los modelos de planos suficientes datos? El mayor conjunto anotado disponible tiene menos de 1000 imágenes, frente a millones en clasificación de imágenes y decenas de miles en segmentación. El artículo señala que hay espacio para estudiar conjuntos más grandes y ricos para entrenar CNN profundas.",
+      "blocks": [
+        "s1-p3",
+        "s2-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "dataset",
+      "en": "CubiCasa5K is a dataset of 5000 floorplan images with dense annotations encoded as polygons. They were collected and reviewed from a larger set of 15 000 mostly Finnish floorplan images.",
+      "es": "CubiCasa5K es un conjunto de 5000 imágenes de planos con anotaciones densas codificadas como polígonos. Se recopilaron y revisaron a partir de un conjunto mayor de 15 000 imágenes de planos, en su mayoría finlandesas.",
+      "blocks": [
+        "s0-p4",
+        "s1-p4",
+        "s3-p2"
+      ],
+      "key": "cubicasa5k",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "dataset",
+      "en": "The dataset has three sub-categories: high quality architectural (3732 plans), high quality (992) and colorful (276). It is randomly split into 4200 training, 400 validation and 400 test plans.",
+      "es": "El conjunto tiene tres subcategorías: arquitectónico de alta calidad (3732 planos), alta calidad (992) y colorido (276). Se divide al azar en 4200 planos de entrenamiento, 400 de validación y 400 de prueba.",
+      "blocks": [
+        "s3-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "dataset",
+      "en": "Each plan has a per-image SVG file with semantic and geometric annotations for every element, drawn as polygons across over 80 element categories. The annotations include the precise shape and direction of objects.",
+      "es": "Cada plano tiene un archivo SVG con anotaciones semánticas y geométricas de todos sus elementos, dibujados como polígonos en más de 80 categorías de elementos. Las anotaciones incluyen la forma y la dirección precisas de los objetos.",
+      "blocks": [
+        "s0-p4",
+        "s1-p4",
+        "s3-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "Trained human annotators vectorized each raster scan in a CAD tool made for floorplans, following a protocol that fixes the order of elements so that earlier ones (e.g. walls bounding rooms) inform later ones. One image took from 5 to 120 minutes, depending on complexity, clarity and number of floors.",
+      "es": "Anotadores humanos capacitados vectorizaron cada escaneo raster en una herramienta CAD hecha para planos, siguiendo un protocolo que fija el orden de los elementos para que los anteriores (p. ej., muros que delimitan cuartos) informen a los siguientes. Una imagen tomó de 5 a 120 minutos, según su complejidad, claridad y número de niveles.",
+      "blocks": [
+        "s3-p4",
+        "s3-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Quality assurance has two stages applied to every sample, checking placement accuracy and label correctness. First the annotator reviews and corrects the plan, then a different QA person repeats the check and corrects errors that slipped through.",
+      "es": "El control de calidad tiene dos etapas aplicadas a cada muestra, y revisa la exactitud de la colocación y la corrección de las etiquetas. Primero el anotador revisa y corrige el plano; después otra persona de control de calidad repite la revisión y corrige los errores que se hayan escapado.",
+      "blocks": [
+        "s3-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "concept",
+      "en": "The dataset is a byproduct of an online, partially manual floorplan vectorization pipeline that mainly converts real estate marketing material from the Finland region. Its stated mission is to help the community build more accurate, automated models for real estate and other uses.",
+      "es": "El conjunto es un subproducto de un flujo de vectorización de planos en línea y parcialmente manual, que convierte sobre todo material de mercadeo inmobiliario de la región de Finlandia. Su misión declarada es ayudar a la comunidad a desarrollar modelos más precisos y automáticos para bienes raíces y otros usos.",
+      "blocks": [
+        "s3-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "claim",
+      "en": "CubiCasa5K is over five times larger than the previously largest annotated floorplan dataset and, in the paper's words, currently the largest and most versatile one publicly available.",
+      "es": "CubiCasa5K es más de cinco veces más grande que el mayor conjunto anotado de planos anterior y, en palabras del artículo, es actualmente el más grande y versátil disponible públicamente.",
+      "blocks": [
+        "s1-p4",
+        "s3-p6",
+        "tab-1",
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "claim",
+      "en": "Compared with the earlier dataset, the annotation is more accurate, with precise shape and direction of objects. The data show more variability in apartment type and drawing style, and the object classes number over 80.",
+      "es": "En comparación con el conjunto anterior, la anotación es más precisa, con forma y dirección exactas de los objetos. Los datos muestran más variabilidad en tipo de departamento y estilo de dibujo, y las clases de objetos son más de 80.",
+      "blocks": [
+        "s1-p4",
+        "s2-p4",
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "dataset",
+      "en": "Figures 2 to 4 and Table 1 describe the dataset. They give the distribution of source image resolutions, the counts of room and icon instances per class, and how many plans contain a given number of icons, walls and rooms, each compared with the dataset of [13].",
+      "es": "Las figuras 2 a 4 y la tabla 1 describen el conjunto. Muestran la distribución de resoluciones de las imágenes de origen, el número de instancias de cuartos e íconos por clase y cuántos planos contienen cierto número de íconos, muros y cuartos, cada una comparada con el conjunto de [13].",
+      "blocks": [
+        "s3-p6",
+        "tab-1",
+        "fig-2",
+        "fig-3",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "concept",
+      "en": "Prior work [13] trained a fully convolutional network to label rooms, icons and openings and to localize wall joints. A post-processor then turned this output into 2D polygons. The finding was that deep networks can be an effective precursor to the final restoring heuristics.",
+      "es": "El trabajo previo [13] entrenó una red totalmente convolucional para etiquetar cuartos, íconos y aberturas y para localizar uniones de muros. Un posprocesador convertía esa salida en polígonos 2D. El hallazgo fue que las redes profundas pueden ser un precursor eficaz de las heurísticas finales de restauración.",
+      "blocks": [
+        "s2-p1",
+        "s2-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "The network predicts two segmentation maps (one for room types, one for icon types) and 21 heatmaps that pinpoint interest points: wall junctions, icon corners and opening endpoints. Heuristics then derive geometry from the points, and the segmentation maps give the semantics.",
+      "es": "La red predice dos mapas de segmentación (uno para tipos de cuarto y otro para tipos de ícono) y 21 mapas de calor que ubican puntos de interés: uniones de muros, esquinas de íconos y extremos de aberturas. Luego unas heurísticas derivan la geometría a partir de los puntos, y los mapas de segmentación aportan la semántica.",
+      "blocks": [
+        "s4-p1",
+        "s4-p3",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "The architecture is the hourglass network of [13], based on ResNet-152 and pretrained on ImageNet and then on the MPII Human Pose Dataset. Layer D1 was changed from 19 to 3 input channels, and D9 and D10 were replaced for the new outputs, so these three layers start from random initialization.",
+      "es": "La arquitectura es la red de tipo reloj de arena (hourglass) de [13], basada en ResNet-152 y preentrenada en ImageNet y luego en el conjunto MPII Human Pose. La capa D1 pasó de 19 a 3 canales de entrada, y D9 y D10 se reemplazaron para las nuevas salidas, por lo que esas tres capas parten de inicialización aleatoria.",
+      "blocks": [
+        "s4-p2",
+        "fig-5",
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "The paper's main modelling change is the multi-task uncertainty loss of [10], which learns the relative weights of the heatmap (MSE) and segmentation (cross-entropy) losses through uncertainty terms. [13] fixed these weights by hand, which the paper calls difficult, time-consuming and expensive.",
+      "es": "El cambio principal de modelado del artículo es la pérdida multitarea con incertidumbre de [10], que aprende los pesos relativos de las pérdidas de mapas de calor (MSE) y de segmentación (entropía cruzada) mediante términos de incertidumbre. En [13] esos pesos se fijaban a mano, lo que el artículo describe como difícil, lento y costoso.",
+      "blocks": [
+        "s4-p1",
+        "s4-p3",
+        "s4-p4",
+        "s4-p6"
+      ],
+      "key": "multi-task-uncertainty-loss",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "Post-processing has four steps. Walls come first: junctions facing each other and aligned horizontally or vertically are connected into a skeleton, which is pruned with the wall segmentation, and wall width is read from the intensity profile of the segmentation map.",
+      "es": "El posprocesamiento tiene cuatro pasos. Primero los muros: las uniones que se miran entre sí y están alineadas horizontal o verticalmente se conectan en un esqueleto, que se poda con la segmentación de muros, y el ancho del muro se obtiene del perfil de intensidad del mapa de segmentación.",
+      "blocks": [
+        "s4-p7",
+        "s4-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Rooms are found from junction triplets that span a rectangle containing no junctions, which gives a grid of cells. Cells are labeled by voting on the room segmentation, and neighbors are merged if no wall fully separates them and they share a label. Icons are extracted the same way from icon-corner heatmaps.",
+      "es": "Los cuartos se hallan a partir de tríadas de uniones que abarcan un rectángulo sin uniones, lo que da una cuadrícula de celdas. Las celdas se etiquetan por votación sobre la segmentación de cuartos, y las vecinas se fusionan si ningún muro las separa por completo y comparten etiqueta. Los íconos se extraen igual a partir de los mapas de calor de esquinas de íconos.",
+      "blocks": [
+        "s4-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "Doors and windows are found by connecting aligned opening endpoints from the heatmaps. The label comes from the segmentation maps, the opening width equals the wall width, and endpoints that fall outside the wall segmentation are rejected.",
+      "es": "Las puertas y ventanas se obtienen conectando extremos de abertura alineados a partir de los mapas de calor. La etiqueta sale de los mapas de segmentación, el ancho de la abertura es igual al del muro, y los extremos que caen fuera de la segmentación de muros se descartan.",
+      "blocks": [
+        "s4-p10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "method",
+      "en": "Preliminary experiment on the dataset of [13]: 400 epochs, batch size 20, Adam with initial learning rate 1 × 10−3, augmentations of 90 degree rotations, color jitter and crop or scaling to 256x256. The learning rate dropped only once, training converged just before epoch 300, and it took three hours on one GTX TitanX GPU.",
+      "es": "Experimento preliminar sobre el conjunto de [13]: 400 épocas, tamaño de lote 20, Adam con tasa de aprendizaje inicial de 1 × 10−3, y aumentos de rotaciones de 90 grados, variación de color y recorte o escalado a 256x256. La tasa de aprendizaje bajó solo una vez, el entrenamiento convergió justo antes de la época 300 y tardó tres horas en una GPU GTX TitanX.",
+      "blocks": [
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "method",
+      "en": "On CubiCasa5K some original room and icon types are coupled, so the targets are 12 room and 11 icon classes. Training starts from the weights of the preliminary experiment, runs 100 epochs with augmentations, then restarts the optimizer without the 256x256 resize and trains 400 epochs to convergence.",
+      "es": "En CubiCasa5K se agrupan algunos tipos originales de cuarto e ícono, de modo que los objetivos son 12 clases de cuarto y 11 de ícono. El entrenamiento parte de los pesos del experimento preliminar, corre 100 épocas con aumentos, luego reinicia el optimizador sin el reescalado a 256x256 y entrena 400 épocas hasta converger.",
+      "blocks": [
+        "s5-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "method",
+      "en": "Evaluation uses overall accuracy (share of correctly classified pixels), mean accuracy averaged over classes, and mean intersection over union. Each is reported for raw segmentations and for polygonized instances after post-processing. The paper treats floorplan parsing as close to semantic segmentation, unlike the evaluation of [13].",
+      "es": "La evaluación usa la exactitud global (proporción de píxeles bien clasificados), la exactitud media promediada por clase y la intersección sobre unión media. Cada una se reporta para las segmentaciones crudas y para las instancias poligonizadas tras el posprocesamiento. El artículo trata el análisis de planos como muy cercano a la segmentación semántica, a diferencia de la evaluación de [13].",
+      "blocks": [
+        "s5-p6",
+        "s5-p7"
+      ],
+      "key": "miou",
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "On the benchmark dataset of [13], the model significantly improves the results of [13], as shown in Table 2. Test-time augmentation, which averages four predictions of the image rotated by 90 degrees each time, helps both with and without integer programming (IP).",
+      "es": "En el conjunto de referencia de [13], el modelo mejora de forma significativa los resultados de [13], como muestra la tabla 2. El aumento en tiempo de prueba, que promedia cuatro predicciones de la imagen rotada 90 grados cada vez, ayuda tanto con programación entera (IP) como sin ella.",
+      "blocks": [
+        "s5-p3",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "The authors found an error in the original annotations of the dataset of [13]. After re-evaluating the model of [13] with their fixes, it performs better than originally reported, and a retrained version gives more or less similar results. The paper's model without test-time augmentation is still clearly better.",
+      "es": "Los autores encontraron un error en las anotaciones originales del conjunto de [13]. Al reevaluar el modelo de [13] con sus correcciones, rinde mejor de lo reportado originalmente, y una versión reentrenada da resultados más o menos similares. El modelo del artículo, sin aumento en tiempo de prueba, sigue siendo claramente mejor.",
+      "blocks": [
+        "s5-p4",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "On CubiCasa5K, raw segmentation test scores are clearly better than those of the polygonized instances (Table 3). Per-class IoU and accuracy for the room and icon classes are in Table 4.",
+      "es": "En CubiCasa5K, las puntuaciones de prueba de la segmentación cruda son claramente mejores que las de las instancias poligonizadas (tabla 3). La IoU y la exactitud por clase para los cuartos y los íconos están en la tabla 4.",
+      "blocks": [
+        "s5-p8",
+        "tab-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "limitation",
+      "en": "Polygons cannot be created when wall or icon junctions are missed or wrongly located, however good the segmentation is. This is the paper's explanation for the polygonized scores falling below the raw ones.",
+      "es": "No se pueden crear polígonos cuando las uniones de muros o íconos se omiten o se ubican mal, sin importar qué tan buena sea la segmentación. Esta es la explicación del artículo de por qué las puntuaciones poligonizadas quedan por debajo de las crudas.",
+      "blocks": [
+        "s5-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "claim",
+      "en": "Learning the task weights automatically saves time on hyperparameter tuning, especially when the range of weights is unknown, and gives significant gains over the results of [13]. The paper calls these results preliminary.",
+      "es": "Aprender los pesos de las tareas de forma automática ahorra tiempo de ajuste de hiperparámetros, sobre todo cuando se desconoce el rango de los pesos, y da mejoras significativas sobre los resultados de [13]. El artículo califica estos resultados de preliminares.",
+      "blocks": [
+        "s1-p4",
+        "s2-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "dataset",
+      "en": "The earlier benchmark of [13] is the previously largest annotated floorplan dataset, with fewer than 1000 images. Its annotation diversity and consistency (e.g. wall thickness) are limited, and the paper uses it to validate the method before moving to CubiCasa5K.",
+      "es": "El referente anterior de [13] es el mayor conjunto anotado de planos previo, con menos de 1000 imágenes. Su diversidad y consistencia de anotación (p. ej., el grosor de los muros) son limitadas, y el artículo lo usa para validar el método antes de pasar a CubiCasa5K.",
+      "blocks": [
+        "s1-p3",
+        "s2-p4",
+        "s5-p1"
+      ],
+      "key": "liu-floorplan-benchmark",
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "future",
+      "en": "Future work: add the object detector of [6] as one more task in the pipeline, and try the method of [1] to infer floorplan elements directly as polygons.",
+      "es": "Trabajo futuro: integrar el detector de objetos de [6] como una tarea más del flujo, y probar el método de [1] para inferir directamente los elementos del plano como polígonos.",
+      "blocks": [
+        "s6-p2"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "Rasterizing discards the structure, which is why recovery is needed."
+    },
+    {
+      "from": "i4",
+      "to": "i3",
+      "type": "supports",
+      "why": "The dataset is the paper's answer to the lack of large annotated floorplan data."
+    },
+    {
+      "from": "i13",
+      "to": "i3",
+      "type": "supports",
+      "why": "The prior approach was trained and benchmarked on fewer than 1000 images."
+    },
+    {
+      "from": "i5",
+      "to": "i4",
+      "type": "part-of",
+      "why": "Sub-categories and splits describe how the 5000 plans are organized."
+    },
+    {
+      "from": "i6",
+      "to": "i4",
+      "type": "part-of",
+      "why": "The SVG polygon annotations are the labels of the dataset."
+    },
+    {
+      "from": "i4",
+      "to": "i7",
+      "type": "uses",
+      "why": "The ground truth was produced by the manual annotation protocol."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "part-of",
+      "why": "QA is the second stage of the annotation pipeline."
+    },
+    {
+      "from": "i4",
+      "to": "i9",
+      "type": "part-of",
+      "why": "The dataset is a byproduct of the CubiCasa vectorization pipeline."
+    },
+    {
+      "from": "i12",
+      "to": "i10",
+      "type": "supports",
+      "why": "Statistics and Table 1 are how the paper compares size and variety."
+    },
+    {
+      "from": "i11",
+      "to": "i10",
+      "type": "supports",
+      "why": "Accuracy and variability back the claim of being the most versatile."
+    },
+    {
+      "from": "i14",
+      "to": "i15",
+      "type": "uses",
+      "why": "The segmentation maps and heatmaps are the outputs of the hourglass network."
+    },
+    {
+      "from": "i16",
+      "to": "i14",
+      "type": "uses",
+      "why": "The learned weights balance the heatmap and segmentation losses."
+    },
+    {
+      "from": "i17",
+      "to": "i14",
+      "type": "uses",
+      "why": "Wall skeletons are built from the predicted wall junction heatmaps and wall segmentation."
+    },
+    {
+      "from": "i18",
+      "to": "i14",
+      "type": "uses",
+      "why": "Rooms and icons are built from junction and corner heatmaps plus segmentation voting."
+    },
+    {
+      "from": "i19",
+      "to": "i14",
+      "type": "uses",
+      "why": "Openings are built from opening-endpoint heatmaps and segmentation labels."
+    },
+    {
+      "from": "i20",
+      "to": "i16",
+      "type": "uses",
+      "why": "Training on the benchmark of [13] uses uncertainty-driven task weighting."
+    },
+    {
+      "from": "i20",
+      "to": "i28",
+      "type": "uses",
+      "why": "The preliminary experiment trains and evaluates on the dataset of [13]."
+    },
+    {
+      "from": "i21",
+      "to": "i4",
+      "type": "uses",
+      "why": "The baseline is trained on CubiCasa5K with 12 room and 11 icon classes."
+    },
+    {
+      "from": "i21",
+      "to": "i20",
+      "type": "uses",
+      "why": "Training starts from the weights obtained in the preliminary experiment."
+    },
+    {
+      "from": "i22",
+      "to": "i23",
+      "type": "measures",
+      "why": "The accuracy and IoU metrics score the benchmark comparison with [13]."
+    },
+    {
+      "from": "i22",
+      "to": "i25",
+      "type": "measures",
+      "why": "The same metrics separate raw segmentation from polygonized instances."
+    },
+    {
+      "from": "i23",
+      "to": "i27",
+      "type": "supports",
+      "why": "Gains over [13] come with the learned task weighting."
+    },
+    {
+      "from": "i24",
+      "to": "i23",
+      "type": "supports",
+      "why": "Even against the corrected evaluation of [13], the paper's model is clearly better."
+    },
+    {
+      "from": "i25",
+      "to": "i26",
+      "type": "supports",
+      "why": "The gap between raw and polygonized scores is explained by missed junctions."
+    },
+    {
+      "from": "i26",
+      "to": "i17",
+      "type": "part-of",
+      "why": "The limitation lies in the junction-based post-processing heuristics."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i4",
+      "to": "cubicasa5k-2019",
+      "why": "This is the paper behind the node: 5000 hand-annotated raster plans as SVG polygons, with a two-stage QA."
+    },
+    {
+      "idea": "i9",
+      "to": "dataset-purposes",
+      "why": "A dataset that is a byproduct of a production vectorization pipeline, released to train automatic raster-to-vector models for real estate and other uses."
+    },
+    {
+      "idea": "i8",
+      "to": "hand-offs",
+      "why": "Shows hands in a pipeline that feeds a model: an annotator, then a different QA person, before the data reaches training."
+    },
+    {
+      "idea": "i2",
+      "to": "correct-by-construction",
+      "why": "The opposite case: the structured information is lost when a plan is rasterized and is then rebuilt after the fact by an annotator or a network."
+    },
+    {
+      "idea": "i17",
+      "to": "explicit-vs-learned",
+      "why": "A hybrid: a learned CNN predicts junction heatmaps and segmentation, and explicit hand-written rules (alignment, pruning, cell merging) build the geometry."
+    },
+    {
+      "idea": "i24",
+      "to": "hypothesis",
+      "why": "Checking the labels changed the result: an annotation error in an earlier benchmark understated a model, which fits the idea that checking capacity shapes how much human review a pipeline needs."
+    },
+    {
+      "idea": "i25",
+      "to": "production-ready",
+      "why": "A gap: the step from a raw prediction to usable vector polygons scores lower, and the output is a labeled 2D SVG rather than an information model."
+    }
+  ]
+}

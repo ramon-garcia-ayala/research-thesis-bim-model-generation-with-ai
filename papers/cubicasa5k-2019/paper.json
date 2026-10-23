@@ -1,0 +1,544 @@
+{
+  "version": 1,
+  "node": "cubicasa5k-2019",
+  "title": "CubiCasa5K: A Dataset and an Improved Multi-Task Model for Floorplan Image Analysis",
+  "source": "files/CubiCasa5K - A Dataset and an Improved Multi-Task Model for Floorplan Image Analysis.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Ahti Kalervo1, Juha Ylioinas1, Markus H¨aiki¨o2, Antti Karhu2, and Juho",
+            "es": "Ahti Kalervo1, Juha Ylioinas1, Markus H¨aiki¨o2, Antti Karhu2 y Juho"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "1 Department of Computer Science, Aalto University, Espoo, Finland {firstname.lastname}@aalto.fi",
+            "es": "1 Departamento de Ciencias de la Computación, Aalto University, Espoo, Finlandia {firstname.lastname}@aalto.fi"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "2 CubiCasa Inc., Oulu, Finland {firstname.lastname}@cubicasa.com",
+            "es": "2 CubiCasa Inc., Oulu, Finlandia {firstname.lastname}@cubicasa.com"
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Abstract. Better understanding and modelling of building interiors and the emergence of more impressive AR/VR technology has brought up the need for automatic parsing of ﬂoorplan images. However, there is a clear lack of representative datasets to investigate the problem further. To address this shortcoming, this paper presents a novel image dataset called CubiCasa5K, a large-scale ﬂoorplan image dataset containing 5000 samples annotated into over 80 ﬂoorplan object categories. The dataset annotations are performed in a dense and versatile manner by using polygons for separating the diﬀerent objects. Diverging from the classical approaches based on strong heuristics and low-level pixel operations, we present a method relying on an improved multi-task convolutional neural network. By releasing the novel dataset and our implementations, this study signiﬁcantly boosts the research on automatic ﬂoorplan image analysis as it provides a richer set of tools for investigating the problem in a more comprehensive manner.",
+            "es": "Resumen. La mejor comprensión y modelado de los interiores de edificios, junto con la aparición de tecnología de RA/RV (AR/VR) más impresionante, ha generado la necesidad de analizar automáticamente imágenes de planos de planta (floorplan). Sin embargo, existe una clara falta de conjuntos de datos (datasets) representativos para investigar más a fondo el problema. Para subsanar esta carencia, este artículo presenta un nuevo conjunto de imágenes llamado CubiCasa5K, un conjunto de datos de imágenes de planos de planta a gran escala que contiene 5000 muestras anotadas en más de 80 categorías de objetos de planos de planta. Las anotaciones del conjunto de datos se realizan de manera densa y versátil, usando polígonos para separar los distintos objetos. Alejándonos de los enfoques clásicos basados en heurísticas fuertes y operaciones de bajo nivel sobre píxeles, presentamos un método que se apoya en una red neuronal convolucional (convolutional neural network) multitarea (multi-task) mejorada. Al publicar el nuevo conjunto de datos y nuestras implementaciones, este estudio impulsa de manera significativa la investigación sobre el análisis automático de imágenes de planos de planta, ya que ofrece un conjunto más rico de herramientas para investigar el problema de forma más integral."
+          }
+        },
+        {
+          "id": "s0-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Keywords: ﬂoorplan images · dataset · convolutional neural networks · multi-task learning.",
+            "es": "Palabras clave: imágenes de planos de planta · conjunto de datos · redes neuronales convolucionales · aprendizaje multitarea."
+          }
+        },
+        {
+          "id": "s0-p6",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Data and code at: https://github.com/CubiCasa/CubiCasa5k",
+            "es": "Datos y código en: https://github.com/CubiCasa/CubiCasa5k"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 Introduction",
+        "es": "1 Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Floorplan image analysis or understanding has long been a research topic in automatic document analysis, a branch of computer vision. Floorplans are drawings to scale, they show the structure of a building or an apartment seen from above, and their purpose is to convey this structural information and related semantics to the viewer. Usual key elements in a ﬂoorplan are rooms, walls, doors, windows and ﬁxed furniture, but they can cover more technical information as well, such as building materials, electrical wiring or plumbing lines.",
+            "es": "El análisis o comprensión de imágenes de planos de planta ha sido durante mucho tiempo un tema de investigación en el análisis automático de documentos, una rama de la visión por computadora. Los planos de planta son dibujos a escala que muestran la estructura de un edificio o de un departamento vistos desde arriba, y su propósito es transmitir al observador esta información estructural y la semántica relacionada. Los elementos clave habituales en un plano de planta son las habitaciones, los muros, las puertas, las ventanas y el mobiliario fijo, pero también pueden abarcar información más técnica, como los materiales de construcción, el cableado eléctrico o las líneas de plomería."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "While ﬂoorplans are often initially drawn using a CAD software resulting in a vector-graphics format, for the usual use case that is in real estate economics, they are often rasterized before printing or publication in a digital media for marketing purposes, e.g. selling or renting. However, for the present day applications, such as 3D real estate virtual tours or ﬂoorplan-based 3D model creation, this process is fatal as it discards all the structured geometric and semantic information, rendering eﬀortless further utilization of these ﬂoorplan drawings troublesome.",
+            "es": "Si bien los planos de planta suelen dibujarse inicialmente con un software de CAD, lo que da como resultado un formato de gráficos vectoriales, para el caso de uso habitual, que es la economía inmobiliaria, con frecuencia se rasterizan (rasterized) antes de imprimirse o publicarse en un medio digital con fines de mercadotecnia, p. ej., para vender o rentar. Sin embargo, para las aplicaciones actuales, como los recorridos virtuales 3D de bienes raíces o la creación de modelos 3D a partir de planos de planta, este proceso es fatal, pues descarta toda la información geométrica y semántica estructurada, y hace complicado aprovechar después estos dibujos de planos de planta sin esfuerzo."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Fig. 1. An example result using our dataset and pipeline. The images from left to right are original ﬂoorplan image, the SVG label, and the automatic prediction.",
+            "es": "Figura 1: Un ejemplo de resultado usando nuestro conjunto de datos y nuestro pipeline. Las imágenes, de izquierda a derecha, son la imagen original del plano de planta, la etiqueta SVG y la predicción automática."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Recovering the lost information from a rasterized ﬂoorplan image is not trivial. Current state of the art models in automatic ﬂoorplan image analysis are based on deep convolutional neural networks (CNNs). A promising training scheme is based on using only one network backbone together with several multi-task heads trained to recover the lost objects, structure and semantics. While the results are already promising [13] the utilized datasets for training and benchmarking are still quite small (less than 1000 [13]) compared to those datasets commonly applied in other mainstream computer vision domains, such as image classiﬁcation (millions of images [18,19,9]) or image segmentation (tens of thousands images [15,20]). It is well known that deep learning models require large amounts of data to be eﬀective and most likely increasing dataset sizes would always yield better results [15,19].",
+            "es": "Recuperar la información perdida de una imagen rasterizada de un plano de planta no es trivial. Los modelos de vanguardia actuales en el análisis automático de imágenes de planos de planta se basan en redes neuronales convolucionales profundas (CNN). Un esquema de entrenamiento prometedor consiste en usar una sola red troncal (backbone) junto con varios cabezales multitarea (multi-task heads) entrenados para recuperar los objetos, la estructura y la semántica perdidos. Aunque los resultados ya son prometedores [13], los conjuntos de datos utilizados para el entrenamiento y la evaluación comparativa siguen siendo bastante pequeños (menos de 1000 [13]) en comparación con los que se aplican comúnmente en otros dominios principales de la visión por computadora, como la clasificación de imágenes (millones de imágenes [18,19,9]) o la segmentación de imágenes (decenas de miles de imágenes [15,20]). Es bien sabido que los modelos de aprendizaje profundo requieren grandes cantidades de datos para ser eficaces y que, muy probablemente, aumentar el tamaño de los conjuntos de datos siempre daría mejores resultados [15,19]."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In this paper we propose a novel ﬂoorplan image dataset comprising out of 5000 images with dense and rich ground-truth annotations encoded all as polygons. The dataset covers three diﬀerent ﬂoorplan image categories, namely high quality, high quality architecture and colorful. The annotations, generated by human experts, cover over 80 diﬀerent ﬂoorplan element classes. The proposed dataset is over ﬁve times larger compared with the previously largest dataset [13] and the annotation is more accurate as it includes precise shape and direction of objects. It also exhibits a larger variability in terms of the apartment type and in the style of the drawing. For a strong baseline, we present a fully automatic multi-task learning scheme inspired by the recent eﬀorts reported in the literature. In detail, we use the recent ‘multi-task uncertainty loss’ capable of deriving the weights for the losses of the network automatically. Our preliminary results indicate the method’s great value in practice as it saves time from hyperparameter tuning in cases where the range of weights are totally unknown. We combine this loss with an encoder-decoder convolutional architecture and demonstrate state-of-the-art results in a previous ﬂoorplan analysis benchmark dataset. We release the proposed novel benchmarking dataset and our codes with trained models for easily reproducing the results of this paper.",
+            "es": "En este artículo proponemos un nuevo conjunto de datos de imágenes de planos de planta compuesto por 5000 imágenes con anotaciones de verdad de referencia (ground truth) densas y ricas, codificadas todas como polígonos. El conjunto de datos abarca tres categorías distintas de imágenes de planos de planta, a saber, alta calidad, arquitectura de alta calidad y colorido. Las anotaciones, generadas por expertos humanos, cubren más de 80 clases distintas de elementos de planos de planta. El conjunto de datos propuesto es más de cinco veces más grande que el conjunto más grande previo [13], y la anotación es más precisa, ya que incluye la forma y la dirección exactas de los objetos. Además, exhibe una mayor variabilidad en cuanto al tipo de departamento y al estilo del dibujo. Como línea base sólida, presentamos un esquema de aprendizaje multitarea totalmente automático inspirado en los esfuerzos recientes reportados en la literatura. En concreto, usamos la reciente «pérdida de incertidumbre multitarea» (multi-task uncertainty loss), capaz de derivar automáticamente los pesos de las pérdidas de la red. Nuestros resultados preliminares indican el gran valor práctico del método, pues ahorra tiempo de ajuste de hiperparámetros (hyperparameter tuning) en los casos en que el rango de los pesos es totalmente desconocido. Combinamos esta pérdida con una arquitectura convolucional de codificador-decodificador (encoder-decoder) y demostramos resultados de vanguardia en un conjunto de datos de referencia previo para el análisis de planos de planta. Publicamos el nuevo conjunto de datos de evaluación propuesto y nuestro código con modelos entrenados para reproducir fácilmente los resultados de este artículo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 Related Work",
+        "es": "2 Trabajos relacionados"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "As in many visual recognition problems, the research focus in 2D ﬂoorplan analysis has shifted from careful feature engineering to methods relying on learning from data. This shift is due to the ability to train larger and more powerful deep neural networks within a reasonable time [11]. In our context, the breakthrough is [13], which proposed an automatic ﬂoorplan parsing approach relying on CNNs. Instead of applying a bunch of low level image processing and consequent heuristics, a regular fully convolutional network was trained to label objects (rooms, icons, and openings) and to localise wall joints. The extracted low-level information was then fed in a post-processor to recover the original ﬂoorplan object items as 2D polygons. In [13], the model was jointly optimized with respect to segmentation and localization tasks. The major ﬁnding was that deep neural networks can act as an eﬀective precursor to the ﬁnal post-processing heuristics to restore the ﬂoorplan elements, including their geometry and semantics. The method signiﬁcantly improved the state of the art and has inspired recent research in the ﬁeld.",
+            "es": "Como en muchos problemas de reconocimiento visual, el enfoque de la investigación en el análisis de planos de planta 2D ha pasado de la cuidadosa ingeniería de características a métodos que se basan en aprender a partir de los datos. Este cambio se debe a la capacidad de entrenar redes neuronales profundas más grandes y potentes en un tiempo razonable [11]. En nuestro contexto, el avance decisivo es [13], que propuso un enfoque automático de análisis de planos de planta basado en CNN. En lugar de aplicar un conjunto de procesamientos de imagen de bajo nivel y las consiguientes heurísticas, se entrenó una red totalmente convolucional (fully convolutional network) común para etiquetar objetos (habitaciones, íconos y aberturas) y para localizar las uniones de muros (wall joints). La información de bajo nivel extraída se pasó después a un posprocesador (post-processor) para recuperar los elementos originales del plano de planta como polígonos 2D. En [13], el modelo se optimizó conjuntamente con respecto a las tareas de segmentación y de localización. El hallazgo principal fue que las redes neuronales profundas pueden actuar como un precursor eficaz de las heurísticas finales de posprocesamiento para restaurar los elementos del plano de planta, incluidas su geometría y su semántica. El método mejoró significativamente el estado del arte y ha inspirado investigaciones recientes en el campo."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Parallel to [13], a CNN-based method for parsing ﬂoorplan images using segmentation, object detection, and character recognition was proposed in [6]. The main diﬀerence to [13] is that the given tasks are all performed using isolated networks. The experiments performed in [6] on wall segmentation clearly demonstrated the superiority of a CNN-based approach compared with some traditional patch-based models utilizing standard shallow classiﬁers like support vector machines. In summary, the era of deep neural networks has given rise to signiﬁcantly better methods for 2D ﬂoorplan analysis. According to [13,6], especially fully convolutional CNNs have a huge potential in extracting accurate pixel-level geometric and semantic information that can be further utilized in later post-processing steps to construct more eﬀective heuristics to restore the lost ﬂoorplan elements.",
+            "es": "En paralelo a [13], en [6] se propuso un método basado en CNN para analizar imágenes de planos de planta mediante segmentación, detección de objetos y reconocimiento de caracteres. La principal diferencia con respecto a [13] es que todas las tareas indicadas se realizan con redes aisladas. Los experimentos realizados en [6] sobre segmentación de muros demostraron con claridad la superioridad de un enfoque basado en CNN frente a algunos modelos tradicionales basados en parches que utilizan clasificadores superficiales estándar, como las máquinas de vectores de soporte (support vector machines). En resumen, la era de las redes neuronales profundas ha dado lugar a métodos significativamente mejores para el análisis de planos de planta 2D. Según [13,6], en especial las CNN totalmente convolucionales tienen un enorme potencial para extraer información geométrica y semántica precisa a nivel de píxel, que puede utilizarse después en pasos posteriores de posprocesamiento para construir heurísticas más eficaces que restauren los elementos perdidos del plano de planta."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The problem of constructing better CNNs for ﬂoorplan parsing boils down to two design choices that are related to the network architecture and the objective. The breakthrough in semantic segmentation research happened with the introduction of fully convolutional networks (FCNs) [14]. A reﬁned architecture for general purpose dense pixel-wise prediction is the U-net architecture with skip-connections [17]. As showed in [13], the capacity can be further boosted by changing the plain convolutional layers in the top-down path to residual blocks [7]. This model, also known as the hourglass architecture [3], has proven eﬀective in such dense problems as semantic segmentation [16] and human pose estimation via heatmap regression [3]. The ﬁnal task is to choose the training objective. For a plain segmentation problem this is often a single cross-entropy loss or in heatmap regression a single euclidean loss layer. However, many problems in practice (like ours) can beneﬁt from several objectives that are active during training, better known as multi-task learning [4]. The success of using this approach is highly dependent on the additional hyperparameters which is the relative weighting between each task’s loss. Kendall et al. [10] proposed a simple solution to train this weighting in a multi-task setting composed of segmentation, depth estimation, and instance segmentation. In contrast to [13], we apply the method of [10] (revised in [12]) to automatically tune the weighting between the tasks reducing the need for extensive hyperparameter tuning. Our results yield signiﬁcant performance gains compared with the results reported in [13].",
+            "es": "El problema de construir mejores CNN para el análisis de planos de planta se reduce a dos decisiones de diseño relacionadas con la arquitectura de la red y con el objetivo. El avance decisivo en la investigación de segmentación semántica (semantic segmentation) ocurrió con la introducción de las redes totalmente convolucionales (FCN) [14]. Una arquitectura refinada para la predicción densa píxel a píxel de propósito general es la arquitectura U-net con conexiones de salto (skip-connections) [17]. Como se mostró en [13], la capacidad puede aumentarse aún más al cambiar las capas convolucionales simples de la ruta descendente por bloques residuales (residual blocks) [7]. Este modelo, también conocido como arquitectura de reloj de arena (hourglass architecture) [3], ha demostrado ser eficaz en problemas densos como la segmentación semántica [16] y la estimación de la pose humana mediante regresión de mapas de calor (heatmap regression) [3]. La tarea final es elegir el objetivo de entrenamiento. Para un problema de segmentación simple, este suele ser una única pérdida de entropía cruzada (cross-entropy loss) o, en la regresión de mapas de calor, una única capa de pérdida euclidiana. Sin embargo, muchos problemas prácticos (como el nuestro) pueden beneficiarse de varios objetivos activos durante el entrenamiento, lo que se conoce mejor como aprendizaje multitarea [4]. El éxito de este enfoque depende en gran medida del hiperparámetro adicional, que es la ponderación relativa entre las pérdidas de cada tarea. Kendall et al. [10] propusieron una solución sencilla para entrenar esta ponderación en un contexto multitarea compuesto por segmentación, estimación de profundidad y segmentación de instancias. A diferencia de [13], aplicamos el método de [10] (revisado en [12]) para ajustar automáticamente la ponderación entre las tareas, lo que reduce la necesidad de un ajuste exhaustivo de hiperparámetros. Nuestros resultados arrojan mejoras de desempeño significativas en comparación con los resultados reportados en [13]."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "To conclude, the current research on automatic ﬂoorplan conversion continues to lack representative large-scale datasets. At the moment, the largest annotated dataset publicly available contains less than 1K. The diversity of objects (e.g. diﬀerent room and icon types) and consistency and accuracy in their annotation (e.g. thickness of walls) are both limited. This in turn implies that there are room for further studies to investigate the beneﬁts of using larger datasets richer in their content for the training of deep CNNs. In this paper, we propose a dataset with 5K samples, to our knowledge the largest annotated ﬂoorplan dataset available.",
+            "es": "Para concluir, la investigación actual sobre la conversión automática de planos de planta sigue careciendo de conjuntos de datos representativos a gran escala. Por el momento, el conjunto de datos anotado más grande disponible públicamente contiene menos de 1K. La diversidad de objetos (p. ej., los distintos tipos de habitaciones e íconos) y la consistencia y precisión de su anotación (p. ej., el grosor de los muros) son limitadas. Esto implica, a su vez, que hay margen para nuevos estudios que investiguen los beneficios de usar conjuntos de datos más grandes y de contenido más rico para entrenar CNN profundas. En este artículo proponemos un conjunto de datos con 5K muestras, que hasta donde sabemos es el conjunto de datos anotado de planos de planta más grande disponible."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 CubiCasa5K: A Novel Floorplan Dataset",
+        "es": "3 CubiCasa5K: un nuevo conjunto de datos de planos de planta"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The CubiCasa5K dataset is a byproduct of an online, partially manual, ﬂoor plan vectorization pipeline 3, mainly operating on real estate marketing material conversions from Finland region. Its main mission is to provide means for the research community to develop more accurate and automated models for real estate and other use cases.",
+            "es": "El conjunto de datos CubiCasa5K es un subproducto de un pipeline en línea, parcialmente manual, de vectorización de planos de planta 3, que opera principalmente sobre conversiones de material de mercadotecnia inmobiliaria de la región de Finlandia. Su misión principal es proporcionar a la comunidad investigadora los medios para desarrollar modelos más precisos y automatizados para el sector inmobiliario y otros casos de uso."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The dataset consists of 5000 ﬂoorplans (with man-made annotations) that were collected and reviewed from a larger set of 15 000 mostly Finnish ﬂoorplan images. These are divided into three sub categories: high quality architectural, high quality and colorful, each containing 3732, 992 and 276 ﬂoorplans, respectively. To train powerful machine learning models, the dataset is randomly splitted into training, validation and test sets so that there are 4200, 400, and 400 ﬂoorplan in each of these, respectively. The annotations are in per-image SVG vector graphics format, and each of them contain the semantic and geometric annotations for all the elements appearing in the corresponding ﬂoorplan.",
+            "es": "El conjunto de datos consta de 5000 planos de planta (con anotaciones hechas por personas) que se recopilaron y revisaron a partir de un conjunto mayor de 15 000 imágenes de planos de planta, en su mayoría finlandeses. Estos se dividen en tres subcategorías: arquitectónico de alta calidad, alta calidad y colorido, cada una con 3732, 992 y 276 planos de planta, respectivamente. Para entrenar modelos de aprendizaje automático potentes, el conjunto de datos se divide aleatoriamente en conjuntos de entrenamiento, validación y prueba, de modo que haya 4200, 400 y 400 planos de planta en cada uno de ellos, respectivamente. Las anotaciones están en formato de gráficos vectoriales SVG por imagen, y cada una contiene las anotaciones semánticas y geométricas de todos los elementos que aparecen en el plano de planta correspondiente."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "3 http://cubitool.cubi.casa.s3-website-us-west-2.amazonaws.com/?conﬁg= customize&rl=2&loc=na&id=8000&color=000000",
+            "es": "3 http://cubitool.cubi.casa.s3-website-us-west-2.amazonaws.com/?conﬁg= customize&rl=2&loc=na&id=8000&color=000000"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Annotations and their consistency. All samples of the proposed dataset have gone through an annotation pipeline resulting in a vectorized ﬂoorplan image with rich annotations. A sample input is always a raster scan (usually a scanned copy) generated from the original ﬂoor plan drawing. The annotation was done manually by human annotators who were educated to this task. Single image annotation took from 5 to 120 minutes, depending on the complexity and clearness of the source and amount of ﬂoors.",
+            "es": "Anotaciones y su consistencia. Todas las muestras del conjunto de datos propuesto han pasado por un pipeline de anotación que da como resultado una imagen vectorizada del plano de planta con anotaciones ricas. Una muestra de entrada es siempre un escaneo ráster (generalmente una copia escaneada) generado a partir del dibujo original del plano de planta. La anotación fue realizada manualmente por anotadores humanos capacitados para esta tarea. La anotación de una sola imagen tomó de 5 a 120 minutos, según la complejidad y la claridad de la fuente y la cantidad de pisos."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Each ﬂoorplan has been annotated following an annotation protocol which describes the order for annotating the elements. That is to utilize all available information from the previously annotated elements (e.g. walls are boundaries to rooms) for a given ﬂoorplan. The annotation has been done using a special CAD tool tailored for drawing ﬂoorplans. To ensure annotation consistency, there is a QA process which has two stages. This process is applied to each annotated sample image. In detail, the applied QA process targets to control placement accuracy of the annotations as well as the correct label. The ﬁrst round of the process is done by the annotator, who checks the annotated ﬂoor plan and reviews all the annotations, and ﬁnally corrects all possible errors. The second round is done by a diﬀerent QA person who does the same checking procedure as the initial annotator and corrects errors slipped through the ﬁrst round if any.",
+            "es": "Cada plano de planta se ha anotado siguiendo un protocolo de anotación que describe el orden en que deben anotarse los elementos. Esto sirve para aprovechar toda la información disponible de los elementos anotados previamente (p. ej., los muros son los límites de las habitaciones) en un plano de planta dado. La anotación se ha realizado con una herramienta de CAD especial hecha a la medida para dibujar planos de planta. Para garantizar la consistencia de las anotaciones, existe un proceso de control de calidad (QA) de dos etapas. Este proceso se aplica a cada imagen de muestra anotada. En detalle, el proceso de QA aplicado busca controlar la exactitud de la colocación de las anotaciones, así como la corrección de la etiqueta. La primera ronda del proceso la realiza el anotador, quien revisa el plano de planta anotado, examina todas las anotaciones y, por último, corrige todos los posibles errores. La segunda ronda la realiza una persona de QA distinta, que sigue el mismo procedimiento de revisión que el anotador inicial y corrige los errores que, en su caso, hayan pasado desapercibidos en la primera ronda."
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Dataset statistics. Fig. 2-4 provide statistical information about the Cubi-Casa5K dataset highlighting the aspects on the distribution of classes and complexity of the ﬂoorplan samples in relation to the dataset of [13]. Fig. 3 shows the distribution of ranked room and icon classes, respectively. In Fig. 4, we compare the frequency of images with a ﬁxed number of annotated icons, walls, and rooms in the CubiCasa5K dataset and in the dataset of [13]. In Fig. 2 we report the distribution of the image resolution across the dataset. Finally, in Table 1, we further compare some key statistics to all existing annotated ﬂoorplan datasets. In the light of all this information, it can be conluded that the CubiCasa5K is currently the largest and the most versatile ﬂoorplan dataset publicly available. a Dataset included more icons labels, but without location or the polygon. We ignored these icons.",
+            "es": "Estadísticas del conjunto de datos. Las Figs. 2-4 proporcionan información estadística sobre el conjunto de datos Cubi-Casa5K, destacando aspectos de la distribución de las clases y de la complejidad de las muestras de planos de planta en relación con el conjunto de datos de [13]. La Fig. 3 muestra la distribución ordenada de las clases de habitaciones y de íconos, respectivamente. En la Fig. 4 comparamos la frecuencia de imágenes con un número fijo de íconos, muros y habitaciones anotados en el conjunto de datos CubiCasa5K y en el conjunto de datos de [13]. En la Fig. 2 reportamos la distribución de la resolución de las imágenes en todo el conjunto de datos. Por último, en la Tabla 1 comparamos con más detalle algunas estadísticas clave con todos los conjuntos de datos anotados de planos de planta existentes. A la luz de toda esta información, puede concluirse que CubiCasa5K es actualmente el conjunto de datos de planos de planta más grande y más versátil disponible públicamente. a El conjunto de datos incluía más etiquetas de íconos, pero sin ubicación ni polígono. Ignoramos estos íconos."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 5,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1. Metrics between available datasets.",
+            "es": "Tabla 1: Métricas entre los conjuntos de datos disponibles."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Fig. 2. Source image resolutions of Cubi-Casa5K and Liu et al. [13].",
+            "es": "Figura 2: Resoluciones de las imágenes de origen de Cubi-Casa5K y de Liu et al. [13]."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Fig. 3. Number of room (top) and icon (bottom) instances in our dataset. We made our best to match our labels with those in [13]. For example, the ‘Entrance’ room type in [13] is considered as the ‘Draught Lobby’ room type in CubiCasa5K, and the ‘PS’ icon type in [13] is considered as the ‘Electrical Appliance’ in CubiCasa5K.",
+            "es": "Figura 3: Número de instancias de habitaciones (arriba) e íconos (abajo) en nuestro conjunto de datos. Hicimos nuestro mejor esfuerzo por hacer coincidir nuestras etiquetas con las de [13]. Por ejemplo, el tipo de habitación «Entrance» de [13] se considera el tipo de habitación «Draught Lobby» en CubiCasa5K, y el tipo de ícono «PS» de [13] se considera «Electrical Appliance» en CubiCasa5K."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 Our multi-task model",
+        "es": "4 Nuestro modelo multitarea (multi-task)"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Our task is to parse all common elements in an input 2D ﬂoorplan image. Follow-ing [13], we rely on a network with outputs for two segmentation maps (one for diﬀerent room types and one for diﬀerent icon types) and a set of heatmaps to pinpoint wall junctions, icon corners, and opening endpoints (from now on, these three are referred to as interest points). Using the localized interest points, a set of heuristics is then applied to infer the geometry, i.e. location and dimensions, of all elements possibly appearing. Finally, the two segmentation maps are used to acquire the semantics, i.e. the types of rooms and icons. Our main contribution is in the latter step of the pipeline where we apply a trainable module [10] for tuning the relative weighting between the multi-task loss terms.",
+            "es": "Nuestra tarea consiste en analizar todos los elementos comunes en una imagen de plano de planta (floorplan) 2D de entrada. Siguiendo a [13], nos basamos en una red con salidas para dos mapas de segmentación (segmentation maps), uno para los distintos tipos de habitación y otro para los distintos tipos de ícono, y un conjunto de mapas de calor (heatmaps) para localizar con precisión las uniones de muros, las esquinas de los íconos y los extremos de las aberturas (de aquí en adelante, estos tres se denominan puntos de interés, o interest points). Con los puntos de interés localizados, se aplica un conjunto de heurísticas (heuristics) para inferir la geometría, es decir, la ubicación y las dimensiones, de todos los elementos que posiblemente aparezcan. Por último, los dos mapas de segmentación se usan para obtener la semántica, es decir, los tipos de habitaciones y de íconos. Nuestra contribución principal está en este último paso del pipeline, donde aplicamos un módulo entrenable [10] para ajustar la ponderación relativa entre los términos de la pérdida multitarea."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Fig. 4. The frequency of ﬂoorplans containing certain number of annotated instances (from left to right) for icons, walls, and rooms.",
+            "es": "Figura 4: La frecuencia de planos de planta que contienen cierto número de instancias anotadas (de izquierda a derecha) para íconos, muros y habitaciones."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Fig. 5. On top, the applied ‘hourglass network’ architecture with blocks D1-10, where x and y of Resblock(x, y) denote the number of channels in the very ﬁrst and the number of outputs in the very latest block in the given ‘n× Resblock’ sequence, respectively. ConvBNReLU(x, y, k, s, p) follows the standard notation for a sequence of convolution, batch normalization and ReLU, where the arguments k, s, p stand for the kernel size, stride and padding, respectively. ConvTranspose(x, y, k, s) denotes transposed convolution with arguments k and s for the kernel size and stride, respectively. On bottom, the proposed pipeline for automatic ﬂoorplan parsing. The components outlined with a dashed line highlight our main contributions, i.e. a novel dataset and an improved multi-task model.",
+            "es": "Figura 5: Arriba, la arquitectura de «red de reloj de arena» (hourglass network) aplicada, con los bloques D1-10, donde x y y de Resblock(x, y) denotan el número de canales del primer bloque y el número de salidas del último bloque de la secuencia «n× Resblock» dada, respectivamente. ConvBNReLU(x, y, k, s, p) sigue la notación estándar para una secuencia de convolución, normalización por lotes (batch normalization) y ReLU, donde los argumentos k, s, p representan el tamaño del kernel, el stride y el padding, respectivamente. ConvTranspose(x, y, k, s) denota una convolución transpuesta con los argumentos k y s para el tamaño del kernel y el stride, respectivamente. Abajo, el pipeline propuesto para el análisis automático de planos de planta. Los componentes delineados con línea discontinua resaltan nuestras contribuciones principales, es decir, un conjunto de datos novedoso y un modelo multitarea mejorado."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Network Architecture. We utilize the network architecture used in [13], which is based on ResNet-152 [7] pretrained with ImageNet [5]. The organization of the layers is depicted on top in Fig. 5 giving the details of each layer operation therein. Following [13], the bulk of the network layers depicted in Fig. 5 are initialized via training ﬁrst on ImageNet [18] and then on the MPII Human Pose Dataset [2]. To have it tailored for the problem studied in this paper, some changes had to be made. Speciﬁcally, D1 was changed with respect to input channels (from 19 to 3), and the last two layers, namely D9 and D10, were both replaced to implement the required number of output channels for the two segmentation maps and 21 heatmaps. As a result, the three given layers (D1, D9, and D10) had to be randomly initialized.",
+            "es": "Arquitectura de la red. Utilizamos la arquitectura de red empleada en [13], que está basada en ResNet-152 [7] preentrenada con ImageNet [5]. La organización de las capas se muestra arriba en la Fig. 5, que da los detalles de la operación de cada capa. Siguiendo a [13], la mayor parte de las capas de la red mostradas en la Fig. 5 se inicializan entrenando primero con ImageNet [18] y después con el MPII Human Pose Dataset [2]. Para adaptarla al problema estudiado en este artículo, fue necesario realizar algunos cambios. En concreto, D1 se modificó en cuanto a los canales de entrada (de 19 a 3), y las dos últimas capas, D9 y D10, se reemplazaron para implementar el número requerido de canales de salida para los dos mapas de segmentación y los 21 mapas de calor. Como resultado, las tres capas mencionadas (D1, D9 y D10) tuvieron que inicializarse de forma aleatoria."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Training Objective. In [13], the approach relies on a shared representation for densely predicting semantic labels for pixels and regressing the locations for interest points. This means that there is a multi-task loss applied in the end of the network shown in Fig. 5. In detail, there are altogether 21 output maps for diﬀerent interest points (wall junctions, icon corners, and opening endpoints). What is learned is a pixel-accurate location for all the interest points by means of separate heatmap regression tasks which all are based on a mean squared error (MSE) as the training objective. Besides this, the network outputs two segmentation maps. The ﬁrst one is for segmenting background, rooms, and walls; and the second for segmenting the diﬀerent icons and openings (windows and doors). The two segmentation tasks are both trained by applying a standard cross-entropy loss. In [13], all these tasks were used to train the given shared representation in a multi-task fashion using a relative weighting ﬁxed by hand.",
+            "es": "Objetivo de entrenamiento. En [13], el enfoque se basa en una representación compartida para predecir de forma densa las etiquetas semánticas de los píxeles y para regresar las ubicaciones de los puntos de interés. Esto significa que se aplica una pérdida multitarea al final de la red mostrada en la Fig. 5. En detalle, hay en total 21 mapas de salida para los distintos puntos de interés (uniones de muros, esquinas de íconos y extremos de aberturas). Lo que se aprende es una ubicación con precisión de píxel para todos los puntos de interés mediante tareas separadas de regresión de mapas de calor, todas ellas basadas en el error cuadrático medio (mean squared error, MSE) como objetivo de entrenamiento. Además, la red produce dos mapas de segmentación. El primero sirve para segmentar el fondo, las habitaciones y los muros; y el segundo, para segmentar los distintos íconos y aberturas (ventanas y puertas). Las dos tareas de segmentación se entrenan aplicando una pérdida de entropía cruzada (cross-entropy) estándar. En [13], todas estas tareas se usaron para entrenar la representación compartida de manera multitarea, con una ponderación relativa fijada a mano."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "A recent study by Kendall et al. [10] shows that the relative weighting between the multi-task losses can be learnt automatically. This releases the developer from the diﬃcult, time-consuming, and very expensive step of tuning the weights by hand. In speciﬁc, the weights are implicitly learnt via so called homoscedastic uncertainty terms that are predicted as an extra output for each task. The details can be found from [10] and we proceed here directly to the ﬁnal loss that is in our case given as Ltot = LH + LS where:",
+            "es": "Un estudio reciente de Kendall et al. [10] muestra que la ponderación relativa entre las pérdidas multitarea puede aprenderse de forma automática. Esto libera al desarrollador del paso difícil, lento y muy costoso de ajustar los pesos a mano. En concreto, los pesos se aprenden de manera implícita mediante los llamados términos de incertidumbre homocedástica (homoscedastic uncertainty), que se predicen como una salida adicional para cada tarea. Los detalles pueden consultarse en [10] y aquí pasamos directamente a la pérdida final, que en nuestro caso está dada por Ltot = LH + LS donde:"
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "\u0014 1 i (x) i and k (x)) + log σk. (2) k∈{rooms,icons}",
+            "es": "\u0014 1 i (x) i and k (x)) + log σk. (2) k∈{rooms,icons}"
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "LH is for training the heatmap regressors and it is composed of a bunch of terms (as many as there are speciﬁc interest points to locate) minimized based a re-weighted MSE. The weighting is inversely proportional to a so called uncertainty parameter σi that is learnt during training. The terms log(1+σi) [12] act as a regularizer to avoid the trivial solution. Furthermore, by summing one before taking logs, we enforce it to be always positive [12]. LS, in turn, is for the segmentation part and it is composed of two cross-entropy terms, in this case for room and icon segmentation tasks, to be minimized. The weighting in this case appears without squaring [10]. Based on our experimental ﬁndings, the regularizer log σk stays positive whole the time during training.",
+            "es": "LH sirve para entrenar los regresores de mapas de calor y está compuesta por una serie de términos (tantos como puntos de interés específicos haya que localizar) que se minimizan con base en un MSE reponderado. La ponderación es inversamente proporcional a un llamado parámetro de incertidumbre σi que se aprende durante el entrenamiento. Los términos log(1+σi) [12] actúan como regularizador para evitar la solución trivial. Además, al sumar uno antes de tomar logaritmos, forzamos a que siempre sea positivo [12]. LS, por su parte, corresponde a la parte de segmentación y está compuesta por dos términos de entropía cruzada, en este caso para las tareas de segmentación de habitaciones y de íconos, que se minimizan. La ponderación en este caso aparece sin elevar al cuadrado [10]. Con base en nuestros hallazgos experimentales, el regularizador log σk permanece positivo durante todo el entrenamiento."
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Post-processing. To generate the ﬁnal vector graphics equivalent representation of the input rasterized ﬂoorplan, the outputs of the multi-task CNN are dispatched to a post-processor which consists of four steps. The target is to extract all ﬂoorplan elements (walls, rooms, icons, and openings) present in the given input in a format precisely encoding their location, dimensions, and the category label.",
+            "es": "Posprocesamiento. Para generar la representación equivalente en gráficos vectoriales final del plano de planta rasterizado de entrada, las salidas de la CNN multitarea se envían a un posprocesador que consta de cuatro pasos. El objetivo es extraer todos los elementos del plano de planta (muros, habitaciones, íconos y aberturas) presentes en la entrada dada, en un formato que codifique con precisión su ubicación, sus dimensiones y la etiqueta de su categoría."
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The post-processor starts with inferring wall polygons. In detail, the procedure starts with the same step as in [13]: the junctions are pair-wisely connected based on their joints’ orientation, i.e. if there are two junctions vertically/horizontally aligned (with a possible few pixel misalignment) in a manner where both have a joint facing each other. The procedure results in a wall skeleton which is next pruned based on the wall segmentation. Finally, the width of the wall is inferred by sampling along the wall lines and inspecting the intensity proﬁle of the wall segmentation map.",
+            "es": "El posprocesador comienza infiriendo los polígonos de los muros. En detalle, el procedimiento empieza con el mismo paso que en [13]: las uniones se conectan por pares con base en la orientación de sus articulaciones (joints), es decir, si hay dos uniones alineadas vertical u horizontalmente (con una posible desalineación de unos pocos píxeles) de modo que ambas tengan una articulación orientada hacia la otra. El procedimiento produce un esqueleto de muros que después se poda con base en la segmentación de muros. Por último, el ancho del muro se infiere muestreando a lo largo de las líneas del muro e inspeccionando el perfil de intensidad del mapa de segmentación de muros."
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The location and dimensions of rooms are partly inferred based on the wall junctions. In detail, we search for all junction triplets that span a rectangular area that does not contain any junctions. This results in a cell gridding of the ﬂoorplan interiors. The resulting cells are then labeled according to a voting mechanism based on the room segmentation map. Finally, all neighboring cells are merged if an only if there is no fully separating walls between them and they share the same room label. The procedure for restoring icons is very similar to rooms extraction, but instead of the wall junction heatmaps, we utilize the triplets from the maps responsible for the icon corner heatmap prediction.",
+            "es": "La ubicación y las dimensiones de las habitaciones se infieren en parte con base en las uniones de muros. En detalle, buscamos todas las tripletas de uniones que abarcan un área rectangular que no contiene ninguna unión. Esto produce una cuadrícula de celdas del interior del plano de planta. Las celdas resultantes se etiquetan después según un mecanismo de votación basado en el mapa de segmentación de habitaciones. Por último, todas las celdas vecinas se fusionan si y solo si no hay muros que las separen por completo y comparten la misma etiqueta de habitación. El procedimiento para restaurar los íconos es muy similar a la extracción de habitaciones, pero en lugar de los mapas de calor de uniones de muros, utilizamos las tripletas de los mapas responsables de la predicción de los mapas de calor de esquinas de íconos."
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Finally, doors and windows are inferred. This is done by connecting the two vertically/horizontally aligning opening endpoints using the predictions from the corresponding heatmaps. The label is again derived based on the segmentation maps. The width of the opening is the same as the wall polygon. All such opening endpoints that do not fall inside the wall segmentation are rejected.",
+            "es": "Finalmente, se infieren las puertas y las ventanas. Esto se hace conectando los dos extremos de abertura que se alinean vertical u horizontalmente, usando las predicciones de los mapas de calor correspondientes. La etiqueta se deriva de nuevo a partir de los mapas de segmentación. El ancho de la abertura es el mismo que el del polígono del muro. Se rechazan todos los extremos de abertura que no caen dentro de la segmentación de muros."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 Results",
+        "es": "5 Resultados"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "In this section we introduce the evaluation metrics and the obtained results. Prior to presenting the baseline results for our novel CubiCasa5K dataset, we validate our method on the same dataset used in [13].",
+            "es": "En esta sección presentamos las métricas de evaluación y los resultados obtenidos. Antes de presentar los resultados base para nuestro nuevo conjunto de datos CubiCasa5K, validamos nuestro método en el mismo conjunto de datos usado en [13]."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Preliminary Experiments. Following [13], the network was initialized with the weights of the human pose network of [3] (trained on ImageNet and MPII). Those layers that had to be replaced (see Sect. 4) were initialized randomly. We trained the network with uncertainty driven task weighting for 400 epochs with a batch size of 20. The data augmentations were 90 degree rotations, color jitter, and randomly selecting between crop and scaling to 256x256 with zero padding. We used the Adam optimizer with an initial learning rate of 1 × 10−3, ϵ = 1 × 10−8 and β values of 0.9 and 0.999. We used a scheduler that reduced the learning rate with a factor of 0.1 if no improvement were noticed during the previous 20 epochs based on the validation loss. After dropping, the training was then continued from the phase that had yielded the best validation loss up to that point. Finally, the best model was selected based on the validation loss. Based on our experiments, the learning rate had to be dropped only once and the training seemed to converge just before the epoch number 300. The training took three hours on a Nvidia GeForce GTX TitanX GPU card.",
+            "es": "Experimentos preliminares. Siguiendo a [13], la red se inicializó con los pesos de la red de pose humana de [3] (entrenada en ImageNet y MPII). Las capas que tuvieron que reemplazarse (véase la secc. 4) se inicializaron de forma aleatoria. Entrenamos la red con ponderación de tareas guiada por incertidumbre durante 400 épocas con un tamaño de lote de 20. Las aumentaciones de datos fueron rotaciones de 90 grados, variación aleatoria de color (color jitter) y selección aleatoria entre recorte y escalado a 256x256 con relleno de ceros. Usamos el optimizador Adam con una tasa de aprendizaje inicial de 1 × 10−3, ϵ = 1 × 10−8 y valores β de 0.9 y 0.999. Usamos un planificador que reducía la tasa de aprendizaje con un factor de 0.1 si no se observaba mejora durante las 20 épocas previas con base en la pérdida de validación. Tras la reducción, el entrenamiento continuaba desde la fase que había dado la mejor pérdida de validación hasta ese momento. Finalmente, el mejor modelo se seleccionó con base en la pérdida de validación. Según nuestros experimentos, la tasa de aprendizaje tuvo que reducirse solo una vez y el entrenamiento pareció converger justo antes de la época número 300. El entrenamiento tardó tres horas en una tarjeta GPU Nvidia GeForce GTX TitanX."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "For evaluating our model we used the same evaluation setup as in [13]. As can be seen in Table 2 we signiﬁcantly improve the results presented in [13]. We further applied a test-time augmentation (TTA) scheme in which the ﬁnal predictions were based on feeding the same image four times to the same network, each time rotating it 90 degrees. The ﬁnal prediction was based on the mean of the four predictions. As it can be seen, the augmentation seems to be beneﬁcial in both cases, with and without integer programming (IP).",
+            "es": "Para evaluar nuestro modelo usamos la misma configuración de evaluación que en [13]. Como se aprecia en la Tabla 2, mejoramos de manera significativa los resultados presentados en [13]. Además aplicamos un esquema de aumentación en tiempo de prueba (test-time augmentation, TTA) en el que las predicciones finales se basaron en introducir la misma imagen cuatro veces a la misma red, rotándola 90 grados cada vez. La predicción final se basó en el promedio de las cuatro predicciones. Como se puede ver, la aumentación parece ser beneficiosa en ambos casos, con y sin programación entera (integer programming, IP)."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 10,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2. Evaluation results on the dataset proposed in [13].",
+            "es": "Tabla 2: Resultados de evaluación en el conjunto de datos propuesto en [13]."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "We noticed an error in the original annotations4 of the dataset proposed in [13]. After re-evaluating the model of [13] using our ﬁxes, we noticed that the performance of [13] (see ‘our eval’) is actually better than originally reported in [13]. We further trained the model (‘best reproduced from [13]’) by following the details reported in the original paper, and the results were more or less similar. Finally, we compared our best model (‘Ours’) without test-time augmentations to the ‘our eval’ version of [13], and as it can be seen, our model is clearly better.",
+            "es": "Notamos un error en las anotaciones originales4 del conjunto de datos propuesto en [13]. Tras reevaluar el modelo de [13] usando nuestras correcciones, notamos que el desempeño de [13] (véase «our eval») es en realidad mejor que el reportado originalmente en [13]. Además entrenamos el modelo («best reproduced from [13]») siguiendo los detalles reportados en el artículo original, y los resultados fueron más o menos similares. Finalmente, comparamos nuestro mejor modelo («Ours») sin aumentaciones en tiempo de prueba con la versión «our eval» de [13], y como se puede ver, nuestro modelo es claramente mejor."
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "CubiCasa5K Experiments. In the present experiment utilizing the Cubi-Casa5K dataset, some original room types and icon types are coupled so that our targets cover altogether 12 room and 11 icon classes (see the chosen classes in Table 4 and further details from the project website). As for other details, the network contains the same heatmap regression layers and is trained using the same objective as in the previous experiment. However, the following adjustments to the training scheme were done: We started the training with the pretrained weights as a result of the previous experiment using ImageNet, MPII, and Liu et al. [13] datasets. We trained the ﬁrst 100 epochs with the same augmentations given in Sect. 5.1. After that, we continued training with the best weights up to that point (according to the losses on the validation set) by ﬁrst initializing optimizer parameters to their starting values and then dropping the augmentation that resizes the image to 256x256. We then trained the network for 400 epochs which resulted in convergence.",
+            "es": "Experimentos con CubiCasa5K. En el presente experimento con el conjunto de datos CubiCasa5K, algunos tipos originales de habitación y de ícono se agrupan de modo que nuestros objetivos cubren en total 12 clases de habitación y 11 clases de ícono (véanse las clases elegidas en la Tabla 4 y más detalles en el sitio web del proyecto). En cuanto a otros detalles, la red contiene las mismas capas de regresión de mapas de calor y se entrena con el mismo objetivo que en el experimento anterior. Sin embargo, se hicieron los siguientes ajustes al esquema de entrenamiento: comenzamos el entrenamiento con los pesos preentrenados resultantes del experimento anterior con ImageNet, MPII y los conjuntos de datos de Liu et al. [13]. Entrenamos las primeras 100 épocas con las mismas aumentaciones indicadas en la secc. 5.1. Después, continuamos el entrenamiento con los mejores pesos hasta ese momento (según las pérdidas en el conjunto de validación), primero inicializando los parámetros del optimizador a sus valores iniciales y luego eliminando la aumentación que redimensiona la imagen a 256x256. A continuación entrenamos la red durante 400 épocas, lo cual resultó en convergencia."
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Following the common practice in the art of semantic segmentation [14,20], we report the results using three evaluating metrics, namely the overall accuracy indicating the proportion of correctly classiﬁed pixels, and the mean accuracy for",
+            "es": "Siguiendo la práctica común en el área de la segmentación semántica [14,20], reportamos los resultados con tres métricas de evaluación, a saber, la exactitud global (overall accuracy), que indica la proporción de píxeles clasificados correctamente, y la exactitud media (mean accuracy) para"
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "4 Please see the target labels corrected by us on our project webpage. the proportion of correctly classiﬁed pixels averaged over all the classes. Finally, we report the mean intersection over union (IoU) which indicates the area of the overlap between the predicted and ground truth pixels, averaged over all the classes. We further report the results with respect to the raw segmentations and polygonized (P) instances, i.e. after the post-processing step. We take a diﬀerent approach to [13] for model evaluation as we believe the problem of ﬂoorplan parsing is very close to the problem of semantic segmentation.",
+            "es": "4 Consulte las etiquetas objetivo corregidas por nosotros en la página web de nuestro proyecto. la proporción de píxeles clasificados correctamente promediada sobre todas las clases. Por último, reportamos la intersección sobre unión media (mean intersection over union, IoU), que indica el área de superposición entre los píxeles predichos y los de referencia (ground truth), promediada sobre todas las clases. Además reportamos los resultados con respecto a las segmentaciones crudas y a las instancias poligonizadas (P), es decir, después del paso de posprocesamiento. Adoptamos un enfoque distinto al de [13] para la evaluación del modelo, ya que consideramos que el problema del análisis de planos de planta es muy cercano al problema de la segmentación semántica."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 11,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3. Evaluation results of the CubiCasa5K dataset.",
+            "es": "Tabla 3: Resultados de evaluación del conjunto de datos CubiCasa5K."
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "We report the performance with respect to described metrics in Table 3. According to the results, the raw segmentation test scores are clearly better than the ones based on polygonized segmentation instances. The main reason is that if wall or icon junctions are missed or are not correctly located the polygons can not be created regardless the quality of the segmentation. In Table 4, we further report the class-speciﬁc IoUs and accuracies with respect to all room and icon classes used in this study. Fig.1 illustrates an example result from our pipeline.",
+            "es": "Reportamos el desempeño con respecto a las métricas descritas en la Tabla 3. De acuerdo con los resultados, las puntuaciones de prueba de la segmentación cruda son claramente mejores que las basadas en las instancias de segmentación poligonizadas. La razón principal es que si se omiten las uniones de muros o de íconos, o no se ubican correctamente, los polígonos no pueden crearse sin importar la calidad de la segmentación. En la Tabla 4 reportamos además los IoU y las exactitudes específicos de cada clase para todas las clases de habitación y de ícono usadas en este estudio. La Fig. 1 ilustra un ejemplo de resultado de nuestro pipeline."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6 Conclusions",
+        "es": "6 Conclusiones"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "In this paper, we have proposed a novel ﬂoorplan image dataset called Cubi-Casa5K. Compared to other existing annotated ﬂoorplan datasets, our dataset is over 5× larger and more varied in its annotations which cover over 80 ﬂoorplan object categories. Together with the novel dataset, we provided baseline results using an improved multi-task convolutional neural network yielding state-of-the-art performance.",
+            "es": "En este artículo hemos propuesto un nuevo conjunto de datos de imágenes de planos de planta llamado CubiCasa5K. En comparación con otros conjuntos de datos de planos de planta anotados existentes, nuestro conjunto de datos es más de 5× más grande y más variado en sus anotaciones, que cubren más de 80 categorías de objetos de planos de planta. Junto con el nuevo conjunto de datos, proporcionamos resultados base usando una red neuronal convolucional multitarea mejorada que alcanza un desempeño de vanguardia (state-of-the-art)."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "For future directions, we plan to integrate the object detector used in [6] as one of the tasks into our pipeline. It would be also of interest to try the method of [1] to directly infer ﬂoorplan elements as polygons.",
+            "es": "Como direcciones futuras, planeamos integrar el detector de objetos usado en [6] como una de las tareas de nuestro pipeline. También sería de interés probar el método de [1] para inferir directamente los elementos del plano de planta como polígonos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "1. Acuna, D., Ling, H., Kar, A., Fidler, S.: Eﬃcient interactive annotation of segmentation datasets with polygon-rnn++. In: Proc. CVPR (2018) 2. Andriluka, M., Pishchulin, L., Gehler, P., Schiele, B.: 2D human pose estimation: New benchmark and state of the art analysis. Proc. CVPR pp. 3686–3693 (2014) 3. Bulat, A., Tzimiropoulos, G.: Human pose estimation via convolutional part heatmap regression. Proc. ECCV pp. 717–732 (2016) 4. Caruana, R.: Multitask learning. Machine Learning 28(1), 41–75 (Jul 1997)"
+          }
+        },
+        {
+          "id": "tab-4",
+          "type": "table",
+          "page": 12,
+          "image": "fig/tab-4.png",
+          "text": {
+            "en": "Table 4. Class-speciﬁc results on the CubiCasa5K dataset."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "5. Deng, J., Dong, W., Socher, R., Li, L., Li, K., Fei-Fei, L.: Imagenet: A large-scale hierarchical image database. In: Proc. CVPR. pp. 248–255 (2009) 6. Dodge, S., Xu, J., Stenger, B.: Parsing ﬂoor plan images. In: MVA. pp. 358–361 (2017) 7. He, K., Zhang, X., Ren, S., Sun, J.: Deep Learning for Image Recognition. Proc. CVPR pp. 770–778 (2016) 8. de las Heras, L.P., Terrades, O., Robles, S., S´anchez, G.: Cvc-fp and sgt: a new database for structural ﬂoor plan analysis and its groundtruthing tool. IJDAR (2015) 9. Hinton, G., Vinyals, O., Dean, J.: Distilling the Knowledge in a Neural Network. NIPS (2015) 10. Kendall, A., Gal, Y., Cipolla, R.: Multi-task learning using uncertainty to weigh losses for scene geometry and semantics. In: Proc. CVPR (2018) 11. Lecun, Y., Bengio, Y., Hinton, G.: Deep learning. Nature 521(7553), 436–444 (2015) 12. Liebel, L., K¨orner, M.: Auxiliary tasks in multi-task learning. CoRR abs/1805.06334 (2018) 13. Liu, C., Wu, J., Kohli, P., Furukawa, Y.: Raster-to-vector: Revisiting ﬂoorplan transformation. In: The IEEE International Conference on Computer Vision (ICCV) (2017) 14. Long, J., Shelhamer, E., Darrell, T.: Fully convolutional networks for semantic segmentation. In: Proc. CVPR (2015) 15. Neuhold, G., Ollmann, T., Rota Bulo, S., Kontschieder, P.: The mapillary vistas dataset for semantic understanding of street scenes. In: Proc.ICCV (2017) 16. Pohlen, T., Hermans, A., Mathias, M., Leibe, B.: Full-resolution residual networks for semantic segmentation in street scenes. In: Proc. CVPR (2017) 17. Ronneberger, O., Fischer, P., Brox, T.: U-net: Convolutional networks for biomedical image segmentation. In: Navab, N., Hornegger, J., Wells, W.M., Frangi, A.F. (eds.) Proc. MICCAI. pp. 234–241 (2015) 18. Russakovsky, O., Deng, J., Su, H., Krause, J., Satheesh, S., Ma, S., Huang, Z., Karpathy, A., Khosla, A., Bernstein, M., Berg, A.C., Fei-Fei, L.: Imagenet large scale visual recognition challenge. IJCV 115(3), 211–252 (2015) 19. Sun, C., Shrivastava, A., Singh, S., Gupta, A.: Revisiting unreasonable eﬀectiveness of data in deep learning era. In: Proc. ICCV (2017) 20. Zhou, B., Zhao, H., Puig, X., Fidler, S., Barriuso, A., Torralba, A.: Scene parsing through ade20k dataset. In: Proc. CVPR (2017)"
+          }
+        }
+      ]
+    }
+  ]
+}
