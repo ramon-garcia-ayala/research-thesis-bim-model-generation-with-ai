@@ -13,3 +13,9 @@ Who: designers used to one-to-ten — their input says how the tool is used by s
 Earlier thread it absorbs: "how many hands will AI take out of design" is also how people interact with the tool; the
 designer is part of the process and adapts to the hands taken out of it. The rooted habits of architectural design and
 of construction are what the tool might change.
+
+## 2026-10-23 · The method of the thesis
+Approved as the way to test the hypothesis. The tool is the medium; the designer's interaction is the input; the
+output is the result (what is evaluated) and the log (the process, how it works). The end goal stays the first
+question: how these methods reduce the hands in design. The interaction is observed at each level of the tool ladder
+(rules, optimizer, agent, prediction), and the move from one-to-ten to many-to-five is one thing seen in it.
