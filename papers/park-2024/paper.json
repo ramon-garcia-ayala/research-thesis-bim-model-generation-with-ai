@@ -1,0 +1,994 @@
+{
+  "version": 1,
+  "node": "park-2024",
+  "title": "Developing a Robust Training Dataset for AI-Driven Architectural Spatial Layout Generation",
+  "source": "files/Developing a Robust Training Dataset for AI-Driven Architectural Spatial Layout Generation.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Información preliminar"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Abstract: Recent advancements in AI research, particularly in spatial layout generation, highlight its capacity to enhance human creativity by swiftly providing architects with numerous alternatives during the pre-design phase. The complexity of architectural design data, characterized by multifaceted elements and varying representations, presents significant challenges in creating uniform and robust datasets. This study addresses this challenge by developing a robust training dataset specifically tailored for AI-driven spatial layout generation in architecture. An algorithm capable of extracting spatial relationship diagrams from raster-based floor plan images and converting them into vector-based data was introduced. Through extensive web crawling, a dataset comprising 10,000 data rows, categorized into 21 classes and three spatial relationship categories, was collected. When tested with the You-Only-Look-Once (YOLO) model, the detection rate was 99%, the mean average precision was 85%, and the MIoU was 74.2%. The development of this robust training dataset holds significant potential to advance knowledge-based artificial intelligence design automation studies, paving the way for further innovation in architectural design.",
+            "es": "Resumen: Los avances recientes en la investigación de inteligencia artificial (artificial intelligence, IA), en particular en la generación de distribuciones espaciales (spatial layout generation), ponen de relieve su capacidad para potenciar la creatividad humana al ofrecer rápidamente a los arquitectos numerosas alternativas durante la fase de predeiseño. La complejidad de los datos de diseño arquitectónico, caracterizados por elementos multifacéticos y representaciones variables, plantea retos significativos para crear conjuntos de datos (datasets) uniformes y robustos. Este estudio aborda ese reto mediante el desarrollo de un conjunto de datos de entrenamiento (training dataset) robusto, diseñado específicamente para la generación de distribuciones espaciales en arquitectura impulsada por IA. Se introdujo un algoritmo capaz de extraer diagramas de relaciones espaciales (spatial relationship diagrams) a partir de imágenes ráster (raster) de planos de planta (floor plans) y convertirlos en datos vectoriales (vector). Mediante un extenso rastreo web (web crawling), se recopiló un conjunto de datos compuesto por 10,000 filas de datos, clasificadas en 21 clases y tres categorías de relaciones espaciales. Al probarlo con el modelo You-Only-Look-Once (YOLO), la tasa de detección fue de 99%, la precisión media promedio (mean average precision) fue de 85% y el MIoU fue de 74.2%. El desarrollo de este conjunto de datos de entrenamiento robusto tiene un potencial significativo para hacer avanzar los estudios de automatización del diseño mediante inteligencia artificial basada en el conocimiento, allanando el camino para una mayor innovación en el diseño arquitectónico."
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Keywords: training dataset; architectural spatial layout generation; floor plan detection; spatial relationship diagrams; YOLO model",
+            "es": "Palabras clave: conjunto de datos de entrenamiento; generación de distribuciones espaciales arquitectónicas; detección de planos de planta; diagramas de relaciones espaciales; modelo YOLO"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1. Introduction",
+        "es": "1. Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Searle, a renowned American philosopher and academic, distinguished between “weak” and “strong” artificial intelligence (AI) that simulates human cognitive capacities using computers [1]. The advent of AI research in architectural design signifies more than its mere utilization as an instrument; it suggests a progression toward “strong AI” that enhances intrinsic design creativity. Recently, many studies on spatial layout generation [2–5] and recommendations [6] have been conducted using AI technology. A commonality between these studies is that they can increase human creativity by quickly providing architects with many alternatives during the predesign phase. Such AI-based research in the field of architecture and the construction of datasets is necessary and must precede [7].",
+            "es": "Searle, un renombrado filósofo y académico estadounidense, distinguió entre la inteligencia artificial (IA) “débil” y “fuerte”, que simula las capacidades cognitivas humanas mediante computadoras [1]. La llegada de la investigación en IA al diseño arquitectónico significa algo más que su mera utilización como instrumento; sugiere una progresión hacia una “IA fuerte” que potencia la creatividad intrínseca del diseño. Recientemente se han realizado muchos estudios sobre generación de distribuciones espaciales [2–5] y recomendaciones [6] mediante tecnología de IA. Un rasgo común de estos estudios es que pueden aumentar la creatividad humana al ofrecer rápidamente a los arquitectos muchas alternativas durante la fase de predeiseño (pre-design phase). Esta investigación basada en IA en el campo de la arquitectura y la construcción de conjuntos de datos es necesaria y debe ser previa [7]."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "However, architectural design data are replete with intricate elements and the representations in drawings often vary. Consequently, the uniform formulation of datasets is challenging and circumscribed. Considering that superior datasets directly influence the outcomes of deep learning, it is imperative to prioritize the construction of extensive highquality training datasets. Therefore, this paper proposes a methodology and algorithm for constructing high-quality datasets geared toward AI research in spatial layout generation. The main objective of this study is to develop a robust training dataset specifically tailored for AI-driven spatial layout generation in architecture. By achieving this, the study aims to support the advancement of knowledge-based AI design automation.",
+            "es": "Sin embargo, los datos de diseño arquitectónico están repletos de elementos intrincados y las representaciones en los dibujos suelen variar. En consecuencia, la formulación uniforme de conjuntos de datos es difícil y está limitada. Considerando que los conjuntos de datos superiores influyen directamente en los resultados del aprendizaje profundo (deep learning), es imperativo priorizar la construcción de conjuntos de datos de entrenamiento extensos y de alta calidad. Por lo tanto, este artículo propone una metodología y un algoritmo para construir conjuntos de datos de alta calidad orientados a la investigación de IA en la generación de distribuciones espaciales. El objetivo principal de este estudio es desarrollar un conjunto de datos de entrenamiento robusto, diseñado específicamente para la generación de distribuciones espaciales en arquitectura impulsada por IA. Con ello, el estudio pretende apoyar el avance de la automatización del diseño mediante IA basada en el conocimiento."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "By consistently extracting extensive information from floor plan images (such as space names, areas, and adjacencies) as vector data, knowledge-based AI learning beyond intelligent learning is possible. This approach holds promise for evolving into a knowledgebased AI design automation technique.",
+            "es": "Al extraer de manera consistente abundante información de las imágenes de planos de planta (como nombres de espacios, áreas y adyacencias) en forma de datos vectoriales, es posible un aprendizaje de IA basada en el conocimiento que va más allá del aprendizaje inteligente. Este enfoque es prometedor para evolucionar hacia una técnica de automatización del diseño mediante IA basada en el conocimiento."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Appl. Sci. 2024, 14, 7095. https://doi.org/10.3390/app14167095 https://www.mdpi.com/journal/applsci",
+            "es": "Appl. Sci. 2024, 14, 7095. https://doi.org/10.3390/app14167095 https://www.mdpi.com/journal/applsci"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2. Related Research",
+        "es": "2. Investigación relacionada"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "2.1. AI-Based Dataset Construction for Architectural Design",
+            "es": "2.1. Construcción de conjuntos de datos basada en IA para el diseño arquitectónico"
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "One reason for the slow application and development of AI in architectural design is the difficulty of constructing standardized datasets with diverse data. The Korea Institute of Architecture and Urban Research [8] aggregates and offers information related to design projects, including drawings, images, and summaries. However, the volume of this data falls short of the AI learning requirements. The floor plan is expressed using heuristic symbols, including lines, guides, text, and icons, which can be interpreted as meaningful information. However, a universally recognized procedure for the transition from raster to vector data is still lacking, complicating efforts to achieve uniformity [9,10].",
+            "es": "Una de las razones de la lenta aplicación y desarrollo de la IA en el diseño arquitectónico es la dificultad de construir conjuntos de datos estandarizados con datos diversos. El Korea Institute of Architecture and Urban Research [8] agrega y ofrece información relacionada con proyectos de diseño, incluidos dibujos, imágenes y resúmenes. Sin embargo, el volumen de estos datos no alcanza los requisitos del aprendizaje de la IA. El plano de planta se expresa mediante símbolos heurísticos, incluidos líneas, guías, texto e íconos, que pueden interpretarse como información significativa. Sin embargo, sigue faltando un procedimiento universalmente reconocido para la transición de datos ráster a datos vectoriales, lo que dificulta lograr la uniformidad [9,10]."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "For effective AI learning, the datasets must be constructed in a format amenable to computer processing. Given these datasets, the AI can learn spatial rules to generate or recommend an optimized layout. Lu [11] proposed an algorithm for generating graphs using CubiCase5K, floor plan datasets. Based on the BIM model and Dynamo, Kim [12] interpreted the spatial relationship information in a drawing as a graph and constructed a spatial relationship database using an algorithm. In the early stages of design education, Kavakoglu [13] used sketch datasets expressed by students to train the styleGAN2-ADA model and generate facade images. Pizarro [14] investigated the datasets (such as name, public access, annotation, and number of plans) that were mainly used for floor plan analysis and recognition.",
+            "es": "Para un aprendizaje eficaz de la IA, los conjuntos de datos deben construirse en un formato apto para el procesamiento por computadora. Con estos conjuntos de datos, la IA puede aprender reglas espaciales para generar o recomendar una distribución optimizada. Lu [11] propuso un algoritmo para generar grafos usando CubiCase5K, conjuntos de datos de planos de planta. Con base en el modelo BIM y Dynamo, Kim [12] interpretó como un grafo la información de relaciones espaciales de un dibujo y construyó una base de datos de relaciones espaciales mediante un algoritmo. En las primeras etapas de la educación en diseño, Kavakoglu [13] utilizó conjuntos de datos de bocetos expresados por estudiantes para entrenar el modelo styleGAN2-ADA y generar imágenes de fachadas. Pizarro [14] investigó los conjuntos de datos (como nombre, acceso público, anotación y número de planos) que se utilizaron principalmente para el análisis y el reconocimiento de planos de planta."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Notably, design-centric datasets are remarkably small compared to those in other fields. This is limited in annotation because it is difficult to obtain raster-based raw data and there are many heuristics in drawings. Specifically, the levels and details of the raw data are different; therefore, when annotating, the classes, boundaries, and standards are inevitably different. Consequently, high-quality large-scale training datasets should be constructed in accordance with specific research objectives and orientations. This study distinguishes itself by not only addressing these common challenges but also by developing a novel algorithm that consistently extracts extensive information from floor plan images and converts it into vector-based data, specifically tailored for spatial layout generation in architecture.",
+            "es": "Cabe destacar que los conjuntos de datos centrados en el diseño son notablemente pequeños en comparación con los de otros campos. Esto se ve limitado en cuanto a la anotación (annotation), porque es difícil obtener datos brutos en formato ráster y hay muchas heurísticas en los dibujos. En concreto, los niveles y los detalles de los datos brutos son diferentes; por lo tanto, al anotar, las clases, los límites y los estándares son inevitablemente distintos. En consecuencia, los conjuntos de datos de entrenamiento a gran escala y de alta calidad deben construirse de acuerdo con objetivos y orientaciones de investigación específicos. Este estudio se distingue no solo por abordar estos retos comunes, sino también por desarrollar un algoritmo novedoso que extrae de manera consistente abundante información de imágenes de planos de planta y la convierte en datos vectoriales, diseñado específicamente para la generación de distribuciones espaciales en arquitectura."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "2.2. AI-Based Spatial Layout Generation Research",
+            "es": "2.2. Investigación sobre generación de distribuciones espaciales basada en IA"
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Hopgood [15] defines AI as the intelligence of a machine or computer that enables it to imitate or mimic human capabilities. Regarding this perspective, AI-based tools are divided into “intelligent systems” or “knowledge-based systems” and “computational intelligence and hybrid systems”. Intelligent systems are highly relevant in design automation [16].",
+            "es": "Hopgood [15] define la IA como la inteligencia de una máquina o computadora que le permite imitar o emular capacidades humanas. Desde esta perspectiva, las herramientas basadas en IA se dividen en “sistemas inteligentes” o “sistemas basados en el conocimiento” y “inteligencia computacional y sistemas híbridos”. Los sistemas inteligentes son muy relevantes en la automatización del diseño [16]."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "This study delves into recent deep-learning spatial layout generation studies in the field of computer vision. Chaillou [2] trained a model to generate a footprint, proceeded with a generative adversarial network (GAN)-generated master plan for program repartitioning, and proposed a furniture layout. After the floor plans, doors, windows, and vertical circulations were placed, a layout was created using GAN learning. Nauata [3] studied a house GAN layout that used an architectural constraint as a graph (i.e., the number and types of rooms with their spatial adjacency) and produced a set of axis-aligned bounding boxes of rooms. Wu [4] determined the location of a room as a point given a boundary and predicted the location of a wall using an encoder–decoder model. By repeatedly learning to create different rooms, this study constructed a vector dataset for more than 80,000 residential floor plans. Carta [17] utilized the CubiGraph5k [11] dataset. Utilizing machine-parsing structured floor plan data and Graph Convolutional Networks (GCN), an approximate spatial layout is generated when a user draws rooms (kitchen, living room, etc.) as nodes like a graph. Seo [18] learned drawing elements and spatial usage using the DeeplabV3+ model and then automatically generated spatial zoning based on AttnGAN. Hu [5] learned to generate floor plans from layout graphs using the RPLAN’s dataset [4]. Given an input building boundary, a floor plan associated with the layout graphs is generated from a database.",
+            "es": "Este estudio profundiza en los estudios recientes de generación de distribuciones espaciales con aprendizaje profundo en el campo de la visión por computadora (computer vision). Chaillou [2] entrenó un modelo para generar una huella (footprint), procedió con un plan maestro generado por una red generativa antagónica (generative adversarial network, GAN) para la repartición del programa, y propuso una distribución del mobiliario. Después de colocar los planos de planta, las puertas, las ventanas y las circulaciones verticales, se creó una distribución mediante el aprendizaje de la GAN. Nauata [3] estudió una distribución de House GAN que utilizaba una restricción arquitectónica en forma de grafo (es decir, el número y los tipos de habitaciones con su adyacencia espacial) y producía un conjunto de cuadros delimitadores (bounding boxes) de las habitaciones alineados con los ejes. Wu [4] determinó la ubicación de una habitación como un punto dado un límite y predijo la ubicación de un muro mediante un modelo codificador–decodificador (encoder–decoder). Al aprender repetidamente a crear distintas habitaciones, este estudio construyó un conjunto de datos vectoriales de más de 80,000 planos de planta residenciales. Carta [17] utilizó el conjunto de datos CubiGraph5k [11]. Mediante el análisis automático (machine-parsing) de datos estructurados de planos de planta y redes convolucionales de grafos (Graph Convolutional Networks, GCN), se genera una distribución espacial aproximada cuando un usuario dibuja habitaciones (cocina, sala de estar, etc.) como nodos, a manera de un grafo. Seo [18] aprendió elementos del dibujo y usos del espacio con el modelo DeeplabV3+ y luego generó automáticamente una zonificación espacial basada en AttnGAN. Hu [5] aprendió a generar planos de planta a partir de grafos de distribución utilizando el conjunto de datos de RPLAN [4]. Dado un límite de edificio de entrada, se genera, a partir de una base de datos, un plano de planta asociado con los grafos de distribución."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "A unifying aspect of prior studies is a rule-based randomly generated floor plan. However, these studies did not consider design theory or knowledge. Although AI-based intelligent systems boast rapid result generation, their results often lack precision and are unreliable. For better quality and more reliable plans, it should be developed as an AI-based knowledge system with high reliability. This necessitates the construction of training datasets consistently rooted in vector data.",
+            "es": "Un aspecto común de los estudios previos es un plano de planta generado aleatoriamente con base en reglas. Sin embargo, estos estudios no consideraron la teoría ni el conocimiento del diseño. Aunque los sistemas inteligentes basados en IA presumen de generar resultados con rapidez, estos suelen carecer de precisión y no son fiables. Para obtener planos de mejor calidad y más fiables, debería desarrollarse un sistema de conocimiento basado en IA con alta fiabilidad. Esto exige la construcción de conjuntos de datos de entrenamiento arraigados de manera consistente en datos vectoriales."
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The training datasets should include complex vector data, such as type, size, scale, location, and adjacency of space, rather than simply drawing elements, such as walls, doors, windows, and furniture. This is because the more detailed the vector data about space that are constructed, the better the AI can learn these spatial relationships through neural networks. Moreover, the current study differentiates itself by introducing a novel algorithm designed to convert raster-based floor plan images to vector-based data using deep learning, providing a strategy for formulating expansive training datasets tailored for high-precision AI applications in architectural design. Such insights will be instrumental in generating or recommending spaces in the future.",
+            "es": "Los conjuntos de datos de entrenamiento deben incluir datos vectoriales complejos, como el tipo, el tamaño, la escala, la ubicación y la adyacencia del espacio, en lugar de simplemente elementos del dibujo, como muros, puertas, ventanas y mobiliario. Esto se debe a que, cuanto más detallados sean los datos vectoriales construidos sobre el espacio, mejor podrá la IA aprender estas relaciones espaciales a través de redes neuronales (neural networks). Además, el presente estudio se diferencia al introducir un algoritmo novedoso diseñado para convertir imágenes ráster de planos de planta en datos vectoriales mediante aprendizaje profundo, lo que proporciona una estrategia para formular conjuntos de datos de entrenamiento de gran tamaño, adaptados a aplicaciones de IA de alta precisión en el diseño arquitectónico. Estas ideas serán fundamentales para generar o recomendar espacios en el futuro."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3. Methodology",
+        "es": "3. Metodología"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "3.1. Procedure",
+            "es": "3.1. Procedimiento"
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The procedure adopted in this study is illustrated in Figure 1. Initially, raster-based floor plan images served as the raw data sources. Subsequently, the classes and adjacency conditions for the space were defined. In the third phase, training data were created using an annotation tool and data training and testing were conducted using the You-Only-Look-Once (YOLO) recognition model. Finally, an algorithm for automatically constructing vector-based data from raster-based floor plan images was proposed and tested. The dataset, named ‘AIBIM_House Dataset’ [19], comprises graph-extracted spatial relationship diagrams converted into vector-based data. Metrics such as precision, detection rate, mean Average Precision (mAP), and Intersection over Union (IoU) were used to measure the algorithm’s performance.",
+            "es": "El procedimiento adoptado en este estudio se ilustra en la Figura 1. Inicialmente, las imágenes ráster de planos de planta sirvieron como fuentes de datos brutos. Posteriormente, se definieron las clases y las condiciones de adyacencia del espacio. En la tercera fase, se crearon los datos de entrenamiento mediante una herramienta de anotación (annotation tool), y el entrenamiento y la prueba de los datos se realizaron con el modelo de reconocimiento You-Only-Look-Once (YOLO). Por último, se propuso y se probó un algoritmo para construir automáticamente datos vectoriales a partir de imágenes ráster de planos de planta. El conjunto de datos, denominado ‘AIBIM_House Dataset’ [19], comprende diagramas de relaciones espaciales extraídos como grafos y convertidos en datos vectoriales. Para medir el desempeño del algoritmo se utilizaron métricas como la precisión (precision), la tasa de detección (detection rate), la precisión media promedio (mean Average Precision, mAP) y la intersección sobre la unión (Intersection over Union, IoU)."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1. Procedure of research.",
+            "es": "Figura 1: Procedimiento de la investigación."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "3.2. Raw Data Collection",
+            "es": "3.2. Recopilación de datos brutos"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Raw data were collected by crawling raster-based floor plan images from real estate websites. Web crawling can be used to collect and archive specific data [20]. The total number of projects on ‘Houseplans’ is 14,970, classified by style, size, favorites, and region [21]. Each project was assigned a distinct identity (ID) and included a raster-based elevation plan, floor plan, and text-based description. Web crawling, executed using Python, facilitated the raw data collection process, as illustrated in Figure 2. By inputting the project ID, specific content could be retrieved (selected from Cases 1, 2, and 3). From 6900 projects, 10,000 raster-based floor plan images (in formats such as .jpg and .png) and their corresponding descriptions (in .xlsx format) were collected. These 10,000 images underwent spatial relationship diagram extraction using YOLO-based recognition. Finally, text-based descriptions and spatial relationship diagrams were algorithmically converged to extract the final vector-based spatial relationship data.",
+            "es": "Los datos brutos se recopilaron rastreando imágenes ráster de planos de planta en sitios web de bienes raíces. El rastreo web puede utilizarse para recopilar y archivar datos específicos [20]. El número total de proyectos en ‘Houseplans’ es de 14,970, clasificados por estilo, tamaño, favoritos y región [21]. A cada proyecto se le asignó una identidad (ID) distinta e incluía un plano de elevación en formato ráster, un plano de planta y una descripción en texto. El rastreo web, ejecutado con Python, facilitó el proceso de recopilación de datos brutos, como se ilustra en la Figura 2. Al introducir el ID del proyecto, se podía recuperar un contenido específico (seleccionado entre los Casos 1, 2 y 3). De 6900 proyectos se recopilaron 10,000 imágenes ráster de planos de planta (en formatos como .jpg y .png) y sus descripciones correspondientes (en formato .xlsx). Estas 10,000 imágenes se sometieron a la extracción de diagramas de relaciones espaciales mediante reconocimiento basado en YOLO. Finalmente, las descripciones en texto y los diagramas de relaciones espaciales se hicieron converger algorítmicamente para extraer los datos vectoriales finales de relaciones espaciales."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2. The process of collecting raw data by web crawling.",
+            "es": "Figura 2: El proceso de recopilación de datos brutos mediante rastreo web."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "3.3. Spatial Relationship Definition",
+            "es": "3.3. Definición de las relaciones espaciales"
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Before delving into spatial relationships, categorizing housing spaces is essential. According to architectural planning theories, housing spaces are typically classified into indoor and outdoor areas. Indoor spaces encompass public, private, household, sanitary, and circulation spaces. By comparing floor plan images from Korea and the United States, representative categories of housing spaces were identified. Appendix A provides a detailed hierarchy of these spaces. In this study, we defined 14 indoor and 2 outdoor space classes. The indoor space categories include living rooms, dining rooms, bedrooms, dressing rooms, closets, kitchens, utility rooms, pantry rooms, laundry rooms, bathrooms, entrances, stairs, and hallways. The distinction between stair rooms and entrances was made for annotation purposes. The two outdoor space categories are porches and garages. As depicted in Table 1, housing space classes were defined for image recognition.",
+            "es": "Antes de profundizar en las relaciones espaciales, es esencial categorizar los espacios de la vivienda. Según las teorías de planificación arquitectónica, los espacios de la vivienda suelen clasificarse en áreas interiores y exteriores. Los espacios interiores abarcan espacios públicos, privados, domésticos, sanitarios y de circulación. Al comparar imágenes de planos de planta de Corea y de Estados Unidos, se identificaron categorías representativas de espacios de la vivienda. El Apéndice A ofrece una jerarquía detallada de estos espacios. En este estudio definimos 14 clases de espacios interiores y 2 de espacios exteriores. Las categorías de espacios interiores incluyen salas de estar, comedores, dormitorios, vestidores, clósets, cocinas, cuartos de servicio, despensas, cuartos de lavado, baños, entradas, escaleras y pasillos. La distinción entre los cuartos de escaleras y las entradas se hizo con fines de anotación. Las dos categorías de espacios exteriores son los pórticos y las cocheras. Como se muestra en la Tabla 1, se definieron las clases de espacios de la vivienda para el reconocimiento de imágenes."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 4,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1. Definition of classes of housing space.",
+            "es": "Tabla 1: Definición de las clases de espacios de la vivienda."
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In the pre-design phase, spatial relationships can be represented in graphs, particularly in space programming and zoning. These graphs are denoted by nodes that symbolize the spaces and the edges that interconnect them. Pizarro [14] suggested considering four categories when analyzing floor plans: graphic separation, object recognition, vectorization, and structural modeling. Zeng [22] used a multitask network model to recognize floor plan elements such as walls, rooms, doors, and windows. Song [23] used image-based learning to classify floor plan elements and represented them in a vector format. Their methodology emphasizes the detection of indoor elements (such as walls and doors), symbols, and spatial elements (such as rooms and corridors) for image learning.",
+            "es": "En la fase de predeiseño, las relaciones espaciales pueden representarse en grafos, en particular en la programación espacial y la zonificación. Estos grafos se denotan mediante nodos que simbolizan los espacios y aristas (edges) que los interconectan. Pizarro [14] sugirió considerar cuatro categorías al analizar planos de planta: separación gráfica, reconocimiento de objetos, vectorización y modelado estructural. Zeng [22] utilizó un modelo de red multitarea para reconocer elementos de los planos de planta como muros, habitaciones, puertas y ventanas. Song [23] utilizó aprendizaje basado en imágenes para clasificar elementos de los planos de planta y los representó en formato vectorial. Su metodología hace hincapié en la detección de elementos interiores (como muros y puertas), símbolos y elementos espaciales (como habitaciones y corredores) para el aprendizaje de imágenes."
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Based on prior studies, it is necessary to detect space and basic elements (walls, doors, and windows) to analyze spatial relationships in the floor plan. As shown in Table 2, this study defines three cases for determining adjacency in spatial relationships. Case 1 is a directly connected space, that is, a completely open space without walls. Case 2 was a directly connected space but was a partially open space with walls and no doors. Case 3 is an indirectly connected space with walls and a door or window. A space with walls alone is disconnected. The criteria for discerning adjacency within spatial relationships are based on elements, such as doors (single, double, or sliding), windows, and openings. Thus, this study defined 16 spatial classes alongside five central classes and established three distinct cases to elucidate the adjacencies in spatial relationships.",
+            "es": "Con base en estudios previos, es necesario detectar el espacio y los elementos básicos (muros, puertas y ventanas) para analizar las relaciones espaciales en el plano de planta. Como se muestra en la Tabla 2, este estudio define tres casos para determinar la adyacencia en las relaciones espaciales. El Caso 1 es un espacio directamente conectado, es decir, un espacio completamente abierto sin muros. El Caso 2 fue un espacio directamente conectado, pero parcialmente abierto, con muros y sin puertas. El Caso 3 es un espacio indirectamente conectado con muros y una puerta o ventana. Un espacio solo con muros está desconectado. Los criterios para discernir la adyacencia dentro de las relaciones espaciales se basan en elementos como puertas (sencillas, dobles o corredizas), ventanas y vanos. Así, este estudio definió 16 clases espaciales junto con cinco clases centrales y estableció tres casos distintos para elucidar las adyacencias en las relaciones espaciales."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 5,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2. Definition of Adjacency in Spatial Relationships.",
+            "es": "Tabla 2: Definición de la adyacencia en las relaciones espaciales."
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "3.4. YOLO-Based Spatial Relationship Diagram Extraction Method",
+            "es": "3.4. Método de extracción de diagramas de relaciones espaciales basado en YOLO"
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The convolutional neural network (CNN) and YOLO [24,25] are pivotal object detection models. Although object detection requires the ability to identify and categorize multiple entities, CNN models encounter challenges when recognizing numerous objects. As floorplan images contain a variety of diminutive and intricate elements of varying sizes and positions, the YOLO model was adopted in this study. This decision stems from YOLO’s proficiency in rapidly detecting multiple classes within raster-based floor plan images. Unlike Fast R-CNN, which requires two stages, specifically region proposal and classification, YOLO models are single-stage detectors. This means that YOLO can predict bounding boxes and class probabilities directly from full images in one evaluation, making it faster and more suitable for real-time applications. YOLOv3, in particular, predicts the objectness score for each bounding box using logistic regression. YOLOv3’s architecture divides the input image into a grid and predicts bounding boxes and confidence scores for objects within each grid cell. This offers significant advantages in terms of both speed and accuracy, especially when detecting smaller objects compared to other models like Faster R-CNN. In terms of operational efficiency, YOLOv3 outperforms both Faster R-CNN and Retinanet and its ability to detect smaller objects has been enhanced using scales [25].",
+            "es": "La red neuronal convolucional (convolutional neural network, CNN) y YOLO [24,25] son modelos fundamentales de detección de objetos (object detection). Aunque la detección de objetos requiere la capacidad de identificar y categorizar múltiples entidades, los modelos CNN enfrentan dificultades al reconocer numerosos objetos. Dado que las imágenes de planos de planta contienen una variedad de elementos diminutos e intrincados de distintos tamaños y posiciones, en este estudio se adoptó el modelo YOLO. Esta decisión se debe a la destreza de YOLO para detectar rápidamente múltiples clases dentro de imágenes ráster de planos de planta. A diferencia de Fast R-CNN, que requiere dos etapas, concretamente la propuesta de regiones y la clasificación, los modelos YOLO son detectores de una sola etapa (single-stage detectors). Esto significa que YOLO puede predecir cuadros delimitadores y probabilidades de clase directamente a partir de imágenes completas en una evaluación, lo que lo hace más rápido y más adecuado para aplicaciones en tiempo real. YOLOv3, en particular, predice la puntuación de objetualidad (objectness score) de cada cuadro delimitador mediante regresión logística (logistic regression). La arquitectura de YOLOv3 divide la imagen de entrada en una cuadrícula y predice cuadros delimitadores y puntuaciones de confianza para los objetos dentro de cada celda de la cuadrícula. Esto ofrece ventajas significativas tanto en velocidad como en exactitud, especialmente al detectar objetos más pequeños en comparación con otros modelos como Faster R-CNN. En cuanto a la eficiencia operativa, YOLOv3 supera tanto a Faster R-CNN como a Retinanet, y su capacidad para detectar objetos más pequeños se ha mejorado mediante el uso de escalas [25]."
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Table 3 presents the extraction process of the spatial relationship diagram from YOLOv3-based floor plan images. When an image was input, the space and central classes were detected using the YOLO model. A center point is detected and each point (referring to a node) is connected based on previously defined adjacency conditions (i.e., a completely open space, a partially open space, or an indirectly connected space). This is discussed in detail in Section 3.3. Table 4 shows how the lines were connected according to the adjacency definition.",
+            "es": "La Tabla 3 presenta el proceso de extracción del diagrama de relaciones espaciales a partir de imágenes de planos de planta con YOLOv3. Cuando se introducía una imagen, se detectaban las clases de espacio y las clases centrales mediante el modelo YOLO. Se detecta un punto central y cada punto (que remite a un nodo) se conecta con base en las condiciones de adyacencia definidas previamente (es decir, un espacio completamente abierto, un espacio parcialmente abierto o un espacio indirectamente conectado). Esto se analiza en detalle en la Sección 3.3. La Tabla 4 muestra cómo se conectaron las líneas de acuerdo con la definición de adyacencia."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 6,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3. Extraction process of the spatial relationship diagram.",
+            "es": "Tabla 3: Proceso de extracción del diagrama de relaciones espaciales."
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Table 5 lists the successful encapsulation methods used in the extraction process. It is divided into a step for detecting classes using the YOLO model and a step for drawing a diagram, such as a graph, through calculation. The dimensions of the graph images were determined after data calculation. If the outer coordinates of the detected space class are represented by X and Y, their cumulative lengths are incorporated and averaged to obtain a square. As the space classes are discerned through bounding boxes, overlaps may occur. In the event of such overlaps, the principle of pushing each other was applied. The points of minimum X and Y and maximum X and Y were found to connect these four points with a line to create a boundary. After determining the central coordinates within the square, the connections between them were drawn based on their relative adjacencies. The final diagrammatic representation was obtained by transforming the square into a circular format. Consequently, a spatial relationship diagram is extracted from the original raster-based floor plan images.",
+            "es": "La Tabla 5 enumera los métodos de encapsulación exitosos utilizados en el proceso de extracción. Se divide en un paso para detectar clases mediante el modelo YOLO y un paso para dibujar un diagrama, como un grafo, mediante cálculo. Las dimensiones de las imágenes del grafo se determinaron después del cálculo de los datos. Si las coordenadas exteriores de la clase de espacio detectada se representan con X y Y, sus longitudes acumuladas se incorporan y se promedian para obtener un cuadrado. Como las clases de espacio se discriminan mediante cuadros delimitadores, pueden producirse traslapes. En caso de tales traslapes, se aplicó el principio de empujarse mutuamente. Se encontraron los puntos de X y Y mínimas y de X y Y máximas para conectar estos cuatro puntos con una línea y crear un límite. Tras determinar las coordenadas centrales dentro del cuadrado, se dibujaron las conexiones entre ellas con base en sus adyacencias relativas. La representación diagramática final se obtuvo transformando el cuadrado en un formato circular. En consecuencia, se extrae un diagrama de relaciones espaciales de las imágenes ráster originales de planos de planta."
+          }
+        },
+        {
+          "id": "tab-4",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-4.png",
+          "text": {
+            "en": "Table 4. Connection line according to the adjacency definition.",
+            "es": "Tabla 4: Línea de conexión según la definición de adyacencia."
+          }
+        },
+        {
+          "id": "tab-5",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-5.png",
+          "text": {
+            "en": "Table 5. Encapsulation methods for extracting spatial relationship diagrams using the YOLO model.",
+            "es": "Tabla 5: Métodos de encapsulación para extraer diagramas de relaciones espaciales mediante el modelo YOLO."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4. Algorithm and Experiment",
+        "es": "4. Algoritmo y experimento"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "4.1. YOLO-Based Training Dataset Construction Algorithm",
+            "es": "4.1. Algoritmo de construcción del conjunto de datos de entrenamiento (training dataset) basado en YOLO"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "4.1.1. Algorithm for Spatial Relationship Diagram Extraction",
+            "es": "4.1.1. Algoritmo para la extracción de diagramas de relaciones espaciales (spatial relationship diagram)"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The algorithms and contents for extracting spatial relationship diagrams are depicted in Figure 3 and Table 6. Each project is uniquely identified by an ID. The term ‘Search Same Project’ means to search for the same project from the selected floor plan image (for instance, Project ID-3 corresponds to a building on the 3rd floor).",
+            "es": "Los algoritmos y contenidos para extraer diagramas de relaciones espaciales se muestran en la Figura 3 y la Tabla 6. Cada proyecto se identifica de forma única mediante un ID. El término ‘Search Same Project’ significa buscar el mismo proyecto a partir de la imagen del plano de planta (floor plan) seleccionado (por ejemplo, el Project ID-3 corresponde a un edificio en el 3.er piso)."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3. Algorithm for spatial relationship diagram extraction.",
+            "es": "Figura 3: Algoritmo para la extracción de diagramas de relaciones espaciales."
+          }
+        },
+        {
+          "id": "tab-6",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-6.png",
+          "text": {
+            "en": "Table 6. Description of Figure 3.",
+            "es": "Tabla 6: Descripción de la Figura 3."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The intricacies and procedures within ‘Connectalorithm.cs’ are exhibited in Figure 4. Within housing plans, living rooms predominantly occupy the most extensive area. Con-sequently, directly adjacent spaces like hallways, kitchens, and foyers are the primary connections. Rooms with a solitary door are connected accordingly. In instances where a room contains multiple doors, all neighboring rooms are interconnected. As space is detected as a bounding box, the closet is mostly included in the bedroom. The porch space is connected and the hallways may overlap due to bounding boxes, so they are merged. The ‘Connectorithm.cs’ function yields ‘Connection Information’ as its output. The contents described in Chapter 3.4 are in ‘Drawimages.cs’. The conclusive diagrammatic image is presented to the user after calibrating parameters like pixels, resolution, and dimensions.",
+            "es": "Los detalles y procedimientos dentro de ‘Connectalorithm.cs’ se presentan en la Figura 4. En los planos de vivienda (housing plans), las salas de estar ocupan predominantemente el área más extensa. En consecuencia, los espacios directamente adyacentes, como los pasillos, las cocinas y los vestíbulos, son las conexiones principales. Las habitaciones con una sola puerta se conectan en consecuencia. En los casos en que una habitación contiene varias puertas, todas las habitaciones vecinas se interconectan. Como el espacio se detecta como un cuadro delimitador (bounding box), el clóset queda incluido en su mayor parte en la recámara. El espacio del porche está conectado y los pasillos pueden traslaparse debido a los cuadros delimitadores, por lo que se fusionan. La función ‘Connectorithm.cs’ produce como salida la ‘Connection Information’. Los contenidos descritos en el capítulo 3.4 se encuentran en ‘Drawimages.cs’. La imagen diagramática final se presenta al usuario después de calibrar parámetros como los píxeles, la resolución y las dimensiones."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4. Process of ‘Connectalorithm.cs’.",
+            "es": "Figura 4: Proceso de ‘Connectalorithm.cs’."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "4.1.2. Algorithm for Spatial Relationship Data Extraction",
+            "es": "4.1.2. Algoritmo para la extracción de datos de relaciones espaciales"
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The algorithm and contents for extraction of spatial relationship data are shown in Figure 5. The conclusive spatial relationship data are consolidated into an Excel document by amalgamating the ‘Detected Class’, ‘Connection Information’, and ‘Crawling Data’ during the ‘Setexcelfiles.cs’ phase. The progression within ‘Setexcelfiles.cs’ is segmented into ‘Sort by Excel Data’, ‘Merge Data’, and ‘Write Excel’ stages, as visualized in Figure 6. In the ‘Merge Data’ step, the total area is calculated by adding the areas of the detected spaces and merging them with the sorted data. The ‘Write Excel’ phase culminates in the export of the spatial relationship data into an Excel sheet.",
+            "es": "El algoritmo y los contenidos para la extracción de datos de relaciones espaciales se muestran en la Figura 5. Los datos finales de relaciones espaciales se consolidan en un documento de Excel al combinar la ‘Detected Class’, la ‘Connection Information’ y los ‘Crawling Data’ durante la fase ‘Setexcelfiles.cs’. La progresión dentro de ‘Setexcelfiles.cs’ se divide en las etapas ‘Sort by Excel Data’, ‘Merge Data’ y ‘Write Excel’, como se visualiza en la Figura 6. En el paso ‘Merge Data’, el área total se calcula sumando las áreas de los espacios detectados y fusionándolas con los datos ordenados. La fase ‘Write Excel’ culmina con la exportación de los datos de relaciones espaciales a una hoja de Excel."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5. Algorithm for spatial relation data extraction.",
+            "es": "Figura 5: Algoritmo para la extracción de datos de relaciones espaciales."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6. Process of ‘Setexcelfiles.cs’.",
+            "es": "Figura 6: Proceso de ‘Setexcelfiles.cs’."
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "4.2. Experiment",
+            "es": "4.2. Experimento"
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "4.2.1. Creating Training Data Using an Annotation Tool",
+            "es": "4.2.1. Creación de datos de entrenamiento mediante una herramienta de anotación (annotation tool)"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Recognition involves annotating image regions using words [26]. Data annotation is defined as the labeling or tagging of relevant information in a dataset to allow machines to understand what they are [27]. It is difficult to extract data from raster-based floor plan images using polygonal methods. Given the variety of symbols and potential overlaps within floor plans, isolating specific data remains a complex task. This study facilitated the development of an annotation tool tailored to crafting training datasets from rasterbased floor plan visuals. As illustrated in Figure 7, this tool streamlines the creation of labeled data by allowing users to demarcate classes using a bounding box. As discussed in Section 3.3, 21 label elements can be marked, encompassing both spaces and central classes. The periphery of the bounding box for the space class also includes a wall outline.",
+            "es": "El reconocimiento implica anotar regiones de la imagen mediante palabras [26]. La anotación de datos se define como el etiquetado de la información relevante en un conjunto de datos para que las máquinas puedan entender qué son [27]. Es difícil extraer datos de imágenes de planos de planta basadas en ráster (raster-based) mediante métodos poligonales (polygonal methods). Dada la variedad de símbolos y las posibles superposiciones dentro de los planos de planta, aislar datos específicos sigue siendo una tarea compleja. Este estudio facilitó el desarrollo de una herramienta de anotación diseñada para elaborar conjuntos de datos de entrenamiento a partir de representaciones visuales de planos de planta basadas en ráster. Como se ilustra en la Figura 7, esta herramienta agiliza la creación de datos etiquetados al permitir que los usuarios delimiten clases mediante un cuadro delimitador. Como se analizó en la sección 3.3, se pueden marcar 21 elementos de etiqueta, que abarcan tanto espacios como clases centrales. El perímetro del cuadro delimitador de la clase de espacio también incluye el contorno de un muro."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7. Creating training data using an annotation tool.",
+            "es": "Figura 7: Creación de datos de entrenamiento mediante una herramienta de anotación."
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "4.2.2. Data Training and Testing",
+            "es": "4.2.2. Entrenamiento y prueba de los datos"
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The datasets for training and testing comprised 5524 and 1380 samples, respectively, which were split in an 8:2 ratio. The parameters designated for training encompassed a batch size of 64, a subdivision of 16, dimensions of 416 × 416 for height and width, and 78 filters. Test accuracy was ascertained using a confusion matrix [28,29]. This matrix consists of two rows and two columns delineating the true positives, false positives, false negatives, and true negatives [29]. When the actual true matches the predicted true, it becomes a true positive (TP). When the actual false is matched with the predicted true, it becomes a false positive (FP). When the actual true is matched with the predicted false, it becomes a false negative (FN). When an actual false result matches a predicted false result, it becomes a true negative (TN). The unique truth count (UTC) from the 1380 test data points was 52,253. Precision is calculated in Equation (1) as the ratio of how many positive predictions were correct (positive predictive value), as follows:",
+            "es": "Los conjuntos de datos de entrenamiento y de prueba comprendieron 5524 y 1380 muestras, respectivamente, divididas en una proporción de 8:2. Los parámetros designados para el entrenamiento abarcaron un tamaño de lote (batch size) de 64, una subdivisión (subdivision) de 16, dimensiones de 416 × 416 de alto y ancho, y 78 filtros (filters). La exactitud de la prueba se determinó mediante una matriz de confusión (confusion matrix) [28,29]. Esta matriz consta de dos filas y dos columnas que delimitan los verdaderos positivos, los falsos positivos, los falsos negativos y los verdaderos negativos [29]. Cuando el valor real verdadero coincide con el verdadero predicho, se convierte en un verdadero positivo (true positive, TP). Cuando el valor real falso coincide con el verdadero predicho, se convierte en un falso positivo (false positive, FP). Cuando el valor real verdadero coincide con el falso predicho, se convierte en un falso negativo (false negative, FN). Cuando un resultado real falso coincide con un resultado falso predicho, se convierte en un verdadero negativo (true negative, TN). El conteo de verdades únicas (unique truth count, UTC) de los 1380 datos de prueba fue de 52,253. La precisión (precision) se calcula en la ecuación (1) como la proporción de cuántas predicciones positivas fueron correctas (valor predictivo positivo), de la siguiente manera:"
+          }
+        },
+        {
+          "id": "s4-e1",
+          "type": "equation",
+          "page": 10,
+          "text": {
+            "en": "Precision = true positives predicted positives = TP TP + FP (1)"
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The evaluation metrics for the space classes are listed in Table 7. The TP and FP values were 19,528 and 2359, respectively, with an average precision of 0.873. The kitchen had the highest precision at 0.971, followed by the bedroom (0.962), stairs room (0.954), and living room (0.949). By contrast, spaces such as laundry rooms (0.723), utility rooms (0.728), and pantry rooms (0.747), which are intrinsic to households but lack distinguishing features, registered lower precision scores. The kitchen had high precision because the detected classes were small and the number of incorrect answers was small.",
+            "es": "Las métricas de evaluación para las clases de espacio se enumeran en la Tabla 7. Los valores de TP y FP fueron 19,528 y 2359, respectivamente, con una precisión promedio de 0.873. La cocina tuvo la precisión más alta, con 0.971, seguida por la recámara (0.962), la caja de escaleras (0.954) y la sala de estar (0.949). En contraste, espacios como los cuartos de lavado (0.723), los cuartos de servicio (0.728) y las despensas (0.747), que son intrínsecos a los hogares pero carecen de características distintivas, registraron puntuaciones de precisión más bajas. La cocina tuvo una precisión alta porque las clases detectadas eran pequeñas y el número de respuestas incorrectas fue reducido."
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Table 8 presents the evaluation metrics for the central class. Here, the TP and FP were 27,107 and 2573, respectively, with an average precision of 0.89. Single doors had precision scores of 0.958, followed by double doors (0.921) and windows (0.901). These central classes demonstrated high precision owing to their distinct features and the prevalence of their detection. Sliding doors were occasionally misclassified as windows. The lower precision of the opening classes can be explained by the lack of distinct features. Of the 52,253 UTCs, 686 were not detected.",
+            "es": "La Tabla 8 presenta las métricas de evaluación para la clase central. En este caso, los valores de TP y FP fueron 27,107 y 2573, respectivamente, con una precisión promedio de 0.89. Las puertas sencillas tuvieron puntuaciones de precisión de 0.958, seguidas por las puertas dobles (0.921) y las ventanas (0.901). Estas clases centrales demostraron una precisión alta debido a sus características distintivas y a la prevalencia de su detección. Las puertas corredizas se clasificaron ocasionalmente como ventanas de forma errónea. La menor precisión de las clases de aberturas puede explicarse por la falta de características distintivas. De los 52,253 UTC, 686 no fueron detectados."
+          }
+        },
+        {
+          "id": "tab-7",
+          "type": "table",
+          "page": 11,
+          "image": "fig/tab-7.png",
+          "text": {
+            "en": "Table 7. Precision for space classes.",
+            "es": "Tabla 7: Precisión para las clases de espacio."
+          }
+        },
+        {
+          "id": "tab-8",
+          "type": "table",
+          "page": 11,
+          "image": "fig/tab-8.png",
+          "text": {
+            "en": "Table 8. Precision for central classes.",
+            "es": "Tabla 8: Precisión para las clases centrales."
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Recall is the percentage of correct predictions of actual positives (true positive rate), calculated using Equation (2). The TP was 46,635, the FN was 5618, and the recall was 0.89.",
+            "es": "La exhaustividad (recall) es el porcentaje de predicciones correctas de los positivos reales (tasa de verdaderos positivos), calculada mediante la ecuación (2). El TP fue 46,635, el FN fue 5618 y la exhaustividad fue 0.89."
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Recall(Sensitivity) = true positives",
+            "es": "Exhaustividad (sensibilidad) = verdaderos positivos"
+          }
+        },
+        {
+          "id": "s4-e2",
+          "type": "equation",
+          "page": 11,
+          "text": {
+            "en": "all positives = TP TP + FN (2)"
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "The bounding box detection rate is given by Equation (3): the TP was 46,635, the FP was 4932, and the UTC was 52,253, respectively, resulting in a detection rate of 0.99. This signifies that even when classes were not precisely matched within the bounding box, 99% of the detections were feasible. unique truth count = TP + FP",
+            "es": "La tasa de detección (detection rate) del cuadro delimitador está dada por la ecuación (3): el TP fue 46,635, el FP fue 4932 y el UTC fue 52,253, respectivamente, lo que resulta en una tasa de detección de 0.99. Esto significa que, incluso cuando las clases no coincidieron con precisión dentro del cuadro delimitador, el 99% de las detecciones fueron viables. conteo de verdades únicas = TP + FP"
+          }
+        },
+        {
+          "id": "s4-p17",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Detection rate = actual detected value",
+            "es": "Tasa de detección = valor detectado real"
+          }
+        },
+        {
+          "id": "s4-p18",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "UTC (3)",
+            "es": "UTC (3)"
+          }
+        },
+        {
+          "id": "s4-p19",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "The performance of the algorithm for object detection was evaluated using the mAP, as shown in Equation (4). Following the establishment of an IoU threshold of 0.5, the test yielded an mAP of 0.85. This score surpasses those documented in prior studies [11,18,30]. The results of the algorithm’s performance for data testing are shown in Figure 8. mAP = 1",
+            "es": "El desempeño del algoritmo para la detección de objetos se evaluó mediante la precisión media promedio (mean average precision, mAP), como se muestra en la ecuación (4). Tras establecer un umbral de intersección sobre unión (intersection over union, IoU) de 0.5, la prueba arrojó un mAP de 0.85. Esta puntuación supera las documentadas en estudios previos [11,18,30]. Los resultados del desempeño del algoritmo en la prueba de datos se muestran en la Figura 8. mAP = 1"
+          }
+        },
+        {
+          "id": "s4-e3",
+          "type": "equation",
+          "page": 11,
+          "text": {
+            "en": "N i=1 APi (4)"
+          }
+        },
+        {
+          "id": "s4-h1",
+          "type": "heading",
+          "page": 11,
+          "text": {
+            "en": "N∑",
+            "es": "N∑"
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Figure 8. Results of algorithm performance.",
+            "es": "Figura 8: Resultados del desempeño del algoritmo."
+          }
+        },
+        {
+          "id": "s4-p20",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "4.3. Result",
+            "es": "4.3. Resultado"
+          }
+        },
+        {
+          "id": "s4-p21",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "4.3.1. Results of Spatial Relationship Diagram Extraction",
+            "es": "4.3.1. Resultados de la extracción de diagramas de relaciones espaciales"
+          }
+        },
+        {
+          "id": "s4-p22",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Upon the input of a floor plan image, the YOLO model discerns spaces and central classes and extracts diagrams showing spatial relationships. The detection rate is 99%. With an mAP of 85%, this method marginally outperformed previous studies [11,18,30] in the recognition of floor plan images, thereby affirming the suitability of the YOLO model parameters utilized in this test. Although discerning boundaries in completely open directconnection spaces posed a challenge, it was reduced through the incorporation of an open class in the learning phase. While the stairroom was identifiable, establishing connections with the adjacent spaces remained problematic. This issue was addressed by introducing a stair entrance class in the learning phase to facilitate connections with neighboring spaces. In the future, the accuracy and performance of the model can be improved by training on many floor plan images. Figure 9 shows the result of spatial relationship diagram extraction from the program ‘AIBIM_Bubblemaker [19]’ developed in this study.",
+            "es": "Al ingresar una imagen de plano de planta, el modelo YOLO distingue los espacios y las clases centrales y extrae diagramas que muestran relaciones espaciales. La tasa de detección es del 99%. Con un mAP del 85%, este método superó marginalmente a los estudios previos [11,18,30] en el reconocimiento de imágenes de planos de planta, lo que confirma la idoneidad de los parámetros del modelo YOLO utilizados en esta prueba. Aunque distinguir los límites en espacios completamente abiertos de conexión directa representó un desafío, este se redujo mediante la incorporación de una clase de espacio abierto (open) en la fase de aprendizaje. Si bien la caja de escaleras era identificable, establecer conexiones con los espacios adyacentes seguía siendo problemático. Este problema se abordó introduciendo una clase de entrada de escaleras (stair entrance) en la fase de aprendizaje para facilitar las conexiones con los espacios vecinos. En el futuro, la exactitud y el desempeño del modelo pueden mejorarse entrenándolo con muchas imágenes de planos de planta. La Figura 9 muestra el resultado de la extracción de diagramas de relaciones espaciales del programa ‘AIBIM_Bubblemaker [19]’ desarrollado en este estudio."
+          }
+        },
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-9.png",
+          "text": {
+            "en": "Figure 9. Results of spatial relationship diagram extraction.",
+            "es": "Figura 9: Resultados de la extracción de diagramas de relaciones espaciales."
+          }
+        },
+        {
+          "id": "s4-p23",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "4.3.2. Results of Spatial Relationship Data Extraction",
+            "es": "4.3.2. Resultados de la extracción de datos de relaciones espaciales"
+          }
+        },
+        {
+          "id": "s4-p24",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Table 9 presents the results of the vector data extraction from the raster-based floor plan images. Further details of Table 9 are provided in Appendix B. The algorithm effectively extracts spatial relationship data and translates them into consistent vector data. Conceptually, a diagram can be interpreted as a graph with defined nodes and edges; this information is structured as an adjacency matrix. Four factors contributed to the extracted vector data, as follows:",
+            "es": "La Tabla 9 presenta los resultados de la extracción de datos vectoriales a partir de las imágenes de planos de planta basadas en ráster. En el Apéndice B se proporcionan más detalles de la Tabla 9. El algoritmo extrae eficazmente los datos de relaciones espaciales y los traduce a datos vectoriales consistentes. Conceptualmente, un diagrama puede interpretarse como un grafo con nodos y aristas definidos; esta información se estructura como una matriz de adyacencia (adjacency matrix). Cuatro factores contribuyeron a los datos vectoriales extraídos, a saber:"
+          }
+        },
+        {
+          "id": "s4-p25",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "1. Project and Space Names: These were automatically sourced and include the project ID, layer, detected space name, class number, and a random “N” when there are identical space names;",
+            "es": "1. Nombres de proyecto y de espacio: Se obtuvieron de forma automática e incluyen el ID del proyecto, la capa, el nombre del espacio detectado, el número de clase y una “N” aleatoria cuando hay nombres de espacio idénticos;"
+          }
+        },
+        {
+          "id": "s4-p26",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "2. Space Size: This is determined as the percentage of the detected space area. For a total image size scaled to 100%, both the horizontal and vertical ratios were calculated. In raster images, the relative size of a space is typically inferred from the size of the door. The length of the side toward the door was standardized to 1 and the opposite side was scaled proportionally. The actual space area was derived by multiplying the total area (determined through data crawling) by the space ratio; 3. Doors and Windows: These features are coded as binary data, where 1 indicates presence within the detected space and 0 indicates absence. For example, in the detected space, a single door (class12), double door (class13), sliding door (class14), and window (class15) were designated as either 1 or 0. The numbers of corresponding classes were also identified; 4. Adjacent Spaces: These data were structured as an adjacency matrix, highlighting the connections of a particular space. If there was a wall or door connecting the space, it was marked as 1; otherwise, it was marked as 0. As per the adjacency definitions in Section 3.3, the connection weights for Cases 1, 2, and 3 were automatically set to 1, 0.5 for Case 2, and 0.25 for Case 3.",
+            "es": "2. Tamaño del espacio: Se determina como el porcentaje del área del espacio detectado. Para un tamaño total de imagen escalado al 100%, se calcularon tanto la proporción horizontal como la vertical. En las imágenes ráster, el tamaño relativo de un espacio suele inferirse a partir del tamaño de la puerta. La longitud del lado hacia la puerta se estandarizó a 1 y el lado opuesto se escaló proporcionalmente. El área real del espacio se obtuvo multiplicando el área total (determinada mediante rastreo de datos (data crawling)) por la proporción del espacio; 3. Puertas y ventanas: Estas características se codifican como datos binarios, donde 1 indica presencia dentro del espacio detectado y 0 indica ausencia. Por ejemplo, en el espacio detectado, una puerta sencilla (class12), una puerta doble (class13), una puerta corrediza (class14) y una ventana (class15) se designaron como 1 o 0. También se identificó el número de las clases correspondientes; 4. Espacios adyacentes: Estos datos se estructuraron como una matriz de adyacencia, que resalta las conexiones de un espacio en particular. Si había un muro o una puerta que conectara el espacio, se marcó como 1; de lo contrario, se marcó como 0. De acuerdo con las definiciones de adyacencia de la sección 3.3, los pesos de conexión para los casos 1, 2 y 3 se establecieron automáticamente en 1, 0.5 para el caso 2 y 0.25 para el caso 3."
+          }
+        },
+        {
+          "id": "tab-9",
+          "type": "table",
+          "page": 13,
+          "image": "fig/tab-9.png",
+          "text": {
+            "en": "Table 9. Results of spatial relationship data extraction (part of Appendix B).",
+            "es": "Tabla 9: Resultados de la extracción de datos de relaciones espaciales (parte del Apéndice B)."
+          }
+        },
+        {
+          "id": "s4-p27",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Upon comparing the outputs of the algorithm with real measurements, a minor discrepancy of 0.6% in the space size was noted. This variance can be attributed to the fact that the actual space measurements considered the inline of the wall, whereas the detected space accounted for its outline. Nonetheless, other vector information for the detected space remains in a consistent format. This consistency confirmed the accuracy and dependability of the proposed algorithm.",
+            "es": "Al comparar los resultados del algoritmo con mediciones reales, se observó una discrepancia menor del 0.6% en el tamaño del espacio. Esta variación puede atribuirse a que las mediciones reales del espacio consideraron el paño interior del muro, mientras que el espacio detectado tomó en cuenta su contorno. No obstante, el resto de la información vectorial del espacio detectado se mantiene en un formato consistente. Esta consistencia confirmó la exactitud y la fiabilidad del algoritmo propuesto."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5. Discussion",
+        "es": "5. Discusión"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "5.1. Comparison of Dataset-Related Research",
+            "es": "5.1. Comparación de investigaciones relacionadas con conjuntos de datos"
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "From an architectural perspective, obtaining raw data poses challenges owing to privacy constraints and copyright issues. As shown in Table 10, the number of public plans is very small. This limitation inevitably restricts the application of AI technology in the field of architecture. CubiCasa5K [13] has many annotated items but the number of datasets is small and its performance quality is low. Korea LH [18] experimented with apartment floor plan images; however, the number of datasets was very small and the performance quality was low. LIFULL [31] provides real estate information services for Japan and primarily uses raster-based raw data. RFP [30] uses YOLOv4 and DeepLabv3+ models to recognize elements and rooms; however, there are fewer annotation items, making it unlikely to correctly judge the room category in open spaces.",
+            "es": "Desde una perspectiva arquitectónica, obtener datos en bruto plantea desafíos debido a restricciones de privacidad y a cuestiones de derechos de autor. Como se muestra en la Tabla 10, el número de planos públicos es muy reducido. Esta limitación restringe inevitablemente la aplicación de la tecnología de IA en el campo de la arquitectura. CubiCasa5K [13] tiene muchos elementos anotados, pero el número de conjuntos de datos es pequeño y su calidad de desempeño es baja. Korea LH [18] experimentó con imágenes de planos de planta de departamentos; sin embargo, el número de conjuntos de datos fue muy pequeño y la calidad de desempeño fue baja. LIFULL [31] ofrece servicios de información inmobiliaria para Japón y utiliza principalmente datos en bruto basados en ráster. RFP [30] utiliza los modelos YOLOv4 y DeepLabv3+ para reconocer elementos y habitaciones; sin embargo, hay menos elementos de anotación, por lo que es poco probable que juzgue correctamente la categoría de la habitación en espacios abiertos."
+          }
+        },
+        {
+          "id": "tab-10",
+          "type": "table",
+          "page": 14,
+          "image": "fig/tab-10.png",
+          "text": {
+            "en": "Table 10. Comparison of dataset-related research.",
+            "es": "Tabla 10: Comparación de investigaciones relacionadas con conjuntos de datos."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "The burgeoning growth of image recognition techniques has spurred interest in the conversion of raster-based floor plans into vector data in the architecture. However, these raster images vary in detail and quality and their annotation criteria and extent differ. Additionally, due to the overlap of complex elements and symbols, the performance of deep-learning models is lower than in general fields. In previous studies, the extraction of vectorized spatial data from raster-based images was limited. This study illustrates the feasibility of deriving spatial relationship diagrams from raster-based floor plans, coupled with the consistent extraction of vector-based spatial data through a tailored algorithm. Testing using the YOLO model revealed a detection rate of 99%, an mAP of 85%, and an MIoU of 74.2%. The efficacy of the algorithm marginally surpasses that of previous studies.",
+            "es": "El crecimiento acelerado de las técnicas de reconocimiento de imágenes ha despertado interés en la conversión de planos de planta basados en ráster en datos vectoriales en la arquitectura. Sin embargo, estas imágenes ráster varían en detalle y calidad, y sus criterios y alcance de anotación difieren. Además, debido a la superposición de elementos y símbolos complejos, el desempeño de los modelos de aprendizaje profundo (deep learning) es menor que en los campos generales. En estudios previos, la extracción de datos espaciales vectorizados a partir de imágenes basadas en ráster fue limitada. Este estudio ilustra la viabilidad de derivar diagramas de relaciones espaciales a partir de planos de planta basados en ráster, junto con la extracción consistente de datos espaciales vectoriales mediante un algoritmo a la medida. Las pruebas con el modelo YOLO revelaron una tasa de detección del 99%, un mAP del 85% y un MIoU del 74.2%. La eficacia del algoritmo supera marginalmente la de estudios previos."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "5.2. Implication",
+            "es": "5.2. Implicación"
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "If training datasets are constructed and learned using deep learning, new ideas can be generated using AI. The datasets considered in this study were utilized to develop a floor plan recommendation system [6]. This recommendation system developed a deep neural network approach using SimGNN and shallow networks with the teacher–student learning to quickly and accurately compute graph similarity, as measured by the graph edit distance, during the search operation. This approach enhances exploratory creativity in design. The automation of exploratory creativity can be extended to transformational creativity [37]. If diagrams and vectorized spatial relationship data are trained using a",
+            "es": "Si se construyen conjuntos de datos de entrenamiento y se aprenden mediante aprendizaje profundo, se pueden generar nuevas ideas con IA. Los conjuntos de datos considerados en este estudio se utilizaron para desarrollar un sistema de recomendación de planos de planta [6]. Este sistema de recomendación desarrolló un enfoque de red neuronal profunda con SimGNN y redes poco profundas con aprendizaje maestro-alumno (teacher–student learning) para calcular de forma rápida y precisa la similitud entre grafos, medida mediante la distancia de edición de grafos (graph edit distance), durante la operación de búsqueda. Este enfoque potencia la creatividad exploratoria (exploratory creativity) en el diseño. La automatización de la creatividad exploratoria puede extenderse a la creatividad transformacional (transformational creativity) [37]. Si los diagramas y los datos vectorizados de relaciones espaciales se entrenan mediante una"
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "GAN or a GNN, AI can generate new diagrams. Moreover, if AI learns not only spatial relationships but also information about location, direction, and entities, it can be extended to automated research for spatial layout generation and recommendations in pre-design. The construction of such high-quality large-scale training datasets increases the possibility of design automation in the sense of strong AI.",
+            "es": "GAN o una GNN, la IA puede generar nuevos diagramas. Además, si la IA aprende no solo las relaciones espaciales, sino también información sobre ubicación, dirección y entidades, puede extenderse a la investigación automatizada para la generación de distribuciones espaciales y recomendaciones en la etapa de prediseño. La construcción de estos conjuntos de datos de entrenamiento de gran escala y alta calidad aumenta la posibilidad de automatizar el diseño en el sentido de la IA fuerte."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6. Conclusions",
+        "es": "6. Conclusiones"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "The aim of this study was to develop a robust training dataset for AI-driven architectural spatial layout generation and recommendation. The dataset includes spatial relationship diagrams extracted from raster-based floor plan images using the YOLOv3 model, as well as vector-based spatial relationship data obtained through a specialized algorithm. This methodology enables consistent and reliable dataset construction, distinguishing it from previous approaches. Data testing results demonstrated a detection rate of 99%, with an mAP of 85% and an MIoU of 74.2%. The efficient collection of raw data through crawling facilitates rapid expansion to include diverse building data. Additionally, incorporating advanced labeling methods, such as semantic segmentation or polygons, could further enhance the granularity of the dataset.",
+            "es": "El objetivo de este estudio fue desarrollar un conjunto de datos de entrenamiento (training dataset) robusto para la generación y recomendación de distribuciones espaciales arquitectónicas impulsadas por IA. El conjunto de datos incluye diagramas de relaciones espaciales (spatial relationship diagrams) extraídos de imágenes de planos de planta en formato ráster mediante el modelo YOLOv3, así como datos vectoriales de relaciones espaciales obtenidos mediante un algoritmo especializado. Esta metodología permite construir el conjunto de datos de manera consistente y confiable, lo que la distingue de los enfoques anteriores. Los resultados de las pruebas de los datos demostraron una tasa de detección del 99%, con un mAP del 85% y un MIoU del 74.2%. La recopilación eficiente de datos sin procesar mediante rastreo web (crawling) facilita una expansión rápida para incluir datos de edificios diversos. Además, la incorporación de métodos de etiquetado avanzados, como la segmentación semántica (semantic segmentation) o los polígonos, podría mejorar aún más la granularidad del conjunto de datos."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Furthermore, this dataset lays a strong foundation for future research in AI-driven architectural design. We plan to extend our work by leveraging this dataset to train GAN to represent spatial relationships in graph form, which could facilitate the automatic generation of spatial layouts. Additionally, by incorporating GNN, we aim to develop a system that recommends floor plans based on similar spatial relationships. This dataset could also potentially be utilized in the development and training of architectural Large Language Models (LMMs), which would significantly contribute to advancements in AI-driven architectural design.",
+            "es": "Además, este conjunto de datos sienta una base sólida para futuras investigaciones en el diseño arquitectónico impulsado por IA. Planeamos ampliar nuestro trabajo aprovechando este conjunto de datos para entrenar una GAN que represente las relaciones espaciales en forma de grafo, lo que podría facilitar la generación automática de distribuciones espaciales. Asimismo, al incorporar GNN, buscamos desarrollar un sistema que recomiende planos de planta con base en relaciones espaciales similares. Este conjunto de datos también podría utilizarse potencialmente en el desarrollo y entrenamiento de modelos de lenguaje de gran tamaño (Large Language Models, LMMs) arquitectónicos, lo que contribuiría de manera significativa a los avances en el diseño arquitectónico impulsado por IA."
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Author Contributions: Conceptualization, H.P. and H.G.; methodology, H.P. and H.G.; software, H.P., H.G., and S.H.; investigation, H.P.; writing—original draft preparation, H.P.; writing—review and editing, H.P. and S.H.; supervision, S.C.; project administration, S.C.; funding acquisition, H.P. and S.C. All authors have read and agreed to the published version of the manuscript.",
+            "es": "Contribuciones de los autores: Conceptualización, H.P. y H.G.; metodología, H.P. y H.G.; software, H.P., H.G. y S.H.; investigación, H.P.; escritura—preparación del borrador original, H.P.; escritura—revisión y edición, H.P. y S.H.; supervisión, S.C.; administración del proyecto, S.C.; obtención de financiamiento, H.P. y S.C. Todos los autores han leído y aceptado la versión publicada del manuscrito."
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Funding: This work was supported in 2024 by a Korea Agency for Infrastructure Technology Ad-vancement (KAIA) grant funded by the Ministry of Land, Infrastructure, and Transport, South Korea (Grant RS-2021-KA163269). This work was supported by the National Research Foundation of Korea (NRF) and a South Korea grant funded by the Korean government (MSIT) (No. RS-2023-00213909).",
+            "es": "Financiamiento: Este trabajo fue apoyado en 2024 por una subvención de la Korea Agency for Infrastructure Technology Advancement (KAIA), financiada por el Ministerio de Tierra, Infraestructura y Transporte de Corea del Sur (Subvención RS-2021-KA163269). Este trabajo fue apoyado por la National Research Foundation of Korea (NRF) y una subvención de Corea del Sur financiada por el gobierno coreano (MSIT) (No. RS-2023-00213909)."
+          }
+        },
+        {
+          "id": "s6-p5",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Institutional Review Board Statement: Not applicable.",
+            "es": "Declaración del Comité de Revisión Institucional: No aplica."
+          }
+        },
+        {
+          "id": "s6-p6",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Informed Consent Statement: Not applicable.",
+            "es": "Declaración de consentimiento informado: No aplica."
+          }
+        },
+        {
+          "id": "s6-p7",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Data Availability Statement: The datasets generated and analyzed during the current study are available in the [AIBIM_House Dataset] repository, under the identifier [https://github.com/andWHISKEY/ AIBIM_House-Finder, accessed on 12 August 2024]. The AIBIM_House dataset, which includes spatial relationship diagrams and vector-based data extracted from raster-based floor plans, can be accessed via this public repository. The AIBIM_Bubblemaker program, which was used for extracting spatial relationship diagrams and associated data, is available upon request. Interested researchers should contact Hyejin Park at phj8598@knu.ac.kr for access to the program and additional information.",
+            "es": "Declaración de disponibilidad de datos: Los conjuntos de datos generados y analizados durante el presente estudio están disponibles en el repositorio [AIBIM_House Dataset], con el identificador [https://github.com/andWHISKEY/ AIBIM_House-Finder, consultado el 12 de agosto de 2024]. El conjunto de datos AIBIM_House, que incluye diagramas de relaciones espaciales y datos vectoriales extraídos de planos de planta en formato ráster, puede consultarse en este repositorio público. El programa AIBIM_Bubblemaker, que se utilizó para extraer los diagramas de relaciones espaciales y los datos asociados, está disponible previa solicitud. Los investigadores interesados deben contactar a Hyejin Park en phj8598@knu.ac.kr para obtener acceso al programa e información adicional."
+          }
+        },
+        {
+          "id": "s6-p8",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Conflicts of Interest: The authors declare no conflicts of interest. This manuscript has not been published elsewhere and it has not been submitted simultaneously for publication elsewhere.",
+            "es": "Conflictos de interés: Los autores declaran no tener conflictos de interés. Este manuscrito no ha sido publicado en otro lugar ni ha sido enviado simultáneamente para su publicación en otro lugar."
+          }
+        },
+        {
+          "id": "s6-h1",
+          "type": "heading",
+          "page": 15,
+          "text": {
+            "en": "Nomenclature",
+            "es": "Nomenclatura"
+          }
+        },
+        {
+          "id": "s6-p9",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "AIBIM_House Dataset refers to the dataset created in this study, which includes spatial relationship diagrams extracted from floor plans and converted into vector-based data. AIBIM_Bubblemaker denotes the program developed for extracting these spatial relationship diagrams and associated data.",
+            "es": "AIBIM_House Dataset se refiere al conjunto de datos creado en este estudio, que incluye diagramas de relaciones espaciales extraídos de planos de planta y convertidos en datos vectoriales. AIBIM_Bubblemaker denota el programa desarrollado para extraer estos diagramas de relaciones espaciales y los datos asociados."
+          }
+        },
+        {
+          "id": "s6-h2",
+          "type": "heading",
+          "page": 16,
+          "text": {
+            "en": "Appendix A",
+            "es": "Apéndice A"
+          }
+        },
+        {
+          "id": "tab-a1",
+          "type": "table",
+          "page": 16,
+          "image": "fig/tab-a1.png",
+          "text": {
+            "en": "Table A1. Hierarchy of indoor space of houses in South Korea and the United States.",
+            "es": "Tabla A1. Jerarquía del espacio interior de las viviendas en Corea del Sur y Estados Unidos."
+          }
+        },
+        {
+          "id": "s6-h3",
+          "type": "heading",
+          "page": 17,
+          "text": {
+            "en": "Appendix B",
+            "es": "Apéndice B"
+          }
+        },
+        {
+          "id": "tab-a2",
+          "type": "table",
+          "page": 17,
+          "image": "fig/tab-a2.png",
+          "text": {
+            "en": "Table A2. Results obtained from spatial relationship data extraction.",
+            "es": "Tabla A2. Resultados obtenidos de la extracción de datos de relaciones espaciales."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "1. Searle, J.R. Minds, brains, and programs. Behav. Brain Sci. 1980, 3, 417–424. [CrossRef] 2. Chaillou, S. ArchiGAN: A Generative Stack for Apartment Building Design; NVIDIA Corporation: Santa Clara, CA, USA, 2019. 3. Nauata, N.; Chang, K.H.; Cheng, C.Y.; Mori, G.; Furukawa, Y. House-gan: Relational generative adversarial networks for graph-constrained house layoutgeneration. In Computer Vision—ECCV 2020, Proceedings of the European Conference on Computer Vision (ECCV), Glasgow, UK, 23–28 August 2020; Springer: Cham, Switzerland, 2020; pp. 162–177. [CrossRef] 4. Wu, W.; Xiao-Ming, F.; Tang, R.; Wang, Y.; Qi, Y.-H.; Liu, L. Data-driven interior plan generation for residential buildings. ACM Trans. Graph. 2019, 38, 234. [CrossRef] 5. Hu, R.; Huang, Z.; Tang, Y.; Van Kaick, O.; Zhang, H.; Huang, H. Graph2plan: Learning floorplan generation from layout graphs. ACM Trans. Graph. 2020, 39, 118. [CrossRef] 6. Park, H.; Suh, H.; Kim, J.; Choo, S. Floor plan recommendation system using graph neural network with spatial relationship dataset. J. Build. Eng. 2023, 71, 106378. [CrossRef] 7. Davenport, T.H.; Ronanki, R. Artificial intelligence for the real world. Harv. Bus. Rev. 2018, 96, 108–116. 8. Auric. Architecture & Urban Research Review. Available online: https://www.auric.or.kr/ (accessed on 19 July 2024). 9. Liu, C.; Wu, J.; Kohli, P.; Furukawa, Y. Raster-to-vector: Revisiting floorplan transformation. In Proceedings of the IEEE International Conference on Computer Vision, Venice, Italy, 22–29 October 2017; pp. 2195–2203. 10. Kalervo, A.; Ylioinas, J.; Haiki, M.; Karhu, A.; Kannala, J. CubiCasa5K: A dataset and an improved multi-task model for floorplan image analysis. In Image Analysis, Proceedings of the SCIA 2019, Norrköping, Sweden, 11–13 June 2019; Lecture Notes in Computer Science; Springer: Cham, Switzerland, 2019; Volume 11482, pp. 28–40. [CrossRef] 11. Lu, Y.; Tian, R.; Li, A.; Wang, X.; Jose Luis, G.D.C.L. Cubigraph5k-organizational graph generation for structured architectural floor plan dataset. In Proceedings of the 26th CAADRIA Conference, Hong Kong, China, 29 March–1 April 2021; pp. 81–90. [CrossRef] 12. Kim, G.; Gu, H.; Park, H.; Choo, S. Using genetic algorithm to automate the generation of an open-plan office layout. Int. J. Archit. Comput. 2022, 38, 67–74. [CrossRef] 13. Kavakoglu, A.; Aysegul, A.; Bihter, E. AI Driven Creativity in Early Design Education-A pedagogical approach in the age of Industry 5.0. In Proceedings of the 40th Education and research in Computer Aided Architectural Design in Europe (eCAADe) Conference, Ghent, Belgium, 13–16 September 2022; Volume 1, pp. 133–142. 14. Pizarro, P.N.; Hitschfeld, N.; Sipiran, I.; Saavedra, J.M. Automatic floor plan analysis and recognition. Autom. Constr. 2022, 140, 104348. [CrossRef] 15. Hopgood, A.A. Intelligent Systems for Engineers and Scientists: A Practical Guide to Artificial Intelligence, 4th ed.; CRC Press: Boca Raton, FL, USA, 2021. [CrossRef] 16. Cederfeldt, M. Planning Design Automation: A Structured Method and Supporting Tools. Ph.D. Thesis, Department of Product and Production Development, Chalmers University of Technology, Göteborg, Sweden, 2007. 17. Carta, S. Self-organizing floor plans. Harv. Data Sci. Rev. HDSR 2021, 3, 1–35. [CrossRef] 18. Seo, J.; Park, H.; Choo, S. Inference of Drawing Elements and Space Usage on Architectural Drawings Using Semantic Segmenta-tion. Appl. Sci. 2020, 10, 7347. [CrossRef] 19. Park, H.; Suh, H.; Kim, J.; Choo, S. AIBIM_House-Finder. Available online: https://github.com/andWHISKEY/AIBIM_House-Finder (accessed on 19 July 2024). 20. Najork, M. Web Crawler Architecture. In Encyclopedia of Database Systems; Springer: Berlin/Heidelberg, Germany, 2009. [CrossRef] 21. Houseplans. Search Nearly 40,000 Floor Plans and Find Your Dream Home Today. Available online: https://www.houseplans. com/ (accessed on 19 July 2024). 22. Zeng, Z.; Li, X.; Yu, Y.K.; Fu, C.W. Deep floor plan recognition using a multi-task network with room-boundary-guided attention. In Proceedings of the IEEE/CVF International Conference on Computer Vision, Seoul, Republic of Korea, 27 October–2 November 2019; pp. 9096–9104. [CrossRef] 23. Song, J.; Yu, K. Framework for Indoor Elements Classification via Inductive Learning on Floor Plan Graphs. ISPRS Int. J. Geo-Inf. 2021, 10, 97. [CrossRef] 24. He, K.; Zhang, X.; Ren, S.; Sun, J. Spatial Pyramid Pooling in Deep Convolutional Networks for Visual Recognition. arXiv 2014. [CrossRef] 25. Redmon, J.; Divvala, S.; Girshick, R.; Farhadi, A. You only look once: Unified, real-time object detection. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, Las Vegas, NV, USA, 27–30 June 2016; pp. 779–788. 26. Duygulu, P.; Barnard, K.; de Freitas, J.F.; Forsyth, D.A. Object recognition as machine translation: Learning a lexicon for a fixed image vocabulary. In Proceedings of the Computer Vision—ECCV 2002: 7th European Conference on Computer Vision, Copenhagen, Denmark, 28–31 May 2002; Proceedings, Part IV; Springer: Berlin/Heidelberg, Germany, 2002; pp. 97–112. [CrossRef] 27. Wikipedia. Data Annotation. Available online: https://simple.wikipedia.org/wiki/Data_annotation (accessed on 19 July 2024). 28. Stehman, S.V. Selecting and interpreting measures of thematic classification accuracy. Remote Sens. Environ. 1997, 62, 77–89. [CrossRef] 29. Powers, M.W. Evaluation: From Precision, Recall and F-Measure to ROC. arXiv 2010, arXiv:2010.16061. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "30. Lv, X.; Zhao, S.; Yu, X.; Zhao, B. Residential floor plan recognition and reconstruction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, Nashville, TN, USA, 19–25 June 2021; pp. 16717–16726. [CrossRef] 31. IDR Group, National Institute of Informatics. LIFULL HOME’S. Available online: https://www.nii.ac.jp/dsc/idr/en/lifull (accessed on 19 July 2024). 32. Murugan, G.; Moyal, V.; Nandankar, P.; Pandithurai, O.; John Pimo, E. A novel CNN method for the accurate spatial data recovery from digital images. Mater. Today Proceed. 2021, 80, 1706–1712. [CrossRef] 33. Lu, Z.; Wang, T.; Guo, J.; Meng, W.; Xiao, J.; Zhang, W.; Zhang, X. Data-driven floor plan understanding in rural residential buildings via deep recognition. Inf. Sci. 2021, 567, 58–74. [CrossRef] 34. Yamasaki, T.; Zhang, J.; Takada, Y. Apartment structure estimation using fully convolutional networks and graph model. In Proceedings of the 2018 ACM Workshop on Multimedia for Real Estate Tech, Yokohama, Japan, 11 June 2018; ACM: New York, NY, USA, 2018; pp. 1–6. [CrossRef] 35. Takada, Y.; Inoue, N.; Yamasaki, T.; Aizawa, K. Similar floor plan retrieval featuring multi-task learning of layout type classification and room presence prediction. In Proceedings of the 2018 IEEE International Conference on Consumer Electronics, Las Vegas, NV, USA, 12–14 January 2018; IEEE: Las Vegas, NV, USA, 2018; pp. 1–6. [CrossRef] 36. Yamada, M.; Wang, X.; Yamasaki, T. Graph Structure Extraction from Floor Plan Images and Its Application to Similar Property Retrieval. In Proceedings of the IEEE International Conference on Consumer Electronics (ICCE) 2021, Las Vegas, NV, USA, 10–12 January 2021; pp. 1–5. [CrossRef] 37. Boden, M.A. Computer models of creativity. AI Mag. 2009, 30, 23. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Disclaimer/Publisher’s Note: The statements, opinions and data contained in all publications are solely those of the individual author(s) and contributor(s) and not of MDPI and/or the editor(s). MDPI and/or the editor(s) disclaim responsibility for any injury to people or property resulting from any ideas, methods, instructions or products referred to in the content."
+          }
+        }
+      ]
+    }
+  ]
+}
