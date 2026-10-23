@@ -1,0 +1,1254 @@
+{
+  "version": 1,
+  "node": "edgegan-2021",
+  "title": "Vectorization of Floor Plans Based on EdgeGAN",
+  "source": "files/Vectorization of Floor Plans Based on EdgeGAN.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Datos preliminares"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Abstract: A 2D ﬂoor plan (FP) often contains structural, decorative, and functional elements and annotations. Vectorization of ﬂoor plans (VFP) is an object detection task that involves the localization and recognition of different structural primitives in 2D FPs. The detection results can be used to generate 3D models directly. The conventional pipeline of VFP often consists of a series of carefully designed complex algorithms with insufﬁcient generalization ability and suffer from low computing speed. Considering the VFP is not suitable for deep learning-based object detection frameworks, this paper proposed a new VFP framework to solve this problem based on a generative adversarial network (GAN). First, a private dataset called ZSCVFP is established. Unlike current public datasets that only own not more than 5000 black and white samples, ZSCVFP contains 10,800 colorful samples disturbed by decorative textures in different styles. Second, a new edge-extracting GAN (EdgeGAN) is designed for the new task by formulating the VFP task as an image translation task innovatively that involves the projection of the original 2D FPs into a primitive space. The output of EdgeGAN is a primitive feature map, each channel of which only contains one category of the detected primitives in the form of lines. A self-supervising term is introduced to the generative loss of EdgeGAN to ensure the quality of generated images. EdgeGAN is faster than the conventional and object-detection-framework-based pipeline with minimal performance loss. Lastly, two inspection modules that are also suitable for conventional pipelines are proposed to check the connectivity and consistency of PFM based on the subspace connective graph (SCG). The ﬁrst module contains four criteria that correspond to the sufﬁcient conditions of a fully connected graph. The second module that classiﬁes the category of all subspaces via one single graph neural network (GNN) should be consistent with the text annotations in the original FP (if available). The reason is that GNN treats the adjacent matrix of SCG as weights directly. Thus, GNN can utilize the global layout information and achieve higher accuracy than other common classifying methods. Experimental results are given to illustrate the efﬁciency of the proposed EdgeGAN and inspection approaches.",
+            "es": "Resumen: Un plano de planta (floor plan, FP) en 2D suele contener elementos y anotaciones estructurales, decorativos y funcionales. La vectorización de planos de planta (VFP) es una tarea de detección de objetos (object detection) que implica la localización y el reconocimiento de distintas primitivas estructurales en los planos de planta en 2D. Los resultados de la detección pueden usarse para generar modelos 3D directamente. El flujo de trabajo convencional de la VFP suele constar de una serie de algoritmos complejos cuidadosamente diseñados, con una capacidad de generalización insuficiente y que sufren de baja velocidad de cómputo. Considerando que la VFP no es adecuada para los marcos de detección de objetos basados en aprendizaje profundo, este artículo propone un nuevo marco de VFP para resolver este problema, basado en una red generativa antagónica (generative adversarial network, GAN). Primero, se establece un conjunto de datos privado llamado ZSCVFP. A diferencia de los conjuntos de datos públicos actuales, que solo poseen no más de 5000 muestras en blanco y negro, ZSCVFP contiene 10,800 muestras a color perturbadas por texturas decorativas de distintos estilos. Segundo, se diseña una nueva GAN extractora de bordes (EdgeGAN) para esta nueva tarea, formulando de manera innovadora la tarea de VFP como una tarea de traducción de imágenes que implica la proyección de los planos de planta 2D originales a un espacio de primitivas. La salida de EdgeGAN es un mapa de características de primitivas, cada uno de cuyos canales contiene únicamente una categoría de las primitivas detectadas, en forma de líneas. Se introduce un término autosupervisado en la pérdida generativa de EdgeGAN para asegurar la calidad de las imágenes generadas. EdgeGAN es más rápida que el flujo de trabajo convencional y que el basado en marcos de detección de objetos, con una pérdida mínima de desempeño. Por último, se proponen dos módulos de inspección, también adecuados para los flujos de trabajo convencionales, para verificar la conectividad y la consistencia del mapa de características de primitivas con base en el grafo conectivo de subespacios (subspace connective graph, SCG). El primer módulo contiene cuatro criterios que corresponden a las condiciones suficientes de un grafo totalmente conexo. El segundo módulo, que clasifica la categoría de todos los subespacios mediante una sola red neuronal de grafos (graph neural network, GNN), debe ser consistente con las anotaciones de texto del plano de planta original (si están disponibles). La razón es que la GNN trata directamente la matriz de adyacencia del SCG como pesos. Así, la GNN puede utilizar la información global de la distribución y lograr una precisión mayor que otros métodos de clasificación comunes. Se presentan resultados experimentales que ilustran la eficiencia de la EdgeGAN propuesta y de los enfoques de inspección."
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Keywords: generative and adversarial networks; connective graph; graph neural networks",
+            "es": "Palabras clave: redes generativas y antagónicas; grafo conectivo; redes neuronales de grafos"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1. Introduction",
+        "es": "1. Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "A 2D ﬂoor plan (FP) often contains structural, decorative, and functional elements and annotations. Figure 1 depicts that the vectorization of FP (VFP) aims to detect different structural primitives in the FP and assemble them into one 2D ﬂoor vector graph (FVG) that can be stretched into a 3D model. Manual methods often require meticulous measurements; thus, VFP has attracted remarkable attention for the past 20 years [1]. VFP is always a challenge because of the diversity of drawing styles and standards.",
+            "es": "Un plano de planta (FP) en 2D suele contener elementos y anotaciones estructurales, decorativos y funcionales. La Figura 1 muestra que la vectorización de planos de planta (VFP) busca detectar distintas primitivas estructurales en el plano de planta y ensamblarlas en un único grafo vectorial de planta (floor vector graph, FVG) en 2D que puede extruirse para obtener un modelo 3D. Los métodos manuales suelen requerir mediciones meticulosas; por ello, la VFP ha atraído una atención notable durante los últimos 20 años [1]. La VFP siempre ha sido un reto debido a la diversidad de estilos y normas de dibujo."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The conventional pipeline of VFP [2] (Figure 2) relies on a sequence of low-level image processing heuristics. Many researchers have devoted themselves to designing complicated algorithms to parse the local geometric constructions and retrieve structural elements based on drawing features and pixel information. Lu et al. proposed a self-incremental axis-net-based hierarchical recognition model to recognize dimensions, coordinate systems, and structural components [3], and integrate architectural information dispersed in multiple",
+            "es": "El flujo de trabajo convencional de la VFP [2] (Figura 2) se apoya en una secuencia de heurísticas de procesamiento de imágenes de bajo nivel. Muchos investigadores se han dedicado a diseñar algoritmos complicados para analizar las construcciones geométricas locales y recuperar elementos estructurales con base en las características del dibujo y la información de los píxeles. Lu et al. propusieron un modelo de reconocimiento jerárquico basado en una red de ejes autoincremental para reconocer cotas, sistemas de coordenadas y componentes estructurales [3], e integrar la información arquitectónica dispersa en múltiples"
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Information 2021, 12, 206. https://doi.org/10.3390/info12050206 https://www.mdpi.com/journal/information drawings and tables under the guidance of semantics and prior domain knowledge [4]. In their later work [5], the concept of primitive recognition and integration was proposed for the ﬁrst time. Zhu [6] proposed a shape-operation graph to recognize walls and parse the topology of the entire layout based on structural primitives. Jiang [7] focused on the recovery of distortion to obtain the exact size. Gimenez et al. [8] also discussed methods that can be used to recognize walls, openings, and spaces. Special segmentation and recognition methods for text annotations, which could obtain high-level semantic information about scale [9], measurement [10], type of subspace [11], were proposed. The text annotations can be recognized accurately with the development of optical character recognition [12], especially those that are based on deep learning (DL) [13].",
+            "es": "Information 2021, 12, 206. https://doi.org/10.3390/info12050206 https://www.mdpi.com/journal/information dibujos y tablas bajo la guía de la semántica y del conocimiento previo del dominio [4]. En su trabajo posterior [5], se propuso por primera vez el concepto de reconocimiento e integración de primitivas. Zhu [6] propuso un grafo de operaciones de forma para reconocer muros y analizar la topología de toda la distribución con base en primitivas estructurales. Jiang [7] se centró en la recuperación de la distorsión para obtener el tamaño exacto. Gimenez et al. [8] también analizaron métodos que pueden usarse para reconocer muros, aberturas y espacios. Se propusieron métodos especiales de segmentación y reconocimiento de anotaciones de texto, que podían obtener información semántica de alto nivel sobre la escala [9], las medidas [10] y el tipo de subespacio [11]. Las anotaciones de texto pueden reconocerse con precisión gracias al desarrollo del reconocimiento óptico de caracteres [12], especialmente el basado en aprendizaje profundo (deep learning, DL) [13]."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1. Reconstructing the 3D model from a 2D ﬂoor plan. (a) floor plan (b) primitives feature map (c) 3D rendering",
+            "es": "Figura 1. Reconstrucción del modelo 3D a partir de un plano de planta 2D. (a) plano de planta (b) mapa de características de primitivas (c) renderizado 3D"
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2. Conventional pipeline of VFP.",
+            "es": "Figura 2. Flujo de trabajo convencional de la VFP."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Artiﬁcial neural networks have been applied in VFP with the development of DL. Dodge et al. [14] used a fully convolutional neural network (CNN) to detect structural elements and achieve a mean intersection-over-union score of 89.9\\% on R-FP and 94.4\\% on the public CVC-FP dataset. Chen et al. [15] applied CNNs in translating a rasterized image to a set of junctions that represented low-level geometric and semantic information (e.g., wall corners or door endpoints). Moreover, they formulated the integer programming to aggregate junctions into a set of simple primitives (e.g., wall lines, door lines, or icon boxes) to produce an FVG with consistent constraints between topology and geometry. DL-based object detection framework can only detect doors and windows because there is no suitable annotation to describe the complex geometrical characteristic of architectural primitives. Thus, they can only replace some modules of the conventional pipeline. Faster RCNN [16] and YOLO [17], as well as other anchor-based frameworks, propose numerous boxes and combined them based on intersection over union (IoU). In a PFM, walls are described in form of lines, and if we use inﬂated boxes as ground truth, sloping or curved walls cannot be localized accurately. Anchor-free frameworks, CenterNet [18], and CornerNet [19] for instance, cannot solve this problem either. Subspaces segmentation is a typical semantic segmentation task, which can be achieved by a Unet [20] or a generative adversarial network (GAN) [21] in an end-to-end manner. Due to the lack of a large-scale segmentation dataset, only one literature has exploited this method on a mixed dataset PYTH [22], most samples of which are not public. Therefore, this study develops a special edge extraction GAN (EdgeGAN) to detect architectural primitives, which is a compromise between the two approaches.",
+            "es": "Las redes neuronales artificiales se han aplicado a la VFP con el desarrollo del DL. Dodge et al. [14] usaron una red neuronal convolucional (convolutional neural network, CNN) totalmente convolucional para detectar elementos estructurales y lograron una puntuación media de intersección sobre unión de 89.9\\% en R-FP y de 94.4\\% en el conjunto de datos público CVC-FP. Chen et al. [15] aplicaron CNN para traducir una imagen rasterizada a un conjunto de uniones que representaban información geométrica y semántica de bajo nivel (por ejemplo, esquinas de muros o extremos de puertas). Además, formularon una programación entera para agregar las uniones en un conjunto de primitivas simples (por ejemplo, líneas de muros, líneas de puertas o cuadros de íconos) y producir un FVG con restricciones consistentes entre la topología y la geometría. Los marcos de detección de objetos basados en DL solo pueden detectar puertas y ventanas, porque no existe una anotación adecuada para describir la compleja característica geométrica de las primitivas arquitectónicas. Por lo tanto, solo pueden reemplazar algunos módulos del flujo de trabajo convencional. Faster RCNN [16] y YOLO [17], así como otros marcos basados en anclas, proponen numerosos cuadros y los combinan con base en la intersección sobre unión (intersection over union, IoU). En un PFM, los muros se describen en forma de líneas, y si se usan cuadros inflados como verdad de referencia (ground truth), los muros inclinados o curvos no pueden localizarse con precisión. Los marcos sin anclas, como CenterNet [18] y CornerNet [19], tampoco pueden resolver este problema. La segmentación de subespacios es una tarea típica de segmentación semántica, que puede realizarse de extremo a extremo con una Unet [20] o con una red generativa antagónica (GAN) [21]. Debido a la falta de un conjunto de datos de segmentación a gran escala, solo un trabajo ha explotado este método en un conjunto de datos mixto, PYTH [22], cuyas muestras en su mayoría no son públicas. Por lo tanto, este estudio desarrolla una GAN especial de extracción de bordes (EdgeGAN) para detectar primitivas arquitectónicas, que es un compromiso entre los dos enfoques."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "GAN, which is a new learning framework for a generative model, has drawn great attention since it was proposed by Goodfellow et al. [21] in 2014. GAN has sprouted many branches, including conditional GAN [23,24], Wasserstein GAN [25,26], pix2pix [27], and has been used successfully in image translation, style migration, denoising, superresolution and repair, image matting, semantic segmentation, and dataset expansion [28,29]. GAN is a general-purpose solution for translating an input image into a corresponding output image with the same setting, which is mapped pixels to pixels.",
+            "es": "La GAN, que es un nuevo marco de aprendizaje para un modelo generativo, ha atraído gran atención desde que Goodfellow et al. [21] la propusieron en 2014. La GAN ha dado lugar a muchas ramas, entre ellas la GAN condicional [23,24], la GAN de Wasserstein [25,26] y pix2pix [27], y se ha utilizado con éxito en la traducción de imágenes, la migración de estilo, la eliminación de ruido, la superresolución y la reparación, el matting de imágenes, la segmentación semántica y la ampliación de conjuntos de datos [28,29]. La GAN es una solución de propósito general para traducir una imagen de entrada en una imagen de salida correspondiente con el mismo contexto, que se asigna de píxel a píxel."
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "One important milestone of GAN for image translation is pix2pix introduced by Isola et al. [27], which is developed from conditional GAN [24]. The most usual architecture of the generator is the encoder–decoder or its improved version “U-Net” with skip connections between mirrored layers in the encoder and decoder stacks [20]. Wang et al. [30] expanded pix2pix to high-resolution image synthesis and semantic manipulation by introducing a new robust adversarial learning objective together with new multiscale generator and discriminator architectures. In another work of Wang et al. [31], a video-to-video translation framework with spatial–temporal adversarial objective achieved high-resolution, photorealistic, and temporally coherent video results on a diverse set of input formats including segmentation masks, sketches, and poses.",
+            "es": "Un hito importante de la GAN para la traducción de imágenes es pix2pix, presentado por Isola et al. [27], que se desarrolló a partir de la GAN condicional [24]. La arquitectura más habitual del generador es el codificador–decodificador o su versión mejorada “U-Net”, con conexiones de salto entre las capas espejo de las pilas del codificador y del decodificador [20]. Wang et al. [30] ampliaron pix2pix a la síntesis de imágenes de alta resolución y a la manipulación semántica mediante la introducción de un nuevo objetivo de aprendizaje antagónico robusto, junto con nuevas arquitecturas multiescala del generador y del discriminador. En otro trabajo de Wang et al. [31], un marco de traducción de video a video con un objetivo antagónico espacio-temporal logró resultados de video de alta resolución, fotorrealistas y temporalmente coherentes en un conjunto diverso de formatos de entrada, entre ellos máscaras de segmentación, bocetos y poses."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "CycleGAN is another important milestone for the unpaired image-to-image translation [32]. Two independent works also proposed the same method inspired by different motivations, namely, as DuelGAN [33] or DiscoNet [34]. Pix2pix learns the forward mapping (i.e., y = G(x)), whereas CycleGAN learns two-cycle mappings (i.e., x = F(y′) = F(G(x)) and y = G(x′) = G(F(y))) with the input x and output y unpaired. Considering that pixellevel annotation for most tasks is impossible, CycleGAN has a wider range of applications while requiring the training of more samples.",
+            "es": "CycleGAN es otro hito importante para la traducción de imagen a imagen sin pares [32]. Dos trabajos independientes también propusieron el mismo método, inspirados por motivaciones distintas, a saber, DuelGAN [33] o DiscoNet [34]. Pix2pix aprende el mapeo directo (es decir, y = G(x)), mientras que CycleGAN aprende dos mapeos cíclicos (es decir, x = F(y′) = F(G(x)) y y = G(x′) = G(F(y))) con la entrada x y la salida y sin pares. Considerando que la anotación a nivel de píxel es imposible para la mayoría de las tareas, CycleGAN tiene un rango de aplicaciones más amplio, aunque requiere entrenar con más muestras."
+          }
+        },
+        {
+          "id": "s1-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In this work, a new VFP framework based is proposed based on pix2pix. The main contributions of this work are presented as follows:",
+            "es": "En este trabajo se propone un nuevo marco de VFP basado en pix2pix. Las principales contribuciones de este trabajo se presentan a continuación:"
+          }
+        },
+        {
+          "id": "s1-p9",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "(1) A colorful and larger dataset called ZSCVFP is established. Unlike current public datasets, which only contain black and white FPs without decorative disturbance or style variation, such as CVC-FP [14] and CubiCasa5K [35], ZSCVFP’s FPs are drawn with decorative disturbance in different styles, thereby causing difﬁculty in the extraction of primitives. The ground truth annotations in the form of points and lines, together with the corresponding images, are provided. Furthermore, ZSCVFP has a total of 10,800 samples. This number is higher than the 121 and 5000 samples of CVC-FP and CubiCasa5K, respectively. (2) VFP is formulated as an image translation task innovatively, and EdgeGAN based on pix2pix is designed for the new task. EdgeGAN projects the FPs into the primitive space. Each channel of the primitive feature map (PFM) only contains some lines that represent one category of primitives. A self-supervising term is added to the generative loss of EdgeGAN to enhance the quality of PFM. Unlike conventional pipelines (even if some modules are replaced with deep-learning methods) that consist of a series of carefully designed algorithms, EdgeGAN obtains the FVG in an end-to-end manner. EdgeGAN is about 15 times as fast as the conventional pipeline. To the best knowledge of the authors, this study is the ﬁrst to apply GAN in VFP. (3) Four criteria, which are sufﬁcient conditions for a fully connected graph, are given to inspect the connectivity of subspaces segmented from the PFM. The connective inspection can provide auxiliary information for the designers to adjust the FVG. (4) The graph neural network (GNN) is used to predict the categories of subspaces segmented from the PFM. Given that GNN treats the adjacent matrix of the connective graph as weights directly, it can utilize global layout information and achieve higher accuracy than other common classifying methods.",
+            "es": "(1) Se establece un conjunto de datos a color y de mayor tamaño llamado ZSCVFP. A diferencia de los conjuntos de datos públicos actuales, que solo contienen planos de planta en blanco y negro sin perturbación decorativa ni variación de estilo, como CVC-FP [14] y CubiCasa5K [35], los planos de planta de ZSCVFP se dibujan con perturbación decorativa en distintos estilos, lo que dificulta la extracción de primitivas. Se proporcionan las anotaciones de verdad de referencia en forma de puntos y líneas, junto con las imágenes correspondientes. Además, ZSCVFP tiene un total de 10,800 muestras. Este número es mayor que las 121 y 5000 muestras de CVC-FP y CubiCasa5K, respectivamente. (2) La VFP se formula de manera innovadora como una tarea de traducción de imágenes, y se diseña EdgeGAN, basada en pix2pix, para la nueva tarea. EdgeGAN proyecta los planos de planta al espacio de primitivas. Cada canal del mapa de características de primitivas (primitives feature map, PFM) solo contiene algunas líneas que representan una categoría de primitivas. Se añade un término autosupervisado a la pérdida generativa de EdgeGAN para mejorar la calidad del PFM. A diferencia de los flujos de trabajo convencionales (incluso si algunos módulos se reemplazan con métodos de aprendizaje profundo) que constan de una serie de algoritmos cuidadosamente diseñados, EdgeGAN obtiene el FVG de extremo a extremo. EdgeGAN es aproximadamente 15 veces más rápida que el flujo de trabajo convencional. Según el mejor conocimiento de los autores, este estudio es el primero en aplicar una GAN a la VFP. (3) Se proporcionan cuatro criterios, que son condiciones suficientes para un grafo totalmente conexo, para inspeccionar la conectividad de los subespacios segmentados a partir del PFM. La inspección de conectividad puede proporcionar información auxiliar a los diseñadores para ajustar el FVG. (4) Se usa la red neuronal de grafos (GNN) para predecir las categorías de los subespacios segmentados a partir del PFM. Dado que la GNN trata directamente la matriz de adyacencia del grafo conectivo como pesos, puede utilizar la información global de la distribución y lograr una precisión mayor que otros métodos de clasificación comunes."
+          }
+        },
+        {
+          "id": "s1-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "This work is organized as follows. Section 2 establishes the ZSCVFP dataset and introduces the goal of the new VFP framework. Section 3 presents the main algorithms. Section 4 provides the experimental results. At last, Section 5 draws some conclusions.",
+            "es": "Este trabajo está organizado de la siguiente manera. La Sección 2 establece el conjunto de datos ZSCVFP e introduce el objetivo del nuevo marco de VFP. La Sección 3 presenta los algoritmos principales. La Sección 4 proporciona los resultados experimentales. Por último, la Sección 5 presenta algunas conclusiones."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2. Problem Description",
+        "es": "2. Descripción del problema"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In this section, the ZSCVFP dataset and the goal of the new VFP framework are introduced.",
+            "es": "En esta sección se presentan el conjunto de datos ZSCVFP y el objetivo del nuevo marco de VFP."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Framework Based on EdgeGAN",
+            "es": "Marco basado en EdgeGAN"
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "As mentioned, current public datasets are all black and white without decorative disturbance. However, the original FPs provided by customers in practical applications are complex and diverse. Thus, the new dataset ZSCVFP is established for this reason. ZSCVFP contains 8800 FPs in the training set and 2000 FPs in the test set. For a given FP X ∈Rw×h×3 where w and h are the width and height, respectively, the pseudo-annotations of walls, windows, and doors are given in the form of a point set P = {p1, p2, · · ·} and three line sets",
+            "es": "Como se mencionó, los conjuntos de datos públicos actuales son todos en blanco y negro y sin perturbación decorativa. Sin embargo, los planos de planta originales que proporcionan los clientes en aplicaciones prácticas son complejos y diversos. Por esta razón se establece el nuevo conjunto de datos ZSCVFP. ZSCVFP contiene 8800 planos de planta en el conjunto de entrenamiento y 2000 planos de planta en el conjunto de prueba. Para un plano de planta dado X ∈Rw×h×3, donde w y h son el ancho y el alto, respectivamente, las seudoanotaciones de muros, ventanas y puertas se dan en forma de un conjunto de puntos P = {p1, p2, · · ·} y tres conjuntos de líneas"
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Lwall = {w1, w2, · · ·}, Lwindow = {v1, v2, · · ·}, and Ldoor = {d1, d2, · · ·}, respectively. The elements of Lwall, Lwindow, and Ldoor are paired points from P. The corresponding PFM Z ∈Rw×h×3 is also provided in the dataset, as shown in the center subﬁgure of Figure 1.",
+            "es": "Lwall = {w1, w2, · · ·}, Lwindow = {v1, v2, · · ·} y Ldoor = {d1, d2, · · ·}, respectivamente. Los elementos de Lwall, Lwindow y Ldoor son pares de puntos de P. El PFM correspondiente Z ∈Rw×h×3 también se proporciona en el conjunto de datos, como se muestra en la subfigura central de la Figura 1."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The walls’ annotations are obtained by a conventional pipeline that has been developed by ourselves in a previous work. The doors and windows are annotated manually with a tool (Figure 3). When the annotations are inconsistent, the windows and doors will be adjusted according to the walls to keep the geometrical constraints on the primitives. This adjustment will reduce the accuracy of annotations more or less.",
+            "es": "Las anotaciones de los muros se obtienen mediante un flujo de trabajo convencional que nosotros mismos desarrollamos en un trabajo previo. Las puertas y ventanas se anotan manualmente con una herramienta (Figura 3). Cuando las anotaciones son inconsistentes, las ventanas y puertas se ajustan según los muros para mantener las restricciones geométricas sobre las primitivas. Este ajuste reducirá, en mayor o menor medida, la precisión de las anotaciones."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In the new framework based on EdgeGAN, the generated PFM is denoted as Y = G1(X) ∈Rw×h×nc where nc is the number of categories of primitives to be recognized. For the dataset ZSCVFP, nc = 3. Each channel of Y is a binary image that corresponds to one primitive category. The ﬁnal goal of the task, which is to extract H = (P, Lwall, Lwindow, Ldoor) from Y, is very easy if the quality of Y is good enough.",
+            "es": "En el nuevo marco basado en EdgeGAN, el PFM generado se denota como Y = G1(X) ∈Rw×h×nc, donde nc es el número de categorías de primitivas que se van a reconocer. Para el conjunto de datos ZSCVFP, nc = 3. Cada canal de Y es una imagen binaria que corresponde a una categoría de primitivas. El objetivo final de la tarea, que es extraer H = (P, Lwall, Lwindow, Ldoor) de Y, es muy sencillo si la calidad de Y es suficientemente buena."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The set of text annotations detected in X is denoted as T = {t1, t2, · · · }, and the set of subspaces extracted from Y is denoted as S = {s1, s2, · · · , sn−1, sn}. For each subspace si, the feature vector consists of the number of windows, number of doors, ratio of area, etc. The feature matrix S is denoted as XG ∈Rn×m, where m is the length of the feature, n is the number of subspaces. The probability matrix predicted by a GNN G2 is denoted",
+            "es": "El conjunto de anotaciones de texto detectadas en X se denota como T = {t1, t2, · · · }, y el conjunto de subespacios extraídos de Y se denota como S = {s1, s2, · · · , sn−1, sn}. Para cada subespacio si, el vector de características consta del número de ventanas, el número de puertas, la razón de área, etc. La matriz de características S se denota como XG ∈Rn×m, donde m es la longitud de la característica y n es el número de subespacios. La matriz de probabilidades predicha por una GNN G2 se denota"
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "XG\u0011",
+            "es": "XG\u0011"
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "∈Rn×n, where ns is the number of classes. The formal representation of the new task’s goal can be summarized as follows:",
+            "es": "∈Rn×n, donde ns es el número de clases. La representación formal del objetivo de la nueva tarea puede resumirse de la siguiente manera:"
+          }
+        },
+        {
+          "id": "s2-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "C = G2",
+            "es": "C = G2"
+          }
+        },
+        {
+          "id": "s2-p11",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "(1) Design a G1 to obtain the PFM that is robust with decorative disturbances in variant styles; (2) Search for efﬁcient criteria to inspect whether S is fully connected; (3) Design a GNN G2 to predict the category of subspaces.",
+            "es": "(1) Diseñar una G1 que obtenga el PFM de manera robusta frente a las perturbaciones decorativas de estilos variados; (2) Buscar criterios eficientes para inspeccionar si S es totalmente conexo; (3) Diseñar una GNN G2 que prediga la categoría de los subespacios."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3. The annotation tool for primitives.",
+            "es": "Figura 3. La herramienta de anotación de primitivas."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3. Methods",
+        "es": "3. Métodos"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In this section, the EdgeGAN is designed ﬁrst. Then, the SCG of VFP is deﬁned, and some connective criteria are given based on it. Lastly, a classifying GNN for subspaces is presented.",
+            "es": "En esta sección, primero se diseña la EdgeGAN. Después, se define el grafo de conectividad de subespacios (subspace connective graph, SCG) de VFP, y a partir de él se dan algunos criterios de conectividad. Por último, se presenta una red neuronal de grafos (graph neural network, GNN) clasificadora para subespacios."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "3.1. EdgeGAN",
+            "es": "3.1. EdgeGAN"
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "EdgeGAN learns a map from the input FPs X to the output Z, and Y is the ground truth. The architecture of EdgeGAN is depicted in Figure 4. Two convolution layers, six Resnet blocks, and two deconvolution layers are connected in series with skip connect, which is a typical realization of U-Net [20] that has been used widely [27].",
+            "es": "EdgeGAN aprende un mapeo desde los FP de entrada X hasta la salida Z, y Y es la verdad fundamental (ground truth). La arquitectura de EdgeGAN se muestra en la Figura 4. Dos capas de convolución (convolution layers), seis bloques Resnet y dos capas de deconvolución (deconvolution layers) se conectan en serie con conexión de salto (skip connect), que es una realización típica de U-Net [20] que se ha utilizado ampliamente [27]."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4. Architecture of EdgeGAN.",
+            "es": "Figura 4: Arquitectura de EdgeGAN."
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Two special kernels are deﬁned as",
+            "es": "Se definen dos núcleos (kernels) especiales como"
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "0 0 0 1 1 1 0 0 0",
+            "es": "0 0 0 1 1 1 0 0 0"
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "0 1 0 0 1 0 0 1 0",
+            "es": "0 1 0 0 1 0 0 1 0"
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "K1 =",
+            "es": "K1 ="
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": ", and K2 =",
+            "es": ", y K2 ="
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The generative loss function of EdgeGAN is deﬁned as",
+            "es": "La función de pérdida (loss function) generativa de EdgeGAN se define como"
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "N ∑ i=1 lG = 1",
+            "es": "N ∑ i=1 lG = 1"
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "−log D(X, Z) | {z } G_BCE_loss",
+            "es": "−log D(X, Z) | {z } G_BCE_loss"
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "+ λ1|Y −Z| | {z } G_L1_loss",
+            "es": "+ λ1|Y −Z| | {z } G_L1_loss"
+          }
+        },
+        {
+          "id": "s3-p13",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "+ λ2|Y −F(Y)| | {z } G_f ilter_loss",
+            "es": "+ λ2|Y −F(Y)| | {z } G_f ilter_loss"
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": ", (1)",
+            "es": ", (1)"
+          }
+        },
+        {
+          "id": "s3-p15",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "N and the discriminative loss function is deﬁned as",
+            "es": "N y la función de pérdida discriminativa se define como"
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "N ∑ i=1 lD = 1",
+            "es": "N ∑ i=1 lD = 1"
+          }
+        },
+        {
+          "id": "s3-p17",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "−log D(X, Z) | {z } D_f ake_loss",
+            "es": "−log D(X, Z) | {z } D_f ake_loss"
+          }
+        },
+        {
+          "id": "s3-p18",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "−log[1 −D(X, Y)] | {z } D_real_loss",
+            "es": "−log[1 −D(X, Y)] | {z } D_real_loss"
+          }
+        },
+        {
+          "id": "s3-p19",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": ", (2)",
+            "es": ", (2)"
+          }
+        },
+        {
+          "id": "s3-p20",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "N where N is the batch size and F(Y) is a ﬁlter function deﬁned as",
+            "es": "N donde N es el tamaño de lote (batch size) y F(Y) es una función de filtro (filter function) definida como"
+          }
+        },
+        {
+          "id": "s3-p21",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "F(Y) = clip(maxpooling2D(Y, K1) + maxpooling2D(Y, K2), 0, 1)",
+            "es": "F(Y) = clip(maxpooling2D(Y, K1) + maxpooling2D(Y, K2), 0, 1)"
+          }
+        },
+        {
+          "id": "s3-p22",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "In the loss functions, G_BCE_loss, D_f ake_loss, and D_real_loss are all binary crossentropy (BCE) loss, G_L1_loss and G_f ilter_loss are L1 loss, and λ1 and λ2 are the weights for them. Those 3 BCE terms, which constitute the standard GAN loss and are designed for the maximin optimization problem n o",
+            "es": "En las funciones de pérdida, G_BCE_loss, D_f ake_loss y D_real_loss son todas pérdidas de entropía cruzada binaria (binary crossentropy, BCE), G_L1_loss y G_f ilter_loss son pérdidas L1, y λ1 y λ2 son los pesos de las mismas. Esos 3 términos BCE, que constituyen la pérdida estándar de GAN y están diseñados para el problema de optimización maximín (maximin) n o"
+          }
+        },
+        {
+          "id": "s3-p23",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "EY∼P(Y)[log D(Y)] + EX∼P(X)[log(1 −D(G(X)))] min",
+            "es": "EY∼P(Y)[log D(Y)] + EX∼P(X)[log(1 −D(G(X)))] min"
+          }
+        },
+        {
+          "id": "s3-p24",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "G max",
+            "es": "G max"
+          }
+        },
+        {
+          "id": "s3-p25",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "D guide the generator G to generate better PFM Z and the discriminator to recognize the difference between the distribution of Z and that of the ground truth Y. Addi-tionally, G_L1_loss provides pixel-level supervision information that is suitable for a pix2pix task. G_f ilter_loss is a new term that composes a self-supervised loss about Y. In F(Y), maxpooling2D(A, K) composes a max-pooling operation with a kernel K on the input multichannel image A. With those two special kernels K1 and K2, the maxpooling2D can extract the horizontal and vertical lines, respectively, as illustrated in Figure 5b,c. The horizontal and vertical maps are added then. As those elements of maxpooling2D(Y, K1) + maxpooling2D(Y, K2) the intersections would be bigger 1, we designed a clip function to truncate it. With the clip function clip(A, a, b), elements of A smaller than a become a, and elements larger than b become b. The clip operation makes the ﬁltered PFM still be a probability map. The adding and clipping operations combine those lines to a new PFM, in which many isolate points have been ﬁltered, as illustrated in Figure 5d.",
+            "es": "D guían al generador (generator) G a generar un mejor PFM Z y al discriminador (discriminator) a reconocer la diferencia entre la distribución de Z y la de la verdad fundamental Y. Adicionalmente, G_L1_loss proporciona información de supervisión a nivel de píxel que es adecuada para una tarea pix2pix. G_f ilter_loss es un término nuevo que compone una pérdida autosupervisada (self-supervised loss) sobre Y. En F(Y), maxpooling2D(A, K) compone una operación de agrupación por máximo (max-pooling) con un núcleo K sobre la imagen multicanal de entrada A. Con esos dos núcleos especiales K1 y K2, maxpooling2D puede extraer las líneas horizontales y verticales, respectivamente, como se ilustra en la Figura 5b,c. Luego se suman los mapas horizontal y vertical. Como los elementos de maxpooling2D(Y, K1) + maxpooling2D(Y, K2) en las intersecciones serían mayores que 1, diseñamos una función clip para truncarlo. Con la función clip(A, a, b), los elementos de A menores que a se convierten en a, y los elementos mayores que b se convierten en b. La operación clip hace que el PFM filtrado siga siendo un mapa de probabilidad. Las operaciones de suma y recorte combinan esas líneas en un nuevo PFM, en el que se han filtrado muchos puntos aislados, como se ilustra en la Figura 5d."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5. The self-supervising ﬁlter of EdgeGAN. (a) Y (b) ( ) 1 maxpooling2D , Y K (c) ( ) 2 maxpooling2D , Y K (d) ( ) F Y",
+            "es": "Figura 5: El filtro autosupervisado de EdgeGAN. (a) Y (b) ( ) 1 maxpooling2D , Y K (c) ( ) 2 maxpooling2D , Y K (d) ( ) F Y"
+          }
+        },
+        {
+          "id": "s3-p26",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "With the self-supervised loss, the generator will learn to generate PFMs of higher quality. As K1 and K2 are designed for horizontal and vertical lines, it is not going to work for irregular walls.",
+            "es": "Con la pérdida autosupervisada, el generador aprenderá a generar PFM de mayor calidad. Como K1 y K2 están diseñados para líneas horizontales y verticales, no funcionará para paredes irregulares."
+          }
+        },
+        {
+          "id": "s3-p27",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "In each training batch, the generator and discriminator are updated alternatively. λ2 is set to 0 in the ﬁrst several epochs to keep G_L1_loss playing a leading role in the initial stage of training. When the PFM can be generated roughly, the self-supervising loss starts to come into play gradually.",
+            "es": "En cada lote de entrenamiento, el generador y el discriminador se actualizan de forma alterna. λ2 se fija en 0 en las primeras épocas (epochs) para que G_L1_loss tenga un papel protagónico en la etapa inicial del entrenamiento. Cuando el PFM ya puede generarse de manera aproximada, la pérdida autosupervisada comienza a intervenir gradualmente."
+          }
+        },
+        {
+          "id": "s3-p28",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "3.2. Criteria for Connective Inspection",
+            "es": "3.2. Criterios para la inspección de conectividad"
+          }
+        },
+        {
+          "id": "s3-p29",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The set of subspaces extracted from a vector graph is denoted as S = {s1, s2, · · · , sn−1, sn}, where si, i = 1, 2, · · · , n −1 are the internal subspaces, and sn is the subspace outside the external contour, as shown in Figures 6 and 7. As the regions annotated with “AC” in Figure 6 are the spaces for air conditioners out of the door, they are ignored in Figures 7 and 8. The undirected graph of S can be written as H = {S, D, W}, where D = {(i, j) ∈S × S : i ∼j}, and W = {(i, j) ∈S × S : i ∼j}. (i, j) ∈D and (j, i) ∈D if subspace i and j are connected with a door; moreover, (i, j) ∈W and (j, i) ∈W if subspace i and j are connected with a window. Denote the adjacency matrix as MH ∈Rn×n. The elements mH ij , 0 ≤i, j ≤n, of",
+            "es": "El conjunto de subespacios extraído de un grafo vectorial se denota como S = {s1, s2, · · · , sn−1, sn}, donde si, i = 1, 2, · · · , n −1 son los subespacios internos, y sn es el subespacio fuera del contorno externo, como se muestra en las Figuras 6 y 7. Como las regiones anotadas con “AC” en la Figura 6 son los espacios para aires acondicionados fuera de la puerta, se ignoran en las Figuras 7 y 8. El grafo no dirigido (undirected graph) de S puede escribirse como H = {S, D, W}, donde D = {(i, j) ∈S × S : i ∼j}, y W = {(i, j) ∈S × S : i ∼j}. (i, j) ∈D y (j, i) ∈D si los subespacios i y j están conectados por una puerta; además, (i, j) ∈W y (j, i) ∈W si los subespacios i y j están conectados por una ventana. Se denota la matriz de adyacencia (adjacency matrix) como MH ∈Rn×n. Los elementos mH ij , 0 ≤i, j ≤n, de"
+          }
+        },
+        {
+          "id": "s3-p30",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "MH has the following properties:",
+            "es": "MH tienen las siguientes propiedades:"
+          }
+        },
+        {
+          "id": "s3-p31",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "(1) mH ij = 1 if (i, j) ∈D; mH ij = 0.5 if (i, j) ∈W; otherwise mij = 0;",
+            "es": "(1) mH ij = 1 si (i, j) ∈D; mH ij = 0.5 si (i, j) ∈W; de lo contrario mij = 0;"
+          }
+        },
+        {
+          "id": "s3-p32",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "(2) mH",
+            "es": "(2) mH"
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6. Segmentation of FP. (a) FP (b) Segmentation",
+            "es": "Figura 6: Segmentación de FP. (a) FP (b) Segmentación"
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7. Subspace connective graph.",
+            "es": "Figura 7: Grafo de conectividad de subespacios."
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Figure 8. The curve of loss.",
+            "es": "Figura 8: La curva de pérdida."
+          }
+        },
+        {
+          "id": "s3-p33",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The subgraph without windows and its adjacency matrix are denoted as G = {S, D} and MG ∈Rn×n respectively. The elements mG ij = 1, otherwise mG ij = 1 if mH ij = 0. The n o",
+            "es": "El subgrafo sin ventanas y su matriz de adyacencia se denotan como G = {S, D} y MG ∈Rn×n, respectivamente. Los elementos mG ij = 1, de lo contrario mG ij = 1 si mH ij = 0. La n o"
+          }
+        },
+        {
+          "id": "s3-p34",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "∑n",
+            "es": "∑n"
+          }
+        },
+        {
+          "id": "s3-p35",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Laplacian matrix of G is deﬁned as LG = diag",
+            "es": "matriz laplaciana (Laplacian matrix) de G se define como LG = diag"
+          }
+        },
+        {
+          "id": "s3-p36",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "−MG, and its eigenvalues are j=1,j̸=i mij denoted as λ1(LG) ≤λ2(LG) ≤· · · ≤λn(LG). If λ2(LG) > 0, then G is a connected graph.",
+            "es": "−MG, y sus valores propios (eigenvalues) son j=1,j̸=i mij denotados como λ1(LG) ≤λ2(LG) ≤· · · ≤λn(LG). Si λ2(LG) > 0, entonces G es un grafo conexo."
+          }
+        },
+        {
+          "id": "s3-p37",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The degree of internal and external connectivity of each subspace are denoted as Cinner i = ∑n−1 j=1 mij and Cexternal i = min respectively. The criteria for inspection of connectivity include the following:",
+            "es": "El grado de conectividad interna y externa de cada subespacio se denotan como Cinner i = ∑n−1 j=1 mij y Cexternal i = min, respectivamente. Los criterios para la inspección de la conectividad son los siguientes:"
+          }
+        },
+        {
+          "id": "s3-p38",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "(1) There is a door on the external door at least, i.e., ∑n−1 i=1 Cexternal i ≥1; (2) The number of doors on the external doors is often less than 2, i.e., ∑n−1 i=1 Cexternal i ≤2; (3) Each subspace except those with special architectural functionality (for example, the regions for air condition and pipe) has at least one door, that is, Cinner i ≥1 and",
+            "es": "(1) Hay al menos una puerta en la puerta externa, es decir, ∑n−1 i=1 Cexternal i ≥1; (2) El número de puertas en las puertas externas suele ser menor que 2, es decir, ∑n−1 i=1 Cexternal i ≤2; (3) Cada subespacio, excepto aquellos con una funcionalidad arquitectónica especial (por ejemplo, las regiones para aire acondicionado y tuberías), tiene al menos una puerta, es decir, Cinner i ≥1 y"
+          }
+        },
+        {
+          "id": "s3-p39",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "≥1, where i, j = 1, 2, · · · , n −1; mij min i=1,2,··· ,n−1 max j=1,2,··· ,n−1",
+            "es": "≥1, donde i, j = 1, 2, · · · , n −1; mij min i=1,2,··· ,n−1 max j=1,2,··· ,n−1"
+          }
+        },
+        {
+          "id": "s3-p40",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "\u0001 > 0.",
+            "es": "\u0001 > 0."
+          }
+        },
+        {
+          "id": "s3-p41",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "(4) G is a connected graph, that is, λ2",
+            "es": "(4) G es un grafo conexo, es decir, λ2"
+          }
+        },
+        {
+          "id": "s3-p42",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Lg",
+            "es": "Lg"
+          }
+        },
+        {
+          "id": "s3-p43",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "All those four criteria are sufﬁcient conditions for a fully connected graph. Further-more, Criterion (4) is the sufﬁcient condition of Criteria (1)–(3), but its computation is much complicated than other criteria.",
+            "es": "Estos cuatro criterios son todos condiciones suficientes para un grafo completamente conexo. Además, el Criterio (4) es la condición suficiente de los Criterios (1)–(3), pero su cálculo es mucho más complicado que el de los demás criterios."
+          }
+        },
+        {
+          "id": "s3-p44",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "3.3. Classifying of Subspaces Based on GNN",
+            "es": "3.3. Clasificación de subespacios basada en GNN"
+          }
+        },
+        {
+          "id": "s3-p45",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "A GNN with K layers is deﬁned as",
+            "es": "Una GNN con K capas se define como"
+          }
+        },
+        {
+          "id": "s3-p46",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "H(k+1) = σ",
+            "es": "H(k+1) = σ"
+          }
+        },
+        {
+          "id": "s3-p47",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "MHH(k)W(k)\u0011 where k = 1, 2, · · · , K −1 is the index of layer, Wk ∈Rdk−1×dk is the weight parameters to be learned, dk is the output dimension of the kth layer of the GNN, and σ(·) is the activation function.",
+            "es": "MHH(k)W(k)\u0011 donde k = 1, 2, · · · , K −1 es el índice de la capa, Wk ∈Rdk−1×dk son los parámetros de peso que se deben aprender, dk es la dimensión de salida de la k-ésima capa de la GNN, y σ(·) es la función de activación (activation function)."
+          }
+        },
+        {
+          "id": "s3-p48",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The input of GNN is the feature matrix Xg ∈Rn×m of G and the output is the classifying probability matrix Cg ∈Nn×ns, where m is the length of the feature, n is the number of subspaces, and ns is the number of categories. The input dimension of the ﬁrst layer is d0 = n, and the last output is Hk = CG with dK = ns.",
+            "es": "La entrada de la GNN es la matriz de características (feature matrix) Xg ∈Rn×m de G y la salida es la matriz de probabilidad de clasificación Cg ∈Nn×ns, donde m es la longitud de la característica, n es el número de subespacios y ns es el número de categorías. La dimensión de entrada de la primera capa es d0 = n, y la última salida es Hk = CG con dK = ns."
+          }
+        },
+        {
+          "id": "s3-p49",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The BCE loss function adopted to train the GNN is as follows:",
+            "es": "La función de pérdida BCE adoptada para entrenar la GNN es la siguiente:"
+          }
+        },
+        {
+          "id": "s3-p50",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "HK log CG + lG = 1",
+            "es": "HK log CG + lG = 1"
+          }
+        },
+        {
+          "id": "s3-p51",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "1 −CG\u0011i (3) h",
+            "es": "1 −CG\u0011i (3) h"
+          }
+        },
+        {
+          "id": "s3-p52",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "1 −HK\u0011 log",
+            "es": "1 −HK\u0011 log"
+          }
+        },
+        {
+          "id": "s3-p53",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "N i=1 −",
+            "es": "N i=1 −"
+          }
+        },
+        {
+          "id": "s3-h1",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "N ∑",
+            "es": "N ∑"
+          }
+        },
+        {
+          "id": "s3-p54",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "where CG is the one-hot labeled category. Considering that the number of subspaces in each VFP varies, MG is expanded to MG ∈R20×20 with MG = diag n o",
+            "es": "donde CG es la categoría etiquetada con codificación one-hot (one-hot). Considerando que el número de subespacios en cada VFP varía, MG se expande a MG ∈R20×20 con MG = diag n o"
+          }
+        },
+        {
+          "id": "s3-p55",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": ", and XG is",
+            "es": ", y XG se"
+          }
+        },
+        {
+          "id": "s3-p56",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "XG, I(20−n) expanded to XG ∈R20×20 with XG = diag n o",
+            "es": "XG, I(20−n) expande a XG ∈R20×20 con XG = diag n o"
+          }
+        },
+        {
+          "id": "s3-p57",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "XG, 0(20−n)",
+            "es": "XG, 0(20−n)"
+          }
+        },
+        {
+          "id": "s3-p58",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": ". The output dimension of the last",
+            "es": ". La dimensión de salida de la última"
+          }
+        },
+        {
+          "id": "s3-p59",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "CG layer becomes dK + 1 and the label vector CG =",
+            "es": "CG capa se convierte en dK + 1 y el vector de etiquetas CG ="
+          }
+        },
+        {
+          "id": "s3-p60",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": ". The labels of subspace dk·1(20−n)×1 are coded from 0 to dk −1. Thus, the new virtual subspace is labeled with dk.",
+            "es": ". Las etiquetas del subespacio dk·1(20−n)×1 se codifican de 0 a dk −1. Así, el nuevo subespacio virtual se etiqueta con dk."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4. Experimental Results and Discussion",
+        "es": "4. Resultados experimentales y discusión"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "In this section, three experiments are conducted to illustrate the proposed methods. First, EdgeGAN is compared with the DL-based pipeline on the ZSCCSVFP dataset. Second, the usage of connective criteria is demonstrated by presenting an example. Lastly, the GNN is compared with four common classifying methods to validate its advantage in terms of structural information.",
+            "es": "En esta sección se realizan tres experimentos para ilustrar los métodos propuestos. Primero, se compara EdgeGAN con el flujo de procesamiento (pipeline) basado en aprendizaje profundo (deep learning, DL) en el conjunto de datos (dataset) ZSCCSVFP. Segundo, se demuestra el uso de los criterios de conectividad presentando un ejemplo. Por último, se compara la GNN con cuatro métodos de clasificación comunes para validar su ventaja en términos de información estructural."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "4.1. EdgeGAN",
+            "es": "4.1. EdgeGAN"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "In this experiment, all training sets are executed on the hardware platform “CPU Intel Core i9-9900K, 64 GB memory, and GPU NVIDIA RTX2080TI×2,” and the software is “Python 3.6, Pytorch 1.4.0 [36], Cuda 10.0, and Cudnn 7.4.2 [37].” The maximal training epoch is 220, and the batch size is 128. λ1 is always set to 10, and λ2 is set to 0 in the ﬁrst 10 epochs and 100 in the subsequent epochs. The learning rate is set to 0.0002 at the ﬁrst 20 epochs and decreased to 0 linearly in subsequent epochs. The training is recorded in",
+            "es": "En este experimento, todos los conjuntos de entrenamiento se ejecutan en la plataforma de hardware “CPU Intel Core i9-9900K, 64 GB de memoria y GPU NVIDIA RTX2080TI×2”, y el software es “Python 3.6, Pytorch 1.4.0 [36], Cuda 10.0 y Cudnn 7.4.2 [37]”. La época máxima de entrenamiento es 220, y el tamaño de lote es 128. λ1 se fija siempre en 10, y λ2 se fija en 0 en las primeras 10 épocas y en 100 en las épocas posteriores. La tasa de aprendizaje (learning rate) se fija en 0.0002 en las primeras 20 épocas y disminuye linealmente hasta 0 en las épocas posteriores. El entrenamiento se registra en"
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Figure 8. G_f ilter_loss is 0 in the ﬁrst 10 epochs and decreases gradually. The G_L1_loss is stable at approximately 1.38 since the 20th epoch. Thus, it is not a suitable measurement of accuracy. The corresponding evolutionary process of Y is depicted in Figure 9.",
+            "es": "la Figura 8. G_f ilter_loss es 0 en las primeras 10 épocas y disminuye gradualmente. G_L1_loss se mantiene estable en aproximadamente 1.38 desde la época 20. Por lo tanto, no es una medida adecuada de la precisión. El proceso evolutivo correspondiente de Y se muestra en la Figura 9."
+          }
+        },
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-9.png",
+          "text": {
+            "en": "Figure 9. Generated images in epoch 10, 60, 110, 160, 210.",
+            "es": "Figura 9: Imágenes generadas en las épocas 10, 60, 110, 160, 210."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The quality of generated images can be divided into three levels:",
+            "es": "La calidad de las imágenes generadas puede dividirse en tres niveles:"
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "(1) Level 1: The generated images are free from noisy points and have high-quality lines, and the recognition accuracy of primitives is close to the conventional pipeline. The proportion of level 1 is approximately 40%. These images can be used to obtain vector graphics with a few manual adjustments, similar to the conventional pipeline. Figure 10 compares the number of adjusting operations that are counted by a decoration designer on 100 FPs with level 1 results. Although the results of EdgeGAN satisfy the requirements of the application, its performance is still slightly weaker than that of the DL-based pipeline. The mean value of operations of the DL-based pipeline (16.50) is close to that of EdgeGAN (16.67). However, the standard deviation of EdgeGAN (8.34) is much larger than that of the DL-based pipeline (4.4628), which means that the latter is more stable. Moreover, 30 PFMs generated by the DL-based pipeline need less than eight operations, while only 21 PFMs by EdgeGAN, which means that the former has a higher rate of excellence. The results of EdgeGAN. Considering that the pseudo-ground truth annotations themselves are obtained on the basis of the conventional pipeline and suffer from inaccuracy, the results are reasonable. The performance of EdgeGAN can be improved if it is training on a larger and higher quality dataset. (2) Level 2: In addition to inaccurate primitives, some noisy points, broken lines, redundancy lines, or unaligned lines are presented in the generated images, as shown in the lines in the main body of Figure 11. The proportion of level 2 is approximately 55%. The self-supervising loss can relieve but cannot eliminate this phenomenon. Some postprocessing methods are necessary to address these problems. Solving this problem by using the EdgeGAN itself is direct but still challenging. (3) Level 3: Serious defects in quality or accuracy with a proportion of approximately 5% are observed in the sloping walls in Figure 11. The reason is that the number of samples with sloping walls is less than 100, which is much less than horizontal and vertical walls.",
+            "es": "(1) Nivel 1: Las imágenes generadas están libres de puntos ruidosos y tienen líneas de alta calidad, y la precisión de reconocimiento de primitivas es cercana a la del flujo de procesamiento convencional. La proporción del nivel 1 es de aproximadamente 40%. Estas imágenes pueden usarse para obtener gráficos vectoriales con pocos ajustes manuales, de forma similar al flujo de procesamiento convencional. La Figura 10 compara el número de operaciones de ajuste contadas por un diseñador de interiores en 100 FP con resultados de nivel 1. Aunque los resultados de EdgeGAN satisfacen los requisitos de la aplicación, su desempeño sigue siendo ligeramente inferior al del flujo de procesamiento basado en DL. El valor medio de operaciones del flujo de procesamiento basado en DL (16.50) es cercano al de EdgeGAN (16.67). Sin embargo, la desviación estándar (standard deviation) de EdgeGAN (8.34) es mucho mayor que la del flujo de procesamiento basado en DL (4.4628), lo que significa que este último es más estable. Además, 30 PFM generados por el flujo de procesamiento basado en DL necesitan menos de ocho operaciones, mientras que solo 21 PFM de EdgeGAN lo logran, lo que significa que el primero tiene una mayor tasa de excelencia. Los resultados de EdgeGAN. Considerando que las propias anotaciones de pseudo-verdad fundamental (pseudo-ground truth) se obtienen con base en el flujo de procesamiento convencional y adolecen de imprecisión, los resultados son razonables. El desempeño de EdgeGAN puede mejorar si se entrena con un conjunto de datos más grande y de mayor calidad. (2) Nivel 2: Además de primitivas imprecisas, en las imágenes generadas se presentan algunos puntos ruidosos, líneas rotas, líneas redundantes o líneas desalineadas, como se muestra en las líneas del cuerpo principal de la Figura 11. La proporción del nivel 2 es de aproximadamente 55%. La pérdida autosupervisada puede aliviar, pero no eliminar, este fenómeno. Algunos métodos de posprocesamiento son necesarios para abordar estos problemas. Resolver este problema con la propia EdgeGAN es directo, pero aún desafiante. (3) Nivel 3: Se observan defectos graves de calidad o precisión, con una proporción de aproximadamente 5%, en las paredes inclinadas de la Figura 11. La razón es que el número de muestras con paredes inclinadas es menor que 100, mucho menor que el de paredes horizontales y verticales."
+          }
+        },
+        {
+          "id": "fig-10",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-10.png",
+          "text": {
+            "en": "Figure 10. Comparison between conventional pipeline and EdgeGAN.",
+            "es": "Figura 10: Comparación entre el flujo de procesamiento convencional y EdgeGAN."
+          }
+        },
+        {
+          "id": "fig-11",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-11.png",
+          "text": {
+            "en": "Figure 11. The undetected sloping walls. (a) FP (b) PFM",
+            "es": "Figura 11: Las paredes inclinadas no detectadas. (a) FP (b) PFM"
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "On one single RTX2080TI, the frame rate of EdgeGAN and its postprocessing is approximately 32 fps; and the frame of the DL-based pipeline on an Intel 9900 K CPU is approximately 2 fps. Although EdgeGAN can obtain PFM at a much higher speed, a gap still exists between the integral accuracy and quality of generated images and the requirements of applications.",
+            "es": "En una sola RTX2080TI, la tasa de cuadros de EdgeGAN y su posprocesamiento es de aproximadamente 32 fps; y la tasa de cuadros del flujo de procesamiento basado en DL en una CPU Intel 9900 K es de aproximadamente 2 fps. Aunque EdgeGAN puede obtener el PFM a una velocidad mucho mayor, aún existe una brecha entre la precisión integral y la calidad de las imágenes generadas y los requisitos de las aplicaciones."
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "4.2. Connectivity of Subspaces",
+            "es": "4.2. Conectividad de subespacios"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "The adjacent matrix of the vector graph in Figure 6 is as follows. Notably, subspace",
+            "es": "La matriz de adyacencia del grafo vectorial de la Figura 6 es la siguiente. Cabe destacar que los subespacios"
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "1, 2, and 4 are ignored.",
+            "es": "1, 2 y 4 se ignoran."
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 1 0 1",
+            "es": "1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 1 0 1"
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "MG =",
+            "es": "MG ="
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Thus, the Laplacian matrix is",
+            "es": "Por lo tanto, la matriz laplaciana es"
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "−1 0 0 0 0 0 0 0 0 0 −1 0 0 0 0 0 0 0 0 0 −1 0 0 0 0 0 0 0 0 0 1 −1 −1 0 0 0 0 0 0 −1 0 0 0 0 0 0 0 0 −1 0 0 0 0 0 0 0 0 0 0 0 1 −1 −1 0 0 0 0 0 0 −1 0 0 0 0 0 0 0 0 −1 0 0",
+            "es": "−1 0 0 0 0 0 0 0 0 0 −1 0 0 0 0 0 0 0 0 0 −1 0 0 0 0 0 0 0 0 0 1 −1 −1 0 0 0 0 0 0 −1 0 0 0 0 0 0 0 0 −1 0 0 0 0 0 0 0 0 0 0 0 1 −1 −1 0 0 0 0 0 0 −1 0 0 0 0 0 0 0 0 −1 0 0"
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "LG =",
+            "es": "LG ="
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "The graph is not connected because λ2(LG) > 0. MG shows that the presence of ﬁve unconnected loops. Other criteria can also be calculated easily with MG.",
+            "es": "El grafo no es conexo porque λ2(LG) > 0. MG muestra la presencia de cinco bucles no conectados. Otros criterios también pueden calcularse fácilmente con MG."
+          }
+        },
+        {
+          "id": "s4-p17",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "4.3. Classifying of Subspaces Based on GNN",
+            "es": "4.3. Clasificación de subespacios basada en GNN"
+          }
+        },
+        {
+          "id": "s4-p18",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "A new dataset that contains feature matrices annotated with subspace types is established to validate the advantage of GNN. The distributions of instances in the dataset are listed in Table 1. The features used here include window ratio, area ratio, number of doors, number of windows, and number of edges. Four widely used methods [38], namely, C4.5, iterative dichotomiser 3 (ID3), basic backpropagation (BP) neural network, and classiﬁcation and regression tree (CART), are compared with GNN. The input of these four methods is the feature vector of one subspace, which means that they can only predict the type of one subspace independently. The input dimension of the BP network with one hidden layer is 5, the output dimension is 7, and the number of neurons in the hidden layer is 20. Part of the decision tree obtained by CART is shown in Figure 12.",
+            "es": "Se construyó un nuevo conjunto de datos con matrices de características anotadas con tipos de subespacio para validar la ventaja de la GNN. La distribución de las instancias del conjunto de datos aparece en la Tabla 1. Las características usadas son la proporción de ventana, la proporción de área, el número de puertas, el número de ventanas y el número de aristas. Se comparan con la GNN cuatro métodos muy usados [38]: C4.5, el dicotomizador iterativo 3 (ID3), la red neuronal básica de retropropagación (BP) y el árbol de clasificación y regresión (CART). La entrada de estos cuatro métodos es el vector de características de un solo subespacio, lo que significa que solo pueden predecir el tipo de cada subespacio por separado. La red BP, con una capa oculta, tiene una dimensión de entrada de 5, una dimensión de salida de 7 y 20 neuronas en la capa oculta. Parte del árbol de decisión obtenido con CART se muestra en la Figura 12."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 12,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1. Number of instances in the dataset.",
+            "es": "Tabla 1: Número de instancias en el conjunto de datos."
+          }
+        },
+        {
+          "id": "s4-p19",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Only GNN considers the connective graph and achieves higher accuracy than other methods. The results are listed in Table 2. The confusion matrices of CART and EdgeGAN are depicted in Figures 13 and 14, respectively. The accuracies of the study room and the kitchen are enhanced dramatically.",
+            "es": "Solo la GNN considera el grafo de conectividad y alcanza una mayor precisión que los demás métodos. Los resultados se enumeran en la Tabla 2. Las matrices de confusión (confusion matrices) de CART y EdgeGAN se muestran en las Figuras 13 y 14, respectivamente. Las precisiones del estudio y de la cocina mejoran de manera notable."
+          }
+        },
+        {
+          "id": "fig-12",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-12.png",
+          "text": {
+            "en": "Figure 12. Decision tree of CART.",
+            "es": "Figura 12: Árbol de decisión de CART."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 13,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2. Accuracy of subspace decision.",
+            "es": "Tabla 2: Precisión de la decisión de subespacios."
+          }
+        },
+        {
+          "id": "fig-13",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-13.png",
+          "text": {
+            "en": "Figure 13. Confusion matrix of CART.",
+            "es": "Figura 13: Matriz de confusión de CART."
+          }
+        },
+        {
+          "id": "fig-14",
+          "type": "figure",
+          "page": 14,
+          "image": "fig/fig-14.png",
+          "text": {
+            "en": "Figure 14. Confusion matrix of GNN.",
+            "es": "Figura 14: Matriz de confusión de GNN."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5. Conclusions",
+        "es": "5. Conclusiones"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "EdgeGAN generates PFM in an end-to-end manner with a frame rate of 32 fps on an RTX2080TI GPU, which is much faster than the DL-based pipeline’s 2 fps since many modules of the pipeline can only run on a CPU. Although the accuracy of EdgeGAN is slightly lower than that of the DL-based pipeline, especially on sloping walls, its potential can be further exploited if given a larger and higher quality training set. Four connective criteria are proposed to inspect the connectivity of subspaces segmented from one FP. Those criteria are also suitable for postprocessing the results of traditional methods and object detection frameworks. GNN utilizes the connective information to predict the categories of subspaces and achieves 4.69% higher accuracy than other classiﬁcation approaches. The category information of subspaces can be used to check with the depictive texts of FP.",
+            "es": "EdgeGAN genera el mapa de características primitivas (primitive feature map, PFM) de extremo a extremo con una velocidad de 32 fps en una GPU RTX2080TI, lo cual es mucho más rápido que los 2 fps del pipeline basado en aprendizaje profundo (deep learning, DL), ya que muchos de los módulos del pipeline solo pueden ejecutarse en una CPU. Aunque la precisión de EdgeGAN es ligeramente menor que la del pipeline basado en DL, especialmente en muros inclinados, su potencial puede aprovecharse aún más si se le proporciona un conjunto de entrenamiento más grande y de mayor calidad. Se proponen cuatro criterios de conectividad (connective criteria) para inspeccionar la conectividad de los subespacios segmentados a partir de un plano de planta (floor plan, FP). Esos criterios también son adecuados para el posprocesamiento de los resultados de los métodos tradicionales y de los marcos de detección de objetos. La red neuronal de grafos (graph neural network, GNN) utiliza la información de conectividad para predecir las categorías de los subespacios y logra una precisión 4.69% mayor que otros enfoques de clasificación. La información de categoría de los subespacios puede utilizarse para contrastarla con los textos descriptivos del FP."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "In this study, since the PFM generation and subspace segmentation are fulﬁlled separately, the computing speed and performance can be improved further if they are realized in an end-to-end manner based on a one-stage framework. Thus, we will develop a one-stage multitask framework that ﬁnishes primitive detection, subspace segmentation, optical character recognition, and consistency inspection, simultaneously, in a future study. Furthermore, to improve the quality of PFM about irregular walls, some deep activate contour methods, such as deep snake [39] and deep level set loss [40], will also be exploited.",
+            "es": "En este estudio, dado que la generación del PFM y la segmentación de subespacios se realizan por separado, la velocidad de cómputo y el desempeño pueden mejorarse aún más si se llevan a cabo de extremo a extremo con base en un marco de una sola etapa (one-stage framework). Por ello, en un estudio futuro desarrollaremos un marco multitarea de una sola etapa que realice simultáneamente la detección de primitivas, la segmentación de subespacios, el reconocimiento óptico de caracteres (optical character recognition) y la inspección de consistencia. Además, para mejorar la calidad del PFM de muros irregulares, también se explorarán algunos métodos de contornos activos profundos (deep activate contour methods), como deep snake [39] y deep level set loss [40]."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Author Contributions: Conceptualization, data curation, K.Z.; methodology, S.D.; project administration, W.L.; software, W.W. All authors have read and agreed to the published version of the manuscript.",
+            "es": "Contribuciones de los autores: Conceptualización, curación de datos, K.Z.; metodología, S.D.; administración del proyecto, W.L.; software, W.W. Todos los autores han leído y aceptado la versión publicada del manuscrito."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Funding: This work is supported by the Guangdong Basic and Applied Basic Research Projects (2019A1515111082, 2020A1515110504), Fund for High-Level Talents Afforded by University of Elec-tronic Science and Technology of China, Zhongshan Institute (417YKQ12, 419YKQN15), Social Welfare Major Project of Zhongshan (2019B2010, 2019B2011), Achievement Cultivation Project of Zhongshan Industrial Technology Research Institute (419N26), and Young Innovative Talents Project of Education Department of Guangdong Province (419YIY04).",
+            "es": "Financiamiento: Este trabajo cuenta con el apoyo de los Guangdong Basic and Applied Basic Research Projects (2019A1515111082, 2020A1515110504), el Fund for High-Level Talents Afforded by University of Elec-tronic Science and Technology of China, Zhongshan Institute (417YKQ12, 419YKQN15), el Social Welfare Major Project of Zhongshan (2019B2010, 2019B2011), el Achievement Cultivation Project of Zhongshan Industrial Technology Research Institute (419N26) y el Young Innovative Talents Project of Education Department of Guangdong Province (419YIY04)."
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Institutional Review Board Statement: Not applicable.",
+            "es": "Declaración del Comité de Revisión Institucional: No aplicable."
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Informed Consent Statement: Not applicable.",
+            "es": "Declaración de consentimiento informado: No aplicable."
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Conﬂicts of Interest: The authors declare no conﬂict of interest.",
+            "es": "Conflictos de interés: Los autores declaran no tener conflicto de interés."
+          }
+        },
+        {
+          "id": "s5-h1",
+          "type": "heading",
+          "page": 15,
+          "text": {
+            "en": "Abbreviations",
+            "es": "Abreviaturas"
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "All abbreviations notations used in this work are listed below. FP ﬂoor plans VFP vectorization of ﬂoor plans FVG ﬂoor vector graph PFM primitive feature map SCG subspace connective graph GAN generative adversarial network GNN graph neural network EdgeGAN edge extraction GAN ZSCVFP private dataset established by us",
+            "es": "A continuación se enumeran todas las abreviaturas y notaciones utilizadas en este trabajo. FP planos de planta VFP vectorización de planos de planta FVG grafo vectorial de planta (floor vector graph) PFM mapa de características primitivas SCG grafo conectivo de subespacios (subspace connective graph) GAN red generativa antagónica (generative adversarial network) GNN red neuronal de grafos EdgeGAN GAN de extracción de bordes (edge extraction GAN) ZSCVFP conjunto de datos privado establecido por nosotros"
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "1. Lewis, R.; Séquin, C. Generation of 3D building models from 2D architectural plans. Comput. Aided Des. 1998, 30, 765–779. [CrossRef] 2. Gimenez, L.; Hippolyte, J.-L.; Robert, S.; Suard, F.; Zreik, K. Review: Reconstruction of 3D building information models from 2D scanned plans. J. Build. Eng. 2015, 2, 24–35. [CrossRef] 3. Lu, T.; Tai, C.-L.; Su, F.; Cai, S. A new recognition model for electronic architectural drawings. Comput. Aided Des. 2005, 37, 1053–1069. [CrossRef] 4. Lu, T.; Tai, C.-L.; Bao, L.; Su, F.; Cai, S. 3D Reconstruction of Detailed Buildings from Architectural Drawings. Comput. Aided Des. Appl. 2005, 2, 527–536. [CrossRef] 5. Lu, T.; Yang, H.; Yang, R.; Cai, S. Automatic analysis and integration of architectural drawings. Int. J. Doc. Anal. Recognit. 2006, 9, 31–47. [CrossRef] 6. Zhu, J. Research on 3D Building Reconstruction from 2D Vector Floor Plan Based on Structural Components Recognition. Master’s Thesis, Tsinghua University, Beijing, China, 2013. 7. Jiang, Z. Research on Floorplan Image Recognition Based on Shape and Edge Features. Master’s Thesis, Harbin Institute of Technology, Harbin, China, 2016. 8. Gimenez, L.; Robert, S.; Suard, F.; Zreik, K. Automatic reconstruction of 3D building models from scanned 2D ﬂoor plans. Autom. Constr. 2016, 63, 48–56. [CrossRef] 9. Tombre, K.; Tabbone, S.; Pelissier, L.; Lamiroy, B.; Dosch, P. Text/Graphics Separation Revisited. In International Workshop on Document Analysis Systems; Springer: Berlin/Heidelberg, Germany, 2002; pp. 200–211. 10. Ahmed, S.; Weber, M.; Liwicki, M.; Dengel, A. Text/Graphics Segmentation in Architectural Floor Plans. In Proceedings of the 2011 International Conference on Document Analysis and Recognition, Beijing, China, 18–21 September 2011; pp. 734–738. 11. Ahmed, S.; Liwicki, M.; Weber, M.; Dengel, A. Automatic Room Detection and Room Labeling from Architectural Floor Plans. In Proceedings of the 10th IAPR International Workshop on Document Analysis Systems, Gold Coast, Australia, 27–29 March 2012; pp. 339–343. 12. Smith, R. An overview of the Tesseract OCR engine. In Proceedings of the Ninth International Conference on Document Analysis and Recognition (ICDAR 2007), Curitiba, Brazil, 23–26 September 2007; Volume 2, pp. 629–633. 13. Long, S.; He, X.; Yao, C. Scene Text Detection and Recognition: The Deep Learning Era. Int. J. Comput. Vis. 2021, 129, 161–184. [CrossRef] 14. Dodge, S.; Xu, J.; Stenger, B. Parsing ﬂoor plan images. In Proceedings of the 2017 Fifteenth IAPR International Conference on Machine Vision Applications (MVA), Nagoya, Japan, 8–12 May 2017; pp. 358–361. 15. Liu, C.; Wu, J.; Kohli, P.; Furukawa, Y. Raster-to-Vector: Revisiting Floorplan Transformation. In Proceedings of the 2017 IEEE International Conference on Computer Vision (ICCV), Venice, Italy, 22–29 October 2017; pp. 2214–2222. 16. Ren, S.; He, K.; Girshick, R.; Jian, S. Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks. IEEE Trans. Pattern Anal. Mach. Intell. 2015, 39, 1137–1149. [CrossRef] 17. Bochkovskiy, A.; Wang, C.-Y.; Liao, H.-Y.M. YOLOv4: Optimal Speed and Accuracy of Object Detection. arXiv 2020, 18. Duan, K.; Bai, S.; Xie, L.; Qi, H.; Huang, Q.; Tian, Q. CenterNet: Object Detection with Keypoint Triplets. arXiv 2019, 19. Law, H.; Deng, J. CornerNet: Detecting Objects as Paired Keypoints. arXiv 2019, arXiv:1808.01244v2. 20. Ronneberger, O.; Fischer, P.; Brox, T. U-net: Convolutional networks for biomedical image segmentation. In Proceedings of the International Conference on Medical Image Computing and Computer-Assisted Intervention, Cham, Switzerland, 5–9 October 2015; pp. 234–241. 21. Goodfellow, I.J.; Pouget-abadie, J.; Mirza, M.; Xu, B.; Warde-farley, D. Generative Adversarial Nets. arXiv 2014, arXiv:1406.2661v1. 22. Sandelin, F. Semantic and Instance Segmentation of Room Features in Floor Plans Using Mask R-CNN. Master’s Thesis, Uppsala University, Uppsala, Sweden, 2019. 23. Mirza, M.; Osindero, S. Conditional Generative Adversarial Nets. arXiv 2014, arXiv:1411.1784v1."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "24. Odena, A.; Olah, C.; Shlens, J. Conditional Image Synthesis with Auxiliary Classiﬁer GANs. In Proceedings of the International Conference on Machine Learning, ICML 2017, Sydney, Australia, 6–11 August 2017; Volume 6, pp. 4043–4055. 25. Arjovsky, M.; Chintala, S.; Bottou, L. Wasserstein GAN. arXiv 2017, arXiv:1701.07875v3. 26. Gulrajani, I.; Ahmed, F.; Arjovsky, M.; Dumoulin, V.; Courville, A. Improved Training of Wasserstein GANs. arXiv 2017, 27. Isola, P.; Zhu, J.-Y.; Zhou, T.; Efros, A.A. Image-to-Image Translation with Conditional Adversarial Networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, Honolulu, HI, USA, 21–26 July 2017; pp. 5967–5976. 28. Creswell, A.; White, T.; Dumoulin, V.; Arulkumaran, K.; Sengupta, B.; Bharath, A.A. Generative Adversarial Networks: An Overview. IEEE Signal Process. Mag. 2018, 35, 53–65. [CrossRef] 29. Hong, Y.; Hwang, U.; Yoo, J.; Yoon, S. How Generative Adversarial Networks and Their Variants Work. ACM Comput. Surv. 2019, 52, 1–43. [CrossRef] 30. Wang, T.C.; Liu, M.Y.; Zhu, J.Y.; Tao, A.; Kautz, J.; Catanzaro, B. High-Resolution Image Synthesis and Semantic Manipulation with Conditional GANs. In Proceedings of the IEEE International Conference on Computer Vision (ICCV), Venice, Italy, 22–29 October 2017; pp. 8798–8807. 31. Wang, T.; Liu, M.; Zhu, J.; Liu, G.; Tao, A.; Kautz, J.; Catanzaro, B. Video-to-Video Synthesis. arXiv 2018, arXiv:1808.06601v2. 32. Zhu, J.-Y.; Park, T.; Isola, P.; Efros, A.A. Unpaired Image-to-Image Translation Using Cycle-Consistent Adversarial Networks. In Proceedings of the 2017 IEEE International Conference on Computer Vision (ICCV), Venice, Italy, 22–29 October 2017; pp. 2242–2251. 33. Yi, Z.; Zhang, H.; Tan, P.; Gong, M. DualGAN: Unsupervised Dual Learning for Image-to-Image Translation. In Proceedings of the 2017 IEEE International Conference on Computer Vision (ICCV), Venice, Italy, 22–29 October 2017; pp. 2868–2876. 34. Kim, T.; Cha, M.; Kim, H.; Kwon, J.; Jiwon, L. Learning to Discover Cross-Domain Relations with Generative Adversarial Networks. arXiv 2017, arXiv:1703.05192. 35. Kalervo, A.; Ylioinas, J.; Häikiö, M.; Karhu, A.; Kannala, J. CubiCasa5K: A Dataset and an Improved Multi-task Model for Floorplan Image Analysis. arXiv 2019, arXiv:1904.01920. 36. Facebook. Available online: https://Pytorch.Org/ (accessed on 13 October 2020). 37. Nvidia. Available online: https://Developer.Nvidia.Com/Zh-Cn/Cuda-Toolkit (accessed on 25 June 2020). 38. Li, H. Statistical Learning Method; Tsinghua Press: Beijing, China, 2019. 39. Zambaldi, V.; Raposo, D.; Santoro, A.; Bapst, V. Relational Deep Reinforcement Learning. arXiv 2018, arXiv:1806.01830v2. 40. Kim, Y.; Kim, S.; Kim, T.; Kim, C. CNN-Based Semantic Segmentation Using Level Set Loss. In Proceedings of the 2019 IEEE Winter Conference on Applications of Computer Vision (WACV), Waikoloa Village, HI, USA, 8–10 January 2019; pp. 1752–1760."
+          }
+        }
+      ]
+    }
+  ]
+}

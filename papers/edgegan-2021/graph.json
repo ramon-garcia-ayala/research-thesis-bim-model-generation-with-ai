@@ -1,0 +1,656 @@
+{
+  "version": 1,
+  "node": "edgegan-2021",
+  "built": {
+    "date": "2026-10-23",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can floor-plan vectorization, which finds walls, windows and doors in a 2D plan, be done end to end by a GAN, faster than the conventional pipeline and with minimal performance loss?",
+      "es": "¿Se puede vectorizar un plano de planta, es decir, encontrar muros, ventanas y puertas en un plano 2D, de extremo a extremo con una GAN, más rápido que el proceso convencional y con una pérdida mínima de desempeño?",
+      "blocks": [
+        "s0-p1",
+        "s1-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "question",
+      "en": "Can efficient criteria check whether the subspaces segmented from the primitive map are fully connected, and can one graph neural network predict the category of each subspace?",
+      "es": "¿Pueden unos criterios eficientes verificar si los subespacios segmentados del mapa de primitivas están completamente conectados, y puede una sola red neuronal de grafos predecir la categoría de cada subespacio?",
+      "blocks": [
+        "s2-p11",
+        "s0-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Vectorization of floor plans (VFP) localizes and recognizes structural primitives in a 2D plan and assembles them into a floor vector graph (FVG) that can be stretched into a 3D model. It has drawn attention for the past 20 years because drawing styles and standards vary.",
+      "es": "La vectorización de planos de planta (VFP) localiza y reconoce primitivas estructurales en un plano 2D y las ensambla en un grafo vectorial del plano (FVG) que puede extruirse a un modelo 3D. Ha recibido atención durante los últimos 20 años porque los estilos y estándares de dibujo varían.",
+      "blocks": [
+        "s1-p1",
+        "s0-p1",
+        "fig-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "The conventional VFP pipeline is a sequence of low-level image-processing heuristics and carefully designed algorithms. The paper says it generalizes insufficiently and computes slowly.",
+      "es": "El proceso convencional de VFP es una secuencia de heurísticas de procesamiento de imagen de bajo nivel y algoritmos cuidadosamente diseñados. El artículo dice que generaliza de forma insuficiente y calcula con lentitud.",
+      "blocks": [
+        "s0-p1",
+        "s1-p2",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "concept",
+      "en": "Earlier deep-learning work replaced parts of the pipeline. Dodge et al. used a fully convolutional network and reached a mean intersection-over-union of 89.9% on R-FP and 94.4% on CVC-FP, and Chen et al. turned a raster plan into junctions and aggregated them with integer programming.",
+      "es": "Trabajos previos de aprendizaje profundo reemplazaron partes del proceso. Dodge et al. usaron una red totalmente convolucional y lograron una intersección sobre unión media de 89.9% en R-FP y 94.4% en CVC-FP, y Chen et al. convirtieron un plano ráster en uniones y las agregaron con programación entera.",
+      "blocks": [
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "claim",
+      "en": "The paper argues that object-detection frameworks detect only doors and windows, and that anchor-based ones using inflated boxes cannot localize sloping or curved walls. They can therefore replace only some pipeline modules.",
+      "es": "El artículo sostiene que los marcos de detección de objetos solo detectan puertas y ventanas, y que los basados en anclas con cajas infladas no pueden localizar muros inclinados o curvos. Por eso solo pueden reemplazar algunos módulos del proceso.",
+      "blocks": [
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "pix2pix, developed from conditional GANs, learns a forward mapping from an input image to an output image using paired data, usually with a U-Net generator. CycleGAN handles unpaired data but needs more training samples. EdgeGAN is based on pix2pix.",
+      "es": "pix2pix, desarrollado a partir de las GAN condicionales, aprende un mapeo directo de una imagen de entrada a una de salida con datos pareados, normalmente con un generador U-Net. CycleGAN maneja datos no pareados pero requiere más muestras de entrenamiento. EdgeGAN se basa en pix2pix.",
+      "blocks": [
+        "s1-p6",
+        "s1-p7",
+        "s1-p8"
+      ],
+      "key": "pix2pix",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "dataset",
+      "en": "ZSCVFP is a private dataset of 10,800 colorful floor plans with decorative textures in different styles, split into 8800 for training and 2000 for testing. Its annotations are points and lines, and a primitive feature map is provided for each plan.",
+      "es": "ZSCVFP es un conjunto de datos privado de 10,800 planos de planta a color con texturas decorativas en distintos estilos, dividido en 8800 para entrenamiento y 2000 para prueba. Sus anotaciones son puntos y líneas, y cada plano trae su mapa de primitivas.",
+      "blocks": [
+        "s0-p1",
+        "s2-p3",
+        "s1-p9"
+      ],
+      "key": "zscvfp",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "claim",
+      "en": "The authors state that ZSCVFP is larger than the public CVC-FP (121 samples) and CubiCasa5K (5000 samples), which are black and white without decorative disturbance or style variation. They note that plans supplied by customers in practice are complex and diverse.",
+      "es": "Los autores afirman que ZSCVFP es más grande que los conjuntos públicos CVC-FP (121 muestras) y CubiCasa5K (5000 muestras), que son en blanco y negro, sin perturbación decorativa ni variación de estilo. Señalan que los planos que entregan los clientes en la práctica son complejos y diversos.",
+      "blocks": [
+        "s1-p9",
+        "s2-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Wall annotations come from a conventional pipeline the authors built in earlier work, so they are pseudo-annotations. Doors and windows are annotated by hand with a tool and then adjusted to follow the walls to keep geometric constraints, which lowers annotation accuracy more or less.",
+      "es": "Las anotaciones de muros provienen de un proceso convencional que los autores desarrollaron en un trabajo previo, por lo que son seudoanotaciones. Las puertas y ventanas se anotan a mano con una herramienta y luego se ajustan a los muros para mantener las restricciones geométricas, lo que reduce la precisión de las anotaciones en mayor o menor medida.",
+      "blocks": [
+        "s2-p5",
+        "fig-3",
+        "s4-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "concept",
+      "en": "The primitive feature map (PFM) is the output of EdgeGAN: an image with one channel per primitive category (nc = 3 for ZSCVFP), each channel a binary image of lines. If its quality is good enough, extracting the points and line sets of the vector graph from it is very easy.",
+      "es": "El mapa de características de primitivas (PFM) es la salida de EdgeGAN: una imagen con un canal por categoría de primitiva (nc = 3 en ZSCVFP), cada canal una imagen binaria de líneas. Si su calidad es suficiente, extraer de él los puntos y conjuntos de líneas del grafo vectorial es muy fácil.",
+      "blocks": [
+        "s2-p6",
+        "s0-p1",
+        "fig-1"
+      ],
+      "key": "primitive-feature-map",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "EdgeGAN casts VFP as an image translation task based on pix2pix, projecting the plan into the primitive space. The generator is two convolution layers, six ResNet blocks and two deconvolution layers with skip connections, and the authors say it is the first application of GAN to VFP.",
+      "es": "EdgeGAN plantea la VFP como una tarea de traducción de imágenes basada en pix2pix, proyectando el plano al espacio de primitivas. El generador son dos capas de convolución, seis bloques ResNet y dos capas de deconvolución con conexiones de salto, y los autores dicen que es la primera aplicación de una GAN a la VFP.",
+      "blocks": [
+        "s1-p9",
+        "s3-p3",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "The generator loss adds a binary cross-entropy term, an L1 term weighted by λ1 and a filter term weighted by λ2. The discriminator uses binary cross-entropy on fake and real pairs.",
+      "es": "La pérdida del generador suma un término de entropía cruzada binaria, un término L1 ponderado por λ1 y un término de filtro ponderado por λ2. El discriminador usa entropía cruzada binaria sobre pares falsos y reales.",
+      "blocks": [
+        "s3-p9",
+        "s3-p22",
+        "s3-p25"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "The filter loss is a self-supervised term: max pooling with two special kernels extracts horizontal and vertical lines, the two results are added and clipped to the range 0 to 1, and isolated points are filtered out. The term compares the map with its filtered version.",
+      "es": "La pérdida de filtro es un término autosupervisado: un max pooling con dos kernels especiales extrae las líneas horizontales y verticales, los dos resultados se suman y se recortan al rango de 0 a 1, y se eliminan los puntos aislados. El término compara el mapa con su versión filtrada.",
+      "blocks": [
+        "s3-p21",
+        "s3-p25",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "limitation",
+      "en": "Because the two kernels are designed for horizontal and vertical lines, the filter loss does not work for irregular walls.",
+      "es": "Como los dos kernels están diseñados para líneas horizontales y verticales, la pérdida de filtro no funciona con muros irregulares.",
+      "blocks": [
+        "s3-p26"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "Training uses at most 220 epochs, batch size 128, λ1 = 10, and λ2 = 0 for the first 10 epochs and 100 afterwards so the L1 term leads at first. The learning rate is 0.0002 for the first 20 epochs and then decreases linearly to 0, on an Intel i9-9900K with two RTX2080TI GPUs.",
+      "es": "El entrenamiento usa un máximo de 220 épocas, tamaño de lote de 128, λ1 = 10 y λ2 = 0 en las primeras 10 épocas y 100 después, para que el término L1 domine al inicio. La tasa de aprendizaje es 0.0002 en las primeras 20 épocas y luego baja linealmente a 0, en un Intel i9-9900K con dos GPU RTX2080TI.",
+      "blocks": [
+        "s3-p27",
+        "s4-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "G_L1_loss stays stable at approximately 1.38 from the 20th epoch, so the authors say it is not a suitable measurement of accuracy. G_filter_loss is 0 in the first 10 epochs and then decreases gradually.",
+      "es": "G_L1_loss se mantiene estable en aproximadamente 1.38 desde la época 20, por lo que los autores dicen que no es una medida adecuada de la precisión. G_filter_loss es 0 en las primeras 10 épocas y luego disminuye gradualmente.",
+      "blocks": [
+        "s4-p4",
+        "fig-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "The authors sort generated maps into three levels: about 40% are level 1 (clean lines, accuracy close to the conventional pipeline), about 55% are level 2 (noisy points, broken, redundant or unaligned lines), and about 5% are level 3 (serious defects, seen on sloping walls).",
+      "es": "Los autores clasifican los mapas generados en tres niveles: cerca de 40% son de nivel 1 (líneas limpias, precisión cercana a la del proceso convencional), cerca de 55% son de nivel 2 (puntos con ruido, líneas rotas, redundantes o desalineadas) y cerca de 5% son de nivel 3 (defectos graves, vistos en muros inclinados).",
+      "blocks": [
+        "s4-p6",
+        "fig-9",
+        "fig-11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "On 100 plans with level 1 results, a decoration designer counted manual adjustment operations. The mean was 16.50 for the DL-based pipeline and 16.67 for EdgeGAN, with standard deviations of 4.4628 and 8.34, and 30 maps from the DL-based pipeline needed less than eight operations against 21 from EdgeGAN.",
+      "es": "En 100 planos con resultados de nivel 1, un diseñador de decoración contó las operaciones de ajuste manual. La media fue 16.50 para el proceso basado en aprendizaje profundo y 16.67 para EdgeGAN, con desviaciones estándar de 4.4628 y 8.34, y 30 mapas del proceso de aprendizaje profundo necesitaron menos de ocho operaciones frente a 21 de EdgeGAN.",
+      "blocks": [
+        "s4-p6",
+        "fig-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "EdgeGAN with its postprocessing runs at about 32 fps on one RTX2080TI, while the DL-based pipeline runs at about 2 fps on an Intel 9900K CPU. The paper also says EdgeGAN is about 15 times as fast as the conventional pipeline.",
+      "es": "EdgeGAN con su posprocesamiento corre a cerca de 32 fps en una sola RTX2080TI, mientras que el proceso basado en aprendizaje profundo corre a cerca de 2 fps en una CPU Intel 9900K. El artículo también dice que EdgeGAN es unas 15 veces más rápido que el proceso convencional.",
+      "blocks": [
+        "s4-p7",
+        "s1-p9",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "limitation",
+      "en": "Level 2 maps need postprocessing for noisy points, broken, redundant and unaligned lines. The self-supervising loss relieves but cannot eliminate them, and solving them inside EdgeGAN itself is direct but still challenging.",
+      "es": "Los mapas de nivel 2 necesitan posprocesamiento por puntos con ruido y líneas rotas, redundantes o desalineadas. La pérdida autosupervisada los alivia pero no los elimina, y resolverlos dentro del propio EdgeGAN es directo pero sigue siendo difícil.",
+      "blocks": [
+        "s4-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "limitation",
+      "en": "Sloping walls are poorly detected (level 3) because ZSCVFP has fewer than 100 samples with sloping walls, far fewer than with horizontal and vertical walls.",
+      "es": "Los muros inclinados se detectan mal (nivel 3) porque ZSCVFP tiene menos de 100 muestras con muros inclinados, muchas menos que con muros horizontales y verticales.",
+      "blocks": [
+        "s4-p6",
+        "fig-11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "limitation",
+      "en": "Although EdgeGAN is much faster, a gap remains between the accuracy and quality of its generated images and what applications require. The authors add that the pseudo ground truth comes from the conventional pipeline and is itself inaccurate, and that a larger, higher-quality training set could improve EdgeGAN.",
+      "es": "Aunque EdgeGAN es mucho más rápido, sigue habiendo una brecha entre la precisión y calidad de sus imágenes generadas y lo que exigen las aplicaciones. Los autores agregan que la verdad de referencia es una seudoanotación obtenida del proceso convencional y es imprecisa, y que un conjunto de entrenamiento más grande y de mayor calidad podría mejorar EdgeGAN.",
+      "blocks": [
+        "s4-p7",
+        "s4-p6",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "concept",
+      "en": "The subspace connective graph (SCG) treats each subspace, including the outside, as a node. An edge links two subspaces with weight 1 for a door and 0.5 for a window, the graph is stored as an adjacency matrix, and a door-only version is used for the connectivity test.",
+      "es": "El grafo de conectividad de subespacios (SCG) trata cada subespacio, incluido el exterior, como un nodo. Una arista une dos subespacios con peso 1 si hay una puerta y 0.5 si hay una ventana, el grafo se guarda como matriz de adyacencia y se usa una versión solo de puertas para la prueba de conectividad.",
+      "blocks": [
+        "s3-p29",
+        "s3-p31",
+        "s3-p33",
+        "fig-7"
+      ],
+      "key": "subspace-connective-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "method",
+      "en": "Four criteria inspect connectivity: at least one door on the external contour, no more than two external doors, at least one door in every subspace except special-function ones such as air-conditioner areas, and a connected door graph tested with the second-smallest Laplacian eigenvalue. The paper calls them sufficient conditions for a fully connected graph and says the fourth covers the others but costs more to compute.",
+      "es": "Cuatro criterios inspeccionan la conectividad: al menos una puerta en el contorno exterior, no más de dos puertas exteriores, al menos una puerta en cada subespacio salvo los de función especial como las áreas de aire acondicionado, y un grafo de puertas conexo, probado con el segundo valor propio más pequeño del laplaciano. El artículo los llama condiciones suficientes de un grafo completamente conectado y dice que el cuarto abarca a los demás pero cuesta más calcularlo.",
+      "blocks": [
+        "s3-p37",
+        "s3-p38",
+        "s3-p43"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "On the plan in Figure 6, with subspaces 1, 2 and 4 ignored, the adjacency matrix MG and Laplacian LG show that the graph is not connected, with five unconnected loops. The other criteria can also be calculated easily from MG.",
+      "es": "En el plano de la Figura 6, con los subespacios 1, 2 y 4 ignorados, la matriz de adyacencia MG y el laplaciano LG muestran que el grafo no está conectado, con cinco lazos desconectados. Los demás criterios también pueden calcularse fácilmente a partir de MG.",
+      "blocks": [
+        "s4-p9",
+        "s4-p16",
+        "fig-6",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "claim",
+      "en": "The authors say the connective inspection can give designers auxiliary information to adjust the floor vector graph. The criteria also suit postprocessing results from traditional methods and object-detection frameworks.",
+      "es": "Los autores dicen que la inspección de conectividad puede dar a los diseñadores información auxiliar para ajustar el grafo vectorial del plano. Los criterios también sirven para posprocesar resultados de métodos tradicionales y de marcos de detección de objetos.",
+      "blocks": [
+        "s1-p9",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "method",
+      "en": "A graph neural network classifies each subspace. Each layer multiplies the adjacency matrix of the connective graph by the layer features and a learned weight matrix, so the layout acts as weights directly. Features include number of windows, number of doors and area ratio, the matrices are padded to 20×20 with virtual subspaces, and training uses binary cross-entropy.",
+      "es": "Una red neuronal de grafos clasifica cada subespacio. Cada capa multiplica la matriz de adyacencia del grafo de conectividad por las características de la capa y una matriz de pesos aprendida, de modo que la distribución actúa directamente como pesos. Las características incluyen número de ventanas, número de puertas y proporción de área, las matrices se rellenan a 20×20 con subespacios virtuales y el entrenamiento usa entropía cruzada binaria.",
+      "blocks": [
+        "s3-p45",
+        "s3-p47",
+        "s3-p54",
+        "s2-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "dataset",
+      "en": "A new dataset of feature matrices annotated with subspace types was built to test the GNN, with instance counts in Table 1. Its features are window ratio, area ratio, number of doors, number of windows and number of edges.",
+      "es": "Se construyó un nuevo conjunto de datos de matrices de características anotadas con el tipo de subespacio para probar la GNN, con los conteos de instancias en la Tabla 1. Sus características son proporción de ventanas, proporción de área, número de puertas, número de ventanas y número de aristas.",
+      "blocks": [
+        "s4-p18",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "method",
+      "en": "The GNN is compared with C4.5, ID3, a basic backpropagation neural network (input 5, one hidden layer of 20 neurons, output 7) and CART. These four take the feature vector of one subspace and predict each subspace independently.",
+      "es": "La GNN se compara con C4.5, ID3, una red neuronal básica de retropropagación (entrada 5, una capa oculta de 20 neuronas, salida 7) y CART. Estos cuatro reciben el vector de características de un subespacio y predicen cada subespacio de forma independiente.",
+      "blocks": [
+        "s4-p18",
+        "fig-12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "result",
+      "en": "The GNN reaches higher accuracy than the four other methods, 4.69% higher than other classification approaches, and the accuracies of the study room and the kitchen are enhanced dramatically. Table 2 and the confusion matrices of CART and the GNN (Figures 13 and 14) show this.",
+      "es": "La GNN alcanza mayor precisión que los otros cuatro métodos, 4.69% mayor que otros enfoques de clasificación, y las precisiones del estudio y de la cocina mejoran de forma dramática. La Tabla 2 y las matrices de confusión de CART y de la GNN (Figuras 13 y 14) lo muestran.",
+      "blocks": [
+        "s4-p19",
+        "s5-p1",
+        "tab-2",
+        "fig-13",
+        "fig-14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "claim",
+      "en": "The authors attribute the GNN's gain to its use of global layout information from the connective graph, which the four other methods lack. The predicted subspace categories should be consistent with the text annotations in the original plan, if available.",
+      "es": "Los autores atribuyen la ventaja de la GNN a que usa información global de la distribución a partir del grafo de conectividad, de la que carecen los otros cuatro métodos. Las categorías de subespacio predichas deben ser consistentes con las anotaciones de texto del plano original, si existen.",
+      "blocks": [
+        "s0-p1",
+        "s1-p9",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "future",
+      "en": "Future work is a one-stage multitask framework that does primitive detection, subspace segmentation, text recognition and consistency inspection together, since PFM generation and subspace segmentation are now separate steps. Deep active-contour methods such as deep snake and deep level set loss will be explored for irregular walls.",
+      "es": "El trabajo futuro es un marco multitarea de una sola etapa que haga juntas la detección de primitivas, la segmentación de subespacios, el reconocimiento de texto y la inspección de consistencia, ya que ahora la generación del PFM y la segmentación de subespacios son pasos separados. Se explorarán métodos de contorno activo profundo, como deep snake y deep level set loss, para los muros irregulares.",
+      "blocks": [
+        "s5-p2"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i12",
+      "to": "i7",
+      "type": "uses",
+      "why": "EdgeGAN is built on pix2pix with a U-Net-style generator."
+    },
+    {
+      "from": "i12",
+      "to": "i11",
+      "type": "uses",
+      "why": "The generator outputs the primitive feature map."
+    },
+    {
+      "from": "i12",
+      "to": "i1",
+      "type": "supports",
+      "why": "EdgeGAN is the paper's answer to the end-to-end GAN question."
+    },
+    {
+      "from": "i13",
+      "to": "i12",
+      "type": "part-of",
+      "why": "The loss functions train EdgeGAN's generator and discriminator."
+    },
+    {
+      "from": "i14",
+      "to": "i13",
+      "type": "part-of",
+      "why": "The filter loss is the third term of the generator loss."
+    },
+    {
+      "from": "i14",
+      "to": "i11",
+      "type": "uses",
+      "why": "The filter is applied to the primitive map to drop isolated points."
+    },
+    {
+      "from": "i15",
+      "to": "i14",
+      "type": "contradicts",
+      "why": "The kernels only suit horizontal and vertical lines, which limits the filter's usefulness."
+    },
+    {
+      "from": "i16",
+      "to": "i13",
+      "type": "uses",
+      "why": "The schedule delays λ2 so the L1 term leads at the start."
+    },
+    {
+      "from": "i16",
+      "to": "i8",
+      "type": "uses",
+      "why": "EdgeGAN is trained on ZSCVFP's 8800 training plans."
+    },
+    {
+      "from": "i17",
+      "to": "i13",
+      "type": "measures",
+      "why": "The loss curves track the L1 and filter terms during training."
+    },
+    {
+      "from": "i18",
+      "to": "i12",
+      "type": "measures",
+      "why": "The three quality levels grade EdgeGAN's generated maps."
+    },
+    {
+      "from": "i19",
+      "to": "i18",
+      "type": "part-of",
+      "why": "The adjustment count is made on level 1 results only."
+    },
+    {
+      "from": "i19",
+      "to": "i12",
+      "type": "measures",
+      "why": "A designer's operation counts compare EdgeGAN with the DL-based pipeline."
+    },
+    {
+      "from": "i20",
+      "to": "i12",
+      "type": "measures",
+      "why": "Frame rate shows EdgeGAN's speed against the other pipelines."
+    },
+    {
+      "from": "i20",
+      "to": "i4",
+      "type": "supports",
+      "why": "The speed gain answers the criticism that the conventional pipeline is slow."
+    },
+    {
+      "from": "i21",
+      "to": "i18",
+      "type": "part-of",
+      "why": "Level 2 is the second quality level, about 55% of results."
+    },
+    {
+      "from": "i22",
+      "to": "i18",
+      "type": "part-of",
+      "why": "Sloping walls account for the level 3 results, about 5%."
+    },
+    {
+      "from": "i23",
+      "to": "i20",
+      "type": "contradicts",
+      "why": "The paper says speed does not close the gap to application requirements."
+    },
+    {
+      "from": "i10",
+      "to": "i8",
+      "type": "part-of",
+      "why": "The annotation procedure produces ZSCVFP's ground truth."
+    },
+    {
+      "from": "i10",
+      "to": "i4",
+      "type": "uses",
+      "why": "Wall labels are produced by the authors' earlier conventional pipeline."
+    },
+    {
+      "from": "i10",
+      "to": "i23",
+      "type": "supports",
+      "why": "Pseudo ground truth with its own inaccuracy is cited as a reason the results are reasonable and limited."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "measures",
+      "why": "Sample counts compare ZSCVFP with CVC-FP and CubiCasa5K."
+    },
+    {
+      "from": "i4",
+      "to": "i1",
+      "type": "supports",
+      "why": "Its slowness and weak generalization motivate an end-to-end alternative."
+    },
+    {
+      "from": "i6",
+      "to": "i1",
+      "type": "supports",
+      "why": "Object detectors fall short for walls, so EdgeGAN is posed as a compromise."
+    },
+    {
+      "from": "i5",
+      "to": "i6",
+      "type": "supports",
+      "why": "Prior deep-learning work replaces only some modules of the pipeline."
+    },
+    {
+      "from": "i25",
+      "to": "i24",
+      "type": "uses",
+      "why": "The criteria are computed on the connective graph and its adjacency matrix."
+    },
+    {
+      "from": "i25",
+      "to": "i2",
+      "type": "supports",
+      "why": "The four criteria answer the connectivity half of the question."
+    },
+    {
+      "from": "i26",
+      "to": "i25",
+      "type": "example-of",
+      "why": "A worked plan shows the connectivity check in use."
+    },
+    {
+      "from": "i27",
+      "to": "i25",
+      "type": "supports",
+      "why": "The authors present the inspection as help for designers adjusting the vector graph."
+    },
+    {
+      "from": "i28",
+      "to": "i24",
+      "type": "uses",
+      "why": "The GNN uses the connective graph's adjacency matrix as weights."
+    },
+    {
+      "from": "i28",
+      "to": "i2",
+      "type": "supports",
+      "why": "The GNN answers the subspace-category half of the question."
+    },
+    {
+      "from": "i31",
+      "to": "i29",
+      "type": "uses",
+      "why": "The comparison is run on the new subspace feature dataset."
+    },
+    {
+      "from": "i31",
+      "to": "i30",
+      "type": "uses",
+      "why": "Accuracy is reported against C4.5, ID3, BP and CART."
+    },
+    {
+      "from": "i31",
+      "to": "i28",
+      "type": "measures",
+      "why": "Accuracy and confusion matrices evaluate the GNN classifier."
+    },
+    {
+      "from": "i32",
+      "to": "i31",
+      "type": "supports",
+      "why": "Global layout information is the authors' explanation for the higher accuracy."
+    },
+    {
+      "from": "i33",
+      "to": "i15",
+      "type": "supports",
+      "why": "Deep active-contour methods are proposed as a remedy for irregular walls."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i10",
+      "to": "explicit-vs-learned",
+      "why": "A rule-based pipeline labels the walls and the network learns to reproduce them, so the learned model inherits the rules' inaccuracy."
+    },
+    {
+      "idea": "i8",
+      "to": "dataset-purposes",
+      "why": "A dataset built for one task (training and testing a plan-to-primitives GAN) from customer-style plans with textures, with a fixed 8800/2000 split."
+    },
+    {
+      "idea": "i9",
+      "to": "cubicasa5k-2019",
+      "why": "Gives the authors' view of CubiCasa5K as 5000 black-and-white plans without decorative disturbance, a gap they say ZSCVFP fills."
+    },
+    {
+      "idea": "i18",
+      "to": "production-ready",
+      "why": "Only about 40% of generated maps come close to the conventional pipeline, and the rest need postprocessing or fail, which shows a gap between generated and usable."
+    },
+    {
+      "idea": "i19",
+      "to": "proposed-vs-kept",
+      "why": "A designer counted adjustment operations per generated plan (16.50 vs 16.67), a method to borrow for measuring how much of a proposal is kept versus corrected."
+    },
+    {
+      "idea": "i23",
+      "to": "hypothesis",
+      "why": "A gap between generated output and application requirements remains even with a large speed gain, which fits human judgment staying in the loop."
+    },
+    {
+      "idea": "i25",
+      "to": "correct-by-construction",
+      "why": "Connectivity and door-count rules are run on the generated result afterwards, so the output is checked rather than correct by construction."
+    },
+    {
+      "idea": "i27",
+      "to": "hand-offs",
+      "why": "The inspection hands the designer information so they can adjust the vector graph, which keeps a human hand after generation."
+    }
+  ]
+}
