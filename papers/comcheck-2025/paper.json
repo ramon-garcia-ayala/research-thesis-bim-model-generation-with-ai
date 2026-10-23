@@ -1,0 +1,915 @@
+{
+  "version": 1,
+  "node": "comcheck-2025",
+  "title": "Automatic Building Code Review: A Case Study",
+  "source": "files/comcheck-2025.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "Automatic Building Code Review: A Case Study",
+            "es": "Revisión automática de códigos de construcción: un estudio de caso"
+          }
+        },
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Hanlong Wan*, Weili Xu, Michael Rosenberg, Jian Zhang, Aysha Siddika†",
+            "es": "Hanlong Wan*, Weili Xu, Michael Rosenberg, Jian Zhang, Aysha Siddika†"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Pacific Northwest National Laboratory, Richland, WA, USA",
+            "es": "Pacific Northwest National Laboratory, Richland, WA, EE. UU."
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "*Corresponding Author hanlong.wan@pnnl.gov",
+            "es": "*Autor para correspondencia hanlong.wan@pnnl.gov"
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "This manuscript has been authored by Battelle Memorial Institute under Contract No. DE-AC05-76RL01830 with the US Department of Energy (DOE). The US government retains and the publisher, by accepting the article for publication, acknowledges that the US government retains a nonexclusive, paidup, irrevocable, worldwide license to publish or reproduce the published form of this manuscript, or allow others to do so, for US government purposes. DOE will provide public access to these results of federally sponsored research in accordance with the DOE Public Access Plan (http://energy.gov/downloads/doe-public-access-plan).",
+            "es": "Este manuscrito fue escrito por Battelle Memorial Institute bajo el Contrato n.º DE-AC05-76RL01830 con el Departamento de Energía de EE. UU. (DOE). El gobierno de EE. UU. conserva, y el editor, al aceptar el artículo para su publicación, reconoce que el gobierno de EE. UU. conserva, una licencia no exclusiva, pagada, irrevocable y de alcance mundial para publicar o reproducir la forma publicada de este manuscrito, o permitir que otros lo hagan, con fines del gobierno de EE. UU. El DOE brindará acceso público a estos resultados de investigación financiada con fondos federales de acuerdo con el DOE Public Access Plan (http://energy.gov/downloads/doe-public-access-plan)."
+          }
+        },
+        {
+          "id": "s0-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "† Former intern at Pacific Northwest National Laboratory; currently a student at the University of Wyoming.",
+            "es": "† Ex pasante en Pacific Northwest National Laboratory; actualmente estudiante en la University of Wyoming."
+          }
+        },
+        {
+          "id": "s0-h2",
+          "type": "heading",
+          "page": 2,
+          "text": {
+            "en": "ABSTRACT",
+            "es": "RESUMEN"
+          }
+        },
+        {
+          "id": "s0-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Building officials, especially those in resource-constrained or rural jurisdictions, struggle with laborintensive, error-prone, and costly manual reviews of design documents as projects scale in size and complexity. Widespread adoption of Building Information Modeling (BIM) and Large Language Models (LLMs) has created opportunities for automated code review (ACR) solutions. This study proposes a novel agent-driven framework that integrates BIM-based data extraction with automated verification using both retrieval-augmented generation (RAG) and Model Context Protocol (MCP) agent pipelines. The framework employs LLM-enabled agents to extract geometry, schedules, and system attributes from heterogeneous file types, which are then processed for building code checking via two complementary mechanisms: (i) direct API calls to DOE’s COMcheck engine, providing deterministic and audit-ready outputs, and (ii) RAG-based reasoning over rule provisions, allowing flexible interpretation where coverage is incomplete or ambiguous. The framework was evaluated through case demonstrations, including automated extraction of geometric attributes (e.g., surface area, tilt, and insulation values), parsing of operational schedules, and design validation for lighting allowances under ASHRAE Standard 90.1-2022. Comparative performance tests across multiple large language models showed that Generative Pre-trained Transformer 4 Omni (GPT-4o) achieved the best balance of efficiency and stability, while smaller models exhibited inconsistencies or failures. Results confirm that MCP agent pipelines perform better than RAG reasoning pipelines on rigor and flexibility in workflows. This work advances ACR research by demonstrating a scalable, interoperable, and production-ready approach that bridges BIM with authoritative code review tools. Keywords: automated code review, Building Information Modeling (BIM), Large Language Models (LLMs), Model Context Protocol (MCP), Retrieval-augmented generation (RAG), COMcheck",
+            "es": "Los funcionarios de edificación, en especial los de jurisdicciones rurales o con recursos limitados, tienen dificultades con las revisiones manuales de los documentos de diseño, que demandan mucha mano de obra, son propensas a errores y resultan costosas a medida que los proyectos crecen en tamaño y complejidad. La adopción generalizada del modelado de información de construcción (Building Information Modeling, BIM) y de los modelos de lenguaje de gran tamaño (Large Language Models, LLMs) ha creado oportunidades para soluciones de revisión automatizada de códigos (automated code review, ACR). Este estudio propone un novedoso marco de trabajo impulsado por agentes (agent-driven framework) que integra la extracción de datos basada en BIM con la verificación automatizada mediante canalizaciones de agentes que usan tanto generación aumentada por recuperación (retrieval-augmented generation, RAG) como el Protocolo de Contexto de Modelo (Model Context Protocol, MCP). El marco emplea agentes habilitados por LLM para extraer geometría, programaciones y atributos de sistemas a partir de tipos de archivo heterogéneos, que luego se procesan para la verificación del código de construcción mediante dos mecanismos complementarios: (i) llamadas directas a la API del motor COMcheck del DOE, que ofrecen resultados deterministas y listos para auditoría, y (ii) razonamiento basado en RAG sobre las disposiciones de las reglas, que permite una interpretación flexible cuando la cobertura es incompleta o ambigua. El marco se evaluó mediante demostraciones de casos, entre ellas la extracción automatizada de atributos geométricos (por ejemplo, área de superficie, inclinación y valores de aislamiento), el análisis de programaciones operativas y la validación del diseño en cuanto a las asignaciones de iluminación conforme a la norma ASHRAE Standard 90.1-2022. Las pruebas comparativas de desempeño entre varios modelos de lenguaje de gran tamaño mostraron que Generative Pre-trained Transformer 4 Omni (GPT-4o) logró el mejor equilibrio entre eficiencia y estabilidad, mientras que los modelos más pequeños presentaron inconsistencias o fallas. Los resultados confirman que las canalizaciones de agentes MCP se desempeñan mejor que las canalizaciones de razonamiento RAG en cuanto a rigor y flexibilidad en los flujos de trabajo. Este trabajo hace avanzar la investigación sobre ACR al demostrar un enfoque escalable, interoperable y listo para producción que vincula el BIM con herramientas de revisión de códigos de referencia. Palabras clave: revisión automatizada de códigos, modelado de información de construcción (BIM), modelos de lenguaje de gran tamaño (LLMs), Protocolo de Contexto de Modelo (MCP), generación aumentada por recuperación (RAG), COMcheck"
+          }
+        },
+        {
+          "id": "s0-h3",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "NOMENCLATURE",
+            "es": "NOMENCLATURA"
+          }
+        },
+        {
+          "id": "s0-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "ACR Automated Code Review AEC Architecture, Engineering, and Construction API Application Programming Interface ASHRAE American Society of Heating, Refrigerating and Air-Conditioning Engineers BIM Building Information Modeling CAD Computer-Aided Design DOE U.S. Department of Energy gbXML Green Building XML GPT Generative Pre-trained Transformer HVAC Heating, Ventilation, and Air Conditioning IECC International Energy Conservation Code IFC Industry Foundation Classes JSON-RPC JavaScript Object Notation – Remote Procedure Call LLM Large Language Model MCP Model Context Protocol NLP Natural Language Processing RAG Retrieval-Augmented Generation ReAct Reasoning and Actions",
+            "es": "ACR Revisión Automatizada de Códigos (Automated Code Review) AEC Arquitectura, Ingeniería y Construcción (Architecture, Engineering, and Construction) API Interfaz de Programación de Aplicaciones (Application Programming Interface) ASHRAE American Society of Heating, Refrigerating and Air-Conditioning Engineers BIM Modelado de Información de Construcción (Building Information Modeling) CAD Diseño Asistido por Computadora (Computer-Aided Design) DOE Departamento de Energía de EE. UU. (U.S. Department of Energy) gbXML Green Building XML GPT Transformador Generativo Preentrenado (Generative Pre-trained Transformer) HVAC Calefacción, Ventilación y Aire Acondicionado (Heating, Ventilation, and Air Conditioning) IECC International Energy Conservation Code IFC Industry Foundation Classes JSON-RPC Notación de Objetos de JavaScript – Llamada a Procedimiento Remoto (JavaScript Object Notation – Remote Procedure Call) LLM Modelo de Lenguaje de Gran Tamaño (Large Language Model) MCP Protocolo de Contexto de Modelo (Model Context Protocol) NLP Procesamiento del Lenguaje Natural (Natural Language Processing) RAG Generación Aumentada por Recuperación (Retrieval-Augmented Generation) ReAct Razonamiento y Acciones (Reasoning and Actions)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 INTRODUCTION",
+        "es": "1 INTRODUCCIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In order for American businesses, building owners, and tenants in commercial and multifamily buildings to realize the cost savings from building codes such as ANSI/ASHRAE/IES Standard 90.1 – Energy Standard for Buildings Except Low-Rise Residential Buildings (ASHRAE 90.1) and the International Energy Conservation Code (IECC), it is important to verify the installation of the building envelope, service water heating, lighting, Heating, Ventilation, and Air-Conditioning (HVAC) systems, as well as their interactions. Building officials and code reviewers struggle with labor-intensive, error-prone, and costly manual reviews of design documents, especially as Building Information Models (BIM) grow in size and complexity. To address these challenges, Automated Code Review (ACR) has emerged as a critical enabler for streamlining design verification, assisting automatic building code review, and accelerating approval processes.",
+            "es": "Para que las empresas, los propietarios de edificios y los inquilinos de edificios comerciales y multifamiliares de Estados Unidos logren los ahorros de costos derivados de códigos de construcción como ANSI/ASHRAE/IES Standard 90.1 – Energy Standard for Buildings Except Low-Rise Residential Buildings (ASHRAE 90.1) y el International Energy Conservation Code (IECC), es importante verificar la instalación de la envolvente del edificio, el calentamiento de agua de servicio, la iluminación y los sistemas de calefacción, ventilación y aire acondicionado (Heating, Ventilation, and Air-Conditioning, HVAC), así como sus interacciones. Los funcionarios de edificación y los revisores de códigos tienen dificultades con las revisiones manuales de los documentos de diseño, que demandan mucha mano de obra, son propensas a errores y resultan costosas, especialmente a medida que los modelos de información de construcción (Building Information Models, BIM) crecen en tamaño y complejidad. Para abordar estos desafíos, la revisión automatizada de códigos (Automated Code Review, ACR) ha surgido como un habilitador crítico para agilizar la verificación del diseño, apoyar la revisión automática de códigos de construcción y acelerar los procesos de aprobación."
+          }
+        },
+        {
+          "id": "s1-h1",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "1.1 Key Trends in Building Plan Verification",
+            "es": "1.1 Tendencias clave en la verificación de planos de construcción"
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "With the adoption of digital design tools such as BIM, building design verification workflow is ripe for digitization. Manual checking, traditionally prone to errors and inefficiencies, is now increasingly replaced by automated systems that simplify workflows and accelerate the review process. For example, Xue et al. highlighted the value of semi-automated methods by converting code tables into structured rules, particularly addressing overlooked regulatory requirements stored in spreadsheets [1]. Similarly, Wu & Zhang validated inferable concepts such as fire safety egresses using rule-based logic, achieving major reductions in the time required for code checks [2]. Computational techniques underpinning ACR continue to evolve, with approaches ranging from deterministic rule-based hardcoding to ontology-driven reasoning and, more recently, natural language processing (NLP) and large language models (LLMs).",
+            "es": "Con la adopción de herramientas de diseño digital como el BIM, el flujo de trabajo de verificación del diseño de edificios está listo para digitalizarse. La revisión manual, tradicionalmente propensa a errores e ineficiencias, es ahora reemplazada cada vez más por sistemas automatizados que simplifican los flujos de trabajo y aceleran el proceso de revisión. Por ejemplo, Xue et al. destacaron el valor de los métodos semiautomatizados al convertir tablas de códigos en reglas estructuradas, abordando en particular requisitos regulatorios pasados por alto que están almacenados en hojas de cálculo [1]. De manera similar, Wu & Zhang validaron conceptos inferibles, como las salidas de emergencia contra incendios, mediante lógica basada en reglas, logrando reducciones importantes en el tiempo requerido para las verificaciones de códigos [2]. Las técnicas computacionales que sustentan la ACR continúan evolucionando, con enfoques que van desde la codificación rígida basada en reglas (rule-based hardcoding) determinista hasta el razonamiento guiado por ontologías (ontology-driven reasoning) y, más recientemente, el procesamiento del lenguaje natural (natural language processing, NLP) y los modelos de lenguaje de gran tamaño (LLMs)."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "1.1.1 Rule-based hardcoding",
+            "es": "1.1.1 Codificación rígida basada en reglas"
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Rule-based hardcoding, which encodes regulatory provisions directly into scripts or decision rules, has been a foundational attribute of the early ACR process due to its deterministic nature and accuracy. For instance, Nawari utilized fuzzy logic alongside hardcoded frameworks optimized for the Industry Foundation Classes (IFC) schema, enabling qualitative reasoning and handling ambiguous rules [3]. Zheng et al. presented a hard-coded, LiDAR (Light Detection and Ranging)-driven methodology using segmentation and filtering techniques in MATLAB to automate millimeter-level geometric quality assessment of railings, cutting inspection time and labor while ensuring safety checks [4]. Reinhardt & Mathews similarly employed hardcoded scripting tools for design verification execution in BIM, combining deterministic algorithms with visual programming [5].",
+            "es": "La codificación rígida basada en reglas, que codifica las disposiciones regulatorias directamente en scripts o reglas de decisión, ha sido un atributo fundamental del proceso temprano de ACR debido a su naturaleza determinista y a su exactitud. Por ejemplo, Nawari utilizó lógica difusa (fuzzy logic) junto con marcos codificados de forma rígida optimizados para el esquema Industry Foundation Classes (IFC), lo que permitió el razonamiento cualitativo y el manejo de reglas ambiguas [3]. Zheng et al. presentaron una metodología codificada de forma rígida e impulsada por LiDAR (Light Detection and Ranging), que usa técnicas de segmentación y filtrado en MATLAB para automatizar la evaluación de la calidad geométrica de barandales a nivel milimétrico, reduciendo el tiempo y la mano de obra de inspección y garantizando al mismo tiempo las verificaciones de seguridad [4]. Reinhardt & Mathews emplearon de manera similar herramientas de scripts codificadas de forma rígida para ejecutar la verificación del diseño en BIM, combinando algoritmos deterministas con programación visual [5]."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "1.1.2 Ontology-based reasoning",
+            "es": "1.1.2 Razonamiento basado en ontologías"
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Ontology-based reasoning leverages structured knowledge representations to capture building concepts, relationships, and constraints, enabling automated design checking by aligning BIM data with regulatory requirements. Such systems are more scalable and flexible than rigid hardcoding approaches. Jiang et al. presented a multi-ontology model reconciling IFC-compatible BIM metadata with regulatory clauses [6], while Ma et al. demonstrated how SPARQL (SPARQL Protocol and RDF Query Language) and SWRL (Semantic Web Rule Language) inference frameworks improve consistency across projects [7]. Ontology-based systems also increasingly integrate knowledge graphs, as shown by Zhu et al., to dynamically validate certain conditions such as fire exits and egress paths [8].",
+            "es": "El razonamiento basado en ontologías aprovecha representaciones estructuradas del conocimiento para capturar conceptos, relaciones y restricciones de los edificios, lo que permite la verificación automatizada del diseño al alinear los datos BIM con los requisitos regulatorios. Estos sistemas son más escalables y flexibles que los enfoques de codificación rígida. Jiang et al. presentaron un modelo multiontología que concilia los metadatos BIM compatibles con IFC con las cláusulas regulatorias [6], mientras que Ma et al. demostraron cómo los marcos de inferencia SPARQL (SPARQL Protocol and RDF Query Language) y SWRL (Semantic Web Rule Language) mejoran la consistencia entre proyectos [7]. Los sistemas basados en ontologías también integran cada vez más grafos de conocimiento (knowledge graphs), como lo mostraron Zhu et al., para validar de forma dinámica ciertas condiciones, como las salidas de emergencia y las rutas de evacuación [8]."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "1.1.3 Natural Language Processing and Large Language Model",
+            "es": "1.1.3 Procesamiento del lenguaje natural y modelos de lenguaje de gran tamaño"
+          }
+        },
+        {
+          "id": "s1-p8",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "NLP, a subfield of artificial intelligence, enables machines to analyze, interpret, and generate human language [9]. Recent advances in LLMs, such as GPT-3 and GPT-4, have significantly expanded the capabilities of ACR systems by leveraging transformer architectures trained on massive corpora to interpret and translate regulatory language into actionable logic [10,11]. For instance, Madireddy et al. employed GPT-4, Claude, Gemini, and Llama to generate Python scripts for Revit-based checks, iteratively refining prompts and achieving measurable improvements in success rates [12]. Similarly, Chen et al. combined Bidirectional Encoder Representations from Transformers, GPT-4, and Convolutional Neural Network for Text models to enhance rule classification and extract patterns from complex regulatory documents [13].",
+            "es": "El NLP, un subcampo de la inteligencia artificial, permite que las máquinas analicen, interpreten y generen lenguaje humano [9]. Los avances recientes en los LLMs, como GPT-3 y GPT-4, han ampliado significativamente las capacidades de los sistemas de ACR al aprovechar arquitecturas de transformadores (transformer architectures) entrenadas con corpus masivos para interpretar y traducir el lenguaje regulatorio en lógica accionable [10,11]. Por ejemplo, Madireddy et al. emplearon GPT-4, Claude, Gemini y Llama para generar scripts de Python para verificaciones basadas en Revit, refinando iterativamente los prompts y logrando mejoras medibles en las tasas de éxito [12]. De manera similar, Chen et al. combinaron los modelos Bidirectional Encoder Representations from Transformers, GPT-4 y Convolutional Neural Network for Text para mejorar la clasificación de reglas y extraer patrones de documentos regulatorios complejos [13]."
+          }
+        },
+        {
+          "id": "s1-p9",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "1.1.4 Challenges",
+            "es": "1.1.4 Desafíos"
+          }
+        },
+        {
+          "id": "s1-p10",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Despite technological progress, current ACR systems still face challenges with incomplete or inconsistent BIM metadata, fragmented adoption of different code editions across jurisdictions with local amendments, and the lack of context for interpreting qualitative or performance-based rules. Peng & Liu noted limitations in IFC data that restrict semantic expansion for automated rules [14], while Bloch & Sacks highlighted the challenge of missing or implicit metadata in BIM models [15]. Handling complex regulatory provisions also remains a bottleneck. For instance, Doukari et al. emphasized that encoding performance-based rules often requires manual intervention [16], and Chen & Jiang pointed out the difficulty of applying NLP methods to semantically vague fire safety regulations [17]. Moreover, systemic resistance—such as limited BIM infrastructure among small firms and skepticism from Building Officials—further hinders widespread adoption [18]. These challenges highlight the need for next-generation ACR systems that can operate across fragmented data sources, adapt to evolving requirements, and seamlessly interface with existing industry tools. ACR solutions could move beyond static rule encodings to embrace flexible, intelligent frameworks capable of handling incomplete BIM data, heterogeneous document formats, and performance-based design file provisions.",
+            "es": "A pesar del progreso tecnológico, los sistemas actuales de ACR aún enfrentan desafíos por los metadatos BIM incompletos o inconsistentes, la adopción fragmentada de diferentes ediciones de los códigos entre jurisdicciones con enmiendas locales, y la falta de contexto para interpretar reglas cualitativas o basadas en desempeño. Peng & Liu señalaron limitaciones en los datos IFC que restringen la expansión semántica para las reglas automatizadas [14], mientras que Bloch & Sacks destacaron el desafío de los metadatos faltantes o implícitos en los modelos BIM [15]. El manejo de disposiciones regulatorias complejas también sigue siendo un cuello de botella. Por ejemplo, Doukari et al. enfatizaron que la codificación de reglas basadas en desempeño suele requerir intervención manual [16], y Chen & Jiang señalaron la dificultad de aplicar métodos de NLP a reglamentos de seguridad contra incendios semánticamente vagos [17]. Además, la resistencia sistémica —como la infraestructura BIM limitada entre las empresas pequeñas y el escepticismo de los funcionarios de edificación— obstaculiza aún más la adopción generalizada [18]. Estos desafíos ponen de relieve la necesidad de sistemas de ACR de próxima generación que puedan operar con fuentes de datos fragmentadas, adaptarse a requisitos en evolución e interactuar sin fricciones con las herramientas existentes de la industria. Las soluciones de ACR podrían ir más allá de las codificaciones estáticas de reglas para adoptar marcos flexibles e inteligentes capaces de manejar datos BIM incompletos, formatos de documentos heterogéneos y disposiciones de archivos de diseño basadas en desempeño."
+          }
+        },
+        {
+          "id": "s1-h2",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "1.2 COMcheck",
+            "es": "1.2 COMcheck"
+          }
+        },
+        {
+          "id": "s1-p11",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "COMcheck [19] is an automatic document-review software tool developed by the U.S. Department of Energy to assist architects, engineers, and building professionals in verifying that commercial and high-rise residential projects meet certain standards, such as the IECC and ASHRAE Standard 90.1, as well as various state-specific codes. Originally delivered as a desktop application, COMcheck has since evolved into a web-based system, COMcheck-Web, which eliminates the need for local installation and provides enhanced usability, performance, and support for newer code versions (e.g., IECC 2024, ASHRAE 90.1-2022). More recently, the COMcheck Application Programming Interface (API) was introduced. Built on modern serverless cloud infrastructure, the API enables dynamic scalability and seamless integration across verification workflows. It also makes it possible to embed verification functionality directly into web applications, facilitating data entry, automated reporting, and incorporation into broader building-design workflows. Although other check tools exist, such as California Building Energy Code Compliance – Commercial [20], this paper focuses on COMcheck because its recently released API uniquely supports the type of LLM-based agent call explored in this work. COMcheck therefore serves as a representative example of how certain software can evolve to support more automated, API-driven checking approaches.",
+            "es": "COMcheck [19] es una herramienta de software de revisión automática de documentos desarrollada por el Departamento de Energía de EE. UU. para ayudar a arquitectos, ingenieros y profesionales de la construcción a verificar que los proyectos comerciales y residenciales de gran altura cumplan con ciertas normas, como el IECC y la norma ASHRAE Standard 90.1, así como con diversos códigos específicos de cada estado. Originalmente distribuido como una aplicación de escritorio, COMcheck evolucionó después hacia un sistema basado en la web, COMcheck-Web, que elimina la necesidad de una instalación local y ofrece mejor usabilidad, mayor desempeño y compatibilidad con versiones más recientes de los códigos (por ejemplo, IECC 2024, ASHRAE 90.1-2022). Más recientemente se introdujo la interfaz de programación de aplicaciones (Application Programming Interface, API) de COMcheck. Construida sobre una infraestructura moderna de nube sin servidor (serverless), la API permite una escalabilidad dinámica y una integración fluida en los flujos de trabajo de verificación. También hace posible incorporar la funcionalidad de verificación directamente en aplicaciones web, lo que facilita la captura de datos, la generación automatizada de reportes y la incorporación a flujos de trabajo de diseño de edificios más amplios. Aunque existen otras herramientas de verificación, como California Building Energy Code Compliance – Commercial [20], este artículo se centra en COMcheck porque su API, lanzada recientemente, admite de manera única el tipo de llamada de agente basada en LLM que se explora en este trabajo. Por lo tanto, COMcheck sirve como ejemplo representativo de cómo cierto software puede evolucionar para respaldar enfoques de verificación más automatizados y basados en API."
+          }
+        },
+        {
+          "id": "s1-h3",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "1.3 AI Agents and the Model Context Protocol",
+            "es": "1.3 Agentes de IA y el Protocolo de Contexto de Modelo"
+          }
+        },
+        {
+          "id": "s1-p12",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "LLMs are powerful systems trained on vast text corpora, capable of few-shot learning (making accurate predictions after seeing only a few examples) and complex instruction following, especially when finetuned with methods such as reinforcement learning from human feedback. Building on LLM capabilities, AI agents are autonomous systems that decompose high-level tasks into sequences of reasoning and tool interactions. A prominent agentic framework is ReAct (Reason + Act) [21], which interleaves natural language reasoning with executable actions—enabling LLMs to iteratively plan, act on external APIs or environments, observe results, and update their internal reasoning. This synergy between “thought” and “action” has been empirically shown to improve interpretability, reduce hallucination, and enhance performance on tasks like question answering and interactive decision-making. The Model Context Protocol (MCP) [22] provides an open, standardized mechanism built on JSON RPC 2.0 for seamless interoperability between LLM based agents and external tools or data sources. MCP abstracts integration complexities by allowing agents (as clients) to discover and invoke functionality from MCP servers (for example, databases, APIs, file systems) in a secure, modular fashion, addressing the “N×M” integration challenge with a unified interface akin to a universal connector for AI tooling. Since its release, MCP has gained traction, with notable adoption by OpenAI, Google DeepMind, and enterprise agents, laying the groundwork for scalable, interoperable, tool aware LLM systems. This paper advances the field by proposing a novel integration of BIM with AI-driven agents for compliance automation. Specifically, the framework leverages existing BIM parsing tools such as lxml [23] to automatically extract structured building data from gbXML [24] format file, which is then processed through agent-based orchestration. The agents are capable of invoking external compliance tools such as the COMcheck API to perform regulation-specific validation without manual intervention. Unlike retrievalbased approaches, which may introduce ambiguity or errors in interpreting code clauses, this agent-driven pipeline ensures accuracy, scalability, and labor savings by directly interfacing with authoritative compliance engines. The contributions of this work lie in demonstrating (1) a tightly integrated workflow linking BIM data to automated compliance checks, (2) the application of multi-agent AI systems to coordinate BIM parsing, rule interpretation, and tool invocation, and (3) an evaluation of efficiency and accuracy improvements compared to traditional manual or RAG-based methods. Together, these innovations highlight a path toward practical, production-ready ACR that bridge BIM environments and verification platforms.",
+            "es": "Los LLMs son sistemas potentes entrenados con vastos corpus de texto, capaces de aprendizaje con pocos ejemplos (few-shot learning; hacer predicciones precisas tras ver solo unos pocos ejemplos) y de seguir instrucciones complejas, en especial cuando se afinan con métodos como el aprendizaje por refuerzo a partir de retroalimentación humana (reinforcement learning from human feedback). A partir de las capacidades de los LLMs, los agentes de IA (AI agents) son sistemas autónomos que descomponen tareas de alto nivel en secuencias de razonamiento e interacciones con herramientas. Un marco agéntico destacado es ReAct (Reason + Act) [21], que intercala el razonamiento en lenguaje natural con acciones ejecutables, lo que permite que los LLMs planifiquen de forma iterativa, actúen sobre APIs o entornos externos, observen los resultados y actualicen su razonamiento interno. Se ha demostrado empíricamente que esta sinergia entre “pensamiento” y “acción” mejora la interpretabilidad, reduce las alucinaciones (hallucination) y aumenta el desempeño en tareas como la respuesta a preguntas y la toma de decisiones interactiva. El Protocolo de Contexto de Modelo (Model Context Protocol, MCP) [22] proporciona un mecanismo abierto y estandarizado, construido sobre JSON RPC 2.0, para la interoperabilidad fluida entre agentes basados en LLM y herramientas o fuentes de datos externas. El MCP abstrae las complejidades de la integración al permitir que los agentes (como clientes) descubran e invoquen la funcionalidad de servidores MCP (por ejemplo, bases de datos, APIs, sistemas de archivos) de manera segura y modular, abordando el desafío de integración “N×M” con una interfaz unificada parecida a un conector universal para herramientas de IA. Desde su lanzamiento, el MCP ha ganado terreno, con una adopción notable por parte de OpenAI, Google DeepMind y agentes empresariales, sentando las bases de sistemas LLM escalables, interoperables y conscientes de las herramientas. Este artículo hace avanzar el campo al proponer una novedosa integración del BIM con agentes impulsados por IA para la automatización del cumplimiento normativo. En concreto, el marco aprovecha herramientas existentes de análisis de BIM, como lxml [23], para extraer automáticamente datos estructurados del edificio a partir de archivos en formato gbXML [24], los cuales se procesan luego mediante la orquestación basada en agentes. Los agentes son capaces de invocar herramientas externas de cumplimiento, como la API de COMcheck, para realizar validaciones específicas de cada reglamento sin intervención manual. A diferencia de los enfoques basados en recuperación, que pueden introducir ambigüedad o errores al interpretar las cláusulas del código, esta canalización impulsada por agentes garantiza exactitud, escalabilidad y ahorro de mano de obra al interactuar directamente con motores de cumplimiento de referencia. Las contribuciones de este trabajo consisten en demostrar (1) un flujo de trabajo estrechamente integrado que vincula los datos BIM con verificaciones automatizadas de cumplimiento, (2) la aplicación de sistemas de IA multiagente para coordinar el análisis de BIM, la interpretación de reglas y la invocación de herramientas, y (3) una evaluación de las mejoras en eficiencia y exactitud en comparación con los métodos manuales tradicionales o basados en RAG. En conjunto, estas innovaciones señalan un camino hacia una ACR práctica y lista para producción que vincule los entornos BIM con las plataformas de verificación."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 METHODOLOGIES",
+        "es": "2 METODOLOGÍAS"
+      },
+      "blocks": [
+        {
+          "id": "s2-h1",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "2.1 Workflow",
+            "es": "2.1 Flujo de trabajo"
+          }
+        },
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The proposed methodology for automated compliance checking follows a modular workflow consisting of two primary stages: data extraction and compliance checking, as shown in Figure 1. At the outset, the system ingests architectural design plans, typically available in BIM, Computer-Aided Design (CAD), and Portable Document Format (PDF) formats. A data extraction pipeline processes these heterogeneous sources to derive essential building information, such as room dimensions, wall properties, surface tilt, occupancy schedules, lighting schedules, and HVAC system types. These extracted data are consolidated into a unified representation describing building types, geometry, operating schedules, and mechanical system characteristics. In the subsequent stage, a compliance checking module evaluates the extracted information against relevant building documentations. This is achieved through two complementary mechanisms: (i) automated queries to existing compliance check tools (e.g., COMcheck API) and (ii) LLM-based reasoning with embedded document provisions. The workflow is designed to support interoperability, minimize manual data entry, and enable scalable evaluation across diverse design iterations.",
+            "es": "La metodología propuesta para la verificación automatizada del cumplimiento sigue un flujo de trabajo modular compuesto por dos etapas principales: la extracción de datos y la verificación del cumplimiento, como se muestra en la Figura 1. Al inicio, el sistema ingiere planos de diseño arquitectónico, normalmente disponibles en formatos BIM, de diseño asistido por computadora (Computer-Aided Design, CAD) y de formato de documento portátil (Portable Document Format, PDF). Una canalización de extracción de datos procesa estas fuentes heterogéneas para obtener información esencial del edificio, como dimensiones de los espacios, propiedades de los muros, inclinación de las superficies, programaciones de ocupación, programaciones de iluminación y tipos de sistemas HVAC. Estos datos extraídos se consolidan en una representación unificada que describe los tipos de edificio, la geometría, las programaciones operativas y las características de los sistemas mecánicos. En la etapa posterior, un módulo de verificación del cumplimiento evalúa la información extraída frente a la documentación de edificación pertinente. Esto se logra mediante dos mecanismos complementarios: (i) consultas automatizadas a herramientas existentes de verificación del cumplimiento (por ejemplo, la API de COMcheck) y (ii) razonamiento basado en LLM con disposiciones de documentos incorporadas. El flujo de trabajo está diseñado para favorecer la interoperabilidad, minimizar la captura manual de datos y permitir una evaluación escalable de diversas iteraciones del diseño."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1 Workflow of the ACR from BIM and Architecture Design File",
+            "es": "Figura 1: Flujo de trabajo de la ACR a partir del BIM y del archivo de diseño arquitectónico"
+          }
+        },
+        {
+          "id": "s2-h2",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "2.2 Data extraction",
+            "es": "2.2 Extracción de datos"
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The data extraction stage is responsible for transforming unstructured or semi-structured design documents into machine readable attributes required for compliance evaluation. BIM files provide granular geometric and spatial details, including room sizes, surface orientations, and wall configurations. These geometric data are supplemented with operational and system-level information such as occupancy schedules and HVAC system types, commonly available in PDF based design specifications. When CAD files are present, they act as an intermediary, ensuring alignment between BIM geometry and PDF based metadata. By integrating these heterogeneous sources, the methodology generates a consistent dataset that captures both physical and operational attributes of the building. This integrated dataset forms the basis for reliable compliance evaluation and ensures that both geometric fidelity and operational context are preserved.",
+            "es": "La etapa de extracción de datos se encarga de transformar documentos de diseño no estructurados o semiestructurados en los atributos legibles por máquina que se requieren para la evaluación del cumplimiento. Los archivos BIM proporcionan detalles geométricos y espaciales granulares, incluidos los tamaños de los espacios, las orientaciones de las superficies y las configuraciones de los muros. Estos datos geométricos se complementan con información operativa y a nivel de sistema, como las programaciones de ocupación y los tipos de sistemas HVAC, comúnmente disponibles en las especificaciones de diseño en formato PDF. Cuando hay archivos CAD, estos actúan como intermediarios y aseguran la alineación entre la geometría BIM y los metadatos basados en PDF. Al integrar estas fuentes heterogéneas, la metodología genera un conjunto de datos coherente que captura tanto los atributos físicos como los operativos del edificio. Este conjunto de datos integrado constituye la base de una evaluación confiable del cumplimiento y garantiza que se conserven tanto la fidelidad geométrica como el contexto operativo."
+          }
+        },
+        {
+          "id": "s2-h3",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "2.3 Compliance checking",
+            "es": "2.3 Verificación del cumplimiento"
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Once the necessary building attributes are compiled, the methodology advances to the compliance checking stage. Two complementary approaches are adopted. First, structured data are formatted into standardized inputs for the COMcheck API, a compliance tool developed by the U.S. Department of Energy (DOE) to verify adherence to ASHRAE Standard 90.1 and the IECC. The API returns machinereadable reports indicating pass/fail outcomes and highlighting specific deficiencies in envelope, lighting, or HVAC systems. Second, a retrieval-augmented generation (RAG) pipeline integrates LLM-based reasoning with codified text. The LLM retrieves relevant provisions from ASHRAE or IECC standard files and interprets building data in this context to determine compliance status. This dual approach allows for both formal verification via established compliance tools and flexible reasoning for cases where automated tools may not provide sufficient coverage. Together, these mechanisms deliver a comprehensive compliance evaluation, producing structured reports that can guide design revisions and support iterative decision-making.",
+            "es": "Una vez compilados los atributos necesarios del edificio, la metodología avanza a la etapa de verificación del cumplimiento. Se adoptan dos enfoques complementarios. Primero, los datos estructurados se formatean en entradas estandarizadas para la API de COMcheck, una herramienta de cumplimiento desarrollada por el Departamento de Energía de EE. UU. (DOE) para verificar el apego a la norma ASHRAE Standard 90.1 y al IECC. La API devuelve reportes legibles por máquina que indican los resultados de aprobación o falla y destacan deficiencias específicas en la envolvente, la iluminación o los sistemas HVAC. Segundo, una canalización de generación aumentada por recuperación (RAG) integra el razonamiento basado en LLM con texto codificado. El LLM recupera las disposiciones pertinentes de los archivos de las normas ASHRAE o IECC e interpreta los datos del edificio en ese contexto para determinar el estado de cumplimiento. Este enfoque dual permite tanto la verificación formal mediante herramientas de cumplimiento establecidas como el razonamiento flexible en los casos en que las herramientas automatizadas no ofrezcan una cobertura suficiente. En conjunto, estos mecanismos entregan una evaluación integral del cumplimiento y producen reportes estructurados que pueden orientar las revisiones del diseño y respaldar la toma de decisiones iterativa."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 RESULTS",
+        "es": "3 RESULTADOS"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "3.1 Data Extraction 3.1.1 BIM File Extraction",
+            "es": "3.1 Extracción de datos (Data Extraction) 3.1.1 Extracción de archivos BIM"
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The first demonstration of the proposed methodology focused on geometry data extraction from BIM files in gbXML format. Figure 2 illustrates the interactive pipeline in which user queries are translated into geometry attributes through an LLM agent. When a query such as “What is the size of the surface?” is posed, the agent interprets the request, generates the appropriate tool call (e.g., get_surface_area), and retrieves results directly from the gbXML data. For example, querying the ceiling surface ceiling_unit1_Reversed yielded a calculated area of 110.41 m², while complementary tool calls extracted additional parameters such as surface tilt and thermal resistance (R-value). The agentic workflow ensures that each query is automatically mapped to structured tool calls, thereby eliminating manual inspection of gbXML schemas and accelerating the retrieval of building attributes. Results are returned in a human-readable format through the LLM interface, while also being retained in structured JSON for downstream compliance checking. This demonstration confirms that the framework can accurately extract critical geometric properties— surface area, tilt, and insulation levels—from BIM files. The ability to query geometry at this granularity enables precise alignment of design data with code compliance requirements.",
+            "es": "La primera demostración de la metodología propuesta se centró en la extracción de datos de geometría a partir de archivos BIM en formato gbXML. La Figura 2 ilustra el canal de procesamiento (pipeline) interactivo en el que las consultas del usuario se traducen en atributos de geometría mediante un agente LLM (LLM agent). Cuando se plantea una consulta como “What is the size of the surface?”, el agente interpreta la solicitud, genera la llamada a herramienta (tool call) adecuada (por ejemplo, get_surface_area) y obtiene los resultados directamente de los datos gbXML. Por ejemplo, al consultar la superficie del techo ceiling_unit1_Reversed se obtuvo un área calculada de 110.41 m², mientras que llamadas a herramientas complementarias extrajeron parámetros adicionales como la inclinación de la superficie y la resistencia térmica (valor R). El flujo de trabajo agéntico (agentic workflow) garantiza que cada consulta se asigne automáticamente a llamadas a herramientas estructuradas, con lo que se elimina la inspección manual de los esquemas gbXML y se acelera la obtención de los atributos del edificio. Los resultados se devuelven en un formato legible para las personas a través de la interfaz del LLM, y además se conservan en JSON estructurado para la verificación de cumplimiento posterior. Esta demostración confirma que el marco puede extraer con precisión propiedades geométricas críticas (área de superficie, inclinación y niveles de aislamiento) a partir de archivos BIM. La capacidad de consultar la geometría con este nivel de detalle permite alinear con precisión los datos de diseño con los requisitos de cumplimiento normativo."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2 Demonstration of BIM geometry data extraction",
+            "es": "Figura 2: Demostración de la extracción de datos de geometría de BIM"
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "3.1.2 Design File Extraction",
+            "es": "3.1.2 Extracción de archivos de diseño"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Beyond geometric properties, many essential parameters for compliance checking reside in architectural design documents not directly available in BIM. The methodology was further applied to extract operational and system-level data including lighting power densities, occupancy and operating schedules, and HVAC system types. The extraction pipeline integrates document parsing with LLM-based reasoning to identify relevant attributes within semi-structured or unstructured text. For instance, lighting schedules embedded in design specifications were successfully parsed into structured tabular formats representing weekday and weekend operating hours. Similarly, HVAC system descriptions were mapped to categorical variables (e.g., cooling type, heating fuel, ventilation strategy) consistent with compliance tool requirements. A case study was performed to demonstrate robustness against formatting issues as shown in Figure 3. Here, design files were converted into figures, and optical character recognition (OCR) was applied to extract text reliably, overcoming font inconsistencies and layout problems that would otherwise block correct information retrieval. The results indicate that this approach can transform diverse architectural files into standardized, machine-readable inputs. When combined with the geometry extraction, these outputs provide a complete representation of building attributes necessary for automated compliance evaluation.",
+            "es": "Además de las propiedades geométricas, muchos parámetros esenciales para la verificación de cumplimiento se encuentran en documentos de diseño arquitectónico que no están disponibles directamente en BIM. La metodología se aplicó también para extraer datos operativos y a nivel de sistema, incluidas las densidades de potencia de iluminación, los horarios de ocupación y de operación, y los tipos de sistema de HVAC. El canal de extracción integra el análisis de documentos con un razonamiento basado en LLM para identificar atributos relevantes dentro de texto semiestructurado o no estructurado. Por ejemplo, los horarios de iluminación incluidos en las especificaciones de diseño se analizaron con éxito y se convirtieron en formatos tabulares estructurados que representan las horas de operación entre semana y en fin de semana. De manera similar, las descripciones de los sistemas de HVAC se asignaron a variables categóricas (por ejemplo, tipo de enfriamiento, combustible de calefacción, estrategia de ventilación) consistentes con los requisitos de la herramienta de cumplimiento. Se realizó un estudio de caso para demostrar la robustez frente a problemas de formato, como se muestra en la Figura 3. En él, los archivos de diseño se convirtieron en figuras y se aplicó el reconocimiento óptico de caracteres (optical character recognition, OCR) para extraer el texto de forma confiable, superando las inconsistencias de fuentes y los problemas de diseño de página que de otro modo impedirían la correcta recuperación de la información. Los resultados indican que este enfoque puede transformar diversos archivos arquitectónicos en entradas estandarizadas y legibles por máquina. Combinados con la extracción de geometría, estos resultados proporcionan una representación completa de los atributos del edificio necesarios para la evaluación automatizada del cumplimiento."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3 Example of lighting schedule extraction from design files",
+            "es": "Figura 3: Ejemplo de extracción de un horario de iluminación a partir de archivos de diseño"
+          }
+        },
+        {
+          "id": "s3-h1",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "3.2 Compliance Check",
+            "es": "3.2 Verificación de cumplimiento"
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The final stage of the methodology demonstrates how extracted building attributes can be integrated with compliance engines for automated verification. Two complementary approaches are considered: 1) RAG-based QA, where knowledge from a specific code file is retrieved to answer user queries directly through an LLM and 2) COMcheck-integrated agents, which invoke existing hard rule–based tools through API calls, while leveraging LLM reasoning for query interpretation.",
+            "es": "La etapa final de la metodología demuestra cómo los atributos extraídos del edificio pueden integrarse con motores de cumplimiento para una verificación automatizada. Se consideran dos enfoques complementarios: 1) preguntas y respuestas (QA) basadas en generación aumentada por recuperación (retrieval-augmented generation, RAG), donde se recupera el conocimiento de un archivo de código específico para responder directamente a las consultas del usuario mediante un LLM, y 2) agentes integrados con COMcheck, que invocan herramientas existentes basadas en reglas rígidas (hard rules) mediante llamadas a API, mientras aprovechan el razonamiento del LLM para interpretar las consultas."
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "3.2.1 RAG-based QA",
+            "es": "3.2.1 QA basado en RAG"
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "In this approach, code documents are indexed using RAG. When a user submits a compliance-related query, the system retrieves the most relevant passages from the code and prompts the LLM to generate an answer grounded in the retrieved text. The process is very similar to what has been reported in section 3.1.2 to extract information from a design file. This work was reported in [25].",
+            "es": "En este enfoque, los documentos del código se indexan mediante RAG. Cuando un usuario envía una consulta relacionada con el cumplimiento, el sistema recupera los pasajes más relevantes del código y solicita al LLM que genere una respuesta fundamentada en el texto recuperado. El proceso es muy similar al que se describe en la sección 3.1.2 para extraer información de un archivo de diseño. Este trabajo se reportó en [25]."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4 An example of RAG-based compliance checking [25]",
+            "es": "Figura 4: Ejemplo de verificación de cumplimiento basada en RAG [25]"
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "3.2.2 COMcheck-Integrated Agent",
+            "es": "3.2.2 Agente integrado con COMcheck"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Figure 5 illustrates an end-to-end example where a user query, “What is the lighting power allowance for a 500-square-meter bank according to ASHRAE Standard 90.1-2022?”, is processed through the compliance agent. The workflow begins with the agent parsing the query into standardized inputs—identifying the floor area, building type (bank), and applicable code version (ASHRAE 90.1-2022). These inputs are translated into API calls referencing the COMcheck tool library. During execution, the agent employs chain-of-thought reasoning to resolve ambiguities, such as unit conversions‡ (e.g., square meters to square feet) and validation of code versions. This iterative reasoning ensures compatibility between user inputs and COMcheck API specifications. The API returns a structured result, which the agent interprets and reformats into a final output. In this example, the lighting power allowance was successfully calculated as 3,019 W, consistent with the requirements of ASHRAE 90.1-2022 for the specified building type and size. The result was",
+            "es": "La Figura 5 ilustra un ejemplo de extremo a extremo en el que una consulta del usuario, “What is the lighting power allowance for a 500-square-meter bank according to ASHRAE Standard 90.1-2022?”, es procesada por el agente de cumplimiento. El flujo de trabajo comienza con el agente analizando la consulta para convertirla en entradas estandarizadas: identifica el área de piso, el tipo de edificio (banco) y la versión del código aplicable (ASHRAE 90.1-2022). Estas entradas se traducen en llamadas a API que hacen referencia a la biblioteca de herramientas de COMcheck. Durante la ejecución, el agente emplea un razonamiento de cadena de pensamiento (chain-of-thought) para resolver ambigüedades, como las conversiones de unidades‡ (por ejemplo, de metros cuadrados a pies cuadrados) y la validación de las versiones del código. Este razonamiento iterativo asegura la compatibilidad entre las entradas del usuario y las especificaciones de la API de COMcheck. La API devuelve un resultado estructurado, que el agente interpreta y reformatea en una salida final. En este ejemplo, la asignación de potencia de iluminación se calculó con éxito en 3,019 W, de acuerdo con los requisitos de ASHRAE 90.1-2022 para el tipo y tamaño de edificio especificados. El resultado fue"
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "‡ The requirements in the IP and SI versions of Standard 90.1 are not always exact translations. For instance, 25,000 ft² in the IP edition corresponds to 2,300 m² in the SI edition. The AI currently performs only direct unit conversions, which can introduce slight discrepancies. Addressing this nuance is a potential area for future study. simultaneously presented in a user-friendly natural language format and stored as machine-readable JSON, enabling both interpretability and downstream integration. This demonstration confirms that the combined use of the COMcheck API and LLM-based reasoning can automate the traditionally manual process of compliance verification. By bridging between unstructured user queries and standardized compliance engines, the system supports accurate, transparent, and repeatable assessments of building code adherence.",
+            "es": "‡ Los requisitos de las versiones IP y SI de la Norma 90.1 no siempre son traducciones exactas. Por ejemplo, 25,000 ft² en la edición IP corresponden a 2,300 m² en la edición SI. Actualmente, la IA solo realiza conversiones directas de unidades, lo que puede introducir ligeras discrepancias. Abordar este matiz es un posible tema para estudios futuros. presentado simultáneamente en un formato de lenguaje natural amigable para el usuario y almacenado como JSON legible por máquina, lo que permite tanto la interpretabilidad como la integración posterior. Esta demostración confirma que el uso combinado de la API de COMcheck y el razonamiento basado en LLM puede automatizar el proceso, tradicionalmente manual, de verificación de cumplimiento. Al tender un puente entre las consultas no estructuradas del usuario y los motores de cumplimiento estandarizados, el sistema permite evaluaciones precisas, transparentes y repetibles del apego al código de construcción."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5 Demonstration of compliance check based on COMcheck",
+            "es": "Figura 5: Demostración de la verificación de cumplimiento basada en COMcheck"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 DISCUSSION",
+        "es": "4 DISCUSIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s4-h1",
+          "type": "heading",
+          "page": 11,
+          "text": {
+            "en": "4.1 Model performance",
+            "es": "4.1 Desempeño de los modelos"
+          }
+        },
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Figure 6 presents the response time and token consumption of different large language models across two representative prompts as shown in Appendix 1. Clear performance differences emerge among the models. GPT-4o exhibited the fastest average response time and the lowest variance, reflecting both efficiency and stability. In contrast, o4-mini showed the slowest average response and the widest variability, indicating inconsistency under comparable workloads. The Claude models achieved intermediate response times with relatively narrow spreads, demonstrating stable behavior across runs. The o3-mini model failed to generate valid outputs for the tested prompts and was therefore excluded from the comparison.",
+            "es": "La Figura 6 presenta el tiempo de respuesta (response time) y el consumo de tokens (token consumption) de distintos modelos de lenguaje grandes (large language models) para dos indicaciones (prompts) representativas, según se muestra en el Apéndice 1. Surgen diferencias claras de desempeño entre los modelos. GPT-4o presentó el tiempo de respuesta promedio más rápido y la varianza más baja, lo que refleja tanto eficiencia como estabilidad. En contraste, o4-mini mostró la respuesta promedio más lenta y la mayor variabilidad, lo que indica inconsistencia bajo cargas de trabajo comparables. Los modelos Claude lograron tiempos de respuesta intermedios con dispersiones relativamente estrechas, lo que demuestra un comportamiento estable entre ejecuciones. El modelo o3-mini no logró generar salidas válidas para las indicaciones probadas y, por lo tanto, se excluyó de la comparación."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Token usage followed a similar pattern. GPT-4o consumed fewer tokens on average compared to o4-mini, which displayed wide variability with some runs exceeding 1,000 tokens. The Claude models again showed moderate and stable token usage across both prompts, aligning with their consistent response times. Overall, GPT-4o achieved the best balance of speed and token efficiency, delivering valid responses quickly while consuming fewer tokens than most other models. The Claude models provided reliable and consistent performance, while o4-mini exhibited unstable behavior. Temperature settings further influenced GPT-4o’s token usage, as shown in Figure 6 (b). At lower temperatures (≤0.7), token counts for both prompts remained compact and stable, indicating controlled and efficient generation. At higher temperatures (≥0.9), token usage increased substantially, with maximum values spiking above 1,000 tokens. This reflects a trade-off: higher temperatures encouraged more verbose and variable outputs, while lower temperatures yielded more concise and predictable responses.",
+            "es": "El uso de tokens siguió un patrón similar. GPT-4o consumió en promedio menos tokens que o4-mini, que mostró una amplia variabilidad, con algunas ejecuciones que superaron los 1,000 tokens. Los modelos Claude mostraron nuevamente un uso de tokens moderado y estable en ambas indicaciones, en línea con sus tiempos de respuesta consistentes. En general, GPT-4o logró el mejor equilibrio entre velocidad y eficiencia en el uso de tokens, entregando respuestas válidas con rapidez y consumiendo menos tokens que la mayoría de los demás modelos. Los modelos Claude ofrecieron un desempeño confiable y consistente, mientras que o4-mini exhibió un comportamiento inestable. Los ajustes de temperatura (temperature) influyeron además en el uso de tokens de GPT-4o, como se muestra en la Figura 6 (b). A temperaturas bajas (≤0.7), el conteo de tokens de ambas indicaciones se mantuvo compacto y estable, lo que indica una generación controlada y eficiente. A temperaturas altas (≥0.9), el uso de tokens aumentó de forma sustancial, con valores máximos que se dispararon por encima de 1,000 tokens. Esto refleja una disyuntiva: las temperaturas más altas propiciaron salidas más extensas y variables, mientras que las temperaturas más bajas produjeron respuestas más concisas y predecibles."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6 Different Model Performance on RAG based Check (a) model parameters (b) temperature setting impact on model performance (c) model benchmark",
+            "es": "Figura 6: Desempeño de distintos modelos en la verificación basada en RAG (a) parámetros del modelo (b) impacto del ajuste de temperatura en el desempeño del modelo (c) evaluación comparativa de modelos (benchmark)"
+          }
+        },
+        {
+          "id": "s4-h2",
+          "type": "heading",
+          "page": 12,
+          "text": {
+            "en": "4.2 Pipeline comparisons",
+            "es": "4.2 Comparación de canales de procesamiento"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "The compliance checking methodology explored in this study was implemented through two complementary pipelines: a Retrieval-Augmented Generation (RAG) approach and an MCP agentic pipeline interfacing with the COMcheck API (Error! Reference source not found.). Both aim to automate the traditionally manual process of code verification, yet they differ in reliability, flexibility, and determinism. The RAG pipeline draws on a database of code texts such as ASHRAE Standard 90.1 and IECC provisions. When queried, the system retrieves potentially relevant clauses and synthesizes a response via a large language model. This setup offers interpretability by providing both natural language explanations and code excerpts, and adaptability since new documents can be ingested without structural changes to the workflow. However, the results shown in Figure 7 highlight a key limitation: variability. For the same prompt about lighting power allowance, different LLMs returned inconsistent answers (for example, 5500 W, 7585 W, 5400 W, 3019 W), depending on which table (Table 9.5.1 versus Appendix G3.8) the model associated with the query. Interestingly, larger models such as GPT 4 and GPT 5 often defaulted to Appendix G values rather than design case values, likely because more open-source data and online examples emphasize performance rating cases rather than prescriptive design allowances. Moreover, when web search was enabled, GPT 4 and GPT 5 occasionally produced the correct zero-shot answers, perhaps due to “knowledge leakage” where portions of the standard became exposed in public datasets during training, but this success was inconsistent. These findings underscore that while RAG and zeroshot pipelines can sometimes provide accurate results, they are not yet dependable for regulatory implementation. By contrast, the MCP agent pipeline connects directly with the DOE COMcheck API. Here, building attributes are structured into standardized inputs, and the API evaluates them deterministically against codified rules. This method yields machine-readable, audit-ready outputs that align with review procedures. In the example task, the agent consistently produced the correct 3019 W allowance, avoiding the variability seen with RAG or LLM-only approaches. However, this determinism comes with a narrower scope: the pipeline can only check what COMcheck has encoded, limiting flexibility for unmodeled or qualitative rules. Taken together, these results illustrate a fundamental trade-off. The RAG pipeline offers breadth, interpretability, and adaptability, useful for early-stage “what-if” analysis or when human designers need contextual reasoning. The agentic pipeline, by contrast, guarantees rigor and reproducibility, making it suitable for certification, documentation, and enforcement. A hybrid workflow, in which RAG provides interpretive reasoning and agentic pipelines deliver formal validation, may therefore be the most effective strategy for scalable, transparent, and trustworthy implementation automation.",
+            "es": "La metodología de verificación de cumplimiento explorada en este estudio se implementó mediante dos canales de procesamiento complementarios: un enfoque de generación aumentada por recuperación (RAG) y un canal agéntico MCP que se conecta con la API de COMcheck (Error! Reference source not found.). Ambos buscan automatizar el proceso, tradicionalmente manual, de verificación del código, pero difieren en confiabilidad, flexibilidad y determinismo. El canal RAG se apoya en una base de datos de textos normativos como la Norma ASHRAE 90.1 y las disposiciones del IECC. Cuando se le consulta, el sistema recupera las cláusulas potencialmente relevantes y sintetiza una respuesta mediante un modelo de lenguaje grande. Esta configuración ofrece interpretabilidad, al proporcionar tanto explicaciones en lenguaje natural como extractos del código, y adaptabilidad, ya que se pueden incorporar nuevos documentos sin cambios estructurales en el flujo de trabajo. Sin embargo, los resultados mostrados en la Figura 7 ponen de relieve una limitación clave: la variabilidad. Para la misma indicación sobre la asignación de potencia de iluminación, distintos LLM devolvieron respuestas inconsistentes (por ejemplo, 5500 W, 7585 W, 5400 W, 3019 W), según la tabla (Table 9.5.1 versus Appendix G3.8) que el modelo asociara con la consulta. Curiosamente, los modelos más grandes, como GPT 4 y GPT 5, con frecuencia recurrían por defecto a los valores del Appendix G en lugar de los valores del caso de diseño, probablemente porque más datos de código abierto y ejemplos en línea hacen énfasis en los casos de calificación de desempeño en lugar de en las asignaciones prescriptivas de diseño. Además, cuando se habilitó la búsqueda en la web, GPT 4 y GPT 5 ocasionalmente produjeron las respuestas correctas en modalidad zero-shot (zero-shot), quizá debido a una “fuga de conocimiento” (knowledge leakage) en la que partes de la norma quedaron expuestas en conjuntos de datos públicos durante el entrenamiento, pero este éxito no fue consistente. Estos hallazgos subrayan que, si bien los canales RAG y zero-shot a veces pueden proporcionar resultados precisos, aún no son confiables para su implementación regulatoria. En contraste, el canal del agente MCP se conecta directamente con la API de DOE COMcheck. Aquí, los atributos del edificio se estructuran en entradas estandarizadas y la API los evalúa de manera determinista frente a reglas codificadas. Este método produce salidas legibles por máquina y listas para auditoría que se alinean con los procedimientos de revisión. En la tarea de ejemplo, el agente produjo de manera consistente la asignación correcta de 3019 W, evitando la variabilidad observada con los enfoques RAG o solo con LLM. Sin embargo, este determinismo implica un alcance más limitado: el canal solo puede verificar lo que COMcheck ha codificado, lo que limita la flexibilidad para reglas no modeladas o cualitativas. En conjunto, estos resultados ilustran una disyuntiva fundamental. El canal RAG ofrece amplitud, interpretabilidad y adaptabilidad, útiles para el análisis de tipo “qué pasaría si” (what-if) en etapas tempranas o cuando los diseñadores humanos necesitan un razonamiento contextual. El canal agéntico, por el contrario, garantiza rigor y reproducibilidad, lo que lo hace adecuado para la certificación, la documentación y la aplicación de la norma. Por lo tanto, un flujo de trabajo híbrido, en el que RAG aporte el razonamiento interpretativo y los canales agénticos entreguen la validación formal, podría ser la estrategia más eficaz para una automatización de la implementación escalable, transparente y confiable."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 14,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7 Pipeline Comparison for Query of “What is the lighting power allowance for a 500-square-meter bank according to ASHRAE 90.1-2022”: (a) Direct LLM Query, (b) RAG with ASHRAE 90.1-2022, and (c) Agentic Call via COMcheck API",
+            "es": "Figura 7: Comparación de canales de procesamiento para la consulta “What is the lighting power allowance for a 500-square-meter bank according to ASHRAE 90.1-2022”: (a) consulta directa a un LLM, (b) RAG con ASHRAE 90.1-2022 y (c) llamada agéntica mediante la API de COMcheck"
+          }
+        },
+        {
+          "id": "s4-h3",
+          "type": "heading",
+          "page": 14,
+          "text": {
+            "en": "4.3 Possible future work",
+            "es": "4.3 Posible trabajo futuro"
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "The results of this study demonstrate the feasibility of linking BIM data extraction with automated sample building code review and verification through agent-based orchestration and existing check tools. Nonetheless, several research directions remain open for advancing the reliability, scalability, and adoption of ACR. First, future work can expand beyond building energy topics to include the whole construction lifecycle, even for projects without comprehensive BIM data such as small-scale residential buildings or renovations. In such cases without BIM, data may come from manual inputs, sensor logs, or minimal digital records. To support these contexts, ACR must accommodate both structured BIM outputs and user-entered parameters or simplified metadata, enabling coverage across the spectrum of project types, from full-scale design models to hand-drawn or legacy documentation.",
+            "es": "Los resultados de este estudio demuestran la viabilidad de vincular la extracción de datos de BIM con la revisión y verificación automatizadas de códigos de construcción de muestra, mediante la orquestación basada en agentes y herramientas de verificación existentes. No obstante, siguen abiertas varias líneas de investigación para avanzar en la confiabilidad, la escalabilidad y la adopción de la ACR. En primer lugar, el trabajo futuro puede ampliarse más allá de los temas de energía en edificios para abarcar todo el ciclo de vida de la construcción, incluso en proyectos sin datos BIM completos, como los edificios residenciales de pequeña escala o las renovaciones. En esos casos sin BIM, los datos pueden provenir de entradas manuales, registros de sensores o registros digitales mínimos. Para apoyar estos contextos, la ACR debe admitir tanto salidas estructuradas de BIM como parámetros ingresados por el usuario o metadatos simplificados, lo que permitiría cubrir todo el espectro de tipos de proyecto, desde modelos de diseño a gran escala hasta documentación dibujada a mano o heredada."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Second, future research could focus on developing review tools that can track branching updates across multiple sources, including evolving BIM exchange formats such as IFC and gbXML, jurisdiction- or statespecific amendments, and new editions of regulatory codes. Ontology-driven methods combined with AI techniques can be used to construct knowledge graphs that encode both prescriptive and performance-based provisions. With version-tracking capabilities similar to those used in software repositories, such tools would make it easier to manage customized updates, review projects under the correct regulatory context, and maintain interoperability as codes continue to evolve. Third, accuracy and usability in data extraction require further development. Real-world projects often rely on incomplete, inconsistent, or even scanned documentation. Extending the pipeline with computer vision, OCR, and multimodal LLMs could enable resilient extraction from varied file types, including raster drawings, PDF tables, and handwritten notes. A practical interim approach is to adopt a human-in-the-loop semi-automation process, where the system generates a list of missing or uncertain information that requires manual input. As AI and computer vision techniques continue to advance, such interventions are expected to decrease over time, making the extraction process increasingly seamless. Fourth, real-time and user-centric deployment represents a promising trajectory. Embedding ACR agents into interactive design environments (like Revit or SketchUp) would provide immediate feedback, reducing late-stage revisions. Coupling ACR with IoT-enabled monitoring also offers opportunities to extend verification into construction and operation phases. However, leveraging such real-time monitoring requires addressing practical constraints: while technologies like Control Strainer enable continuous implementation verification using Building Automation System data streams [26], widespread adoption remains limited by security, interoperability, and device coverage challenges. Fifth, seamless data transfer between different agents or pipeline components remains a critical limitation. Current systems often operate in silos, such as BIM extraction agents, reasoning modules, and rule-checking engines, without robust protocols for interoperability, version control, or state synchronization. Addressing this will require standardized interfaces, shared schemas, and agent coordination frameworks to enable modular, scalable ACR ecosystems. Finally, benchmarking and standardization remain essential. ACR evaluations often lack consistent metrics, which limits comparability across systems. Establishing shared benchmarks that address accuracy, latency, token efficiency, cost, and performance across different modalities would enable more systematic comparison of LLM-based and traditional rule-based methods. Simultaneously, collaboration with code development bodies, software vendors, and industry stakeholders will be essential to build consensus on standardized data schemas, APIs, and certification protocols.",
+            "es": "En segundo lugar, la investigación futura podría centrarse en desarrollar herramientas de revisión capaces de rastrear actualizaciones ramificadas en múltiples fuentes, incluidos los formatos de intercambio de BIM en evolución como IFC y gbXML, las enmiendas específicas de cada jurisdicción o estado y las nuevas ediciones de los códigos regulatorios. Los métodos basados en ontologías (ontology-driven methods), combinados con técnicas de IA, pueden utilizarse para construir grafos de conocimiento (knowledge graphs) que codifiquen tanto las disposiciones prescriptivas como las basadas en desempeño. Con capacidades de control de versiones similares a las que se usan en los repositorios de software, estas herramientas facilitarían la gestión de actualizaciones personalizadas, la revisión de proyectos bajo el contexto regulatorio correcto y el mantenimiento de la interoperabilidad a medida que los códigos sigan evolucionando. En tercer lugar, la precisión y la usabilidad en la extracción de datos requieren un mayor desarrollo. Los proyectos del mundo real suelen depender de documentación incompleta, inconsistente o incluso escaneada. Ampliar el canal de procesamiento con visión por computadora (computer vision), OCR y LLM multimodales podría permitir una extracción resiliente a partir de diversos tipos de archivo, incluidos dibujos rasterizados, tablas en PDF y notas manuscritas. Un enfoque provisional práctico es adoptar un proceso de semiautomatización con intervención humana (human-in-the-loop), en el que el sistema genere una lista de la información faltante o incierta que requiere una captura manual. A medida que las técnicas de IA y de visión por computadora sigan avanzando, se espera que estas intervenciones disminuyan con el tiempo, haciendo que el proceso de extracción sea cada vez más fluido. En cuarto lugar, la implementación en tiempo real y centrada en el usuario representa una trayectoria prometedora. Incorporar agentes de ACR en entornos de diseño interactivos (como Revit o SketchUp) proporcionaría retroalimentación inmediata y reduciría las revisiones en etapas tardías. Acoplar la ACR con un monitoreo habilitado por IoT también ofrece oportunidades para extender la verificación a las fases de construcción y operación. Sin embargo, aprovechar este monitoreo en tiempo real exige atender restricciones prácticas: aunque tecnologías como Control Strainer permiten una verificación continua de la implementación utilizando los flujos de datos del sistema de automatización de edificios [26], la adopción generalizada sigue limitada por desafíos de seguridad, interoperabilidad y cobertura de dispositivos. En quinto lugar, la transferencia fluida de datos entre distintos agentes o componentes del canal de procesamiento sigue siendo una limitación crítica. Los sistemas actuales suelen operar en silos, como los agentes de extracción de BIM, los módulos de razonamiento y los motores de verificación de reglas, sin protocolos robustos de interoperabilidad, control de versiones o sincronización de estado. Abordar esto requerirá interfaces estandarizadas, esquemas compartidos y marcos de coordinación de agentes que permitan ecosistemas de ACR modulares y escalables. Por último, la evaluación comparativa y la estandarización siguen siendo esenciales. Las evaluaciones de ACR suelen carecer de métricas consistentes, lo que limita la comparabilidad entre sistemas. Establecer puntos de referencia (benchmarks) compartidos que aborden la precisión, la latencia, la eficiencia en el uso de tokens, el costo y el desempeño en distintas modalidades permitiría una comparación más sistemática entre los métodos basados en LLM y los métodos tradicionales basados en reglas. Al mismo tiempo, la colaboración con los organismos de desarrollo de códigos, los proveedores de software y las partes interesadas de la industria será esencial para construir consenso sobre esquemas de datos, API y protocolos de certificación estandarizados."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 CONCLUSION",
+        "es": "5 CONCLUSIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "This study presented a novel framework for ACR that integrates BIM data extraction with agentorchestrated workflows and existing check tool engines. By combining geometry and system attribute extraction from BIM and architectural design files with both RAG reasoning and MCP-based agent calls to the COMcheck API, the approach demonstrates how LLM-enabled agents can bridge unstructured design information and authoritative building code verification. The results highlight several contributions. First, the framework successfully automated geometry and schedule extraction from heterogeneous file types, producing structured inputs consistent with check tool requirements. Second, the MCP agent pipeline delivered deterministic and audit-ready outcomes, while the RAG pipeline provided flexible interpretability for ambiguous cases. Third, comparative performance tests across different large language models underscored trade-offs between latency, token usage, and reliability, with GPT-4o achieving the best balance of efficiency and stability.",
+            "es": "Este estudio presentó un marco novedoso para la revisión automatizada de cumplimiento normativo (automated code review, ACR) que integra la extracción de datos de BIM con flujos de trabajo orquestados por agentes (agents) y motores de herramientas de verificación existentes. Al combinar la extracción de geometría y de atributos de sistemas a partir de BIM y de archivos de diseño arquitectónico con razonamiento RAG y con llamadas de agentes basadas en MCP a la API de COMcheck, el enfoque demuestra cómo los agentes habilitados por LLM pueden tender un puente entre la información de diseño no estructurada y la verificación autorizada del código de construcción. Los resultados destacan varias contribuciones. Primero, el marco automatizó con éxito la extracción de geometría y de tablas de especificaciones (schedules) a partir de tipos de archivo heterogéneos, y produjo entradas estructuradas consistentes con los requisitos de la herramienta de verificación. Segundo, el flujo de agentes MCP entregó resultados deterministas y listos para auditoría, mientras que el flujo RAG ofreció una interpretabilidad flexible para los casos ambiguos. Tercero, las pruebas comparativas de desempeño entre distintos modelos de lenguaje de gran tamaño (large language models) subrayaron las compensaciones entre latencia, uso de tokens y confiabilidad, y GPT-4o logró el mejor equilibrio entre eficiencia y estabilidad."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "Collectively, these findings confirm that ACR can be extended beyond static rule-based scripts to more adaptive, agent-driven architectures capable of supporting diverse implementation scenarios. The proposed workflow reduces manual data entry, increases transparency, and accelerates the verification process, which can lower design and review costs for businesses, building owners, and tenants, while also easing the workload of under-resourced building departments, particularly those in rural areas. This positions it as a scalable solution for streamlining real-world building design and code enforcement. Future work should focus on extending the framework to additional code domains such as fire safety, accessibility, and zoning; enhancing multimodal data extraction from incomplete or scanned documents; and developing standardized benchmarks for performance evaluation. By continuing to align technical innovations with both industry cost savings and public-sector capacity constraints, future research can maximize the impact of AI-enabled review systems across the building ecosystem. With continued research and collaboration among researchers, software vendors, and code development bodies, the integration of AI agents with BIM has the potential to deliver reliable, real-time, and industry-wide checking and review automation.",
+            "es": "En conjunto, estos hallazgos confirman que la ACR puede extenderse más allá de los scripts estáticos basados en reglas hacia arquitecturas más adaptativas e impulsadas por agentes, capaces de respaldar diversos escenarios de implementación. El flujo de trabajo propuesto reduce la captura manual de datos, aumenta la transparencia y acelera el proceso de verificación, lo que puede disminuir los costos de diseño y revisión para las empresas, los propietarios de edificios y los inquilinos, y además alivia la carga de trabajo de los departamentos de construcción con recursos insuficientes, en particular los de zonas rurales. Esto lo posiciona como una solución escalable para agilizar el diseño de edificios y la aplicación de códigos en el mundo real. El trabajo futuro debería centrarse en extender el marco a otros ámbitos normativos, como seguridad contra incendios, accesibilidad y zonificación; en mejorar la extracción de datos multimodales a partir de documentos incompletos o escaneados; y en desarrollar puntos de referencia (benchmarks) estandarizados para la evaluación del desempeño. Al seguir alineando las innovaciones técnicas tanto con el ahorro de costos de la industria como con las limitaciones de capacidad del sector público, la investigación futura puede maximizar el impacto de los sistemas de revisión habilitados por IA en todo el ecosistema de la construcción. Con investigación y colaboración continuas entre investigadores, proveedores de software y organismos de desarrollo de códigos, la integración de agentes de IA con BIM tiene el potencial de ofrecer una automatización de verificación y revisión confiable, en tiempo real y a escala de toda la industria."
+          }
+        },
+        {
+          "id": "s5-h1",
+          "type": "heading",
+          "page": 16,
+          "text": {
+            "en": "AUTHORSHIP CONTRIBUTION STATEMENT",
+            "es": "DECLARACIÓN DE CONTRIBUCIÓN DE AUTORÍA"
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "Hanlong Wan: Methodology, Validation, Formal analysis, Software, Writing – Original Draft, Visualization, Investigation. Weili Xu: Methodology, Writing – Original Draft – COMcheck & MCP. Project administration. Michael Rosenberg: Supervision, Funding acquisition, Writing – Review & Editing. Project administration. Jian Zhang: Conceptualization, Methodology, Writing – Review & Editing. Aysha Siddika: Writing – Original Draft – Literature Review.",
+            "es": "Hanlong Wan: Metodología, Validación, Análisis formal, Software, Redacción – Borrador original, Visualización, Investigación. Weili Xu: Metodología, Redacción – Borrador original – COMcheck y MCP. Administración del proyecto. Michael Rosenberg: Supervisión, Obtención de financiamiento, Redacción – Revisión y edición. Administración del proyecto. Jian Zhang: Conceptualización, Metodología, Redacción – Revisión y edición. Aysha Siddika: Redacción – Borrador original – Revisión de la literatura."
+          }
+        },
+        {
+          "id": "s5-h2",
+          "type": "heading",
+          "page": 16,
+          "text": {
+            "en": "DECLARATION OF COMPETING INTEREST",
+            "es": "DECLARACIÓN DE INTERESES CONTRAPUESTOS"
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.",
+            "es": "Los autores declaran que no tienen conocimiento de intereses financieros contrapuestos ni de relaciones personales que pudieran haber influido en el trabajo presentado en este artículo."
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "DECLARATION OF GENERATIVE AI AND AI-ASSISTED TECHNOLOGIES IN THE",
+            "es": "DECLARACIÓN SOBRE EL USO DE IA GENERATIVA Y TECNOLOGÍAS ASISTIDAS POR IA EN EL"
+          }
+        },
+        {
+          "id": "s5-h3",
+          "type": "heading",
+          "page": 16,
+          "text": {
+            "en": "WRITING PROCESS",
+            "es": "PROCESO DE REDACCIÓN"
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "During the preparation of this work, the authors used GPT4o in order to improve language. After using this tool/service, the authors reviewed and edited the content as needed and take full responsibility for the content of the publication.",
+            "es": "Durante la preparación de este trabajo, los autores utilizaron GPT4o con el fin de mejorar el lenguaje. Después de usar esta herramienta o servicio, los autores revisaron y editaron el contenido según fue necesario y asumen plena responsabilidad por el contenido de la publicación."
+          }
+        },
+        {
+          "id": "s5-h4",
+          "type": "heading",
+          "page": 16,
+          "text": {
+            "en": "ACKNOWLEDGMENTS",
+            "es": "AGRADECIMIENTOS"
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "The authors would like to express their gratitude for the support of the U.S. Department of Energy’s Office of Energy Efficiency and Renewable Energy (EERE) through Battelle Memorial Institute under Contract No. DE-AC05-76RL01830. The authors would also like to acknowledge Jeremy Williams and Perry Christopher – Building Energy Code Program, DOE Building Technologies Office.",
+            "es": "Los autores desean expresar su gratitud por el apoyo de la Oficina de Eficiencia Energética y Energía Renovable (Office of Energy Efficiency and Renewable Energy, EERE) del Departamento de Energía de los EE. UU. a través de Battelle Memorial Institute, bajo el Contrato núm. DE-AC05-76RL01830. Los autores también desean reconocer a Jeremy Williams y Perry Christopher, del Building Energy Code Program, DOE Building Technologies Office."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "REFERENCES"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[1] Xue X, Wu J, Zhang J. Semiautomated Generation of Logic Rules for Tabular Information in Building Codes to Support Automated Code Compliance Checking. J Comput Civ Eng 2022;36:04021033. https://doi.org/10.1061/(ASCE)CP.1943-5487.0001000."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[2] Wu J, Zhang J. Model Validation Using Invariant Signatures and Logic-Based Inference for Automated Building Code Compliance Checking. J Comput Civ Eng 2022;36:04022002. https://doi.org/10.1061/(ASCE)CP.1943-5487.0001002."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[3] Nawari NO. A Generalized Adaptive Framework (GAF) for Automating Code Compliance Checking. Buildings 2019;9:86. https://doi.org/10.3390/buildings9040086."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[4] Zheng Q, Zhou M, Yeoh JKW, Wang Q. Automatic geometric quality assessment of railings for code compliance with LiDAR data. Measurement 2024;238:115321. https://doi.org/10.1016/j.measurement.2024.115321."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[5] Reinhardt J, Mathews M. The Automation of BIM for Compliance Checking: a Visual Programming Approach 2017."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[6] Jiang L, Shi J, Wang C. Multi-ontology fusion and rule development to facilitate automated code compliance checking using BIM and rule-based reasoning. Advanced Engineering Informatics 2022;51:101449. https://doi.org/10.1016/j.aei.2021.101449."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[7] Ma Z, Zhu H, Xiang X, Turk Ž, Klinc R. Automatic compliance checking of BIM models against quality standards based on ontology technology. Automation in Construction 2024;166:105656. https://doi.org/10.1016/j.autcon.2024.105656."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[8] Zhu S, Zhou J, Cheng L, Fu X, Wang Y, Dai K. Research on a BIM Model Quality Compliance Checking Method Based on a Knowledge Graph. J Comput Civ Eng 2025;39:04024049. https://doi.org/10.1061/JCCEE5.CPENG-5950."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[9] Manning C, Schutze H. Foundations of statistical natural language processing. MIT press; 1999."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[10] Ashish V. Attention is all you need. Advances in Neural Information Processing Systems 2017;30:I."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[11] Brown T, Mann B, Ryder N, Subbiah M, Kaplan JD, Dhariwal P, et al. Language models are fewshot learners. Advances in Neural Information Processing Systems 2020;33:1877–901."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[12] Madireddy S, Gao L, Din ZU, Kim K, Senouci A, Han Z, et al. Large Language Model-Driven Code Compliance Checking in Building Information Modeling. Electronics 2025;14:2146. https://doi.org/10.3390/electronics14112146."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[13] Chen N, Lin X, Jiang H, An Y. Automated Building Information Modeling Compliance Check through a Large Language Model Combined with Deep Learning and Ontology. Buildings 2024;14:1983. https://doi.org/10.3390/buildings14071983."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[14] Peng J, Liu X. Automated code compliance checking research based on BIM and knowledge graph. Sci Rep 2023;13:7065. https://doi.org/10.1038/s41598-023-34342-1."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[15] Bloch T, Sacks R. Clustering Information Types for Semantic Enrichment of Building Information Models to Support Automated Code Compliance Checking. J Comput Civ Eng 2020;34:04020040. https://doi.org/10.1061/(ASCE)CP.1943-5487.0000922."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[16] Doukari O, Greenwood D, Rogage K, Kassem M. Object-centred automated compliance checking: a novel, bottom-up approach. ITcon 2022;27:335–62. https://doi.org/10.36680/j.itcon.2022.017."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[17] Chen Y, Jiang H. Optimizing automated compliance checking with ontology-enhanced natural language processing: Case in the fire safety domain. Journal of Environmental Management 2024;371:123320. https://doi.org/10.1016/j.jenvman.2024.123320."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[18] Macit İlal S, Günaydın HM. Computer representation of building codes for automated compliance checking. Automation in Construction 2017;82:43–58. https://doi.org/10.1016/j.autcon.2017.06.018."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[19] Bartlett R, Connell LM, Gowri K, Halverson MA, Lucas RG, Richman EE, et al. Technical Support Document for Version 3.9.1 of the COMcheck Software. Pacific Northwest National Lab. (PNNL), Richland, WA (United States); 2012. https://doi.org/10.2172/1060665."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[20] Feng JD, Cheng H, Bauman F, Raftery P, Schiavon S, Pantelic J, et al. Codes and standards report 2018."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[21] Yao S, Zhao J, Yu D, Du N, Shafran I, Narasimhan K, et al. ReAct: Synergizing Reasoning and Acting in Language Models. International Conference on Learning Representations (ICLR) 2023."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[22] Introducing the Model Context Protocol n.d. https://www.anthropic.com/news/model-context-protocol (accessed September 4, 2025)."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[23] Shipman JW. Python XML processing with lxml. New Mexico Tech Computer Center 2014."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[24] Dong B, Lam KP, Huang YC, Dobbs GM. A comparative study of the IFC and gbXML informational infrastructures for data exchange in computational design support environments 2007."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[25] Wan H, Zhang J, Chen Y, Xu W, Feng F. Exploring Gen-AI applications in building research and industry: A review. Build Simul 2025;18:1251–73. https://doi.org/10.1007/s12273-025-1279-x."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[26] Chen Y, Michael Wetter, Xuechen Lei, Jeremy Lerond, Anand K. Prakash, Yun Joon Jung, et al. Control Performance Verification – The Hidden Opportunity of Ensuring High Performance of Building Control System. vol. 18, IBPSA; 2023, p. 3848–55. https://doi.org/10.26868/25222708.2023.1660."
+          }
+        }
+      ]
+    },
+    {
+      "id": "appendix-prompts",
+      "title": {
+        "en": "APPENDIX Ⅰ PROMPTS",
+        "es": "APÉNDICE Ⅰ PROMPTS"
+      },
+      "blocks": [
+        {
+          "id": "appendix-prompts-p1",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "a. Model performance Prompt 1 What is the minimum U-factor required for a doorway in Climate Zone 5 according to ASHRAE 90.1-2022? Prompt 2 Which IFC entity type is used to represent a building envelope wall for energy code compliance checks? b. Data extraction System prompt You are an expert assistant helping users understand building data. Use the provided information to answer questions. c. Agent System prompt \"role\": \"system\", \"content\": ( \"You are an agent tool caller. Follow this rule strictly:\\n\" \"1. If a tool is needed, only respond with:\\n\" \"   Action: <tool name>\\n\" \"   Action Input: <input text>\\n\" \"2. Do NOT include Final Answer until after tool output.\\n\" \"3. NEVER return both Action and Final Answer in the same response.\\n\" \"4. NEVER invent tool results — wait for actual tool output.\"",
+            "es": "a. Desempeño del modelo Prompt 1 What is the minimum U-factor required for a doorway in Climate Zone 5 according to ASHRAE 90.1-2022? Prompt 2 Which IFC entity type is used to represent a building envelope wall for energy code compliance checks? b. Extracción de datos System prompt You are an expert assistant helping users understand building data. Use the provided information to answer questions. c. Agente System prompt \"role\": \"system\", \"content\": ( \"You are an agent tool caller. Follow this rule strictly:\\n\" \"1. If a tool is needed, only respond with:\\n\" \"   Action: <tool name>\\n\" \"   Action Input: <input text>\\n\" \"2. Do NOT include Final Answer until after tool output.\\n\" \"3. NEVER return both Action and Final Answer in the same response.\\n\" \"4. NEVER invent tool results — wait for actual tool output.\""
+          }
+        }
+      ]
+    }
+  ]
+}
