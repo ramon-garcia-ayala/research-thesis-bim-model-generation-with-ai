@@ -87,6 +87,23 @@ describe('checkSite', () => {
     expect((await checkSite(root)).join('\n')).toMatch(/example\.com/)
   })
 
+  it('passes a reference link to an external https page', async () => {
+    const ref = '<ol class="refs"><li><a href="https://doi.org/10.1/x" target="_blank" rel="noopener noreferrer">Author, 2020</a></li></ol>'
+    const root = site({ files: { 'leaders/presentacion-01/index.html': page(`<section class="slide"><h1><span lang="en">Hello</span><span lang="es">Hola</span></h1>${ref}</section>`) } })
+    expect(await checkSite(root)).toEqual([])
+  })
+
+  it('fails a reference link that does not open in a new tab with rel noopener', async () => {
+    const ref = '<ol class="refs"><li><a href="https://doi.org/10.1/x">Author, 2020</a></li></ol>'
+    const root = site({ files: { 'leaders/presentacion-01/index.html': page(`<section class="slide"><h1><span lang="en">Hello</span><span lang="es">Hola</span></h1>${ref}</section>`) } })
+    expect((await checkSite(root)).join('\n')).toMatch(/noopener/)
+  })
+
+  it('fails an external link outside the references', async () => {
+    const root = site({ files: { 'leaders/presentacion-01/index.html': page(`${goodSlide}<a href="https://doi.org/10.1/x" target="_blank" rel="noopener">x</a>`) } })
+    expect((await checkSite(root)).join('\n')).toMatch(/doi\.org/)
+  })
+
   it('fails the app name typed into a slide', async () => {
     const root = site({ files: { 'leaders/presentacion-01/index.html': page('<section class="slide"><span lang="en">GFit</span><span lang="es">GFit</span></section>') } })
     expect((await checkSite(root)).join('\n')).toMatch(/app name/i)

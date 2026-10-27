@@ -2,7 +2,8 @@
 // Its root is `presentations/`.
 //   1. every text in both languages: [lang=en] and [lang=es] as siblings, neither empty
 //   2. presentation folders (<track>/presentacion-NN) and PRESENTATIONS agree
-//   3. links relative; external URLs only from Google Fonts
+//   3. links relative; external URLs only from Google Fonts, except https links of a slide's references (`.refs a`), which open
+//      in a new tab with rel="noopener"
 //   4. the app's name never typed into a page (it comes from APP_NAME)
 //   5. every listed presentation mounts: slides and a rail
 //   6. every `data-map` id of a slide is in the map (a node, a group, `question` or `hypothesis`)
@@ -40,7 +41,11 @@ function checkLanguages(doc, file, errors) {
 function checkLinks(doc, file, errors) {
   for (const el of doc.querySelectorAll('[href], [src]')) {
     const url = el.getAttribute('href') ?? el.getAttribute('src')
-    if (url.startsWith('/')) errors.push(`${file}: "${url}" is not relative (the site lives under a sub-path)`)
+    if (el.matches('.refs a') && /^https:\/\//i.test(url)) {
+      if (el.getAttribute('target') !== '_blank' || !/noopener/.test(el.getAttribute('rel') ?? '')) {
+        errors.push(`${file}: reference link "${url}" must open in a new tab with rel="noopener"`)
+      }
+    } else if (url.startsWith('/')) errors.push(`${file}: "${url}" is not relative (the site lives under a sub-path)`)
     else if (/^https?:/i.test(url) && !FONT_HOSTS.has(new URL(url).host)) {
       errors.push(`${file}: "${url}" loads from a host other than Google Fonts`)
     }
