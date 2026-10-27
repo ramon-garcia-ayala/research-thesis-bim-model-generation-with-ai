@@ -22,5 +22,6 @@ export const PRESENTATIONS = {
   thesis: [
     { id: 'presentacion-01', title: { en: 'Start', es: 'Inicio' } },
     { id: 'presentacion-02', date: '2026-10-27', title: { en: 'From artifacts to decisions', es: 'De artefactos a decisiones' } },
+    { id: 'presentacion-03', date: '2026-10-27', title: { en: 'Introduction and state of the art', es: 'Introducción y estado del arte' } },
   ],
 }
