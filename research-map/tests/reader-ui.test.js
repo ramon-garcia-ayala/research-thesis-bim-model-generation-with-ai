@@ -653,6 +653,267 @@ describe('underlines and the remembered place', () => {
     })
   })
 
+  describe('releasing the mouse anywhere, and images in a running selection', () => {
+    /** A selection from a character of `fromId` to wherever `setEnd` puts it; the mouse is lifted over `over`. */
+    const dragTo = (fromId, fromAt, setEnd, over) => {
+      const range = document.createRange()
+      range.setStart(block(fromId).firstChild, fromAt)
+      setEnd(range)
+      window.getSelection().removeAllRanges()
+      window.getSelection().addRange(range)
+      over.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+    }
+    const underline = () => $('.reader__pop [data-act="underline"]').click()
+    const toBlock = (id, at) => (r) => r.setEnd(block(id).firstChild, at)
+
+    it('offers the menu when the mouse is lifted outside the text, over the chat', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      dragTo('s1-p1', 10, toBlock('s1-p2', 8), $('.reader__chat'))
+      expect($('.reader__pop').hidden).toBe(false)
+      underline()
+      expect(lastSaved().underlines.map((u) => u.block)).toEqual(['s1-p1', 's1-p2'])
+    })
+
+    it('keeps only the text when the selection runs out of it, into the chat', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      dragTo('s2-p2', 10, (r) => r.setEnd($('.chat__acts'), 1), $('.reader__chat'))
+      underline()
+      expect(lastSaved().underlines.map((u) => u.block)).toContain('s2-p2')
+      expect(lastSaved().underlines.at(-1).block).toBe('refs-1')
+    })
+
+    describe('a drag the reader follows itself', () => {
+      // The browser's own drag fails on the gaps of an underlined paragraph and runs off the text; layout is faked here.
+      const rows = { 100: ['s1-p1', 5], 200: ['s1-p2', 8], 300: ['s2-p1', 3], 400: ['s2-p2', 6] }
+      const area = { left: 0, right: 500, top: 50, bottom: 450, width: 500, height: 400 }
+      const caret = (y) => {
+        const [id, at] = rows[Object.keys(rows).reduce((a, b) => (Math.abs(b - y) < Math.abs(a - y) ? b : a))]
+        const range = document.createRange()
+        range.setStart(block(id).firstChild, at)
+        range.collapse(true)
+        return range
+      }
+      const mouse = (type, x, y, target = document, extra = {}) => {
+        const e = new MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, buttons: 1, button: 0, detail: 1, ...extra })
+        target.dispatchEvent(e)
+        return e
+      }
+      const setUp = async () => {
+        await withClient(fakeClient())
+        await read('sample-a')
+        document.caretRangeFromPoint = (x, y) => caret(y)
+        document.elementFromPoint = () => null
+        $('.reader__text').getBoundingClientRect = () => area
+        window.getSelection().removeAllRanges()
+      }
+      afterEach(() => {
+        delete document.caretRangeFromPoint
+        delete document.elementFromPoint
+        vi.useRealTimers()
+      })
+
+      it('selects from where the mouse went down to where it is, and keeps the browser out', async () => {
+        await setUp()
+        mouse('mousedown', 10, 100, block('s1-p1'))
+        mouse('mousemove', 10, 200)
+        expect(window.getSelection().toString()).toContain(block('s1-p1').textContent.slice(5))
+        mouse('mouseup', 10, 200)
+        expect($('.reader__pop').hidden).toBe(false)
+      })
+
+      it('stops at the last line in view when the mouse goes below the text, over the chat', async () => {
+        await setUp()
+        const asked = []
+        document.caretRangeFromPoint = (x, y) => (asked.push(y), caret(y))
+        mouse('mousedown', 10, 100, block('s1-p1'))
+        mouse('mousemove', 10, 700, $('.reader__chat'))
+        expect(Math.max(...asked)).toBeLessThanOrEqual(area.bottom)
+        expect(window.getSelection().focusNode).toBe(block('s2-p2').firstChild)
+      })
+
+      it('scrolls the text while the mouse stays past its edge, and stops when it is lifted', async () => {
+        await setUp()
+        vi.useFakeTimers()
+        const text = $('.reader__text')
+        mouse('mousedown', 10, 100, block('s1-p1'))
+        mouse('mousemove', 10, 700)
+        vi.advanceTimersByTime(200)
+        const scrolled = text.scrollTop
+        expect(scrolled).toBeGreaterThan(0)
+        mouse('mouseup', 10, 700)
+        vi.advanceTimersByTime(200)
+        expect(text.scrollTop).toBe(scrolled)
+      })
+
+      it('takes the whole image when the mouse is over it', async () => {
+        await setUp()
+        const img = block('fig-1').querySelector('img')
+        document.elementFromPoint = () => img
+        mouse('mousedown', 10, 100, block('s2-p1'))
+        mouse('mousemove', 10, 300)
+        mouse('mouseup', 10, 300)
+        $('.reader__pop [data-act="underline"]').click()
+        expect(lastSaved().underlines.at(-1)).toMatchObject({ block: 'fig-1', image: true })
+      })
+
+      it('counts the margin beside an image as the image, but not its caption', async () => {
+        await setUp()
+        document.elementFromPoint = () => block('fig-1')
+        mouse('mousedown', 10, 100, block('s2-p1'))
+        mouse('mousemove', 10, 300)
+        mouse('mouseup', 10, 300)
+        $('.reader__pop [data-act="underline"]').click()
+        expect(lastSaved().underlines.at(-1)).toMatchObject({ block: 'fig-1', image: true })
+        window.getSelection().removeAllRanges()
+        document.elementFromPoint = () => block('fig-1').querySelector('figcaption')
+        mouse('mousedown', 10, 100, block('s2-p1'))
+        mouse('mousemove', 10, 300)
+        expect(window.getSelection().focusNode).not.toBe(block('fig-1'))
+        mouse('mouseup', 10, 300)
+      })
+
+      it('can start on an image', async () => {
+        await setUp()
+        const img = block('fig-1').querySelector('img')
+        mouse('mousedown', 10, 300, img)
+        mouse('mousemove', 10, 400)
+        mouse('mouseup', 10, 400)
+        $('.reader__pop [data-act="underline"]').click()
+        expect(lastSaved().underlines.map((u) => u.block)).toEqual(['fig-1', 's2-p2'])
+      })
+
+      it('keeps the browser from starting a selection of its own, which it would stretch off the text', async () => {
+        await setUp()
+        expect(mouse('mousedown', 10, 100, block('s1-p1')).defaultPrevented).toBe(true)
+        expect(document.activeElement).toBe($('.reader__text'))
+      })
+
+      it('clears the selection on a plain click, as the browser would', async () => {
+        await setUp()
+        mouse('mousedown', 10, 100, block('s1-p1'))
+        mouse('mousemove', 10, 200)
+        mouse('mouseup', 10, 200)
+        expect(window.getSelection().isCollapsed).toBe(false)
+        mouse('mousedown', 10, 100, block('s1-p1'))
+        expect(window.getSelection().isCollapsed).toBe(true)
+        mouse('mousemove', 11, 101)
+        mouse('mouseup', 11, 101)
+        expect($('.reader__pop').hidden).toBe(true)
+      })
+
+      it('leaves a double click drag to the browser, which selects by words', async () => {
+        await setUp()
+        expect(mouse('mousedown', 10, 100, block('s1-p1'), { detail: 2 }).defaultPrevented).toBe(false)
+        expect(mouse('mousemove', 10, 200).defaultPrevented).toBe(false)
+      })
+
+      it('ends the drag if the button was let go outside the window', async () => {
+        await setUp()
+        mouse('mousedown', 10, 100, block('s1-p1'))
+        const before = window.getSelection().toString()
+        mouse('mousemove', 10, 200, document, { buttons: 0 })
+        mouse('mousemove', 10, 300)
+        expect(window.getSelection().toString()).toBe(before)
+      })
+    })
+
+    it('offers nothing for a selection that began in the chat', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      const range = document.createRange()
+      range.selectNodeContents($('.chat__acts'))
+      window.getSelection().removeAllRanges()
+      window.getSelection().addRange(range)
+      $('.chat__acts').dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+      expect($('.reader__pop').hidden).toBe(true)
+    })
+
+    it('takes a whole figure when the selection goes over its image', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      dragTo('s2-p1', 5, (r) => r.setEnd(block('fig-1'), 1), $('.reader__text'))
+      underline()
+      const caption = block('fig-1').querySelector('figcaption').textContent
+      expect(lastSaved().underlines.at(-1)).toMatchObject({ block: 'fig-1', image: true, start: 0, end: caption.length, text: caption })
+      expect(block('fig-1').classList.contains('image-underlined')).toBe(true)
+    })
+
+    it('leaves the image out when only the caption is selected', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      const node = block('fig-1').querySelector('figcaption').firstChild
+      const range = document.createRange()
+      range.setStart(node, 2)
+      range.setEnd(node, 12)
+      window.getSelection().removeAllRanges()
+      window.getSelection().addRange(range)
+      block('fig-1').dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+      underline()
+      expect(lastSaved().underlines[0].image).toBeUndefined()
+      expect(block('fig-1').classList.contains('image-underlined')).toBe(false)
+    })
+
+    it('leaves the image out on a triple click that ends just before the figure', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      dragTo('s2-p1', 0, (r) => r.setEnd(block('fig-1'), 0), $('.reader__text'))
+      underline()
+      expect(lastSaved().underlines.map((u) => u.block)).toEqual(['s2-p1'])
+    })
+
+    it('keeps the full menu for a selection inside an underline; a plain click there offers to remove it', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      select('s2-p1', 20)
+      underline()
+      const mark = block('s2-p1').querySelector('mark')
+      const range = document.createRange()
+      range.setStart(mark.firstChild, 2)
+      range.setEnd(mark.firstChild, 9)
+      window.getSelection().removeAllRanges()
+      window.getSelection().addRange(range)
+      mark.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+      mark.click()
+      expect($('.reader__pop [data-act="underline"]')).not.toBeNull()
+      window.getSelection().removeAllRanges()
+      mark.click()
+      expect($('.reader__pop [data-act="remove-underline"]')).not.toBeNull()
+    })
+
+    it('removes the outline along with the underline', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      dragTo('s2-p1', 5, (r) => r.setEnd(block('fig-1'), 1), $('.reader__text'))
+      underline()
+      block('fig-1').querySelector('mark').click()
+      $('.reader__pop [data-act="remove-underline"]').click()
+      expect(block('fig-1').classList.contains('image-underlined')).toBe(false)
+    })
+
+    it('marks the image while the selection runs over it', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      dragTo('s2-p1', 5, (r) => r.setEnd(block('fig-1'), 1), $('.reader__text'))
+      document.dispatchEvent(new Event('selectionchange'))
+      expect(block('fig-1').classList.contains('in-selection')).toBe(true)
+      window.getSelection().removeAllRanges()
+      document.dispatchEvent(new Event('selectionchange'))
+      expect(block('fig-1').classList.contains('in-selection')).toBe(false)
+    })
+
+    it('lets a drag start on an image and does not enlarge it at the end of one', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      const img = block('fig-1').querySelector('img')
+      expect(img.getAttribute('draggable')).toBe('false')
+      dragTo('s2-p1', 5, (r) => r.setEnd(block('fig-1'), 1), $('.reader__text'))
+      img.click()
+      expect($('.reader__zoom').open ?? $('.reader__zoom').hasAttribute('open')).toBeFalsy()
+    })
+  })
+
   it('shows a margin mark in the other language', async () => {
     const reading = { ...emptyReading(), underlines: [{ id: 'u1', block: 's2-p1', lang: 'es', start: 0, end: 12, text: 'x', date: '2026-10-22' }] }
     await withClient(fakeClient(reading))

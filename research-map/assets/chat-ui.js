@@ -37,6 +37,7 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
     <div class="chat__acts">
       <button type="button" data-mode="explain"></button>
       <button type="button" data-mode="research"></button>
+      <button type="button" data-mode="underlined"></button>
       <button type="button" data-quiz aria-expanded="false"></button>
       <span class="chat__scopes" hidden></span>
     </div>
@@ -69,7 +70,12 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
   }
 
   function messageHtml(m, i) {
-    const chipsHtml = (m.attach ?? []).map((a) => `<span class="chat__chip">«${esc(a.text)}»</span>`).join('')
+    const chipsHtml =
+      m.mode !== 'underlined'
+        ? (m.attach ?? []).map((a) => `<span class="chat__chip">«${esc(a.text)}»</span>`).join('')
+        : m.role !== 'user'
+          ? ''
+          : `<span class="chat__chip">${(m.attach ?? []).length} ${esc(L().underlinedCount)}</span>`
     const voice =
       speaker && m.role === 'assistant'
         ? `<button type="button" class="chat__voice" data-listen="${i}"></button><button type="button" class="chat__voice" data-hush hidden></button>`
@@ -164,10 +170,17 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
       .join('')
     $('[data-mode="explain"]').textContent = L().explain
     $('[data-mode="research"]').textContent = L().research
+    $('[data-mode="underlined"]').textContent = L().underlined
+    $('[data-mode="underlined"]').disabled = conv === '_across' || !underlinesNow().length
     $('[data-quiz]').textContent = L().quiz
     $('.chat__scopes').innerHTML = SCOPES.map((s) => `<button type="button" data-scope="${s}">${esc(L().scopes[s])}</button>`).join('')
     $('.chat__input').placeholder = L().placeholder
     $('.chat__send').textContent = L().send
+  }
+
+  /** Everything underlined in the open paper, as the chat sends it. */
+  function underlinesNow() {
+    return (current()?.underlines ?? []).map((u) => ({ block: u.block, text: u.text, ...(u.image ? { image: true } : {}) }))
   }
 
   function scopeOf(kind) {
@@ -191,7 +204,7 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
       papers: conv === '_across' ? ticked : [conv],
       mode,
       scope,
-      attach: chips,
+      attach: mode === 'underlined' ? underlinesNow() : chips,
       message,
       lang,
       model,
@@ -366,6 +379,8 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
   renderChrome()
 
   return {
+    /** The underlines changed: the shortcut about them turns on or off. */
+    refresh: () => renderChrome(),
     /** A passage the author attached (from an underline or a selection). */
     attach({ block, text }) {
       chips.push({ block, text })

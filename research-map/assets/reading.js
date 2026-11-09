@@ -45,8 +45,9 @@ export function validateReading(r) {
 const nextId = (items, prefix) => `${prefix}${Math.max(0, ...items.map((x) => Number(x.id.slice(prefix.length)) || 0)) + 1}`
 
 /** The reading with one more underline (id u<n>); a new object. */
-export function addUnderline(r, { block, lang, start, end, text }, date) {
-  return { ...r, underlines: [...r.underlines, { id: nextId(r.underlines, 'u'), block, lang, start, end, text, date }] }
+export function addUnderline(r, { block, lang, start, end, text, image }, date) {
+  const u = { id: nextId(r.underlines, 'u'), block, lang, start, end, text, date, ...(image ? { image: true } : {}) }
+  return { ...r, underlines: [...r.underlines, u] }
 }
 
 /** The reading without underline `id`; a new object. */

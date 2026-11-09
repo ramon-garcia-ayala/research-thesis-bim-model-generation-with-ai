@@ -54,6 +54,65 @@ beforeEach(() => {
   chat.setConversation('sample-a', emptyReading())
 })
 
+describe('asking about what was underlined', () => {
+  const underlines = [
+    { id: 'u1', block: 's1-p1', lang: 'es', start: 0, end: 5, text: 'Embodied', date: '2026-11-08' },
+    { id: 'u2', block: 'fig-1', lang: 'es', start: 0, end: 8, text: 'Figure 1', date: '2026-11-08', image: true },
+  ]
+  const withUnderlines = (list) => {
+    document.body.innerHTML = '<div class="reader__chat"></div>'
+    el = document.querySelector('.reader__chat')
+    chat = mountChat(el, { client, papers, labels: LABELS, lang: 'es', onCite, current: () => ({ nodeId: 'sample-a', paper, block: 's1-p1', underlines: list }) })
+    chat.setConversation('sample-a', emptyReading())
+  }
+
+  it('sends every underline of the paper, the image ones marked', async () => {
+    withUnderlines(underlines)
+    await click('[data-mode="underlined"]')
+    expect(client.chat.mock.calls.at(-1)[0]).toMatchObject({
+      mode: 'underlined',
+      message: LABELS.es.underlined,
+      attach: [{ block: 's1-p1', text: 'Embodied' }, { block: 'fig-1', text: 'Figure 1', image: true }],
+    })
+  })
+
+  it('takes the question typed in the box', async () => {
+    withUnderlines(underlines)
+    type('.chat__input', '¿Qué los une?')
+    await click('[data-mode="underlined"]')
+    expect(client.chat.mock.calls.at(-1)[0].message).toBe('¿Qué los une?')
+  })
+
+  it('shows how many went, not their whole text', async () => {
+    withUnderlines(underlines)
+    await click('[data-mode="underlined"]')
+    expect($('.chat__log').textContent).toContain(`2 ${LABELS.es.underlinedCount}`)
+    expect($('.chat__log').textContent).not.toContain('«Embodied»')
+  })
+
+  it('counts them on the question only, not on the answer', () => {
+    withUnderlines(underlines)
+    const thread = {
+      id: 'c1',
+      messages: [
+        { role: 'user', mode: 'underlined', text: 'Sobre lo subrayado', attach: [{ block: 's1-p1', text: 'Embodied' }], date: '2026-11-08' },
+        { role: 'assistant', mode: 'underlined', text: 'Respuesta', date: '2026-11-08' },
+      ],
+    }
+    chat.setConversation('sample-a', { ...emptyReading(), chats: [thread] })
+    expect([...el.querySelectorAll('.chat__log .chat__chip')].map((c) => c.textContent)).toEqual([`1 ${LABELS.es.underlinedCount}`])
+  })
+
+  it('is off with nothing underlined, and on after refresh', () => {
+    const list = []
+    withUnderlines(list)
+    expect($('[data-mode="underlined"]').disabled).toBe(true)
+    list.push(underlines[0])
+    chat.refresh()
+    expect($('[data-mode="underlined"]').disabled).toBe(false)
+  })
+})
+
 describe('listening to an answer', () => {
   const answer = 'Primera idea [¶ s2-p1]. Segunda idea. Tercera idea.'
   let synth

@@ -61,6 +61,13 @@ const graph = () => JSON.parse(readFileSync(join(root, 'papers/sample-a/graph.js
 const note = (id) => readFileSync(join(root, `notes/${id}.md`), 'utf8')
 
 describe('the chat', () => {
+  it('answers about the underlines and keeps them with the question', async () => {
+    const attach = [{ block: 's2-p1', text: 'pasaje' }]
+    await chatEvents({ mode: 'underlined', message: 'Sobre lo subrayado', attach }, reply('COVERED\nHecho [¶ s2-p1].'))
+    expect(saved().chats[0].messages[0]).toMatchObject({ mode: 'underlined', attach })
+    expect(saved().chats[0].messages[1].text).toContain('Hecho')
+  })
+
   it('answers from the graph and saves both messages', async () => {
     const ev = await chatEvents({ mode: 'ask', message: '¿Qué valida?' }, reply('COVERED\nRevisa cada casa [¶ s2-p1].'))
     expect(ev.at(-1)).toMatchObject({ event: 'done', data: { text: 'Revisa cada casa [¶ s2-p1].', cites: ['s2-p1'], graphAdded: 0 } })

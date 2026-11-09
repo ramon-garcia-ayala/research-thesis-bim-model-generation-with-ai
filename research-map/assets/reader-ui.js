@@ -32,7 +32,8 @@ export function offsetsIn(blockEl, range) {
 
 /**
  * What `range` covers of each block inside `textEl`, in order: [{ block, start, end, text }]. A range may run across
- * blocks, begin on a section title or end at the very start of the next block, as a triple click does.
+ * blocks, out of the text, or end at the very start of the next block, as a triple click does. Going over the image of
+ * a figure takes the whole figure, its caption included, marked `image`.
  */
 export function selectionSpans(textEl, range) {
   const spans = []
@@ -40,6 +41,12 @@ export function selectionSpans(textEl, range) {
     if (!range.intersectsNode(el)) continue
     const part = el.ownerDocument.createRange()
     part.selectNodeContents(holderOf(el))
+    const img = el.tagName === 'FIGURE' ? el.querySelector('img') : null
+    if (img && range.intersectsNode(img)) {
+      const text = part.toString()
+      if (text) spans.push({ block: el.dataset.block, start: 0, end: text.length, text, image: true })
+      continue
+    }
     if (range.compareBoundaryPoints(range.START_TO_START, part) > 0) part.setStart(range.startContainer, range.startOffset)
     if (range.compareBoundaryPoints(range.END_TO_END, part) < 0) part.setEnd(range.endContainer, range.endOffset)
     const at = offsetsIn(el, part)
@@ -81,6 +88,8 @@ export const LABELS = {
     across: 'Across papers',
     explain: 'What did they mean here?',
     research: 'Research this',
+    underlined: 'About my underlines',
+    underlinedCount: 'underlines',
     quiz: 'Quiz me ▾',
     scopes: { underline: 'This underline', section: 'This section', paper: 'This paper', papers: 'Several papers' },
     placeholder: 'Ask the paper…',
@@ -134,6 +143,8 @@ export const LABELS = {
     across: 'Entre papers',
     explain: '¿Qué quiso decir aquí?',
     research: 'Investiga esto',
+    underlined: 'Sobre lo subrayado',
+    underlinedCount: 'subrayados',
     quiz: 'Hazme preguntas ▾',
     scopes: { underline: 'Este subrayado', section: 'Esta sección', paper: 'Este paper', papers: 'Varios papers' },
     placeholder: 'Pregúntale al paper…',
@@ -278,12 +289,12 @@ export function mountReader(
       ? []
       : citedNumbers(t, now.refs).map((c) => ({ start: c.start, end: c.end, id: `cite:${c.numbers.join(',')}` }))
 
-  /** The author's selection in the text, as a range; null when there is none. */
+  /** The author's selection begun in the text, as a range; null when there is none. */
   const selectedRange = () => {
     const sel = win.getSelection?.()
     if (!sel || sel.isCollapsed || !sel.rangeCount) return null
     const range = sel.getRangeAt(0)
-    return text.contains(range.commonAncestorContainer) ? range : null
+    return text.contains(sel.anchorNode) ? range : null // where the drag began: it may end anywhere
   }
 
   /** Re-draws the text of block `id` with its highlights and its citations; waits while the author is selecting in it. */
@@ -296,6 +307,7 @@ export function mountReader(
     const ranges = [...rangesOf(id), ...citesOf(b, t)]
     // An underline made in the other language cannot be placed in this text: the paragraph gets a margin mark.
     blockEl(id).classList.toggle('has-underline', (reading?.underlines ?? []).some((u) => u.block === id && u.lang !== lang))
+    blockEl(id).classList.toggle('image-underlined', (reading?.underlines ?? []).some((u) => u.block === id && u.image))
     if (!ranges.length) return void (holder.textContent = t)
     holder.innerHTML = segments(t, ranges)
       .map((r) => {
@@ -449,7 +461,7 @@ export function mountReader(
     if (b.type === 'heading') return `<h3 class="blk" ${attrs}>${t}</h3>`
     if (b.type === 'equation') return `<pre class="blk" ${attrs}>${t}</pre>`
     if (b.type === 'figure' || b.type === 'table')
-      return `<figure class="blk ${b.type}" ${attrs}><img src="${esc(imageUrl(b))}" alt="${t}" loading="lazy" /><figcaption>${t}</figcaption></figure>`
+      return `<figure class="blk ${b.type}" ${attrs}><img src="${esc(imageUrl(b))}" alt="${t}" loading="lazy" draggable="false" /><figcaption>${t}</figcaption></figure>`
     return `<p class="blk" ${attrs}>${t}</p>`
   }
 
@@ -576,7 +588,7 @@ export function mountReader(
             leaveReading()
             goTo(id)
           },
-          current: () => now && { ...now, block: firstVisible() },
+          current: () => now && { ...now, block: firstVisible(), underlines: reading?.underlines ?? [] },
           speaker,
           onVoice: () => renderVoice(),
         })
@@ -640,11 +652,10 @@ export function mountReader(
 
   // ---- Selection: a small menu over the selected text ----
 
-  function showPop() {
-    const sel = win.getSelection?.()
-    if (!sel || sel.isCollapsed || !sel.rangeCount) return void (pop.hidden = true)
-    const range = sel.getRangeAt(0)
-    const spans = text.contains(range.commonAncestorContainer) ? selectionSpans(text, range) : []
+  function showPop(e) {
+    const range = selectedRange()
+    if (!range) return void (pop.hidden = true)
+    const spans = selectionSpans(text, range)
     if (!spans.length) return void (pop.hidden = true)
     picked = { ...spans[0], text: spans.map((s) => s.text).join('\n\n'), spans }
     const acts = [
@@ -657,15 +668,106 @@ export function mountReader(
     const r = range.getBoundingClientRect?.()
     const box = el.getBoundingClientRect()
     if (r) {
+      // A long selection starts out of view: then the menu goes where the mouse was lifted, always over the text.
+      const area = text.getBoundingClientRect()
+      const y = r.top >= area.top && r.top <= area.bottom ? r.top : (e?.clientY ?? area.top + 48)
       pop.style.left = `${Math.max(8, r.left - box.left)}px`
-      pop.style.top = `${Math.max(8, r.top - box.top - 40)}px`
+      pop.style.top = `${Math.max(area.top - box.top + 8, Math.min(y - box.top - 40, area.bottom - box.top - 48))}px`
     }
     pop.hidden = false
   }
 
-  text.addEventListener('mouseup', () => showPop())
-  text.addEventListener('keyup', (e) => e.shiftKey && showPop())
+  // Anywhere: a long selection is often released outside the text, over the chat or past the edge of the panel.
+  doc.addEventListener('mouseup', (e) => {
+    endDrag()
+    if (!pop.contains(e.target)) showPop(e)
+  })
+
+  // ---- A drag from the text: the reader follows it itself ----
+  // The browser's own drag selects nothing when it starts on a gap between the lines of an underlined paragraph, stretches
+  // to the start or the end of the paper over the map or the chat, and cannot begin on an image. So it never starts: the
+  // mouse down is cancelled, and a double or triple click, which select by words or lines, are left to the browser.
+
+  let drag = null // { base: [node, offset], figure, x, y, moved, pointer: [x, y], timer }
+
+  /** The figure of an element on its image or beside it; its caption is text like any other. */
+  const imageFigure = (node) => (node?.closest?.('figcaption') ? null : (node?.closest?.('figure.blk') ?? null))
+
+  /** The point in the text's DOM under a point of the screen, as [node, offset]; null where the browser cannot say. */
+  function caretAt(x, y) {
+    const r = doc.caretRangeFromPoint?.(x, y)
+    if (r) return [r.startContainer, r.startOffset]
+    const p = doc.caretPositionFromPoint?.(x, y)
+    return p ? [p.offsetNode, p.offset] : null
+  }
+
+  /** Selects from where the drag began to the point of the text nearest to the mouse; over an image, all of it. */
+  function followDrag() {
+    const area = text.getBoundingClientRect()
+    const x = Math.min(Math.max(drag.pointer[0], area.left + 1), area.right - 1)
+    const y = Math.min(Math.max(drag.pointer[1], area.top + 1), area.bottom - 1)
+    const over = imageFigure(doc.elementFromPoint?.(x, y))
+    const at = over ? [over, 0] : caretAt(x, y)
+    if (!at || !text.contains(at[0])) return
+    const from = doc.createRange()
+    from.setStart(drag.base[0], drag.base[1])
+    from.collapse(true)
+    const forward = from.comparePoint(at[0], at[1]) >= 0
+    const base = drag.figure ? [drag.figure, forward ? 0 : 1] : drag.base
+    const focus = over ? [over, forward ? 1 : 0] : at
+    win.getSelection().setBaseAndExtent(base[0], base[1], focus[0], focus[1])
+  }
+
+  /** How far to scroll on each tick: nothing with the mouse over the text, more the further past its edge. */
+  function dragSpeed() {
+    const area = text.getBoundingClientRect()
+    const y = drag.pointer[1]
+    const past = y > area.bottom ? y - area.bottom : y < area.top ? y - area.top : 0
+    return Math.sign(past) * Math.min(40, 6 + Math.abs(past) / 3)
+  }
+
+  function endDrag() {
+    if (drag?.timer) win.clearInterval(drag.timer)
+    drag = null
+  }
+
+  text.addEventListener('mousedown', (e) => {
+    endDrag()
+    if (e.button !== 0 || e.detail > 1) return
+    const figure = imageFigure(e.target)
+    const base = figure ? [figure, 0] : caretAt(e.clientX, e.clientY)
+    if (!base || !text.contains(base[0])) return
+    e.preventDefault()
+    text.focus({ preventScroll: true }) // what the cancelled mouse down would have done
+    win.getSelection().removeAllRanges()
+    drag = { base, figure, x: e.clientX, y: e.clientY, moved: false, pointer: [e.clientX, e.clientY], timer: null }
+  })
+
+  doc.addEventListener('mousemove', (e) => {
+    if (!drag) return
+    if (e.buttons === 0) return endDrag() // let go outside the window
+    drag.pointer = [e.clientX, e.clientY]
+    if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 4) return
+    drag.moved = true
+    followDrag()
+    if (dragSpeed() && !drag.timer) {
+      drag.timer = win.setInterval(() => {
+        const speed = dragSpeed()
+        if (!speed) {
+          win.clearInterval(drag.timer)
+          drag.timer = null
+          return
+        }
+        text.scrollTop += speed
+        followDrag()
+      }, 40)
+    }
+  })
+
+  text.addEventListener('keyup', (e) => e.shiftKey && showPop(e))
   doc.addEventListener('selectionchange', () => {
+    const range = selectedRange()
+    for (const img of text.querySelectorAll('figure.blk img')) img.parentElement.classList.toggle('in-selection', Boolean(range?.intersectsNode(img)))
     for (const id of redrawLater) {
       const holder = holderOf(blockEl(id))
       if (holder && selectedRange()?.intersectsNode(holder)) continue
@@ -725,6 +827,7 @@ export function mountReader(
       reading = removeUnderline(reading, u.id)
       persist()
       renderUnderlines()
+      chat?.refresh()
       return decorate(u.block)
     }
     if (action && picked) {
@@ -742,11 +845,12 @@ export function mountReader(
         persist()
         renderUnderlines()
         picked.spans.forEach((s) => decorate(s.block))
+        chat?.refresh()
       }
       return
     }
     const mark = t.closest('.reader__text mark[data-u]')
-    if (mark && live) {
+    if (mark && live && !selectedRange()) {
       pop.innerHTML = `<button type="button" data-act="remove-underline" data-u="${esc(mark.dataset.u)}">${esc(L().removeUnderline)}</button>`
       const r = mark.getBoundingClientRect?.()
       const box = el.getBoundingClientRect()
@@ -766,7 +870,7 @@ export function mountReader(
       return goTo(go.dataset.goto)
     }
     const img = t.closest('figure.blk img')
-    if (img) {
+    if (img && !selectedRange()) {
       zoom.querySelector('img').setAttribute('src', img.getAttribute('src'))
       zoom.querySelector('img').setAttribute('alt', img.getAttribute('alt'))
       if (zoom.showModal) zoom.showModal()

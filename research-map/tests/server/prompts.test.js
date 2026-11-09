@@ -18,6 +18,35 @@ const fixture = (p) => JSON.parse(readFileSync(join(import.meta.dirname, '..', '
 const paper = fixture('papers/sample-a/paper.json')
 const graph = fixture('papers/sample-a/graph.json')
 const paperText = paper.sections[0].blocks[1].text.en // a paragraph no idea quotes
+describe('asking about the underlines', () => {
+  const asked = (over = {}) =>
+    chatPrompt({
+      thesis: { question: 'Q', hypothesis: 'H' },
+      mapTitles: {},
+      prepared: ['sample-a'],
+      history: [],
+      message: 'Sobre lo subrayado',
+      scope: null,
+      lang: 'es',
+      mode: 'underlined',
+      papers: [{ id: 'sample-a', paper, graph }],
+      underlines: [{ block: 's1-p1', text: 'guardado' }],
+      attach: [{ block: 's1-p1', text: 'pasaje' }, { block: 'fig-1', text: 'pie', image: true }],
+      ...over,
+    })
+
+  it('tells what to do when nothing in particular is asked', () => {
+    expect(asked().system).toContain('what connects')
+  })
+
+  it('lists the underlines sent, once, and says which are whole figures', () => {
+    const { prompt } = asked()
+    expect(prompt).toContain('- [s1-p1] «pasaje»')
+    expect(prompt).toContain('- [fig-1] (whole figure; you have its caption, not the image) «pie»')
+    expect(prompt).not.toContain('guardado')
+  })
+})
+
 
 const base = {
   thesis: { question: 'Can rule sets produce training data?', hypothesis: 'Rules make the dataset.' },

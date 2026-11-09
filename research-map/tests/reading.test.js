@@ -21,8 +21,12 @@ describe('the reading state', () => {
   it('leaves text without underlines whole', () => expect(segments('abc', [])).toEqual([{ text: 'abc', ids: [] }]))
 
   it('adds and removes underlines', () => {
+    const fig = addUnderline(emptyReading(), { block: 'fig-1', lang: 'es', start: 0, end: 5, text: 'Fig 1', image: true }, '2026-10-22')
+    expect(fig.underlines[0].image).toBe(true)
+    expect(validateReading(fig)).toEqual([])
     let r = addUnderline(emptyReading(), { block: 's2-p1', lang: 'es', start: 0, end: 5, text: 'Un va' }, '2026-10-22')
     r = addUnderline(r, { block: 's2-p2', lang: 'en', start: 2, end: 9, text: 'house t' }, '2026-10-22')
+    expect(r.underlines[0]).not.toHaveProperty('image')
     expect(r.underlines.map((u) => u.id)).toEqual(['u1', 'u2'])
     expect(r.underlines[0]).toEqual({ id: 'u1', block: 's2-p1', lang: 'es', start: 0, end: 5, text: 'Un va', date: '2026-10-22' })
     r = removeUnderline(r, 'u1')

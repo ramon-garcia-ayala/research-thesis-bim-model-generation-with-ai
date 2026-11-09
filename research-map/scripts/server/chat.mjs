@@ -9,7 +9,7 @@ import { indexPapers } from '../check.mjs'
 import { HttpError, loadReading, readingId, writeReading } from './api.mjs'
 import { MODELS, RESEARCH_TOOLS, chatPrompt, citesOf, nearBlocks, notePrompt, parseStatus, rereadPrompt, splitGraphAdd } from './prompts.mjs'
 
-const MODES = ['ask', 'explain', 'research', 'quiz']
+const MODES = ['ask', 'explain', 'research', 'quiz', 'underlined']
 const NOT_FOUND = {
   es: 'No encuentro esto en el paper. Prueba a preguntarlo de otra forma o con «Investiga esto».',
   en: 'I cannot find this in the paper. Try asking it another way, or with “Research this”.',

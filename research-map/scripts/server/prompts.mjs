@@ -70,6 +70,11 @@ export function chatPrompt({ mode, papers, thesis, mapTitles = {}, prepared = []
     system.push(...STATUS)
     if (mode === 'explain')
       system.push('The author attached a passage and asks what it means: explain it plainly, in the context of the paper, then ask them one question back.')
+    if (mode === 'underlined')
+      system.push(
+        'The author asks about what they underlined in this paper, listed below. Answer their question from those passages.',
+        'If they ask nothing in particular, say what connects the passages, what they add up to for the thesis, and what they leave out.',
+      )
     if (mode === 'quiz')
       system.push(
         'The author asks to be quizzed on the scope given. Write 3 open questions that make them explain, compare, or argue',
@@ -98,8 +103,12 @@ export function chatPrompt({ mode, papers, thesis, mapTitles = {}, prepared = []
       '- map.json — the map: its nodes and links',
     )
   }
-  if (underlines.length) parts.push('', 'The author’s underlines:', ...underlines.map((u) => `- [${u.block}] «${u.text}»`))
-  if (attach.length) parts.push('', 'The passage the author attached:', ...attach.map((a) => `- [${a.block}] «${a.text}»`))
+  const whole = (a) => (a.image ? ' (whole figure; you have its caption, not the image)' : '')
+  if (mode === 'underlined') parts.push('', 'The author’s underlines:', ...attach.map((a) => `- [${a.block}]${whole(a)} «${a.text}»`))
+  else {
+    if (underlines.length) parts.push('', 'The author’s underlines:', ...underlines.map((u) => `- [${u.block}] «${u.text}»`))
+    if (attach.length) parts.push('', 'The passage the author attached:', ...attach.map((a) => `- [${a.block}] «${a.text}»`))
+  }
   if (mode === 'quiz' && scope) parts.push('', `Quiz scope: ${scope.kind}${scope.ids?.length ? ` — ${scope.ids.join(', ')}` : ''}`)
   const h = historyText(history)
   if (h) parts.push('', h)

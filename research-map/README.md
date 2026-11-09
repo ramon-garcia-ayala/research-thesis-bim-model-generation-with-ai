@@ -38,10 +38,11 @@ the paper and what it links to.
 
 - **Listen**: ▶ reads the paper aloud sentence by sentence; select text for *Read from here* or *Read selection*. Edge
   has the natural voices.
-- **Underline**: select text → *Underline*. Underlines, the place you left, the language and the voice are kept in
-  `reading/<node-id>.json`.
+- **Underline**: select text → *Underline*. A selection may run across paragraphs and past the edge of the text, which
+  scrolls while the mouse stays there; going over an image takes the whole figure, with an outline. Underlines, the place
+  you left, the language and the voice are kept in `reading/<node-id>.json`.
 - **Ask**: select or underline → *Ask* puts the passage in the chat; then type, or *What did they mean here?*, *Research
-  this* (web, other papers, the notes), *Quiz me ▾* (only when you ask: this underline, section, paper or several).
+  this* (web, other papers, the notes), *About my underlines* (all of them, with your question or without one), *Quiz me ▾* (only when you ask: this underline, section, paper or several).
   Answers come from the paper's idea graph and cite paragraphs (¶ 3.2, a click scrolls there); when the graph has
   nothing, it reads the paper again and adds what it found to the graph. *Across papers* chats with several. Sonnet by
   default, Haiku to compare.
