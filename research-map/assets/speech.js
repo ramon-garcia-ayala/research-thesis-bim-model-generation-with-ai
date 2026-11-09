@@ -3,13 +3,14 @@
  * utterance at a time (which also avoids Chromium cutting long utterances off), each reported so the reader can light
  * it. Pure apart from the `synth` it is given.
  */
+import { referencesOf, withoutCitations } from './citations.js'
 import { blocksOf, sentences, textOf } from './paper.js'
 
 const SPOKEN = ['heading', 'paragraph', 'figure', 'table']
 
-/** The sentences of `text` (from character `base` of its block) as queue items. */
-const itemsOf = (block, text, base = 0) =>
-  sentences(text).map(({ start, end }) => ({ block, start: base + start, end: base + end, text: text.slice(start, end).trim() }))
+/** The sentences of `text` (from character `base` of its block) as queue items; the voice skips the citations. */
+const itemsOf = (block, text, refs, base = 0) =>
+  sentences(text).map(({ start, end }) => ({ block, start: base + start, end: base + end, text: withoutCitations(text.slice(start, end), refs).trim() }))
 
 /**
  * What to read, one item per sentence: the whole paper (`from` null), from a point on (`from` = a block and an offset
@@ -18,14 +19,15 @@ const itemsOf = (block, text, base = 0) =>
  */
 export function buildQueue(paper, lang, from = null, only = null) {
   const blocks = blocksOf(paper).filter((b) => b.section !== 'refs' && SPOKEN.includes(b.type))
+  const refs = referencesOf(paper)
   if (only) {
     const b = blocks.find((x) => x.id === only.block)
-    return b ? itemsOf(b.id, textOf(b, lang).slice(only.start, only.end), only.start) : []
+    return b ? itemsOf(b.id, textOf(b, lang).slice(only.start, only.end), refs, only.start) : []
   }
   const first = from ? Math.max(0, blocks.findIndex((b) => b.id === from.block)) : 0
   const queue = []
   blocks.slice(first).forEach((b, i) => {
-    const items = itemsOf(b.id, textOf(b, lang))
+    const items = itemsOf(b.id, textOf(b, lang), refs)
     const offset = i === 0 && from?.offset ? from.offset : 0
     queue.push(...items.filter((it) => it.end > offset))
   })

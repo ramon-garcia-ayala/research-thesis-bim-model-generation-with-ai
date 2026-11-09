@@ -318,7 +318,8 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
       chips.splice(Number(un.dataset.unchip), 1)
       return renderChips()
     }
-    const mode = t.closest('[data-mode]')
+    // Only the chat's own buttons: the reader around it has a data-mode of its own, its size.
+    const mode = t.closest('button[data-mode]')
     if (mode) return sendTurn(mode.dataset.mode, $('.chat__input').value.trim() || L()[mode.dataset.mode])
     if (t.closest('[data-quiz]')) {
       const open = $('.chat__scopes').hidden

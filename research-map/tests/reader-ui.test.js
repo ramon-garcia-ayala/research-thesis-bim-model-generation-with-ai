@@ -297,6 +297,126 @@ describe('voice', () => {
   })
 })
 
+describe('citations and following the voice', () => {
+  const cited = {
+    ...paper,
+    sections: paper.sections.map((s) =>
+      s.id === 's1'
+        ? { ...s, blocks: [{ id: 's1-p1', type: 'paragraph', page: 1, text: { en: 'Agents need houses [1, 2]. Grids help [2]. Values in [0, 1] stay.' } }, ...s.blocks.slice(1)] }
+        : s.id === 'refs'
+          ? { ...s, blocks: [{ id: 'refs-1', type: 'paragraph', page: 3, text: { en: '[1] M. Deitke. ProcTHOR. https://arxiv.org/abs/2206.06994' } }, { id: 'refs-2', type: 'paragraph', page: 3, text: { en: '[2] A. Author. A title.' } }] }
+          : s,
+    ),
+  }
+  let synth
+  let scrolled
+  const original = Element.prototype.scrollIntoView
+  beforeEach(async () => {
+    synth = fakeSynth([{ name: 'Microsoft Jenny Online (Natural) - English (United States)', lang: 'en-US' }])
+    window.speechSynthesis = synth
+    window.SpeechSynthesisUtterance = Utterance
+    scrolled = []
+    Element.prototype.scrollIntoView = function () {
+      scrolled.push(this.dataset.block)
+    }
+    document.body.innerHTML = '<main id="app"></main>'
+    root = document.getElementById('app')
+    const load = async (p) => (p.endsWith('sample-a/paper.json') ? JSON.stringify(cited) : fromDisk(p))
+    view = await start(root, { load, dir: 'tests/fixture/', index })
+    await read('sample-a')
+    view.reader.setLang('en')
+  })
+  afterEach(() => {
+    delete window.speechSynthesis
+    delete window.SpeechSynthesisUtterance
+    Element.prototype.scrollIntoView = original
+  })
+  const cite = (n) => $(`.reader__text [data-block="s1-p1"] .cite[data-cite="${n}"]`)
+  const play = () => $('[data-voice="play"]').click()
+  const nextSentence = () => synth.spoken.at(-1).onend?.()
+
+  it('makes each number of a citation a link, and leaves other brackets as text', () => {
+    expect(block('s1-p1').textContent).toBe('Agents need houses [1, 2]. Grids help [2]. Values in [0, 1] stay.')
+    expect([...block('s1-p1').querySelectorAll('.cite')].map((c) => c.textContent)).toEqual(['1', '2', '2'])
+    expect($('.reader__text [data-block="refs-1"] .cite')).toBeNull()
+  })
+
+  it('shows the reference and its link in a window, without moving the text', () => {
+    scrolled.length = 0
+    const top = $('.reader__text').scrollTop
+    cite(1).click()
+    const box = $('.reader__ref')
+    expect(box.hidden).toBe(false)
+    expect(box.textContent).toContain('M. Deitke. ProcTHOR.')
+    expect(box.querySelector('a').getAttribute('href')).toBe('https://arxiv.org/abs/2206.06994')
+    expect(box.querySelector('a').getAttribute('target')).toBe('_blank')
+    expect($('.reader__text').scrollTop).toBe(top)
+    expect(scrolled).toEqual([])
+  })
+
+  it('offers a search when the reference has no link', () => {
+    cite(2).click()
+    expect($('.reader__ref a').getAttribute('href')).toContain('scholar.google.com')
+  })
+
+  it('closes the window from its button, by clicking outside and with Esc, before the reader', () => {
+    cite(1).click()
+    $('.reader__ref-close').click()
+    expect($('.reader__ref').hidden).toBe(true)
+    cite(1).click()
+    document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+    expect($('.reader__ref').hidden).toBe(true)
+    cite(1).click()
+    expect(view.reader.escape()).toBe(true)
+    expect($('.reader__ref').hidden).toBe(true)
+    expect(view.reader.isOpen()).toBe(true)
+  })
+
+  it('does not say the citations', () => {
+    play()
+    expect(synth.spoken.map((u) => u.text).join(' ')).not.toMatch(/\[\s*\d/)
+  })
+
+  it('follows the voice until the reader scrolls by hand, then offers the way back', () => {
+    $('.reader__text').scrollTop = 0
+    play()
+    expect(scrolled.length).toBeGreaterThan(0)
+    expect($('.reader__resume').hidden).toBe(true)
+    scrolled.length = 0
+    $('.reader__text').dispatchEvent(new Event('wheel', { bubbles: true }))
+    expect($('.reader__resume').hidden).toBe(false)
+    nextSentence()
+    expect(scrolled).toEqual([])
+    const at = view.reader.element.querySelector('.speaking').closest('[data-block]').dataset.block
+    $('.reader__resume').click()
+    expect(scrolled).toEqual([at])
+    expect($('.reader__resume').hidden).toBe(true)
+    scrolled.length = 0
+    nextSentence()
+    expect(scrolled.length).toBe(1)
+  })
+
+  it('a scroll made by the voice itself keeps following, and stopping hides the way back', () => {
+    play()
+    scrolled.length = 0
+    $('.reader__text').dispatchEvent(new Event('scroll'))
+    nextSentence()
+    expect(scrolled.length).toBe(1)
+    $('.reader__text').dispatchEvent(new Event('wheel', { bubbles: true }))
+    $('[data-voice="stop"]').click()
+    expect($('.reader__resume').hidden).toBe(true)
+  })
+
+  it('scrolling with the voice stopped offers nothing, and playing again follows', () => {
+    $('.reader__text').dispatchEvent(new Event('wheel', { bubbles: true }))
+    expect($('.reader__resume').hidden).toBe(true)
+    play()
+    $('.reader__text').dispatchEvent(new Event('wheel', { bubbles: true }))
+    play()
+    expect($('.reader__resume').hidden).toBe(true)
+  })
+})
+
 describe('underlines and the remembered place', () => {
   let client
   /** A fake client of the local server; `reading` is what it has stored for the paper. */

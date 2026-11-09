@@ -151,6 +151,17 @@ describe('listening to an answer', () => {
 describe('the chat', () => {
   it('sends nothing on its own', () => expect(client.chat).not.toHaveBeenCalled())
 
+  it('a click in the chat sends nothing, inside a reader that has its own data-mode', async () => {
+    const reader = document.createElement('section')
+    reader.dataset.mode = 'full'
+    el.replaceWith(reader)
+    reader.append(el)
+    $('.chat__input').click()
+    el.click()
+    await Promise.resolve()
+    expect(client.chat).not.toHaveBeenCalled()
+  })
+
   it('asks a free question about this paper with Sonnet', async () => {
     await send('¿Qué valida?')
     expect(client.chat.mock.calls[0][0]).toMatchObject({ conv: 'sample-a', papers: ['sample-a'], mode: 'ask', message: '¿Qué valida?', lang: 'es', model: 'sonnet', attach: [] })

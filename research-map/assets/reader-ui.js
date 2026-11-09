@@ -5,6 +5,7 @@
  * (`client`); without it the reader still shows the text and the figures.
  */
 import { mountChat } from './chat-ui.js'
+import { citedNumbers, referencesOf } from './citations.js'
 import { blocksOf, paraLabel, textOf } from './paper.js'
 import { addUnderline, emptyReading, removeUnderline, segments } from './reading.js'
 import { buildQueue, createSpeaker } from './speech.js'
@@ -79,6 +80,10 @@ export const LABELS = {
     noAnswer: 'The answer stopped before it ended.',
     notSaved: 'Could not save your reading:',
     voiceHint: 'This browser offers no natural voice: open the map in Microsoft Edge to listen with its natural voices.',
+    backToReading: '↩ Back to the reading',
+    openReference: 'Open the link ↗',
+    searchReference: 'Search on Google Scholar ↗',
+    closeReference: 'Close the reference',
   },
   es: {
     papers: 'Papers',
@@ -128,6 +133,10 @@ export const LABELS = {
     noAnswer: 'La respuesta se cortó antes de terminar.',
     notSaved: 'No se pudo guardar tu lectura:',
     voiceHint: 'Este navegador no ofrece voces naturales: abre el mapa en Microsoft Edge para escucharlo con sus voces naturales.',
+    backToReading: '↩ Regresar a la lectura',
+    openReference: 'Abrir el enlace ↗',
+    searchReference: 'Buscar en Google Scholar ↗',
+    closeReference: 'Cerrar la referencia',
   },
 }
 
@@ -168,6 +177,7 @@ export function mountReader(
   let pending = Promise.resolve()
   let speaking = null // the sentence being read: { block, start, end }
   let picked = null // the selection the menu acts on: { block, start, end, text }
+  let following = true // the text moves with the voice, until the author scrolls away by hand
   // The local server, once it answers (null without it); the reading of the open paper (underlines, place, voice).
   let live = null
   let reading = null
@@ -218,8 +228,10 @@ export function mountReader(
         <button type="button" class="reader__chat-toggle" aria-expanded="true" hidden></button>
         <div class="reader__chat" hidden></div>
       </div>
+      <button type="button" class="reader__resume" hidden></button>
     </div>
     <div class="reader__pop" hidden></div>
+    <div class="reader__ref" role="dialog" hidden></div>
     <dialog class="reader__zoom"><img alt="" /><button type="button" class="reader__zoom-close">×</button></dialog>`
   root.append(el)
   const $ = (sel) => el.querySelector(sel)
@@ -227,6 +239,8 @@ export function mountReader(
   const side = $('.reader__side')
   const pop = $('.reader__pop')
   const zoom = $('.reader__zoom')
+  const refBox = $('.reader__ref')
+  const resume = $('.reader__resume')
 
   const imageUrl = (b) => `${base}papers/${now.nodeId}/${b.image}`
   const blockEl = (id) => text.querySelector(`[data-block="${CSS.escape(id)}"]`)
@@ -238,21 +252,29 @@ export function mountReader(
     ...(speaking?.block === id ? [{ start: speaking.start, end: speaking.end, id: 'speaking' }] : []),
   ]
 
-  /** Re-draws the text of block `id` with its highlights. */
+  /** The bibliography numbers in the text of block `b`, as ranges; none in the references themselves. */
+  const citesOf = (b, t) =>
+    b.section === 'refs' || b.type === 'heading' || b.type === 'equation'
+      ? []
+      : citedNumbers(t, now.refs).map((c) => ({ start: c.start, end: c.end, id: `cite:${c.numbers.join(',')}` }))
+
+  /** Re-draws the text of block `id` with its highlights and its citations. */
   function decorate(id) {
     const b = now && blockById(id)
     const holder = holderOf(blockEl(id))
     if (!b || !holder) return
     const t = textOf(b, lang)
-    const ranges = rangesOf(id)
+    const ranges = [...rangesOf(id), ...citesOf(b, t)]
     // An underline made in the other language cannot be placed in this text: the paragraph gets a margin mark.
     blockEl(id).classList.toggle('has-underline', (reading?.underlines ?? []).some((u) => u.block === id && u.lang !== lang))
     if (!ranges.length) return void (holder.textContent = t)
     holder.innerHTML = segments(t, ranges)
       .map((r) => {
         let html = esc(r.text)
+        const cite = r.ids.find((x) => x.startsWith('cite:'))
+        if (cite) html = `<span class="cite" role="button" tabindex="0" data-cite="${esc(cite.slice(5))}">${html}</span>`
         if (r.ids.includes('speaking')) html = `<span class="speaking">${html}</span>`
-        const u = r.ids.find((x) => x !== 'speaking')
+        const u = r.ids.find((x) => x !== 'speaking' && !x.startsWith('cite:'))
         return u ? `<mark data-u="${esc(u)}">${html}</mark>` : html
       })
       .join('')
@@ -273,7 +295,7 @@ export function mountReader(
           if (before) decorate(before.block)
           if (item) {
             decorate(item.block)
-            blockEl(item.block)?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+            if (following) blockEl(item.block)?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
             persist({ position: { block: item.block, sentence: 0 } })
           }
           renderVoice()
@@ -305,7 +327,58 @@ export function mountReader(
           : ''
       }`
     for (const b of bar.querySelectorAll('[data-voice="pause"], [data-voice="stop"], [data-voice="prev"], [data-voice="next"]')) b.disabled = state === 'idle'
+    renderResume()
     chat?.refreshVoice()
+  }
+
+  /** The way back to the sentence being read: only while the author reads somewhere else. */
+  function renderResume() {
+    resume.hidden = following || !speaking || speaker?.state() === 'idle'
+    if (resume.hidden) return
+    resume.textContent = L().backToReading
+    // Over the bottom of the text itself: in half mode the chat lies below it, in the same body.
+    resume.style.left = `${text.offsetLeft + text.clientWidth / 2}px`
+    resume.style.top = `${text.offsetTop + text.clientHeight - 52}px`
+  }
+
+  /** The author moved the text: the voice goes on, the text stays where they left it. */
+  function leaveReading() {
+    if (!speaking) return
+    following = false
+    renderResume()
+  }
+
+  function backToReading() {
+    following = true
+    if (speaking) blockEl(speaking.block)?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+    renderResume()
+  }
+
+  /** The reference of a citation number in a small window by the number; the text does not move. */
+  function showReference(cite) {
+    const items = cite.dataset.cite
+      .split(',')
+      .map(Number)
+      .map((n) => ({ n, ref: now.refs.get(n) }))
+      .filter((x) => x.ref)
+    if (!items.length) return
+    refBox.innerHTML = `
+      <button type="button" class="reader__ref-close" aria-label="${esc(L().closeReference)}" title="${esc(L().closeReference)}">×</button>
+      ${items
+        .map(({ n, ref }) => {
+          const href = ref.url ?? `https://scholar.google.com/scholar?q=${encodeURIComponent(ref.text)}`
+          const label = ref.url ? L().openReference : L().searchReference
+          return `<p><b>[${n}]</b> ${esc(ref.text)}</p><a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>`
+        })
+        .join('')}`
+    refBox.hidden = false
+    const r = cite.getBoundingClientRect()
+    const box = el.getBoundingClientRect()
+    const width = refBox.offsetWidth || 360
+    const height = refBox.offsetHeight || 120
+    refBox.style.left = `${Math.max(8, Math.min(r.left - box.left, box.width - width - 8))}px`
+    const below = r.bottom - box.top + 6
+    refBox.style.top = `${below + height > box.height - 8 ? Math.max(8, r.top - box.top - height - 6) : below}px`
   }
 
   /** Says once, when the browser has no natural voice for the language, that Edge has them. */
@@ -321,6 +394,7 @@ export function mountReader(
 
   function speakFrom(from, only = null) {
     if (!speaker || !now) return
+    following = true
     speaker.setLang(lang)
     speaker.play(buildQueue(now.paper, lang, from, only))
   }
@@ -336,7 +410,8 @@ export function mountReader(
       )
       .join('')
     for (const img of text.querySelectorAll('figure.blk img')) img.addEventListener('error', () => missing(img))
-    for (const id of new Set([...(reading?.underlines ?? []).map((u) => u.block), ...(speaking ? [speaking.block] : [])])) decorate(id)
+    const cited = now.refs.size ? blocksOf(paper).filter((b) => citesOf(b, textOf(b, lang)).length).map((b) => b.id) : []
+    for (const id of new Set([...(reading?.underlines ?? []).map((u) => u.block), ...(speaking ? [speaking.block] : []), ...cited])) decorate(id)
   }
 
   function blockHtml(paper, b) {
@@ -469,13 +544,16 @@ export function mountReader(
           lang,
           onCite: (id) => {
             el.classList.remove('chat-open')
+            leaveReading()
             goTo(id)
           },
           current: () => now && { ...now, block: firstVisible() },
           speaker,
           onVoice: () => renderVoice(),
         })
-      now = { nodeId, paper }
+      now = { nodeId, paper, refs: referencesOf(paper) }
+      following = true
+      refBox.hidden = true
       chat?.setLang(lang)
       chat?.setConversation(nodeId, reading)
       render()
@@ -496,6 +574,7 @@ export function mountReader(
     el.hidden = true
     now = null
     pop.hidden = true
+    refBox.hidden = true
     closeZoom()
     onLit(null)
   }
@@ -560,6 +639,22 @@ export function mountReader(
   text.addEventListener('keyup', (e) => e.shiftKey && showPop())
   doc.addEventListener('mousedown', (e) => {
     if (!pop.contains(e.target)) pop.hidden = true
+    if (!refBox.contains(e.target) && !e.target.closest?.('.cite')) refBox.hidden = true
+  })
+
+  // Moving the text by hand, not the scrolls the voice makes: the wheel, a finger, the keys and the scrollbar.
+  const SCROLL_KEYS = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']
+  text.addEventListener('wheel', () => leaveReading(), { passive: true })
+  text.addEventListener('touchmove', () => leaveReading(), { passive: true })
+  text.addEventListener('keydown', (e) => {
+    if (e.target.closest?.('.cite') && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault()
+      return showReference(e.target.closest('.cite'))
+    }
+    if (SCROLL_KEYS.includes(e.key)) leaveReading()
+  })
+  text.addEventListener('mousedown', (e) => {
+    if (e.target === text && e.offsetX >= text.clientWidth) leaveReading()
   })
 
   // ---- Wiring ----
@@ -567,6 +662,10 @@ export function mountReader(
   el.addEventListener('click', (e) => {
     const t = e.target
     if (t.closest('.reader__close')) return close()
+    if (t.closest('.reader__ref-close')) return void (refBox.hidden = true)
+    if (t.closest('.reader__resume')) return backToReading()
+    const cited = t.closest('.reader__text .cite')
+    if (cited) return showReference(cited)
     const l = t.closest('.reader__lang')
     if (l) return setLang(l.dataset.lang)
     if (t.closest('.reader__mode')) return setMode(effectiveMode() === 'half' ? 'full' : 'half')
@@ -576,7 +675,10 @@ export function mountReader(
       if (act === 'play') speakFrom(firstVisible() ? { block: firstVisible() } : null)
       else if (act === 'pause') speaker.state() === 'paused' ? speaker.resume() : speaker.pause()
       else if (act === 'stop') speaker.stop()
-      else speaker.skip(act === 'next' ? 1 : -1)
+      else {
+        following = true
+        speaker.skip(act === 'next' ? 1 : -1)
+      }
       return renderVoice()
     }
     const action = t.closest('.reader__pop [data-act]')
@@ -624,6 +726,7 @@ export function mountReader(
     const go = t.closest('[data-goto]')
     if (go) {
       el.classList.remove('side-open')
+      leaveReading()
       return goTo(go.dataset.goto)
     }
     const img = t.closest('figure.blk img')
@@ -687,6 +790,10 @@ export function mountReader(
     current: () => now,
     /** Esc: closes an enlarged figure first, then the reader; false when there was nothing to close. */
     escape() {
+      if (!refBox.hidden) {
+        refBox.hidden = true
+        return true
+      }
       if (zoom.open) {
         closeZoom()
         return true
