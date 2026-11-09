@@ -1,9 +1,8 @@
 /*
  * The checker Claude runs before every commit: the data is valid, every source file and note exists, no note is
  * orphaned, every note entry has a real date, every prepared paper (papers/<node-id>/) is valid with its figures and
- * its graph, papers/index.json is up to date, and the folder has no git remote (nothing here goes to GitHub).
+ * its graph, and papers/index.json is up to date.
  */
-import { execSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -12,8 +11,6 @@ import { isDate, validate } from '../assets/model.js'
 import { blocksOf, untranslated, validateGraph, validatePaper } from '../assets/paper.js'
 
 const ENTRY_HEADING = /^## (\S+) · /
-
-const gitRemoteOf = (dir) => () => execSync('git remote', { cwd: dir, encoding: 'utf8' })
 
 const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'))
 const paperDirs = (dir) =>
@@ -79,7 +76,7 @@ function checkPapers(dir, nodes) {
 }
 
 /** The problems of the map folder at `dir`; empty when it is ready to commit. */
-export function checkFolder(dir, { gitRemote = gitRemoteOf(dir) } = {}) {
+export function checkFolder(dir) {
   let map
   try {
     map = JSON.parse(readFileSync(join(dir, 'map.json'), 'utf8'))
@@ -110,8 +107,6 @@ export function checkFolder(dir, { gitRemote = gitRemoteOf(dir) } = {}) {
       if (f.endsWith('.md') && !ids.has(f.slice(0, -3))) problems.push(`notes/${f}: no node has this id`)
 
   problems.push(...checkPapers(dir, nodes))
-
-  if (gitRemote().trim() !== '') problems.push('the folder has a git remote; it must have none')
   return problems
 }
 

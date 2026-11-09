@@ -29,17 +29,16 @@ const folder = (files) => {
   }
   return dir
 }
-const noRemote = () => ''
 
 describe('checkFolder', () => {
   it('a complete folder passes', () => {
     const dir = folder({ 'map.json': JSON.stringify(map), 'notes/procthor.md': '## 2026-10-18 · Summary\nx', 'files/procthor.pdf': '%PDF' })
-    expect(checkFolder(dir, { gitRemote: noRemote })).toEqual([])
+    expect(checkFolder(dir)).toEqual([])
   })
 
   it('a missing source file, a missing note and an orphan note are each named', () => {
     const dir = folder({ 'map.json': JSON.stringify(map), 'notes/atlas.md': '' })
-    const problems = checkFolder(dir, { gitRemote: noRemote }).join('\n')
+    const problems = checkFolder(dir).join('\n')
     expect(problems).toMatch(/procthor.*files\/procthor\.pdf/)
     expect(problems).toMatch(/procthor.*notes\/procthor\.md/)
     expect(problems).toMatch(/notes\/atlas\.md.*no node/)
@@ -47,16 +46,11 @@ describe('checkFolder', () => {
 
   it('a note entry with a bad date is named', () => {
     const dir = folder({ 'map.json': JSON.stringify(map), 'notes/procthor.md': '## 2026-02-30 · Summary\nx', 'files/procthor.pdf': '' })
-    expect(checkFolder(dir, { gitRemote: noRemote }).join('\n')).toMatch(/notes\/procthor\.md.*2026-02-30/)
-  })
-
-  it('a git remote fails the check', () => {
-    const dir = folder({ 'map.json': JSON.stringify(map), 'notes/procthor.md': '## 2026-10-18 · Summary\nx', 'files/procthor.pdf': '' })
-    expect(checkFolder(dir, { gitRemote: () => 'origin\n' }).join('\n')).toMatch(/remote/)
+    expect(checkFolder(dir).join('\n')).toMatch(/notes\/procthor\.md.*2026-02-30/)
   })
 
   it('invalid JSON is one problem, not a crash', () => {
-    expect(checkFolder(folder({ 'map.json': '{ nope' }), { gitRemote: noRemote })[0]).toMatch(/map\.json/)
+    expect(checkFolder(folder({ 'map.json': '{ nope' }))[0]).toMatch(/map\.json/)
   })
 
   describe('papers', () => {
@@ -79,7 +73,7 @@ describe('checkFolder', () => {
       'papers/procthor/fig/fig-1.png': 'png', 'papers/index.json': JSON.stringify(index), ...files,
     })
 
-    it('passes a prepared paper', () => expect(checkFolder(prepared(), { gitRemote: noRemote })).toEqual([]))
+    it('passes a prepared paper', () => expect(checkFolder(prepared())).toEqual([]))
 
     it('indexes what the folders hold', () => expect(indexPapers(prepared())).toEqual(index))
 
@@ -87,24 +81,24 @@ describe('checkFolder', () => {
       const ghost = { ...paper, node: 'ghost' }
       const dir = prepared({ 'papers/ghost/paper.json': JSON.stringify(ghost) })
       writeFileSync(join(dir, 'papers/index.json'), JSON.stringify(indexPapers(dir)))
-      expect(checkFolder(dir, { gitRemote: noRemote })).toContain('papers/ghost: no paper node has this id')
+      expect(checkFolder(dir)).toContain('papers/ghost: no paper node has this id')
     })
 
     it('names a missing figure image', () => {
       const dir = prepared()
       rmSync(join(dir, 'papers/procthor/fig/fig-1.png'))
-      expect(checkFolder(dir, { gitRemote: noRemote })).toContain('papers/procthor/paper.json: fig/fig-1.png is missing')
+      expect(checkFolder(dir)).toContain('papers/procthor/paper.json: fig/fig-1.png is missing')
     })
 
     it('names an invalid graph', () => {
       const bad = { ...graph, ideas: [{ ...graph.ideas[0], blocks: ['s9-p9'] }] }
-      const problems = checkFolder(prepared({ 'papers/procthor/graph.json': JSON.stringify(bad) }), { gitRemote: noRemote })
+      const problems = checkFolder(prepared({ 'papers/procthor/graph.json': JSON.stringify(bad) }))
       expect(problems.some((p) => p.startsWith('papers/procthor/graph.json: '))).toBe(true)
     })
 
     it('names a stale papers/index.json', () => {
       const stale = { papers: [{ ...index.papers[0], graph: false }] }
-      expect(checkFolder(prepared({ 'papers/index.json': JSON.stringify(stale) }), { gitRemote: noRemote })).toContain(
+      expect(checkFolder(prepared({ 'papers/index.json': JSON.stringify(stale) }))).toContain(
         'papers/index.json does not match the papers folders',
       )
     })

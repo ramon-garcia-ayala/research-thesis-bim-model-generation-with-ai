@@ -20,7 +20,7 @@ const dimmed = (id) => card(id).classList.contains('dim')
 
 describe('the viewer', () => {
   it('the fixture is a valid map folder', () => {
-    expect(checkFolder(FIXTURE, { gitRemote: () => '' })).toEqual([])
+    expect(checkFolder(FIXTURE)).toEqual([])
   })
 
   it('draws the centre, every group and node, and every link', () => {

@@ -68,7 +68,7 @@ Claude runs `npm run check` (and `npm test` when code changed) and commits.
 - `sources/` — raw reading notes the nodes were written from.
 - `assets/` — the viewer (`model.js`, `notes.js`, `layout.js` are pure and tested; `view.js` draws).
 - `scripts/check.mjs` — the checker: valid data, every file and note present, every prepared paper and its graph valid,
-  `papers/index.json` up to date, no git remote.
+  `papers/index.json` up to date.
 - `papers/<node-id>/` — a prepared paper: `paper.json` (text in blocks, English and Spanish), `fig/` (its figures and
   tables), `graph.json` (its main ideas), `overrides.json` (fixes for the preparation). `reading/` — your reading state.
 - `scripts/papers/` — preparing papers; `scripts/serve.mjs` and `scripts/server/` — the local server; `assets/reader-ui.js`,
