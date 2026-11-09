@@ -14,7 +14,7 @@ import { sameNumbers } from './numbers.mjs'
 
 export { untranslated }
 
-const MODEL = { model: 'claude-sonnet-5-5', effort: 'medium', tools: [] }
+const MODEL = { model: 'claude-sonnet-5-5', effort: process.env.PAPER_EFFORT || 'medium', tools: [] }
 const TYPES = ['paragraph', 'heading', 'figure', 'table']
 const words = (t) => t.split(/\s+/).filter(Boolean).length
 

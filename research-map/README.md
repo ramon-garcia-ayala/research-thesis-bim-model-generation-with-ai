@@ -53,7 +53,8 @@ figures and voice only.
 
 Preparing a paper (Claude does it, once per paper): `npm run paper:prepare -- <id>` (text and figure crops from the PDF;
 `papers/<id>/overrides.json` fixes crops and stray lines), `npm run paper:translate -- <id>` (Spanish, numbers checked),
-`npm run paper:graph -- <id>` (the idea graph, Sonnet 5.5 at xhigh).
+`npm run paper:graph -- <id>` (the idea graph, Sonnet 5.5 at xhigh). Set `PAPER_EFFORT` (e.g. `high`) to run the last two
+at another effort.
 
 ## The rule
 

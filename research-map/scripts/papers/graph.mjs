@@ -15,7 +15,7 @@ import { extractJson } from '../lib/json.mjs'
 
 export { extractJson }
 
-const MODEL = { model: 'claude-sonnet-5-5', effort: 'xhigh', tools: [] }
+const MODEL = { model: 'claude-sonnet-5-5', effort: process.env.PAPER_EFFORT || 'xhigh', tools: [] }
 const latest = (versions) => versions?.at(-1)?.text ?? ''
 const today = () => new Date().toISOString().slice(0, 10)
 

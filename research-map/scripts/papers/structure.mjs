@@ -2,13 +2,14 @@
  * From a PDF dump (scripts/papers/pdf_dump.py) to a paper.json: clean text in reading order, sections, paragraphs,
  * and the figures and tables located by their captions, with the page regions to crop for them. Pure: no files.
  */
+import { dottedCuts } from '../../assets/citations.js'
 
 const ARXIV = /^arXiv:\d{4}\.\d{4,5}/
 const PAGE_NUMBER = /^\d{1,4}$/
 const EDGE = 0.13 // top and bottom share of the page where running heads and feet live
 const NEAR = 12 // pt: a label this close to a figure's drawings belongs to the figure
 const NUMBERED = /^(\d+(?:\.\d+)*|[IVX]+|[A-Z](?:\.\d+)*)\.?\s+\S/
-const REFERENCES = /^(?:\d+\.?\s*)?(?:References|Bibliography)$/i
+const REFERENCES = /^(?:\d+\.?\s*)?(?:References?|Bibliography)$/i
 const SUBCAPTION = /^\([a-z]\)\s/ // "(a) Examples of assets…": part of the figure above it
 const CONTENTS_LINE = /^(?:[A-Z]|\d+)(?:\.\d+)*\.?\s+\S.*?(?:\s*\.)*\s+\d{1,3}$/
 
@@ -129,6 +130,9 @@ const isHeading = (b, body, flat = false) => {
   const t = textOfBlock(b)
   if (t.length > 120 || b.lines.length > 3 || captionOf(t)) return false
   if (b.lines.every((l) => l.size >= 1.15 * body)) return true
+  // IEEE sets its sections in small capitals that are not bold: "II. RELATED WORK".
+  if (/^[IVX]+\.\s+\p{Lu}[\p{Lu}\s&,-]+$/u.test(t)) return true
+  if (REFERENCES.test(t) && t === t.toUpperCase()) return true
   if (!b.lines.every((l) => l.bold)) return false
   return NUMBERED.test(t) || (flat && (REFERENCES.test(t) || (t.length <= 40 && /^\p{Lu}/u.test(t))))
 }
@@ -210,6 +214,54 @@ const splitNumbered = (b) =>
     ? b.lines.map((l) => ({ bbox: l.bbox ?? b.bbox, lines: [l] }))
     : [b]
 
+/** Is this bold line a heading over running text: numbered ("2.1 Dataset") or in capitals ("RELATED WORK")? */
+const boldHeadingLine = (l, next) => {
+  const t = l.text.trim()
+  if (!l.bold || t.length > 70 || t.endsWith(':')) return false
+  const numbered = /^\d+(\.\d+)*\.?\s+\p{Lu}/u.test(t)
+  const capitals = /^\p{Lu}[\p{Lu}\s&,-]{3,}$/u.test(t)
+  if (!numbered && !capitals) return false
+  // Text must follow: another heading or a long line of prose, not the cells of a table.
+  return Boolean(next) && (next.bold || next.text.trim().length >= 30)
+}
+
+/**
+ * A bold heading inside a block of running text ("2.1" and "Autocompletion" in bold, then the paragraph): the block is
+ * cut around it, so the heading stands alone. A bold number whose next line is not bold is a table's total.
+ */
+const splitRunIn = (b) => {
+  const out = []
+  let cur = []
+  const flush = () => {
+    if (cur.length) out.push({ ...b, bbox: unionBox(cur.map((l) => l.bbox ?? b.bbox)), lines: cur })
+    cur = []
+  }
+  for (let i = 0; i < b.lines.length; i++) {
+    const l = b.lines[i]
+    const next = b.lines[i + 1]
+    const number = l.bold && /^\d+(\.\d+)*\.?$/.test(l.text.trim()) && next?.bold && /^\p{Lu}/u.test(next.text.trim())
+    if (number) {
+      flush()
+      cur = [l, next]
+      i++
+      flush()
+    } else if (boldHeadingLine(l, next)) {
+      flush()
+      cur = [l]
+      flush()
+    } else cur.push(l)
+  }
+  flush()
+  return out.length > 1 ? out : [b]
+}
+
+const unionBox = (boxes) => [
+  Math.min(...boxes.map((r) => r[0])),
+  Math.min(...boxes.map((r) => r[1])),
+  Math.max(...boxes.map((r) => r[2])),
+  Math.max(...boxes.map((r) => r[3])),
+]
+
 const slug = (t) => t.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'back'
 
 const romanValue = (s) => {
@@ -233,7 +285,8 @@ export function structure(raw, { node, title, source, overrides = {} }) {
       .filter((b) => !regions.some((r) => r.page === p.n && inside(b.bbox, r.bbox, 0)))
       .map((b) => ({ ...b, lines: b.lines.filter((l) => !drop.some((r) => r.test(l.text.trim()))) }))
       .filter((b) => b.lines.length > 0 && /[\p{L}\p{N}]/u.test(textOfBlock(b)))
-      .flatMap(splitNumbered),
+      .flatMap(splitNumbered)
+      .flatMap(splitRunIn),
   }))
   const body = bodySize(pages.flatMap((p) => p.blocks))
   // One column or two: most running text spanning the page means one (then a short caption at the left is not a column).
@@ -334,7 +387,8 @@ export function structure(raw, { node, title, source, overrides = {} }) {
 
 /** Numbered references ("[12] …") split one per block, whatever the PDF's text blocks were. */
 function splitReferences(refs) {
-  if (!refs || !refs.blocks.some((b) => /\[\d+\]\s/.test(b.text.en))) return
+  if (!refs) return
+  if (!refs.blocks.some((b) => /\[\d+\]\s/.test(b.text.en))) return splitDottedReferences(refs)
   const items = []
   for (const b of refs.blocks)
     b.text.en.split(/(?=\[\d+\]\s)/).forEach((part, i) => {
@@ -344,4 +398,23 @@ function splitReferences(refs) {
       else items.push({ text: t, page: b.page })
     })
   refs.blocks = items.map((it, i) => ({ id: `refs-${i + 1}`, type: 'paragraph', page: it.page, text: { en: it.text } }))
+}
+
+/** References numbered "1. …", cut in sequence: "2. " only starts a reference after "1. " and before "3. ". */
+function splitDottedReferences(refs) {
+  if (!/^1\.\s/.test(refs.blocks[0]?.text.en ?? '')) return
+  const pageOf = []
+  let text = ''
+  for (const b of refs.blocks) {
+    pageOf.push({ from: text.length, page: b.page })
+    text = joinLines([text, b.text.en])
+  }
+  const cuts = dottedCuts(text)
+  if (cuts.length < 2) return
+  refs.blocks = cuts.map((from, i) => ({
+    id: `refs-${i + 1}`,
+    type: 'paragraph',
+    page: pageOf.findLast((p) => p.from <= from).page,
+    text: { en: text.slice(from, cuts[i + 1] ?? text.length).trim() },
+  }))
 }

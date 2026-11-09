@@ -254,6 +254,59 @@ describe('structure', () => {
     expect(s[0].blocks[0].text.en).toBe('3.1. Procedure')
   })
 
+  it('cuts a numbered bold heading out of the running text around it', () => {
+    const b = blk([40, 60, 290, 200], '1\nIntroduction\nBuildings are complex and this line goes on for a good while.\n1.1\nScope\nThe scope is narrow and this line goes on for a good while too.', 12, false)
+    for (const i of [0, 1, 3, 4]) b.lines[i].bold = true
+    for (const i of [2, 5]) b.lines[i].size = 10
+    b.lines[3].size = b.lines[4].size = 10
+    const doc = { pages: [page(1, [b, prose([40, 210, 290, 300], 'More text here. It'), blk([300, 760, 310, 770], '1')])] }
+    const [s] = structure(doc, opts).paper.sections
+    expect(s.title.en).toBe('1 Introduction')
+    expect(s.blocks[0].text.en).toMatch(/^Buildings are complex/)
+    expect(s.blocks[1]).toMatchObject({ type: 'heading', text: { en: '1.1 Scope' } })
+    expect(s.blocks[2].text.en).toMatch(/^The scope is narrow/)
+  })
+
+  it('cuts a one-line bold heading, numbered or in capitals, out of its paragraph', () => {
+    const long = 'The text of this paragraph goes on for a good while here.'
+    const b = blk([40, 60, 290, 200], `1. INTRODUCTION\n${long}\n1.1 Scope\n${long}`, 10, false)
+    b.lines[0].bold = b.lines[2].bold = true
+    const caps = blk([40, 210, 290, 300], `RELATED WORK\n${long}`, 10, false)
+    caps.lines[0].bold = true
+    const doc = { pages: [page(1, [b, caps, prose([40, 310, 290, 400], 'More text. It'), blk([300, 760, 310, 770], '1')])] }
+    const s = structure(doc, opts).paper.sections
+    expect(s[0].title.en).toBe('1. INTRODUCTION')
+    expect(s[0].blocks.map((x) => x.type)).toEqual(expect.arrayContaining(['heading', 'paragraph']))
+    expect(s[0].blocks.find((x) => x.type === 'heading').text.en).toBe('1.1 Scope')
+    expect(s[0].blocks.flatMap((x) => x.text.en).join(' ')).toContain('RELATED WORK')
+  })
+
+  it('leaves bold capitals in a table alone, and a label ending in a colon', () => {
+    const table = blk([40, 60, 290, 120], 'TOTAL\n12\nABSTRACT:\nThe text of this paragraph goes on for a good while here.', 10, false)
+    table.lines[0].bold = table.lines[2].bold = true
+    const doc = { pages: [page(1, [blk([40, 40, 290, 55], '1 Results', 12, true), table, prose([40, 130, 290, 220], 'More text. It'), blk([300, 760, 310, 770], '1')])] }
+    expect(structure(doc, opts).paper.sections[0].blocks[0].text.en).toMatch(/^TOTAL 12 ABSTRACT:/)
+  })
+
+  it('takes a section in IEEE small capitals as a heading, though it is not bold', () => {
+    const doc = { pages: [page(1, [blk([40, 40, 290, 55], 'I. INTRODUCTION', 10, false), prose([40, 60, 290, 150], 'Text here. It'), blk([40, 160, 290, 175], 'II. RELATED WORK', 10, false), prose([40, 180, 290, 270], 'More text. It'), blk([300, 760, 310, 770], '1')])] }
+    expect(structure(doc, opts).paper.sections.map((s) => s.title.en)).toEqual(['I. INTRODUCTION', 'II. RELATED WORK'])
+  })
+
+  it('keeps a bold number that is not a heading inside its block', () => {
+    const b = blk([40, 60, 290, 120], 'Total\n1.869.013\nrBFS', 10, false)
+    b.lines[1].bold = true
+    const doc = { pages: [page(1, [blk([40, 40, 290, 55], '1 Results', 12, true), b, prose([40, 130, 290, 220], 'More text here. It'), blk([300, 760, 310, 770], '1')])] }
+    expect(structure(doc, opts).paper.sections[0].blocks[0].text.en).toBe('Total 1.869.013 rBFS')
+  })
+
+  it('splits references numbered "1." one per block, in sequence', () => {
+    const refs = [blk([40, 40, 290, 55], 'References', 12, true), blk([40, 60, 290, 200], '1. Ansel, J.: Pytorch 2. In: Proc. 2. Bloch, T.: Rules 3 and more. 3. Chen, Y.: Graphs.')]
+    const doc = { pages: [page(1, [blk([40, 10, 290, 25], '1 Results', 12, true), prose([40, 26, 290, 39], 'Text. It'), ...refs, blk([300, 760, 310, 770], '1')])] }
+    const r = structure(doc, opts).paper.sections.find((s) => s.id === 'refs')
+    expect(r.blocks.map((x) => x.text.en)).toEqual(['1. Ansel, J.: Pytorch 2. In: Proc.', '2. Bloch, T.: Rules 3 and more.', '3. Chen, Y.: Graphs.'])
+  })
+
   it('closes the references at the next unnumbered heading', () => {
     const back = page(3, [blk([40, 60, 290, 75], 'Contributions', 12, true), prose([40, 80, 290, 200], 'Matt Deitke designed the houses. This paragraph')])
     const { paper } = structure({ pages: [...raw.pages, back] }, opts)
