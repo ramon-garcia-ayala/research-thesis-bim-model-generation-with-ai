@@ -1,11 +1,11 @@
 # Research map
 
-The research map of the MaCAD (IAAC) thesis whose case study is GFit: Generative Information Modeler. The research
+The research map of the MaCAD (IAAC) thesis on BIM model generation with AI. The research
 question and hypothesis sit at the centre; groups of papers, ideas, images, references and builds sit around it, joined
 by links that say what the relation is. It is the single source of the thesis deck, and **the two presentations
 (Gensler and IAAC) live inside it**: a menu and a viewer, and the map lights what the slide shown uses.
 
-Private and local: this folder has git history for undo and **no remote**. Nothing here goes to GitHub.
+The repository is private on GitHub. It holds copies of papers and internal presentations, so do not make it public.
 
 ## Open it
 

@@ -11,7 +11,7 @@ question: does the text keep what is needed to rebuild the model?
 
 ## Running it
 
-Needs Revit 2027 and pyRevit. The model goes in `input/source.rvt`, and `input/` and `out/` are not committed.
+Needs Revit 2027 and pyRevit. The model is `input/source.rvt`, and `out/` keeps the last run's results.
 
 ```sh
 ./run.sh
