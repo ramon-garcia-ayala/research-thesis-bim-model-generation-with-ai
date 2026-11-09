@@ -1,0 +1,735 @@
+{
+  "version": 1,
+  "node": "ladron-2025",
+  "title": "BIM-Native Tokenization for Constraint-Aware Room Layout Synthesis",
+  "source": "files/BIM-Native Tokenization for Constraint-Aware Room Layout Synthesis.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Material preliminar"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Manuel Ladron de Guevara∗, Jinmo Rhee†, Ardavan Bidgoli∗, Vaidas Razgaitis∗, Michael Bergin∗",
+            "es": "Manuel Ladron de Guevara∗, Jinmo Rhee†, Ardavan Bidgoli∗, Vaidas Razgaitis∗, Michael Bergin∗"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "∗Higharc, United States †University of Calgary, Canada {manuelrodriguez, ardavanbidgoli, vaidasrazgaitis, michaelbergin}@higharc.com jinmo.rhee@ucalgary.ca Project page: https://manuelladron.github.io/sbm",
+            "es": "∗Higharc, Estados Unidos †University of Calgary, Canadá {manuelrodriguez, ardavanbidgoli, vaidasrazgaitis, michaelbergin}@higharc.com jinmo.rhee@ucalgary.ca Página del proyecto: https://manuelladron.github.io/sbm"
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 1,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Fig. 1: Qualitative comparison. Each row shows a different room type; columns show outputs from frontier LLM/VLM baselines, domain-specific methods, and our DDEP. DDEP layouts respect wall-referenced anchoring and door-connected circulation while satisfying the inventory program.",
+            "es": "Figura 1: Comparación cualitativa. Cada fila muestra un tipo de habitación distinto; las columnas muestran los resultados de líneas base (baselines) de LLM/VLM de frontera, de métodos específicos del dominio y de nuestro DDEP. Las distribuciones (layouts) de DDEP respetan el anclaje referenciado a los muros (wall-referenced anchoring) y la circulación conectada por puertas, a la vez que satisfacen el programa de inventario."
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Abstract—We present a BIM-native tokenization for room-level layout synthesis in Building Information Modeling (BIM) scenes. The core contribution is representational: we encode each room as a sequence of BIM-Token Bundles, realized as columns of a sparse attribute–feature matrix that unifies categorical and continuous attributes of walls, openings, and entities under wallreferenced (translation/scale-invariant) coordinates. A mixedtype embedding module produces a unified token vector from this matrix; a single Transformer backbone is then trained in two modes: encoder-only for room embeddings and retrieval, and encoder–decoder for autoregressive entity placement, which we call Data-Driven Entity Prediction (DDEP). On a controlled same-data benchmark with shared ontology and evaluation harness, DDEP outperforms ATISS and BLT baselines bridged into our representation, with ablations identifying joint continuousfeature embedding and entity ordering as primary drivers. Encoder embeddings cluster rooms by type more tightly than large general-purpose text encoders, which in turn retain an edge on within-type ranking. We frame this work as evidence that modestly sized, domain-specific sequence models over welldesigned BIM tokenizations are a useful primitive for constraintaware spatial generation, complementary to general-purpose LLMs/VLMs which we also benchmark.",
+            "es": "Resumen—Presentamos una tokenización (tokenization) nativa de BIM para la síntesis de distribuciones (layout synthesis) a nivel de habitación en escenas de Modelado de Información de Construcción (Building Information Modeling, BIM). La contribución central es de representación: codificamos cada habitación como una secuencia de Paquetes de Tokens BIM (BIM-Token Bundles), realizados como columnas de una matriz dispersa de atributos y características (sparse attribute–feature matrix) que unifica los atributos categóricos y continuos de muros, aberturas y entidades bajo coordenadas referenciadas a muros (invariantes a la traslación y a la escala). Un módulo de incrustación de tipos mixtos (mixed-type embedding module) produce un vector de token unificado a partir de esta matriz; después se entrena una única estructura base (backbone) Transformer en dos modos: solo codificador (encoder-only) para incrustaciones de habitaciones y recuperación (retrieval), y codificador–decodificador (encoder–decoder) para la colocación autorregresiva (autoregressive) de entidades, a la que llamamos Predicción de Entidades Basada en Datos (Data-Driven Entity Prediction, DDEP). En un punto de referencia (benchmark) controlado con los mismos datos, con ontología (ontology) y marco de evaluación (evaluation harness) compartidos, DDEP supera a las líneas base ATISS y BLT adaptadas a nuestra representación, y las ablaciones (ablations) identifican la incrustación conjunta de características continuas y el orden de las entidades como los principales factores. Las incrustaciones del codificador agrupan las habitaciones por tipo con mayor cohesión que los codificadores de texto grandes de propósito general, los cuales, a su vez, conservan una ventaja en el ordenamiento (ranking) dentro de un mismo tipo. Planteamos este trabajo como evidencia de que los modelos de secuencia de tamaño modesto y específicos de dominio, sobre tokenizaciones de BIM bien diseñadas, son una primitiva útil para la generación espacial consciente de restricciones, complementaria a los LLM/VLM de propósito general, que también evaluamos."
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "979-8-3195-3697-6/26/$31.00 © 2026 IEEE",
+            "es": "979-8-3195-3697-6/26/$31.00 © 2026 IEEE"
+          }
+        },
+        {
+          "id": "s0-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Index Terms—BIM, layout synthesis, structured tokenization, Transformer, constraint-aware generation.",
+            "es": "Términos de indexación—BIM, síntesis de distribuciones, tokenización estructurada, Transformer, generación consciente de restricciones."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "I. INTRODUCTION",
+        "es": "I. INTRODUCCIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Computer-Aided Design (CAD) and Building Information Modeling (BIM) scenes encode rich semantics, hierarchies, and domain constraints that go well beyond appearance. Most strong 3D generators—voxel, mesh, point-cloud, and imageconditioned diffusion models—treat scenes as unstructured geometry [1], yielding visually plausible but hard-to-edit outputs that often violate basic validity rules. Room-level layout design, in contrast, requires reasoning over semantics, references, and constraints at multiple scales, and producing parametric outputs that downstream BIM tools can ingest and modify. Decades of computational approaches—from CAD macros and parametric families to rule systems, optimization, and learning-based methods—have aimed to automate this process [2]–[4], yet progress remains bottlenecked less by the algorithm and more by the representation that the algorithm operates on. An effective representation must expose structure, generalize across typologies, and remain BIM-editable.",
+            "es": "Las escenas de Diseño Asistido por Computadora (Computer-Aided Design, CAD) y de Modelado de Información de Construcción (BIM) codifican semántica, jerarquías y restricciones de dominio muy ricas, que van mucho más allá de la apariencia. La mayoría de los generadores 3D potentes —basados en vóxeles (voxel), mallas (mesh), nubes de puntos (point-cloud) y modelos de difusión (diffusion models) condicionados por imágenes— tratan las escenas como geometría no estructurada [1], lo que produce resultados visualmente plausibles pero difíciles de editar, que con frecuencia violan reglas básicas de validez. El diseño de distribuciones a nivel de habitación, en cambio, requiere razonar sobre semántica, referencias y restricciones a múltiples escalas, y producir salidas paramétricas que las herramientas BIM posteriores puedan ingerir y modificar. Décadas de enfoques computacionales —desde macros de CAD y familias paramétricas (parametric families) hasta sistemas de reglas, optimización y métodos basados en aprendizaje— han buscado automatizar este proceso [2]–[4]; sin embargo, el avance sigue limitado menos por el algoritmo y más por la representación sobre la que opera el algoritmo. Una representación eficaz debe exponer la estructura, generalizar entre tipologías (typologies) y seguir siendo editable en BIM."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We argue that for room-level BIM layout this representation should be sequence-native, mixed-type, and wall-referenced. Sequence-native, so a single Transformer backbone can serve retrieval and generation; mixed-type, so categorical (room type, family identifiers) and continuous (positions, sizes, rotations) attributes share one embedding pipeline; and wallreferenced, so spatial coordinates are invariant to absolute translation and scale and align with architectural reasoning. We instantiate these properties in a normalized tokenizer that emits BIM-Token Bundles—sequence units encoding room topology, entity attributes, wall-referenced geometry, and relational structure—realized as columns of a sparse attribute– feature matrix, whose rows are token features, and fused via a mixed-type embedding module into a unified token vector. Unlike flat serializations, this matrix keeps every entity editable as a BIM object: an output token still carries its category, hosting wall, parametric position, offset, dimensions, and rotation rather than only an image-space box. We then train a single Transformer backbone in two modes: encoderonly for room embeddings and retrieval, and encoder–decoder for autoregressive entity placement, which we call Data-Driven Entity Prediction (DDEP); Fig. 1 shows representative outputs.",
+            "es": "Sostenemos que, para la distribución BIM a nivel de habitación, esta representación debe ser nativa de secuencias, de tipos mixtos y referenciada a muros. Nativa de secuencias, para que una única estructura base Transformer pueda servir tanto a la recuperación como a la generación; de tipos mixtos, para que los atributos categóricos (tipo de habitación, identificadores de familia) y continuos (posiciones, tamaños, rotaciones) compartan un mismo flujo de incrustación; y referenciada a muros, para que las coordenadas espaciales sean invariantes a la traslación y la escala absolutas y se alineen con el razonamiento arquitectónico. Instanciamos estas propiedades en un tokenizador normalizado que emite Paquetes de Tokens BIM —unidades de secuencia que codifican la topología de la habitación, los atributos de las entidades, la geometría referenciada a muros y la estructura relacional—, realizados como columnas de una matriz dispersa de atributos y características, cuyas filas son características del token, y fusionados mediante un módulo de incrustación de tipos mixtos en un vector de token unificado. A diferencia de las serializaciones planas, esta matriz mantiene cada entidad editable como un objeto BIM: un token de salida sigue portando su categoría, el muro que lo aloja, su posición paramétrica, su desplazamiento, sus dimensiones y su rotación, en lugar de solo un cuadro en el espacio de la imagen. Luego entrenamos una única estructura base Transformer en dos modos: solo codificador para incrustaciones de habitaciones y recuperación, y codificador–decodificador para la colocación autorregresiva de entidades, a la que llamamos Predicción de Entidades Basada en Datos (DDEP); la Figura 1 muestra resultados representativos."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We make three contributions. (1) A BIM-native, wallreferenced tokenization of residential room layouts paired with a mixed-type embedding module that jointly handles categorical, scalar, and grouped-continuous features. (2) A single Transformer backbone reused across retrieval and generation, with constrained decoding for BIM validity at inference. (3) A two-track evaluation: a controlled same-data benchmark that isolates architectural effects under matched data and budgets, plus a deployment-realistic comparison against frontier LLMs/VLMs and domain-specific layout generators. We frame the LLM/VLM comparison as a calibration baseline rather than a fair architectural comparison, and discuss its limitations explicitly (Section IV). The aim of the paper is not to claim a new general Transformer architecture, but to show that a careful BIM-native tokenization is a useful primitive for constraint-aware indoor layout synthesis.",
+            "es": "Hacemos tres contribuciones. (1) Una tokenización nativa de BIM y referenciada a muros de distribuciones residenciales de habitaciones, acompañada de un módulo de incrustación de tipos mixtos que maneja de forma conjunta características categóricas, escalares y continuas agrupadas. (2) Una única estructura base Transformer reutilizada para la recuperación y la generación, con decodificación restringida (constrained decoding) para garantizar la validez BIM en la inferencia. (3) Una evaluación de dos vías: un punto de referencia controlado con los mismos datos que aísla los efectos arquitectónicos bajo datos y presupuestos equivalentes, más una comparación realista para el despliegue frente a LLM/VLM de frontera y generadores de distribuciones específicos del dominio. Planteamos la comparación con LLM/VLM como una línea base de calibración y no como una comparación arquitectónica justa, y discutimos explícitamente sus limitaciones (Sección IV). El objetivo del artículo no es afirmar una nueva arquitectura Transformer general, sino mostrar que una tokenización nativa de BIM cuidadosa es una primitiva útil para la síntesis de distribuciones de interiores consciente de restricciones."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "II. RELATED WORK",
+        "es": "II. TRABAJOS RELACIONADOS"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "a) Rule-based and optimization-based layout: Early furniture-layout systems encoded interior-design guidelines as cost functions or grammars and solved them with sampling or evolutionary search [3], [5], [6]. These approaches embed human design knowledge and remain interpretable, but are bounded by their predefined rules and require manual rule authoring per typology. b) Deep generative layout models: Graph-based generators model layouts as scene graphs and predict node attributes and relational edges [7], [8]. Image-based approaches [9], [10] and diffusion models [11]–[17] learn strong priors over floorplans and 3D scenes. We differ from floorplan generators such as HouseDiffusion [12]: our output is a sequence of wallreferenced parametric entities hosted on room walls rather than a polygonal floorplan, so direct comparison requires output-format bridging (Section IV). c) Transformer-based indoor scene synthesis: ATISS [18] and SceneFormer [19] treat indoor scene synthesis as autoregressive generation of furniture objects with discretized/normalized geometric attributes, conditioned on a room boundary. CLIP-Layout [20] augments this with CLIP-based style embeddings. BLT [21] performs masked, iterative layout prediction for graphic design. These methods assume flat object vocabularies with absolute or gridaligned poses; they do not preserve BIM’s heterogeneous, wall-hosted, mixed categorical–continuous structure for downstream editing. We compare directly against ATISS and BLT under a shared harness, with the bridging caveat discussed in Section IV. d) LLM/VLM-based layout generation: LayoutGPT [22] casts layout synthesis as compositional planning over object– relation tokens; LayoutVLM [23] couples vision and language features to optimize 3D scenes; HouseTune [24] and FlairGPT [25] use LLMs for floorplan refinement and stylistic exploration. LLM4CAD [26] tokenizes CAD elements symbolically. FloorPlan-DeepSeek [27] performs autoregressive next-room prediction at the floorplan level. None of these unify semantic, relational, and wall-referenced continuous attributes in a single sequence-native form. Our LLM/VLM benchmark (Section IV) is best read as a deployment-realistic floor; we explicitly do not claim it is a fair architectural comparison, as fully-trained DDEP is matched against off-the-shelf zero-shot models.",
+            "es": "a) Distribución basada en reglas y en optimización: Los primeros sistemas de distribución de mobiliario codificaban pautas de diseño de interiores como funciones de costo o gramáticas y las resolvían mediante muestreo o búsqueda evolutiva [3], [5], [6]. Estos enfoques incorporan conocimiento de diseño humano y siguen siendo interpretables, pero están limitados por sus reglas predefinidas y requieren la redacción manual de reglas para cada tipología. b) Modelos generativos profundos de distribución: Los generadores basados en grafos modelan las distribuciones como grafos de escena (scene graphs) y predicen atributos de nodos y aristas relacionales [7], [8]. Los enfoques basados en imágenes [9], [10] y los modelos de difusión [11]–[17] aprenden priors sólidos sobre planos de planta y escenas 3D. Nos diferenciamos de los generadores de planos de planta como HouseDiffusion [12]: nuestra salida es una secuencia de entidades paramétricas referenciadas a muros y alojadas en los muros de la habitación, y no un plano de planta poligonal, por lo que la comparación directa requiere adaptar los formatos de salida (Sección IV). c) Síntesis de escenas interiores basada en Transformer: ATISS [18] y SceneFormer [19] tratan la síntesis de escenas interiores como la generación autorregresiva de objetos de mobiliario con atributos geométricos discretizados o normalizados, condicionada por el contorno de la habitación. CLIP-Layout [20] amplía esto con incrustaciones de estilo basadas en CLIP. BLT [21] realiza predicción de distribuciones enmascarada e iterativa para diseño gráfico. Estos métodos suponen vocabularios de objetos planos con poses absolutas o alineadas a una cuadrícula; no preservan la estructura heterogénea, alojada en muros y de tipos categóricos y continuos mixtos de BIM para la edición posterior. Comparamos directamente contra ATISS y BLT bajo un marco compartido, con la salvedad de la adaptación discutida en la Sección IV. d) Generación de distribuciones basada en LLM/VLM: LayoutGPT [22] plantea la síntesis de distribuciones como planificación composicional sobre tokens de objeto–relación; LayoutVLM [23] acopla características de visión y lenguaje para optimizar escenas 3D; HouseTune [24] y FlairGPT [25] usan LLM para el refinamiento de planos de planta y la exploración estilística. LLM4CAD [26] tokeniza elementos CAD de forma simbólica. FloorPlan-DeepSeek [27] realiza predicción autorregresiva de la siguiente habitación a nivel de plano de planta. Ninguno de estos unifica atributos semánticos, relacionales y continuos referenciados a muros en una única forma nativa de secuencias. Nuestro punto de referencia con LLM/VLM (Sección IV) se interpreta mejor como un piso realista para el despliegue; explícitamente no afirmamos que sea una comparación arquitectónica justa, ya que un DDEP entrenado por completo se compara con modelos listos para usar de cero disparos (zero-shot)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "III. METHOD",
+        "es": "III. MÉTODO"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Figure 2 gives the pipeline. A room is first converted into typed tokens. The encoder reads only the room envelope— walls, doors, windows—and compresses it into a contextual memory plus a pooled room embedding used for retrieval. The decoder reads the sequence of room contents and, attending to that memory, predicts each next entity with its continuous placement parameters. Both modes share one tokenization and one set of weights, differing only in which sequence they read and which heads they use.",
+            "es": "La Figura 2 presenta el flujo de trabajo. Primero, una habitación se convierte en tokens tipados. El codificador lee únicamente la envolvente de la habitación (room envelope) —muros, puertas, ventanas— y la comprime en una memoria contextual más una incrustación agrupada de la habitación que se usa para la recuperación. El decodificador lee la secuencia del contenido de la habitación y, atendiendo a esa memoria, predice cada entidad siguiente junto con sus parámetros continuos de colocación. Ambos modos comparten una misma tokenización y un mismo conjunto de pesos, y difieren solo en qué secuencia leen y qué cabezales usan."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "A. Room Representation",
+            "es": "A. Representación de la habitación"
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We operate on residential room-level layouts extracted from professional BIM projects, expressed in a local coordinate frame normalized for position and scale. Each room is decomposed into a room envelope and room contents: renv = (ytopo, ylayout, E, D, W), rent = (P, C). Here ytopo is a discrete room-type token, ylayout aggregates global scalars (area, perimeter); E, D, W are walls, doors, and windows; P, C are props and casework. The encoder consumes only the envelope, while the decoder generates the entity sequence.",
+            "es": "Operamos sobre distribuciones residenciales a nivel de habitación extraídas de proyectos BIM profesionales, expresadas en un marco de coordenadas local normalizado en posición y escala. Cada habitación se descompone en una envolvente de la habitación y un contenido de la habitación (room contents): renv = (ytopo, ylayout, E, D, W), rent = (P, C). Aquí ytopo es un token discreto de tipo de habitación, ylayout agrega escalares globales (área, perímetro); E, D, W son muros, puertas y ventanas; P, C son accesorios y mobiliario fijo (casework). El codificador consume únicamente la envolvente, mientras que el decodificador genera la secuencia de entidades."
+          }
+        },
+        {
+          "id": "s3-e1",
+          "type": "equation",
+          "page": 2,
+          "text": {
+            "en": "a) Walls and openings: Walls are NE directed segments ej = (x(1)"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "j , x(2) j , awall j ) whose counter-clockwise order defines the room polygon. Doors and windows are wall-hosted: each door dk = (jk, tk, wk, adoor k ) stores the supporting edge index, a normalized position tk ∈[0, 1] along that edge, opening width, and categorical attributes (family, swing). Windows are defined analogously. This parameterization is invariant to absolute translation and scale, and it preserves the BIM convention that many architectural elements are hosted by, and edited relative to, a wall. b) Entities: Each room-content entity q ∈P ∪C is parameterized as q = (cq, jq, tq, δq, sq, ρq, aent q ), where cq is the entity type, jq is the supporting edge, tq is the wall-relative position, δq is the lateral offset from the wall, sq is size, ρq is rotation (props only), and aent q collects further categorical attributes.",
+            "es": "j , x(2) j , awall j ) cuyo orden antihorario define el polígono de la habitación. Las puertas y ventanas están alojadas en muros: cada puerta dk = (jk, tk, wk, adoor k ) almacena el índice de la arista de soporte, una posición normalizada tk ∈[0, 1] a lo largo de esa arista, el ancho de la abertura y atributos categóricos (familia, abatimiento). Las ventanas se definen de manera análoga. Esta parametrización es invariante a la traslación y la escala absolutas, y preserva la convención de BIM de que muchos elementos arquitectónicos están alojados en un muro y se editan en relación con él. b) Entidades: Cada entidad del contenido de la habitación q ∈P ∪C se parametriza como q = (cq, jq, tq, δq, sq, ρq, aent q ), donde cq es el tipo de entidad, jq es la arista de soporte, tq es la posición relativa al muro, δq es el desplazamiento lateral respecto del muro, sq es el tamaño, ρq es la rotación (solo para accesorios) y aent q reúne otros atributos categóricos."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Fig. 2: Model overview. (a) BIM data extraction and assembly into a discrete set of BIM-Token Bundles. (b) The encoder stack processes the tokenized attribute–feature matrix and outputs a room representation. (c) The decoder stack consumes the room representation as memory for cross-attention and the entity sequence as input, trained with next-token prediction. (d) Downstream use cases. Retrieval (Section IV-D) and unguided generation (Sections IV-B and IV-C) are evaluated in this paper; the user-guided path through an agentic layer is a prospective integration that our BIM-native output tokens enable but that we do not evaluate here.",
+            "es": "Figura 2: Descripción general del modelo. (a) Extracción de datos BIM y ensamblaje en un conjunto discreto de Paquetes de Tokens BIM. (b) La pila del codificador procesa la matriz tokenizada de atributos y características y produce una representación de la habitación. (c) La pila del decodificador consume la representación de la habitación como memoria para la atención cruzada (cross-attention) y la secuencia de entidades como entrada, y se entrena con predicción del siguiente token. (d) Casos de uso posteriores. En este artículo se evalúan la recuperación (Sección IV-D) y la generación no guiada (Secciones IV-B y IV-C); la vía guiada por el usuario mediante una capa agéntica es una integración prospectiva que nuestros tokens de salida nativos de BIM hacen posible, pero que no evaluamos aquí."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "B. BIM Tokenization and Mixed-Type Embedding a) BIM-Token Bundles: We map each room to two sequences of BIM-Token Bundles: an envelope sequence (τ CLS, τ t, τ l, τ e",
+            "es": "B. Tokenización de BIM e incrustación de tipos mixtos a) Paquetes de Tokens BIM: Asignamos cada habitación a dos secuencias de Paquetes de Tokens BIM: una secuencia de envolvente (τ CLS, τ t, τ l, τ e"
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "1, . . . , τ d 1, . . . , τ w 1 , . . . , τ EOS) for the encoder, and an entity sequence (τ SOS, τ ent",
+            "es": "1, . . . , τ d 1, . . . , τ w 1 , . . . , τ EOS) para el codificador, y una secuencia de entidades (τ SOS, τ ent"
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "1 , . . . , τ EOS) for the decoder. Each bundle corresponds to a single logical element (topology, layout, wall, door, window, or entity). b) Attribute–feature matrix: We realize these heterogeneous sequences as a sparse attribute–feature matrix X ∈ RF ×S, where each column X:,s encodes one bundle and each row corresponds to one feature (e.g., token type id, token id, edge endpoints, edge length, t-value, δ-offset, size, rotation). Only a subset of features is active for any given token type; inactive entries are filled with a sentinel padding value p=−100. This differs from flat field serialization: a token remains a complete BIM element, and its active rows expose the typed attributes needed to edit that element later. This sparse layout lets the same backbone handle topology tokens, wall tokens, opening tokens, and entity tokens uniformly without forcing all element types into a lossy common schema. Encoder and decoder use disjoint feature sets via Xenc and Xdec. c) Mixed-type embedding: A shared FeatureEmbedding module turns X into dense token vectors. For each active feature f: (i) categorical features (type/family identifiers, edge indices) use learnable embedding tables; (ii) scalar continuous features (area, perimeter, length) use small MLPs; (iii) grouped continuous features (e.g. edge endpoint pairs, opening corner distances) use a MultiContinuousEmbedding that embeds each scalar in the group and aggregates via self-attention. A validfeature mask mf,s = 1[Xf,s̸ = p] zeros out contributions from inactive features (including the bias terms of any linear layers). The bundle embedding is the sum of all active feature embeddings, es = P f mf,s Ef(Xf,s) ∈Rd, optionally augmented with learned positional embeddings.",
+            "es": "1 , . . . , τ EOS) para el decodificador. Cada paquete corresponde a un único elemento lógico (topología, distribución, muro, puerta, ventana o entidad). b) Matriz de atributos y características: Realizamos estas secuencias heterogéneas como una matriz dispersa de atributos y características X ∈ RF ×S, donde cada columna X:,s codifica un paquete y cada fila corresponde a una característica (por ejemplo, identificador de tipo de token, identificador de token, extremos de arista, longitud de arista, valor t, desplazamiento δ, tamaño, rotación). Solo un subconjunto de características está activo para un tipo de token dado; las entradas inactivas se rellenan con un valor centinela de relleno (sentinel padding value) p=−100. Esto difiere de la serialización plana de campos: un token sigue siendo un elemento BIM completo, y sus filas activas exponen los atributos tipados necesarios para editar ese elemento más adelante. Esta disposición dispersa permite que la misma estructura base maneje de manera uniforme tokens de topología, de muro, de abertura y de entidad, sin obligar a todos los tipos de elemento a entrar en un esquema común con pérdida de información. El codificador y el decodificador usan conjuntos de características disjuntos mediante Xenc y Xdec. c) Incrustación de tipos mixtos: Un módulo compartido FeatureEmbedding convierte X en vectores de token densos. Para cada característica activa f: (i) las características categóricas (identificadores de tipo o de familia, índices de arista) usan tablas de incrustación aprendibles; (ii) las características continuas escalares (área, perímetro, longitud) usan MLP pequeños; (iii) las características continuas agrupadas (por ejemplo, pares de extremos de arista, distancias a las esquinas de las aberturas) usan un MultiContinuousEmbedding que incrusta cada escalar del grupo y los agrega mediante autoatención (self-attention). Una máscara de características válidas mf,s = 1[Xf,s̸ = p] anula las contribuciones de las características inactivas (incluidos los términos de sesgo de cualquier capa lineal). La incrustación del paquete es la suma de todas las incrustaciones de características activas, es = P f mf,s Ef(Xf,s) ∈Rd, opcionalmente aumentada con incrustaciones posicionales aprendidas."
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "C. Backbone and Operating Modes",
+            "es": "C. Estructura base y modos de operación"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "We use a standard Transformer encoder–decoder backbone with two operating modes that share weights. a) Encoder-only mode: Given the envelope embeddings Eenc, the encoder produces memory M = Encθ(Eenc) ∈ RSenc×d. We pool at the CLS position to obtain a room embedding z(renv) = M0, used for retrieval and clustering. Auxiliary heads (room-type classification, masked-token prediction) operate on M. b) Encoder–decoder mode (DDEP): The encoder produces M as above; the decoder consumes entity embeddings Edec and attends causally to its own prefix and via crossattention to M, emitting H = Decθ(Edec, M). Per-token heads produce mixed categorical and continuous outputs (entity type, edge attachment, t, δ, size, rotation). At inference, a constrained decoding layer filters the model’s output distribution to enforce BIM validity, including egress clearance and doorswing zones. This layer is a validity guard over candidate tokens, not a post-hoc layout optimizer. c) Training: We use a two-stage schedule: (i) encoder pretraining with a composite loss combining room-type classification, masked-token prediction, graded triplet contrastive learning, and geometric preservation; (ii) encoder–decoder fine-tuning for DDEP via teacher forcing, with cross-entropy over categorical heads and MSE over continuous heads.",
+            "es": "Usamos una estructura base Transformer estándar de codificador–decodificador con dos modos de operación que comparten pesos. a) Modo solo codificador: Dadas las incrustaciones de la envolvente Eenc, el codificador produce la memoria M = Encθ(Eenc) ∈ RSenc×d. Agrupamos en la posición CLS para obtener una incrustación de la habitación z(renv) = M0, usada para la recuperación y el agrupamiento (clustering). Los cabezales auxiliares (clasificación del tipo de habitación, predicción de tokens enmascarados) operan sobre M. b) Modo codificador–decodificador (DDEP): El codificador produce M como se indicó; el decodificador consume las incrustaciones de entidades Edec y atiende de forma causal a su propio prefijo y, mediante atención cruzada, a M, emitiendo H = Decθ(Edec, M). Los cabezales por token producen salidas mixtas categóricas y continuas (tipo de entidad, adjunción a una arista, t, δ, tamaño, rotación). En la inferencia, una capa de decodificación restringida filtra la distribución de salida del modelo para imponer la validez BIM, incluidos el despeje de salida (egress clearance) y las zonas de abatimiento de puertas. Esta capa es un resguardo de validez sobre los tokens candidatos, no un optimizador de distribuciones posterior. c) Entrenamiento: Usamos un programa de dos etapas: (i) preentrenamiento del codificador con una pérdida compuesta que combina clasificación del tipo de habitación, predicción de tokens enmascarados, aprendizaje contrastivo con tripletas graduado (graded triplet contrastive learning) y preservación geométrica; (ii) ajuste fino (fine-tuning) del codificador–decodificador para DDEP mediante forzado del maestro (teacher forcing), con entropía cruzada sobre los cabezales categóricos y MSE sobre los cabezales continuos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "IV. EXPERIMENTS",
+        "es": "IV. EXPERIMENTOS"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We evaluate the proposed tokenization and backbone on a corpus of professional residential BIM scenes (single-family homes with typed rooms).",
+            "es": "Evaluamos la tokenización (tokenization) y la arquitectura base (backbone) propuestas en un corpus de escenas BIM residenciales profesionales (casas unifamiliares con habitaciones tipificadas)."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "A. Setup, Splits, and Metrics",
+            "es": "A. Configuración, particiones (splits) y métricas"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We use two complementary protocols whose results are not directly comparable.",
+            "es": "Usamos dos protocolos complementarios cuyos resultados no son directamente comparables."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Controlled same-data benchmark (lead). A frozen split of 15,740/2,009/1,826 rooms (train/val/test) across five room types (bathfull, bedroom, laundry, living, master_bed) with shared ontology normalization, canonical furniture dimensions, and a unified evaluation harness. All methods are trained from scratch under a matched budget of 200 epochs with no method-specific tuning and evaluated on the shared 1,225-room geometry-valid intersection. This protocol is intentionally smaller than production DDEP; its purpose is to isolate architectural effects under matched data conditions rather than to report our best deployment configuration.",
+            "es": "Banco de pruebas (benchmark) controlado con los mismos datos (principal). Una partición fija de 15,740/2,009/1,826 habitaciones (entrenamiento/validación/prueba) en cinco tipos de habitación (bathfull, bedroom, laundry, living, master_bed), con normalización compartida de la ontología (ontology), dimensiones canónicas del mobiliario y un marco de evaluación unificado (evaluation harness). Todos los métodos se entrenan desde cero con un presupuesto equiparado de 200 épocas, sin ajustes específicos por método, y se evalúan en la intersección compartida de 1,225 habitaciones con geometría válida. Este protocolo es intencionalmente más pequeño que el DDEP de producción; su propósito es aislar los efectos arquitectónicos bajo condiciones de datos equiparadas, en lugar de reportar nuestra mejor configuración de despliegue."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Frontier LLM/VLM baseline (contextual). Production DDEP follows a two-stage pipeline—encoder pre-training on the full augmented corpus (439,932 samples over 53 room types), then per-room-type encoder–decoder fine-tuning on the 75,720-sample DDEP subset (14 types)—and is compared offthe-shelf against zero-shot frontier text and vision-language models (Claude Opus/Sonnet 4.6, Claude Haiku 4.5, GPT-5.2, Gemini 3.1 Pro, Codex 5.3, Qwen 3.5) and two domainspecific systems (LayoutVLM [23], FlairGPT [25]) on a 50-room held-out set. This is a deployment-realistic floor rather than the paper’s headline architectural claim; we discuss its limits in Section IV-C. Extended implementation details, perroom-type breakdowns, and further qualitative examples are available on the project page. a) Metrics: We report metrics under identical geometry and inventory specifications. The definitions below are stated over our full room ontology, since the frontier protocol spans ten room types; the controlled protocol exercises the five listed above. Coverage (Cov., ↑) is a semantic inventory score. For category i, predicted count pi is compared with the allowed range [mmin i , mmax i ] using missing and overfill fractions di = max(0, mmin i −pi)/ max(1, mmin i ) and oi = max(0, pi −mmax i )/ max(1, mmax i ). The item score is si = 1 −clip(di + 0.5 oi, 0, 1), and room coverage averages weighted item scores (1.0 for essential items, 0.5 for optional items) with alternative requirement groups, such as tub-or-shower in full baths or range versus oven-plus-cooktop in kitchens. A capped unsupported-extra penalty discourages hallucinated entities. Thus Cov. measures what was placed, not whether it is reachable or collision-free.",
+            "es": "Línea base (baseline) de LLM/VLM de frontera (contextual). El DDEP de producción sigue un proceso de dos etapas —preentrenamiento del codificador (encoder pre-training) con todo el corpus aumentado (439,932 muestras de 53 tipos de habitación) y, después, ajuste fino (fine-tuning) de codificador–decodificador por tipo de habitación con el subconjunto DDEP de 75,720 muestras (14 tipos)— y se compara, listo para usar (off-the-shelf), con modelos de texto y de visión-lenguaje de frontera en modalidad de cero disparos (zero-shot) (Claude Opus/Sonnet 4.6, Claude Haiku 4.5, GPT-5.2, Gemini 3.1 Pro, Codex 5.3, Qwen 3.5) y con dos sistemas específicos del dominio (LayoutVLM [23], FlairGPT [25]) en un conjunto reservado (held-out) de 50 habitaciones. Este es un piso realista de despliegue y no la afirmación arquitectónica principal del artículo; discutimos sus límites en la Sección IV-C. Los detalles de implementación ampliados, los desgloses por tipo de habitación y más ejemplos cualitativos están disponibles en la página del proyecto. a) Métricas: Reportamos métricas bajo especificaciones idénticas de geometría e inventario. Las definiciones siguientes se plantean sobre toda nuestra ontología de habitaciones, ya que el protocolo de frontera abarca diez tipos de habitación; el protocolo controlado ejercita los cinco enumerados arriba. La cobertura (Coverage, Cov., ↑) es una puntuación semántica de inventario. Para la categoría i, el conteo predicho pi se compara con el rango permitido [mmin i , mmax i ] mediante las fracciones de faltantes y de exceso di = max(0, mmin i −pi)/ max(1, mmin i ) y oi = max(0, pi −mmax i )/ max(1, mmax i ). La puntuación del elemento es si = 1 −clip(di + 0.5 oi, 0, 1), y la cobertura de la habitación promedia las puntuaciones ponderadas de los elementos (1.0 para los elementos esenciales, 0.5 para los opcionales) con grupos de requisitos alternativos, como bañera o regadera en los baños completos, o estufa frente a horno más parrilla en las cocinas. Una penalización acotada por extras sin sustento desalienta las entidades alucinadas. Así, Cov. mide lo que se colocó, no si es alcanzable o está libre de colisiones."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Navigability evaluates functional access from inward-offset door portals to essential targets on a clearance-inflated walkable grid. Beds contribute two side-access targets; sinks, toilets, ranges, and dressers contribute front-access targets. SR (↑) is the fraction of door–target pairs reachable by A* routing. DF (↓) averages the capped detour penalty f(ρ) = min(1, (ρ−1)/2) over reachable pairs, where ρ is path length over Euclidean distance; if no pair is reachable, DF is set to 1. We report Nav = 100(SR −0.35 DF), so severely blocked rooms can score below zero.",
+            "es": "La navegabilidad (Navigability) evalúa el acceso funcional desde portales de puerta desplazados hacia el interior hasta los objetivos esenciales, sobre una cuadrícula transitable inflada por la holgura. Las camas aportan dos objetivos de acceso lateral; los lavabos, inodoros, estufas y cómodas aportan objetivos de acceso frontal. SR (↑) es la fracción de pares puerta–objetivo alcanzables mediante enrutamiento A*. DF (↓) promedia la penalización acotada por desvío f(ρ) = min(1, (ρ−1)/2) sobre los pares alcanzables, donde ρ es la longitud del camino entre la distancia euclidiana; si ningún par es alcanzable, DF se fija en 1. Reportamos Nav = 100(SR −0.35 DF), de modo que las habitaciones severamente bloqueadas pueden obtener puntuaciones por debajo de cero."
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Overlap–Clearance (OC, ↓) uses exact footprint polygons: OC = 100(0.5 EOF+0.2 GOA+0.3 DCI), where EOF is perentity overlap with eligible neighbors, GOA is total multiply occupied floor area normalized by room area, and DCI is door-clearance intrusion. Eligible overlaps include prop–prop and same-category casework collisions, while prop–casework overlaps are ignored because they often encode intentional support relations. OC must be read jointly with coverage and navigability: sparse rooms can have excellent OC while failing the program and reachability tests.",
+            "es": "La métrica Superposición–Holgura (Overlap–Clearance, OC, ↓) usa polígonos exactos de huella: OC = 100(0.5 EOF+0.2 GOA+0.3 DCI), donde EOF es la superposición por entidad con los vecinos elegibles, GOA es el área total de piso ocupada múltiples veces, normalizada por el área de la habitación, y DCI es la intrusión en la holgura de las puertas. Las superposiciones elegibles incluyen las colisiones entre objetos sueltos (props) y entre carpintería (casework) de la misma categoría, mientras que se ignoran las superposiciones entre objetos sueltos y carpintería porque con frecuencia codifican relaciones de apoyo intencionales. OC debe leerse en conjunto con la cobertura y la navegabilidad: las habitaciones poco pobladas pueden tener un OC excelente aunque fallen en las pruebas de programa y de alcanzabilidad."
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "B. Controlled Same-Data Benchmark",
+            "es": "B. Banco de pruebas controlado con los mismos datos"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "TABLE I: Controlled same-data benchmark on the shared 1,225-room geometry-valid subset. Cov. is coverage, SR is success rate, DF is detour factor, and OC is overlap–clearance. Higher is better for Cov., Nav, and SR; lower is better for DF and OC. Values are mean ± std; bold marks the best primary method per metric.",
+            "es": "Tabla I: Banco de pruebas controlado con los mismos datos en el subconjunto compartido de 1,225 habitaciones con geometría válida. Cov. es la cobertura, SR es la tasa de éxito (success rate), DF es el factor de desvío (detour factor) y OC es la superposición–holgura. Un valor más alto es mejor para Cov., Nav y SR; un valor más bajo es mejor para DF y OC. Los valores son media ± desviación estándar; la negrita marca el mejor método principal por métrica."
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Method Cov. ↑ Nav ↑ SR ↑ DF ↓ OC ↓",
+            "es": "Método Cov. ↑ Nav ↑ SR ↑ DF ↓ OC ↓"
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "ATISS [18] (same-data) 40.8 ± 23.6 −30.3 ± 24.0 0.03 ± 0.18 0.97 ± 0.18 0.5 ± 2.5 BLT [21] (same-data) 17.8 ± 20.4 −18.6 ± 42.7 0.12 ± 0.32 0.88 ± 0.31 35.7 ± 16.9",
+            "es": "ATISS [18] (mismos datos) 40.8 ± 23.6 −30.3 ± 24.0 0.03 ± 0.18 0.97 ± 0.18 0.5 ± 2.5 BLT [21] (mismos datos) 17.8 ± 20.4 −18.6 ± 42.7 0.12 ± 0.32 0.88 ± 0.31 35.7 ± 16.9"
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "DDEP (Ours) 54.9 ± 38.3 14.6 ± 56.0 0.36 ± 0.42 0.60 ± 0.44 13.4 ± 12.5",
+            "es": "DDEP (Nuestro) 54.9 ± 38.3 14.6 ± 56.0 0.36 ± 0.42 0.60 ± 0.44 13.4 ± 12.5"
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "DDEP ablations",
+            "es": "Ablaciones (ablations) de DDEP"
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Wall-Only 50.8 ± 39.6 9.6 ± 54.8 0.32 ± 0.41 0.63 ± 0.44 12.7 ± 11.8 No Cont. Groups 42.6 ± 40.2 0.7 ± 52.2 0.25 ± 0.39 0.69 ± 0.43 13.4 ± 13.8 No Edge Coords 56.7 ± 39.7 14.4 ± 57.6 0.35 ± 0.43 0.60 ± 0.45 14.5 ± 12.7 Order: t first 42.6 ± 39.1 4.1 ± 54.5 0.29 ± 0.41 0.70 ± 0.41 10.6 ± 12.0 Order: edge,t desc. 46.5 ± 39.9 7.8 ± 54.8 0.31 ± 0.41 0.66 ± 0.42 13.4 ± 13.2",
+            "es": "Wall-Only 50.8 ± 39.6 9.6 ± 54.8 0.32 ± 0.41 0.63 ± 0.44 12.7 ± 11.8 No Cont. Groups 42.6 ± 40.2 0.7 ± 52.2 0.25 ± 0.39 0.69 ± 0.43 13.4 ± 13.8 No Edge Coords 56.7 ± 39.7 14.4 ± 57.6 0.35 ± 0.43 0.60 ± 0.45 14.5 ± 12.7 Order: t first 42.6 ± 39.1 4.1 ± 54.5 0.29 ± 0.41 0.70 ± 0.41 10.6 ± 12.0 Order: edge,t desc. 46.5 ± 39.9 7.8 ± 54.8 0.31 ± 0.41 0.66 ± 0.42 13.4 ± 13.2"
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Table I reports the same-data benchmark. DDEP attains the strongest joint functional profile among compared methods: 54.9 coverage and 14.6 navigability, beating ATISS by +14.1 coverage and +44.9 navigability, and BLT by +37.1 coverage and +33.2 navigability. It also achieves substantially better reachability (SR 0.36 vs. 0.03/0.12) and shorter detours (DF 0.60 vs. 0.97/0.88). ATISS’s near-zero OC (0.5%) reflects sparse outputs that avoid collisions while leaving almost all targets unreachable; BLT exhibits the opposite failure mode with 35.7% OC. The key result is therefore not a single scalar win but a functional tradeoff: DDEP places enough program elements to satisfy the room while keeping paths reachable. Per-room inspection shows the strongest gains in bedrooms, living rooms, and master bedrooms; compact baths and laundries remain harder because small footprint errors quickly invalidate door clearance. ATISS targets 3D-FRONT-style scenes with axis-aligned bounding boxes and BLT targets 2D graphic-design layouts; we bridge their native outputs into our wall-referenced representation using the published descale formula plus an affine map to the physical room followed by nearest-wall projection. This bridge applies to both baselines but not to DDEP, which is native to the format, so we cannot rule out that part of the gap reflects conversion loss rather than modelling capacity. It is at least identical across both baselines and does not touch the ablation rows; a conversion-free comparison would require retraining them on wall-referenced targets. a) Variance and model sharing: The per-room deviations in Table I are large relative to the means because both metrics are bounded per room (Cov. in [0, 100], Nav in [−35, 100]) with mass near the extremes: a room is typically either largely satisfied and traversable or largely blocked, and one obstructed doorway sends an otherwise sound room to the floor of the Nav scale. We therefore read Cov/Nav/OC as a joint profile rather than as individually significant scalars. The two protocols also bracket a design choice: production DDEP trains a 512-dim specialist per room type on top of a pre-trained encoder, while the controlled model is a single 256-dim network trained from scratch on 15,740 rooms and serving all five types. The shared, from-scratch setting is the weaker of the two, so Table I compares architectures in the harder regime. This brackets rather than measures the effect— capacity, pre-training, data, and test set all differ—so a fixedcapacity shared-versus-specialist ablation remains future work. b) Ablations: Five ablations isolate internal design choices within our tokenization. No Continuous Groups (−12.3 cov, −13.9 nav) replaces the multi-continuous embedding with independent scalar MLPs and is the most damaging single change, confirming that joint embedding of correlated geometric features is the central inductive bias. Ordering ablations (t-value First: −12.3/−10.5; edge, t Desc: −8.4/−6.8) show that the canonical edge-then-position ordering is also material. Wall-Only (−4.1/−5.0) confirms that opening positions help the decoder reason about clearances. No Edge Coordinates (+1.8/−0.2) is nearly neutral on coverage and navigability while OC rises slightly, indicating the model infers relative geometry from remaining features when explicit endpoints are removed. Note that all five isolate withintokenization choices; the flat-serialization baseline that would test the structure itself is discussed in Section V.",
+            "es": "La Tabla I reporta el banco de pruebas con los mismos datos. DDEP alcanza el perfil funcional conjunto más sólido entre los métodos comparados: 54.9 de cobertura y 14.6 de navegabilidad, superando a ATISS por +14.1 de cobertura y +44.9 de navegabilidad, y a BLT por +37.1 de cobertura y +33.2 de navegabilidad. También logra una alcanzabilidad sustancialmente mejor (SR 0.36 frente a 0.03/0.12) y desvíos más cortos (DF 0.60 frente a 0.97/0.88). El OC casi nulo de ATISS (0.5%) refleja salidas poco pobladas que evitan colisiones pero dejan casi todos los objetivos inalcanzables; BLT muestra el modo de fallo (failure mode) opuesto, con 35.7% de OC. Por lo tanto, el resultado clave no es una victoria en un único escalar, sino un equilibrio funcional: DDEP coloca suficientes elementos del programa para satisfacer la habitación mientras mantiene los caminos alcanzables. La inspección por habitación muestra las mayores ganancias en recámaras, salas de estar y recámaras principales; los baños compactos y los cuartos de lavado siguen siendo más difíciles porque pequeños errores de huella invalidan rápidamente la holgura de las puertas. ATISS está orientado a escenas de estilo 3D-FRONT con cajas delimitadoras alineadas a los ejes, y BLT a diseños gráficos 2D; conectamos sus salidas nativas con nuestra representación referenciada a los muros mediante la fórmula de reescalado publicada más un mapeo afín a la habitación física, seguido de una proyección al muro más cercano. Este puente se aplica a ambas líneas base pero no a DDEP, que es nativo del formato, por lo que no podemos descartar que parte de la brecha refleje pérdida por conversión y no capacidad de modelado. Al menos es idéntico en ambas líneas base y no afecta a las filas de ablación; una comparación sin conversión requeriría reentrenarlas con objetivos referenciados a los muros. a) Varianza y compartición de modelo: Las desviaciones por habitación en la Tabla I son grandes en relación con las medias porque ambas métricas están acotadas por habitación (Cov. en [0, 100], Nav en [−35, 100]) con masa cerca de los extremos: una habitación suele estar en gran medida satisfecha y transitable, o en gran medida bloqueada, y una sola puerta obstruida lleva a una habitación por lo demás correcta al piso de la escala de Nav. Por lo tanto, leemos Cov/Nav/OC como un perfil conjunto y no como escalares significativos por separado. Los dos protocolos también acotan una decisión de diseño: el DDEP de producción entrena un especialista de 512 dimensiones por tipo de habitación sobre un codificador preentrenado, mientras que el modelo controlado es una única red de 256 dimensiones entrenada desde cero con 15,740 habitaciones y que atiende los cinco tipos. El escenario compartido y desde cero es el más débil de los dos, por lo que la Tabla I compara arquitecturas en el régimen más difícil. Esto acota el efecto en lugar de medirlo —la capacidad, el preentrenamiento, los datos y el conjunto de prueba difieren—, de modo que una ablación de compartido frente a especialista con capacidad fija queda como trabajo futuro. b) Ablaciones: Cinco ablaciones aíslan decisiones internas de diseño dentro de nuestra tokenización. Sin grupos continuos (No Continuous Groups) (−12.3 de cobertura, −13.9 de navegabilidad) reemplaza la incrustación (embedding) multicontinua por MLP escalares independientes y es el cambio individual más dañino, lo que confirma que la incrustación conjunta de características geométricas correlacionadas es el sesgo inductivo (inductive bias) central. Las ablaciones de orden (valor t primero (t-value First): −12.3/−10.5; borde, t descendente (edge, t Desc): −8.4/−6.8) muestran que el orden canónico de borde y luego posición también es relevante. Solo muros (Wall-Only) (−4.1/−5.0) confirma que las posiciones de las aberturas ayudan al decodificador a razonar sobre las holguras. Sin coordenadas de borde (No Edge Coordinates) (+1.8/−0.2) es casi neutral en cobertura y navegabilidad, mientras que OC sube ligeramente, lo que indica que el modelo infiere la geometría relativa a partir de las características restantes cuando se eliminan los extremos explícitos. Cabe señalar que las cinco aíslan decisiones dentro de la tokenización; la línea base de serialización plana (flat serialization) que pondría a prueba la estructura misma se discute en la Sección V."
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "C. Frontier LLM/VLM Baseline",
+            "es": "C. Línea base de LLM/VLM de frontera"
+          }
+        },
+        {
+          "id": "s4-p17",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Table II summarizes the deployment-style benchmark. Pro-duction DDEP has the only high-coverage, high-navigability, low-OC profile: it reaches 98.1 coverage, 79.2 navigability, 1.9% OC, and 3.18±0.18 s latency. Frontier LLM/VLM",
+            "es": "La Tabla II resume el banco de pruebas de estilo de despliegue. El DDEP de producción tiene el único perfil de alta cobertura, alta navegabilidad y bajo OC: alcanza 98.1 de cobertura, 79.2 de navegabilidad, 1.9% de OC y 3.18±0.18 s de latencia (latency). Los sistemas de LLM/VLM de frontera"
+          }
+        },
+        {
+          "id": "s4-p18",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "TABLE II: Deployment-style held-out benchmark on 50 production rooms. Frontier rows report the best score achieved by any evaluated text-only LLM or VLM in each metric column; domain rows are individual systems. LayoutVLM requires a furniture list, so Coverage is not applicable. Bold marks the best result per metric. systems close part of the semantic gap but remain less reliable spatially; domain-specific methods keep OC low only while missing large portions of the room program. To be precise about what the baselines received: every model gets the same tuned prompt with an explicit coordinate system, wallcondition guidance, a room-type-filtered entity catalog for information parity with DDEP, and a matched example of the expected output format, so the gap is not an artifact of naive prompting. It remains a calibration floor rather than an architectural ceiling because each model is run once per room with no best-of-k or chain-of-thought, and no open model is fine-tuned in-domain—the informative next comparison.",
+            "es": "Tabla II: Banco de pruebas reservado, de estilo de despliegue, con 50 habitaciones de producción. Las filas de frontera reportan la mejor puntuación lograda por cualquier LLM de solo texto o VLM evaluado en cada columna de métrica; las filas de dominio son sistemas individuales. LayoutVLM requiere una lista de mobiliario, por lo que la cobertura no aplica. La negrita marca el mejor resultado por métrica. cierran parte de la brecha semántica pero siguen siendo menos confiables en lo espacial; los métodos específicos del dominio mantienen un OC bajo solo mientras omiten grandes porciones del programa de la habitación. Para ser precisos sobre lo que recibieron las líneas base: cada modelo recibe el mismo prompt ajustado, con un sistema de coordenadas explícito, orientación sobre la condición de los muros, un catálogo de entidades filtrado por tipo de habitación para tener paridad de información con DDEP y un ejemplo equiparado del formato de salida esperado, por lo que la brecha no es un artefacto de un prompt ingenuo. Sigue siendo un piso de calibración y no un techo arquitectónico, porque cada modelo se ejecuta una sola vez por habitación, sin best-of-k ni cadena de pensamiento (chain-of-thought), y ningún modelo abierto se ajusta con ajuste fino en el dominio —la siguiente comparación informativa."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Fig. 3: 2D diagnostic grid for representative room types. Red marks blocking or wrong placement; blue marks undesired rotation. DDEP avoids most highlighted failures while satisfying the room program.",
+            "es": "Figura 3: Cuadrícula de diagnóstico 2D para tipos de habitación representativos. El rojo marca bloqueos o colocaciones erróneas; el azul marca rotaciones no deseadas. DDEP evita la mayoría de las fallas resaltadas mientras satisface el programa de la habitación."
+          }
+        },
+        {
+          "id": "s4-p19",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "D. Embedding Evaluation",
+            "es": "D. Evaluación de incrustaciones (embeddings)"
+          }
+        },
+        {
+          "id": "s4-p20",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "We also evaluate SBM’s encoder-only pathway against E5-Large-v2 [28], BGE-Large-v1.5 [29], and GTE-Large-v1.5 [30] using serialized room text for the baselines. Text encoders lead on within-type nDCG (E5 86.7 vs. SBM 68.2), but SBM produces substantially more coherent type-level clusters (NMI 0.726 vs. 0.371; ARI 0.437 vs. ≤0), which is the property used by retrieval-augmented BIM generation.",
+            "es": "También evaluamos la vía solo de codificador de SBM frente a E5-Large-v2 [28], BGE-Large-v1.5 [29] y GTE-Large-v1.5 [30], usando texto serializado de las habitaciones para las líneas base. Los codificadores de texto lideran en nDCG dentro de cada tipo (E5 86.7 frente a SBM 68.2), pero SBM produce agrupamientos (clusters) a nivel de tipo sustancialmente más coherentes (NMI 0.726 frente a 0.371; ARI 0.437 frente a ≤0), que es la propiedad que se usa en la generación BIM aumentada por recuperación (retrieval-augmented)."
+          }
+        },
+        {
+          "id": "s4-p21",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "E. Qualitative Comparisons and Failure Modes",
+            "es": "E. Comparaciones cualitativas y modos de fallo"
+          }
+        },
+        {
+          "id": "s4-p22",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Figure 1 shows generated layouts across room types, and Fig. 3 gives a 2D diagnostic view of the same comparison.",
+            "es": "La Figura 1 muestra diseños generados para distintos tipos de habitación, y la Fig. 3 ofrece una vista diagnóstica 2D de la misma comparación."
+          }
+        },
+        {
+          "id": "s4-p23",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "VLM baselines tend to overfill rooms with extra casework and furniture, blocking circulation and door-swing zones. Domain-specific methods place more appropriate furniture types but still leave narrow or blocked paths around key elements. DDEP layouts satisfy the room program while maintaining clear, door-connected circulation bands and respecting wallreferenced anchoring. Characteristic DDEP failures include under-populating ambiguous open-plan rooms, dropping an entity when door clearance is over-tight, and misaligning casework groups on short wall segments.",
+            "es": "Las líneas base de VLM tienden a sobrellenar las habitaciones con carpintería y mobiliario adicionales, bloqueando la circulación y las zonas de abatimiento de las puertas. Los métodos específicos del dominio colocan tipos de mobiliario más apropiados, pero aun así dejan caminos estrechos o bloqueados alrededor de los elementos clave. Los diseños de DDEP satisfacen el programa de la habitación mientras mantienen bandas de circulación despejadas y conectadas con las puertas, y respetan el anclaje referenciado a los muros. Las fallas características de DDEP incluyen poblar de menos las habitaciones ambiguas de planta abierta, omitir una entidad cuando la holgura de la puerta es demasiado estricta y desalinear grupos de carpintería en segmentos cortos de muro."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "V. CONCLUSION",
+        "es": "V. CONCLUSIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We presented a BIM-native tokenization for room-level layout synthesis: sparse attribute–feature matrix columns for logical elements, wall-referenced coordinates, and a mixedtype embedding module for categorical, scalar, and groupedcontinuous attributes. Reusing one Transformer for retrieval and DDEP, the method improves the controlled same-data benchmark against ATISS/BLT and produces stronger typelevel clusters than text encoders. The core takeaway is representational: modest domain-specific sequence models over BIM-editable tokens can be an effective primitive for constraint-aware indoor layout synthesis, complementary to general-purpose LLMs/VLMs.",
+            "es": "Presentamos una tokenización nativa de BIM para la síntesis de diseños a nivel de habitación: columnas de una matriz dispersa de atributos–características para los elementos lógicos, coordenadas referenciadas a los muros y un módulo de incrustación de tipos mixtos para atributos categóricos, escalares y continuos agrupados. Al reutilizar un mismo Transformer para la recuperación y para DDEP, el método mejora el banco de pruebas controlado con los mismos datos frente a ATISS/BLT y produce agrupamientos a nivel de tipo más sólidos que los codificadores de texto. La conclusión central es de representación: modelos de secuencias modestos y específicos del dominio, sobre tokens editables en BIM, pueden ser una primitiva eficaz para la síntesis de diseños interiores sujetos a restricciones, complementaria a los LLM/VLM de propósito general."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Several limitations bound these claims and set the agenda for future work. Our evaluation is limited to residential rooms from a proprietary corpus, which constrains external reproducibility; any future release of data or code will be announced on the project page. The LLM/VLM benchmark compares trained DDEP against zero-shot systems, so in-domain finetuning of an open model may close part of the gap. The ablations test within-tokenization choices, which makes a flatserialization baseline that removes the attribute–feature structure entirely the next critical experiment. We also omit direct HouseDiffusion [12]/LayoutGPT [22] comparisons because their polygonal or object–relation outputs need a non-trivial bridge to wall-hosted BIM entities. Non-residential typologies, building-scale layouts, vertical constraints, and local code variation remain open, as does disentangling model capacity from data scale in the shared-versus-specialist comparison.",
+            "es": "Varias limitaciones acotan estas afirmaciones y marcan la agenda de trabajo futuro. Nuestra evaluación se limita a habitaciones residenciales de un corpus propietario, lo que restringe la reproducibilidad externa; cualquier publicación futura de datos o código se anunciará en la página del proyecto. El banco de pruebas de LLM/VLM compara un DDEP entrenado con sistemas de cero disparos, por lo que el ajuste fino en el dominio de un modelo abierto podría cerrar parte de la brecha. Las ablaciones ponen a prueba decisiones dentro de la tokenización, lo que convierte en el siguiente experimento crítico una línea base de serialización plana que elimine por completo la estructura de atributos–características. También omitimos comparaciones directas con HouseDiffusion [12]/LayoutGPT [22] porque sus salidas poligonales o de relaciones entre objetos necesitan un puente no trivial hacia las entidades BIM alojadas en muros. Las tipologías no residenciales, los diseños a escala de edificio, las restricciones verticales y la variación de los códigos locales siguen abiertos, al igual que separar la capacidad del modelo de la escala de los datos en la comparación entre compartido y especialista."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "REFERENCES"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[1] C. N. Eastman, Spatial synthesis in computer-aided building design. Elsevier Science Inc., 1975."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[2] J. Monedero, “Parametric design: a review and some experiences,” Automation in Construction, vol. 9, no. 4, pp. 369–377, 2000."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[3] P. K´an and H. Kaufmann, “Automated interior design using a genetic algorithm,” in Proceedings of the 23rd ACM Symposium on Virtual Reality Software and Technology, VRST ’17, (New York, NY, USA), pp. 1–10, Association for Computing Machinery, Nov. 2017."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[4] F. Flager and J. R. Haymaker, “A comparison of multidisciplinary design, analysis and optimization processes in the building construction and aerospace industries,” in A comparison of multidisciplinary design, analysis and optimization processes in the building construction and aerospace industries, 2007."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[5] P. Merrell, E. Schkufza, Z. Li, M. Agrawala, and V. Koltun, “Interactive furniture layout using interior design guidelines,” ACM Trans. Graph., vol. 30, pp. 87:1–87:10, July 2011."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[6] P. Song, Y. Zheng, J. Jia, and Y. Gao, “Web3D-based automatic furniture layout system using recursive case-based reasoning and floor field,” Multimedia Tools and Applications, vol. 78, pp. 5051–5079, Feb. 2019."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[7] K. Xu, L. Wu, Z. Wang, Y. Feng, M. Witbrock, and V. Sheinin, “Graph2seq: Graph to sequence learning with attention-based neural networks,” 2018."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[8] R. Hu, Z. Huang, Y. Tang, O. van Kaick, H. Zhang, and H. Huang, “Graph2plan: Learning floorplan generation from layout graphs,” arXiv preprint arXiv:2004.13204, 2020."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[9] H. Tanasra, T. Rott Shaham, T. Michaeli, G. Austern, and S. Barath, “Au-tomation in Interior Space Planning: Utilizing Conditional Generative Adversarial Network Models to Create Furniture Layouts,” Buildings, vol. 13, p. 1793, July 2023. Publisher: Multidisciplinary Digital Publishing Institute."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[10] Y. Liu and G. Wang, “Exploration of the Indoor Layout Optimization Model in Computer-Aided Visual Analysis,” Computer-Aided Design and Applications, pp. 167–180, Aug. 2024."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[11] N. Nauata, W.-C. M. Chang, Y. Furukawa, and et al., “House-gan++: Generative adversarial layout refinement network towards intelligent computational agent,” in CVPR, 2021."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[12] M. A. Shabani, S. Hosseini, and Y. Furukawa, “Housediffusion: Vector floorplan generation via a diffusion model with discrete and continuous denoising,” 2022."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[13] S. Hu et al., “MiDiffusion: Mixed diffusion for 3d indoor scene synthesis,” arXiv preprint arXiv:2405.21066, 2024."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[14] X. Sun et al., “SemLayoutDiff: Semantic layout generation with diffusion models,” arXiv preprint arXiv:2508.18597, 2025."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[15] H. T. Nguyen, Y. Chen, V. Voleti, V. Jampani, and H. Jiang, “House-crafter: Lifting floorplans to 3d scenes with 2d diffusion model,” in arXiv preprint arXiv:2406.20077, 2024."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[16] D. Srivastava et al., “Lay-your-scene: Natural scene layout generation with diffusion transformers,” arXiv preprint arXiv:2505.04718, 2025."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[17] X. Ran et al., “Directlayout: Direct numerical layout generation for 3d indoor scene synthesis,” arXiv preprint arXiv:2506.05341, 2025."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[18] D. Paschalidou, A. Kar, M. Shugrina, K. Kreis, A. Geiger, and S. Fidler, “Atiss: Autoregressive transformers for indoor scene synthesis,” in Advances in Neural Information Processing Systems (NeurIPS), 2021."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[19] X. Wang, C. Yeshwanth, and M. Nießner, “Sceneformer: Indoor scene generation with transformers,” arXiv preprint arXiv:2012.09793, 2020."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[20] J. Liu, W. Xiong, I. Jones, Y. Nie, A. Gupta, and B. Ouguz, “Clip-layout: Style-consistent indoor scene synthesis with semantic furniture embedding,” ArXiv, vol. abs/2303.03565, 2023."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[21] X. Kong, L. Jiang, H. Chang, H. Zhang, Y. Hao, H. Gong, and I. Essa, “Blt: Bidirectional layout transformer for controllable layout generation,” in Computer Vision – ECCV 2022: 17th European Conference, Tel Aviv, Israel, October 23–27, 2022, Proceedings, Part XVII, (Berlin, Heidelberg), p. 474–490, Springer-Verlag, 2022."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[22] W. Feng, W. Zhu, T.-J. Fu, V. Jampani, A. R. Akula, X. He, S. Basu, X. E. Wang, and W. Y. Wang, “Layoutgpt: Compositional visual planning and generation with large language models,” in Advances in Neural Information Processing Systems, 2023."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[23] F.-Y. Sun, W. Liu, S. Gu, D. Lim, G. Bhat, F. Tombari, M. Li, N. Haber, and J. Wu, “Layoutvlm: Differentiable optimization of 3d layout via vision-language models,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 29469–29478, 2025."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[24] Z. Zong, G. Chen, Z. Zhan, F. Yu, and G. Tan, “Housetune: Two-stage floorplan generation with LLM assistance,” 2024."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[25] G. Littlefair, N. S. Dutt, and N. J. Mitra, “Flairgpt: Repurposing llms for interior designs,” 2025. EUROGRAPHICS 2025."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[26] X. Li, Y. Sun, and Z. Sha, “Llm4cad: Multi-Modal large language models for three-dimensional computer-aided design generation,” in Pro-ceedings of the ASME 2024 International Design Engineering Technical Conferences and Computers and Information in Engineering Conference (IDETC/CIE 2024), vol. 88407, p. V006T06A015, ASME, 2024."
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[27] J. Yin, P. Zeng, J. Zhong, P. Li, M. Zhang, R. Luo, and S. Lu, “Floorplan-deepseek (fpds): A multimodal approach to floorplan generation using vector-based next room prediction,” arXiv preprint, vol. arXiv:2506.21562, 2025."
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[28] L. Wang, N. Yang, X. Huang, B. Jiao, L. Yang, D. Jiang, R. Majumder, and F. Wei, “Text embeddings by weakly-supervised contrastive pretraining,” arXiv preprint arXiv:2212.03533, 2022."
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[29] S. Xiao, Z. Liu, P. Zhang, and N. Muennighoff, “C-pack: Packaged resources to advance general chinese embedding,” 2023."
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[30] Z. Li, X. Zhang, Y. Zhang, D. Long, P. Xie, and M. Zhang, “Towards general text embeddings with multi-stage contrastive learning,” arXiv preprint arXiv:2308.03281, 2023."
+          }
+        }
+      ]
+    }
+  ]
+}

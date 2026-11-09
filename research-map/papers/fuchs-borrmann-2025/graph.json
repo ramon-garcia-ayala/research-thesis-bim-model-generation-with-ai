@@ -1,0 +1,665 @@
+{
+  "version": 1,
+  "node": "fuchs-borrmann-2025",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "RQ1: What is the most suitable representation of IFC data for language modeling tasks? It is answered by masking properties in unseen IFC models and checking how accurately the original values are predicted.",
+      "es": "RQ1: ¿Cuál es la representación de datos IFC más adecuada para tareas de modelado de lenguaje? Se responde enmascarando propiedades en modelos IFC no vistos y midiendo qué tan bien se predicen los valores originales.",
+      "blocks": [
+        "s1-p7"
+      ],
+      "key": "rq1-representation",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "question",
+      "en": "RQ2: Which transformer architecture is best suited for the semantic enrichment of IFC models? The paper compares encoder-only and decoder-only models.",
+      "es": "RQ2: ¿Qué arquitectura de transformer es la más adecuada para el enriquecimiento semántico de modelos IFC? El artículo compara modelos solo-encoder y solo-decoder.",
+      "blocks": [
+        "s1-p7"
+      ],
+      "key": "rq2-architecture",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Semantic enrichment is the process of augmenting a BIM model with explicit information derived from implicit data, such as classifying spaces, finding topological relationships or predicting material properties. Many compliance checks need, for example, space use classifications that modelers often give only implicitly through space names.",
+      "es": "El enriquecimiento semántico es el proceso de aumentar un modelo BIM con información explícita derivada de datos implícitos, como clasificar espacios, encontrar relaciones topológicas o predecir propiedades de materiales. Muchas revisiones normativas necesitan, por ejemplo, la clasificación de uso de los espacios, que los modeladores suelen dar solo de forma implícita en los nombres.",
+      "blocks": [
+        "s1-p5",
+        "s2-p9"
+      ],
+      "key": "semantic-enrichment",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "Automated Compliance Checking is held back by the complexity of regulatory requirements and by whether the needed information exists in the BIM model. Information Delivery Standards (IDS) can specify what modelers must provide, but requiring all information through them could overburden modelers, so a balance between inferred and explicitly provided information is needed.",
+      "es": "La revisión automática de cumplimiento normativo se frena por la complejidad de los requisitos y por si la información necesaria existe en el modelo BIM. Los Information Delivery Standards (IDS) pueden especificar lo que los modeladores deben entregar, pero exigir toda la información por esa vía podría sobrecargarlos, así que se necesita un equilibrio entre información inferida y proporcionada explícitamente.",
+      "blocks": [
+        "s1-p1",
+        "s1-p3",
+        "s1-p5"
+      ],
+      "key": "acc-bottlenecks",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "claim",
+      "en": "The authors hypothesize that continued pre-training of language models on IFC, with Masked Language Modeling and Causal Language Modeling objectives, can predict information needed for compliance checking, such as space classifications, accessibility and loadbearing status. The study focuses on predicting missing values, not on inferring which types of information are required.",
+      "es": "Los autores plantean que el preentrenamiento continuo de modelos de lenguaje con IFC, con objetivos de modelado de lenguaje enmascarado y causal, puede predecir información necesaria para la revisión normativa, como clasificación de espacios, accesibilidad y carácter estructural. El estudio se enfoca en predecir valores faltantes, no en inferir qué tipos de información se requieren.",
+      "blocks": [
+        "s1-p6"
+      ],
+      "key": "continued-pretraining",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "concept",
+      "en": "Existing semantic enrichment relies on graph neural networks and on semantic similarity of text embeddings. GNNs are limited to the explicit graph structure and pretrained GNNs are scarce, while cosine similarity can miss nuanced, context-dependent meaning.",
+      "es": "El enriquecimiento semántico existente se apoya en redes neuronales de grafos y en similitud semántica de embeddings de texto. Las GNN se limitan a la estructura explícita del grafo y casi no hay GNN preentrenadas, mientras que la similitud coseno puede perder significados sutiles que dependen del contexto.",
+      "blocks": [
+        "s2-p10",
+        "s2-p11"
+      ],
+      "key": "gnn-limits",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "The approach trains a language model directly on textual IFC representations, using their relational structure in text form. A text form lets the model transfer understanding from pretraining on code and natural language; the paper notes that a linearized graph representation may follow in the future.",
+      "es": "El enfoque entrena un modelo de lenguaje directamente sobre representaciones textuales de IFC, aprovechando su estructura relacional en forma de texto. El texto permite transferir lo aprendido en el preentrenamiento con código y lenguaje natural; el artículo señala que una representación de grafo linealizada podría ser el siguiente paso.",
+      "blocks": [
+        "s2-p12",
+        "s2-p13"
+      ],
+      "key": "text-ifc-language-model",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "dataset",
+      "en": "The training data are 422 IFC models of office and residential buildings from student projects, split into 338 for training, 42 for validation and 42 for testing. 92.7% were created with Autodesk Revit and 6.9% with ArchiCAD.",
+      "es": "Los datos de entrenamiento son 422 modelos IFC de edificios de oficinas y vivienda provenientes de proyectos estudiantiles, divididos en 338 para entrenamiento, 42 para validación y 42 para prueba. El 92.7% se creó con Autodesk Revit y el 6.9% con ArchiCAD.",
+      "blocks": [
+        "s3-p2",
+        "fig-1"
+      ],
+      "key": "fuchs-422-ifc",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "Three IFC representations are compared: IFC4 in EXPRESS, ifcJSON-5a, and ifcJSON-5a*, a modified version in which all properties and quantities are attached directly to their elements and redundant property sets are removed.",
+      "es": "Se comparan tres representaciones de IFC: IFC4 en formato EXPRESS, ifcJSON-5a y ifcJSON-5a*, una versión modificada en la que todas las propiedades y cantidades se adjuntan directamente a sus elementos y se eliminan los conjuntos de propiedades redundantes.",
+      "blocks": [
+        "s3-p3",
+        "s3-p4",
+        "s3-p8",
+        "fig-2"
+      ],
+      "key": "ifc-representations",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Geometry was excluded from all representations to save processing time. Floats were normalized to two decimal places, GUIDs were removed in EXPRESS and replaced by semantic IDs such as space_1 in ifcJSON, and IFC keywords appearing more than 10 times were added to the ModernBERT tokenizer.",
+      "es": "La geometría se excluyó de todas las representaciones para ahorrar tiempo de procesamiento. Los flotantes se normalizaron a dos decimales, los GUID se eliminaron en EXPRESS y se reemplazaron por IDs semánticos como space_1 en ifcJSON, y las palabras clave de IFC que aparecían más de 10 veces se añadieron al tokenizador de ModernBERT.",
+      "blocks": [
+        "s3-p4",
+        "s3-p6",
+        "s3-p7"
+      ],
+      "key": "ifc-preprocessing",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "result",
+      "en": "EXPRESS is more compact than the ifcJSON representations because ifcJSON makes all keys explicit. Geometry accounts for more than three-quarters of the IFC file sizes in the training set.",
+      "es": "EXPRESS es más compacto que las representaciones ifcJSON porque ifcJSON hace explícitas todas las claves. La geometría representa más de tres cuartas partes del tamaño de los archivos IFC del conjunto de entrenamiento.",
+      "blocks": [
+        "s3-p9",
+        "tab-1"
+      ],
+      "key": "file-sizes",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Two ablation models were trained: one that retains IFC GUIDs and geometry, and one without the specialized IFC keyword tokens. They isolate the effects of tokenization and of omitting identifiers and geometry.",
+      "es": "Se entrenaron dos modelos de ablación: uno que conserva los GUID y la geometría de IFC, y otro sin los tokens especializados de palabras clave IFC. Aíslan los efectos de la tokenización y de omitir identificadores y geometría.",
+      "blocks": [
+        "s3-p10",
+        "s3-p11"
+      ],
+      "key": "ablation-variants",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "Models needed infilling capability and code in their pretraining corpus. ModernBERT (encoder-only, MLM, long context, pretrained on code) was used mainly to compare representations, and Qwen2.5-Coder (decoder-only, 0.5 billion parameters, comparable to ModernBERT-large) for the architecture comparison. Encoder-decoder models were excluded from initial experiments.",
+      "es": "Los modelos debían tener capacidad de relleno (infilling) y código en su corpus de preentrenamiento. ModernBERT (solo-encoder, MLM, contexto largo, preentrenado con código) se usó sobre todo para comparar representaciones, y Qwen2.5-Coder (solo-decoder, 0.5 mil millones de parámetros, comparable a ModernBERT-large) para comparar arquitecturas. Los modelos encoder-decoder se excluyeron de los experimentos iniciales.",
+      "blocks": [
+        "s3-p12",
+        "s3-p13",
+        "s3-p15",
+        "s3-p16"
+      ],
+      "key": "model-selection",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "limitation",
+      "en": "With MLM the number of masked tokens must be known in advance, which reveals the token count of the target, and each mask is predicted independently, which limits coherence on multi-token properties.",
+      "es": "Con MLM el número de tokens enmascarados debe conocerse de antemano, lo que revela la longitud del objetivo, y cada máscara se predice de forma independiente, lo que limita la coherencia en propiedades de varios tokens.",
+      "blocks": [
+        "s3-p14",
+        "s4-p7"
+      ],
+      "key": "mlm-mask-count",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "ModernBERT was trained with random masking at 30% probability on two A100 GPUs. Qwen2.5-Coder used fill-in-the-middle with probability 0.66, split equally between PSM and SPM, with infilling ratios between 0.02 and 0.2 and context limited to 16,384 tokens.",
+      "es": "ModernBERT se entrenó con enmascarado aleatorio al 30% en dos GPU A100. Qwen2.5-Coder usó fill-in-the-middle con probabilidad de 0.66, repartida por igual entre PSM y SPM, con razones de relleno entre 0.02 y 0.2 y contexto limitado a 16,384 tokens.",
+      "s3-p17": "",
+      "blocks": [
+        "s3-p17",
+        "s3-p18",
+        "s3-p19",
+        "tab-2",
+        "fig-3"
+      ],
+      "key": "training-setup",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "Six evaluation scenarios were built from space entities: all spaces or one space masked, crossed with masking all properties, only name properties (Name, LongName, Reference), or only other properties. They were chosen because they can be established automatically, since no public benchmark exists, and only values explicitly specified in the models were used.",
+      "es": "Se construyeron seis escenarios de evaluación sobre entidades de espacio: enmascarar todos los espacios o uno solo, combinado con enmascarar todas las propiedades, solo las propiedades de nombre (Name, LongName, Reference) o solo las demás propiedades. Se eligieron porque pueden establecerse automáticamente, ya que no existe un benchmark público, y solo se usaron valores especificados explícitamente en los modelos.",
+      "blocks": [
+        "s3-p20",
+        "s3-p21",
+        "s3-p22"
+      ],
+      "key": "six-scenarios",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "dataset",
+      "en": "In the ifcJSON-5a* representation the test set included 63,868 property values: 13,557 space names and references, and 50,309 other properties and quantities.",
+      "es": "En la representación ifcJSON-5a* el conjunto de prueba incluyó 63,868 valores de propiedades: 13,557 nombres y referencias de espacios, y 50,309 otras propiedades y cantidades.",
+      "blocks": [
+        "s3-p22"
+      ],
+      "key": "test-set-values",
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Qwen2.5-Coder was tested on the 'One space – All properties' scenario with ifcJSON-5a*, in LHS, PSM and SPM configurations at 4,000 and 8,000 tokens. The full file structure was kept and all properties but one were removed for a single space, giving 63,868 independent generation tasks.",
+      "es": "Qwen2.5-Coder se probó en el escenario 'Un espacio – Todas las propiedades' con ifcJSON-5a*, en configuraciones LHS, PSM y SPM con 4,000 y 8,000 tokens. Se conservó la estructura completa del archivo y se quitaron todas las propiedades menos una de un solo espacio, lo que da 63,868 tareas de generación independientes.",
+      "blocks": [
+        "s3-p23",
+        "s3-p24",
+        "s3-p25",
+        "s3-p26"
+      ],
+      "key": "qwen-evaluation",
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "In the 'All spaces' scenarios, EXPRESS outperformed the other formats somewhat unexpectedly, except for space name prediction where ifcJSON-5a* was best. Table 3 gives, for all-spaces all properties, EXPRESS 16.91, ifcJSONv5 13.23 and ifcJSONv5* 13.37, and for space name, 2.86, 2.02 and 10.85.",
+      "es": "En los escenarios de 'Todos los espacios', EXPRESS superó a los demás formatos de forma algo inesperada, salvo en la predicción de nombres de espacio, donde ifcJSON-5a* fue el mejor. La Tabla 3 da, para todos los espacios y todas las propiedades, EXPRESS 16.91, ifcJSONv5 13.23 e ifcJSONv5* 13.37, y para nombre de espacio, 2.86, 2.02 y 10.85.",
+      "blocks": [
+        "s4-p2",
+        "s4-p6"
+      ],
+      "key": "express-all-spaces",
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "In the 'One space' scenarios ifcJSON-5a* achieved an accuracy improvement of up to 15% over EXPRESS, and ifcJSON-5a also slightly beat EXPRESS in most of them except space name prediction. In Table 3 for one space, all properties: EXPRESS 43.52, ifcJSONv5 45.37, ifcJSONv5* 58.96; space name: 41.39, 17.47, 66.41; other properties: 46.49, 53.82, 61.37.",
+      "es": "En los escenarios de 'Un espacio', ifcJSON-5a* logró una mejora de exactitud de hasta 15% sobre EXPRESS, e ifcJSON-5a también superó ligeramente a EXPRESS en la mayoría, salvo en la predicción de nombres de espacio. En la Tabla 3 para un espacio, todas las propiedades: EXPRESS 43.52, ifcJSONv5 45.37, ifcJSONv5* 58.96; nombre de espacio: 41.39, 17.47, 66.41; otras propiedades: 46.49, 53.82, 61.37.",
+      "blocks": [
+        "s4-p2",
+        "s4-p6",
+        "s6-p1"
+      ],
+      "key": "ifcjson5star-one-space",
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "claim",
+      "en": "The authors suggest ifcJSON-5a* suits language modeling better because its reduced verbosity and increased semantic information let more relevant information fit within the model's context window.",
+      "es": "Los autores sugieren que ifcJSON-5a* se adapta mejor al modelado de lenguaje porque su menor verbosidad y mayor información semántica permiten que quepa más información relevante en la ventana de contexto del modelo.",
+      "blocks": [
+        "s4-p3"
+      ],
+      "key": "why-5star-works",
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "Neither extending the tokenizer with IFC keywords nor removing geometry improved prediction in the 'All spaces' scenarios. The model trained with geometry had the best accuracy for 'All spaces – All properties' (23.44) and 'All spaces – Other properties' (32.46), but its larger input kept it from using surrounding spaces in the 'One space' scenarios (29.51 for all properties). Removing geometry reduced training time.",
+      "es": "Ni ampliar el tokenizador con palabras clave de IFC ni quitar la geometría mejoró la predicción en los escenarios de 'Todos los espacios'. El modelo entrenado con geometría tuvo la mejor exactitud en 'Todos los espacios – Todas las propiedades' (23.44) y 'Todos los espacios – Otras propiedades' (32.46), pero su entrada más grande le impidió aprovechar los espacios circundantes en los escenarios de 'Un espacio' (29.51 en todas las propiedades). Quitar la geometría redujo el tiempo de entrenamiento.",
+      "blocks": [
+        "s4-p3",
+        "s4-p4",
+        "s4-p5",
+        "s4-p6"
+      ],
+      "key": "ablation-results",
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "Many correct predictions came from repetition and regularity within IFC models, such as repeated height values across storeys or repeated naming patterns. Many wrong predictions were still plausible: numbers often had the right order of magnitude and space names resembled the intended label.",
+      "es": "Muchas predicciones correctas provenían de la repetición y regularidad dentro de los modelos IFC, como alturas repetidas entre niveles o patrones de nombres repetidos. Muchas predicciones erróneas eran plausibles: los números solían tener el orden de magnitud correcto y los nombres de espacio se parecían a la etiqueta buscada.",
+      "blocks": [
+        "s4-p7"
+      ],
+      "key": "qualitative-errors",
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "The best Qwen2.5-Coder configuration reached 54.05% (SPM, 8000 tokens), about 5% below the best ModernBERT model in the same scenario. Table 4: LHS 47.88 and 48.71, PSM 43.19 and 44.51, SPM 52.51 and 54.05 at 4000 and 8000 tokens; more context improved accuracy slightly in all cases.",
+      "es": "La mejor configuración de Qwen2.5-Coder alcanzó 54.05% (SPM, 8000 tokens), aproximadamente 5% por debajo del mejor modelo ModernBERT en el mismo escenario. Tabla 4: LHS 47.88 y 48.71, PSM 43.19 y 44.51, SPM 52.51 y 54.05 con 4000 y 8000 tokens; más contexto mejoró ligeramente la exactitud en todos los casos.",
+      "blocks": [
+        "s4-p9",
+        "s4-p12"
+      ],
+      "key": "qwen-accuracy",
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "The average float prediction error was 231.55 for Qwen2.5-Coder and 6161.54 for the best ModernBERT configuration in the same scenario. Even in its best condition for floats ('All Spaces – Other Properties', EXPRESS), ModernBERT's average error was 631.53.",
+      "es": "El error promedio en la predicción de flotantes fue de 231.55 para Qwen2.5-Coder y de 6161.54 para la mejor configuración de ModernBERT en el mismo escenario. Incluso en su mejor condición para flotantes ('Todos los espacios – Otras propiedades', EXPRESS), el error promedio de ModernBERT fue de 631.53.",
+      "blocks": [
+        "s4-p10"
+      ],
+      "key": "float-error",
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "claim",
+      "en": "Both model types have distinct strengths. ModernBERT benefits from controlled masking and faster inference and served as a testbed for comparing representations, while Qwen2.5-Coder gives more consistent and realistic predictions, especially for numbers, and may suit applications with fewer, clearly defined enrichment tasks.",
+      "es": "Ambos tipos de modelo tienen fortalezas distintas. ModernBERT se beneficia del enmascarado controlado y de una inferencia más rápida y sirvió como banco de pruebas para comparar representaciones, mientras que Qwen2.5-Coder da predicciones más consistentes y realistas, sobre todo con números, y puede convenir en aplicaciones con pocas tareas de enriquecimiento bien definidas.",
+      "blocks": [
+        "s4-p11",
+        "s6-p2"
+      ],
+      "key": "encoder-vs-decoder",
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "The training data vary significantly in Level of Development, are largely architectural, and have properties of mixed quality, with many models possibly relying on default values rather than design intent. Some models are in languages other than English, mostly German, which raises character-encoding issues.",
+      "es": "Los datos de entrenamiento varían mucho en nivel de desarrollo (LOD), son en su mayoría arquitectónicos y sus propiedades tienen calidad mixta, ya que muchos modelos podrían depender de valores por defecto en lugar de la intención de diseño. Algunos modelos están en idiomas distintos al inglés, sobre todo alemán, lo que genera problemas de codificación de caracteres.",
+      "blocks": [
+        "s5-p3"
+      ],
+      "key": "training-data-quality",
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "The refinements made to ifcJSON-5a*, such as attaching properties directly to elements, complicate lossless conversion back to the IFC schema. Parsing errors already appeared in the IFC to ifcJSON converter, which could be a problem when geometry is added.",
+      "es": "Los ajustes hechos a ifcJSON-5a*, como adjuntar propiedades directamente a los elementos, complican la conversión sin pérdida de regreso al esquema IFC. Ya hubo errores de análisis en el conversor de IFC a ifcJSON, lo que podría ser un problema al integrar la geometría.",
+      "blocks": [
+        "s5-p1"
+      ],
+      "key": "lossless-conversion",
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "limitation",
+      "en": "Evaluation is limited to values explicitly specified in the models and to spaces, and tasks such as space classification were deferred because of the manual labeling effort. No public benchmark exists and the authors' own benchmark is still in progress.",
+      "es": "La evaluación se limita a valores especificados explícitamente en los modelos y a espacios, y tareas como la clasificación de espacios se pospusieron por el esfuerzo de etiquetado manual. No existe un benchmark público y el benchmark de los autores aún está en progreso.",
+      "blocks": [
+        "s3-p20"
+      ],
+      "key": "narrow-evaluation",
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "future",
+      "en": "Future work will add real-world industry and open-source models and manually validated test cases, for tasks such as converting IfcProxy elements to proper IFC classes, enforcing consistency of shared parameters, standardizing naming conventions and classifying spaces.",
+      "es": "El trabajo futuro incorporará modelos reales de la industria y de código abierto y casos de prueba validados manualmente, para tareas como convertir elementos IfcProxy a clases IFC apropiadas, imponer consistencia en parámetros compartidos, estandarizar convenciones de nombres y clasificar espacios.",
+      "blocks": [
+        "s5-p3",
+        "s5-p4"
+      ],
+      "key": "curated-benchmarks",
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "future",
+      "en": "Geometry will be integrated in future work, possibly modeled separately from IFC through dedicated geometric embedding models, or through bounding boxes or other geometric summaries.",
+      "es": "La geometría se integrará en trabajo futuro, posiblemente modelada por separado del IFC mediante modelos de embeddings geométricos dedicados, o mediante cajas envolventes u otros resúmenes geométricos.",
+      "blocks": [
+        "s5-p5",
+        "s3-p4"
+      ],
+      "key": "geometry-integration",
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "future",
+      "en": "IFC-aware language models may be used to generate building components from scratch or to extend existing models with semantically complete elements. Future work will test Qwen2.5-Coder and similar models on generating whole elements, with semantic and geometric parts, evaluated by recall and precision of predicted properties, possibly with reinforcement learning to reward syntactic correctness.",
+      "es": "Los modelos de lenguaje que conocen IFC podrían usarse para generar componentes de edificio desde cero o para ampliar modelos existentes con elementos semánticamente completos. El trabajo futuro probará Qwen2.5-Coder y modelos similares generando elementos completos, con partes semánticas y geométricas, evaluados con recall y precisión de las propiedades predichas, posiblemente con aprendizaje por refuerzo para premiar la corrección sintáctica.",
+      "blocks": [
+        "s5-p6",
+        "s3-p24"
+      ],
+      "key": "generate-elements",
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "future",
+      "en": "Other planned extensions: lighter representations, more training data from synthetic building models, zero-shot comparison with larger general-purpose LLMs, global tokens for document-wide context, and better mask prediction (language modeling head, diffusion, iterative span-filling, encoder-decoder models).",
+      "es": "Otras extensiones previstas: representaciones más ligeras, más datos de entrenamiento con modelos de edificios sintéticos, comparación zero-shot con LLM generales más grandes, tokens globales para contexto de todo el documento y mejores estrategias de predicción de máscaras (cabeza de modelado de lenguaje, difusión, relleno iterativo de tramos, modelos encoder-decoder).",
+      "blocks": [
+        "s5-p8",
+        "s6-p3"
+      ],
+      "key": "other-extensions",
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "concept",
+      "en": "The paper asks whether such a model would live inside the design process or serve as a preprocessing step for compliance checking. Mappings between semantic IDs and GUIDs could link back to the source BIM, model ownership means different disciplines would enrich independently, and integration with Information Delivery Specifications could enable real-time suggestions in design software.",
+      "es": "El artículo pregunta si un modelo así viviría dentro del proceso de diseño o serviría como preprocesamiento para la revisión normativa. Las correspondencias entre IDs semánticos y GUID podrían enlazar con el BIM de origen, la propiedad del modelo implica que distintas disciplinas harían el enriquecimiento por separado, y la integración con Information Delivery Specifications podría dar sugerencias en tiempo real dentro del software de diseño.",
+      "blocks": [
+        "s5-p2"
+      ],
+      "key": "integration-in-practice",
+      "origin": "read"
+    },
+    {
+      "id": "i35",
+      "kind": "concept",
+      "en": "IFC models are large, so long-context transformers matter: ModernBERT scales from 512 to up to 8192 tokens, and code-oriented decoder-only models with infilling can fill missing content from left and right context. Code resembles IFC and ifcJSON in hierarchy, identifiers and key-value properties.",
+      "es": "Los modelos IFC son grandes, por lo que importan los transformers de contexto largo: ModernBERT pasa de 512 hasta 8192 tokens, y los modelos solo-decoder orientados a código con infilling pueden completar contenido faltante a partir del contexto izquierdo y derecho. El código se parece a IFC e ifcJSON en jerarquía, identificadores y propiedades clave-valor.",
+      "blocks": [
+        "s2-p5",
+        "s2-p6",
+        "s2-p7",
+        "s2-p8"
+      ],
+      "key": "long-context-code-models",
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i4",
+      "to": "i3",
+      "type": "supports",
+      "why": "The compliance-checking bottleneck is what motivates semantic enrichment."
+    },
+    {
+      "from": "i6",
+      "to": "i7",
+      "type": "supports",
+      "why": "The limits of GNNs and similarity methods motivate training a language model on IFC text."
+    },
+    {
+      "from": "i5",
+      "to": "i7",
+      "type": "uses",
+      "why": "The hypothesis relies on reading IFC as text with pretrained language models."
+    },
+    {
+      "from": "i35",
+      "to": "i13",
+      "type": "supports",
+      "why": "Long context and code pretraining are the grounds for choosing ModernBERT and Qwen2.5-Coder."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Preprocessing choices apply to each of the compared representations."
+    },
+    {
+      "from": "i15",
+      "to": "i8",
+      "type": "uses",
+      "why": "Training runs on the 338 training models."
+    },
+    {
+      "from": "i15",
+      "to": "i13",
+      "type": "uses",
+      "why": "The training setups are for ModernBERT and Qwen2.5-Coder."
+    },
+    {
+      "from": "i16",
+      "to": "i9",
+      "type": "uses",
+      "why": "Each scenario is run across the three representations."
+    },
+    {
+      "from": "i16",
+      "to": "i1",
+      "type": "measures",
+      "why": "The six scenarios compare representations (RQ1)."
+    },
+    {
+      "from": "i17",
+      "to": "i16",
+      "type": "part-of",
+      "why": "The test counts describe the values evaluated in the scenarios."
+    },
+    {
+      "from": "i18",
+      "to": "i2",
+      "type": "measures",
+      "why": "The Qwen test compares a decoder-only model with ModernBERT (RQ2)."
+    },
+    {
+      "from": "i12",
+      "to": "i22",
+      "type": "supports",
+      "why": "The ablation variants produce the ablation results."
+    },
+    {
+      "from": "i19",
+      "to": "i1",
+      "type": "supports",
+      "why": "EXPRESS wins the all-spaces baselines, a partial answer to RQ1."
+    },
+    {
+      "from": "i20",
+      "to": "i1",
+      "type": "supports",
+      "why": "ifcJSON-5a* wins the realistic one-space scenarios, answering RQ1."
+    },
+    {
+      "from": "i21",
+      "to": "i20",
+      "type": "supports",
+      "why": "Offered as the likely explanation for the ifcJSON-5a* advantage."
+    },
+    {
+      "from": "i20",
+      "to": "i19",
+      "type": "contradicts",
+      "why": "The best format differs between all-spaces and one-space scenarios."
+    },
+    {
+      "from": "i14",
+      "to": "i24",
+      "type": "supports",
+      "why": "Knowing the mask count gave ModernBERT an advantage over Qwen."
+    },
+    {
+      "from": "i24",
+      "to": "i2",
+      "type": "supports",
+      "why": "Qwen reaches 54.05%, about 5% below the best ModernBERT, for RQ2."
+    },
+    {
+      "from": "i25",
+      "to": "i26",
+      "type": "supports",
+      "why": "The float error gap is the main evidence that decoder-only models are more consistent."
+    },
+    {
+      "from": "i23",
+      "to": "i25",
+      "type": "supports",
+      "why": "Plausible-but-wrong predictions fit the qualitative review favoring Qwen's coherence."
+    },
+    {
+      "from": "i24",
+      "to": "i26",
+      "type": "supports",
+      "why": "The accuracy comparison feeds the conclusion about each model's strengths."
+    },
+    {
+      "from": "i22",
+      "to": "i31",
+      "type": "supports",
+      "why": "Geometry helped some scenarios but overloaded the input, motivating better ways to include it."
+    },
+    {
+      "from": "i27",
+      "to": "i30",
+      "type": "supports",
+      "why": "Data-quality concerns are the reason given for curated benchmarks."
+    },
+    {
+      "from": "i29",
+      "to": "i30",
+      "type": "supports",
+      "why": "Limited evaluation tasks motivate the planned benchmark tasks."
+    },
+    {
+      "from": "i28",
+      "to": "i31",
+      "type": "supports",
+      "why": "Conversion errors may worsen when geometry is added."
+    },
+    {
+      "from": "i32",
+      "to": "i13",
+      "type": "uses",
+      "why": "Element generation is planned with Qwen2.5-Coder and related models."
+    },
+    {
+      "from": "i34",
+      "to": "i4",
+      "type": "uses",
+      "why": "IDS integration is proposed to settle the inferred versus provided information balance."
+    },
+    {
+      "from": "i11",
+      "to": "i21",
+      "type": "supports",
+      "why": "Size differences between formats relate to the context-window explanation."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i23",
+      "to": "hypothesis",
+      "why": "Models find patterns in element properties from repetition and regularity, which partly supports the idea that elements and relations hold learnable patterns, though only for filling in values."
+    },
+    {
+      "idea": "i20",
+      "to": "hypothesis",
+      "why": "Giving the model the surrounding elements as context raised accuracy in the one-space scenarios, which suggests relations between elements carry usable information."
+    },
+    {
+      "idea": "i32",
+      "to": "question",
+      "why": "The paper only plans generating whole IFC elements with their semantic and geometric parts; no generation result exists yet, so it marks a gap."
+    },
+    {
+      "idea": "i28",
+      "to": "question",
+      "why": "Regenerating valid models needs lossless conversion back to IFC, and the modified ifcJSON-5a* makes this harder."
+    },
+    {
+      "idea": "i9",
+      "to": "ifc",
+      "why": "Compares EXPRESS and ifcJSON text forms of IFC and offers a way to choose the representation."
+    },
+    {
+      "idea": "i8",
+      "to": "hornung-2025",
+      "why": "A comparable corpus of real IFC models (422 student projects) that can be set against other IFC-to-graph datasets."
+    },
+    {
+      "idea": "i7",
+      "to": "ask-bim-2026",
+      "why": "Offers a text-based alternative to structuring IFC as a graph before a model reads it, with the graph form named as a possible next step."
+    },
+    {
+      "idea": "i27",
+      "to": "bimforum-lod",
+      "why": "The training models vary widely in Level of Development and often use default values, which affects what a model can learn."
+    },
+    {
+      "idea": "i4",
+      "to": "explicit-vs-learned",
+      "why": "Frames the balance between information modelers state explicitly through IDS and information a learned model infers."
+    },
+    {
+      "idea": "i34",
+      "to": "hand-offs",
+      "why": "Discusses model ownership, with different disciplines enriching the model independently."
+    },
+    {
+      "idea": "i31",
+      "to": "question",
+      "why": "Geometry was excluded and is central to rebuilding models, so how to include it is an open gap."
+    }
+  ]
+}

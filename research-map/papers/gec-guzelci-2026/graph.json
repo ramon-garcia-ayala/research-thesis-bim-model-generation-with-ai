@@ -1,0 +1,681 @@
+{
+  "version": 1,
+  "node": "gec-guzelci-2026",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "RQ1: Can information embedded in past BIM projects be systematically turned into a predictive decision-support mechanism that estimates component-level specifications in new projects?",
+      "es": "PI1: ¿Se puede transformar de forma sistemática la información de proyectos BIM pasados en un mecanismo predictivo de apoyo a la decisión que estime especificaciones de componentes en proyectos nuevos?",
+      "blocks": [
+        "s1-p6",
+        "s2-2-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "question",
+      "en": "RQ2: Can spatial-functional adjacency between rooms be a reliable basis for predicting component family configurations in new design contexts?",
+      "es": "PI2: ¿Puede la adyacencia espacial-funcional entre espacios ser una base confiable para predecir configuraciones de familias de componentes en contextos de diseño nuevos?",
+      "blocks": [
+        "s1-p7",
+        "s2-2-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "claim",
+      "en": "The knowledge in completed BIM models stays inside each project. Models are archived at the end, naming conventions and standards are project-specific, and similar design decisions are made again from scratch.",
+      "es": "El conocimiento de los modelos BIM terminados se queda dentro de cada proyecto. Los modelos se archivan al final, las convenciones de nombres y los estándares son propios de cada proyecto, y decisiones de diseño parecidas se vuelven a tomar desde cero.",
+      "blocks": [
+        "s1-p2",
+        "s1-p3",
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "claim",
+      "en": "Rule-based and ontology-driven decision support systems in BIM are limited by predefined knowledge bases and adapt poorly to diverse projects. Supervised ML is data-driven and could capture implicit design intelligence from archived projects.",
+      "es": "Los sistemas de apoyo a la decisión en BIM basados en reglas u ontologías están limitados por bases de conocimiento predefinidas y se adaptan poco a proyectos diversos. El aprendizaje supervisado se basa en datos y podría capturar inteligencia de diseño implícita de proyectos archivados.",
+      "blocks": [
+        "s2-p2",
+        "s2-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "claim",
+      "en": "The paper names three gaps. Most ML in BIM targets numeric or performance parameters, not component-level design decisions. Reuse of design knowledge across projects is not systematically addressed. BIM-based ML rarely operationalizes structured, interpretable design knowledge.",
+      "es": "El artículo señala tres vacíos. La mayoría del ML en BIM apunta a parámetros numéricos o de desempeño, no a decisiones de diseño a nivel de componente. La reutilización del conocimiento de diseño entre proyectos no se aborda de forma sistemática. El ML basado en BIM rara vez operacionaliza conocimiento de diseño estructurado e interpretable.",
+      "blocks": [
+        "s2-p6",
+        "s2-p7",
+        "s2-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "concept",
+      "en": "Doors are the test domain because they are discrete and parameterized, combine semantic richness with parametric diversity, and depend on the functional relationship between adjacent spaces (circulation, privacy, fire separation). The targets are type- or instance-level attributes, not whole Revit family definitions.",
+      "es": "Las puertas son el dominio de prueba porque son discretas y parametrizadas, combinan riqueza semántica con diversidad paramétrica y dependen de la relación funcional entre espacios adyacentes (circulación, privacidad, separación contra incendio). Los objetivos son atributos a nivel de tipo o instancia, no definiciones completas de familias de Revit.",
+      "blocks": [
+        "s1-p8",
+        "s3-p3",
+        "s3-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "dataset",
+      "en": "5,763 door instances from three Revit projects by a professional design office: a hospital (2,950 doors), an office (1,610) and a recreational facility (1,203). They were chosen to cover different building typologies.",
+      "es": "5,763 instancias de puertas de tres proyectos de Revit de una oficina de diseño profesional: un hospital (2,950 puertas), una oficina (1,610) y una instalación recreativa (1,203). Se eligieron para cubrir distintas tipologías de edificio.",
+      "blocks": [
+        "s3-p5",
+        "s3-p6",
+        "s1-p8"
+      ],
+      "key": "revit-door-instances",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Door data were exported from Revit schedules into tables, one row per door. Rows with missing key fields, duplicates or ambiguous labels were removed, which cut about 35% of the hospital data (from 4,533) and 17% of the recreational facility data (from 1,457). The office data were not filtered.",
+      "es": "Los datos de puertas se exportaron de las tablas de planificación de Revit a tablas, una fila por puerta. Se eliminaron filas con campos clave faltantes, duplicados o etiquetas ambiguas, lo que quitó aproximadamente 35% de los datos del hospital (de 4,533) y 17% de los de la instalación recreativa (de 1,457). Los datos de la oficina no se filtraron.",
+      "blocks": [
+        "s3-p6",
+        "s3-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "Label cleaning: specification attributes such as materials and fire ratings were normalized (e.g. \"EI60\" vs. \"EI-60\") and synonyms were merged. Room names were deliberately not standardized across projects, so cross-project differences in naming and labels remained.",
+      "es": "Limpieza de etiquetas: los atributos de especificación, como materiales y clasificaciones de fuego, se normalizaron (por ejemplo \"EI60\" vs. \"EI-60\") y se unificaron los sinónimos. Los nombres de espacios no se estandarizaron entre proyectos a propósito, así que las diferencias de nombres y etiquetas entre proyectos permanecieron.",
+      "blocks": [
+        "s3-p16",
+        "s3-p18"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "The only input feature is combined_room, the room-to-room transition as text (e.g. \"patient room to corridor\"). It is encoded as a Bag-of-Words with CountVectorizer. No target attribute is used to predict another, which avoids information leakage.",
+      "es": "La única variable de entrada es combined_room, la transición entre espacios como texto (por ejemplo \"patient room to corridor\"). Se codifica como Bag-of-Words con CountVectorizer. Ningún atributo objetivo se usa para predecir otro, lo que evita fuga de información.",
+      "blocks": [
+        "s3-p7",
+        "s3-p8",
+        "s3-p10",
+        "s3-p13",
+        "fig-1"
+      ],
+      "key": "bag-of-words",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "limitation",
+      "en": "Bag-of-Words ignores word order, so the model learns co-occurrence of room types, not direction. The paper argues many door specifications are symmetric, but asymmetric cases such as access control or fire zoning would need sequence-aware or graph-based representations, which it leaves out of scope.",
+      "es": "Bag-of-Words ignora el orden de las palabras, así que el modelo aprende co-ocurrencia de tipos de espacio, no dirección. El artículo plantea que muchas especificaciones de puertas son simétricas, pero los casos asimétricos, como control de acceso o zonas de fuego, requerirían representaciones sensibles a la secuencia o basadas en grafos, que deja fuera de alcance.",
+      "blocks": [
+        "s3-p10",
+        "s3-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Six targets are predicted, each with its own model: four classifiers (leaf material, leaf type, frame type, fire/smoke rating) and two regressors (door width, door height). Repeated over four scenarios, this gives 24 models.",
+      "es": "Se predicen seis objetivos, cada uno con su propio modelo: cuatro clasificadores (material de la hoja, tipo de hoja, tipo de marco, clasificación de fuego/humo) y dos regresores (ancho y alto de la puerta). Repetidos en cuatro escenarios, resultan 24 modelos.",
+      "blocks": [
+        "s3-p2",
+        "s3-p9",
+        "s3-p26",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "A single algorithm, Random Forest, is used for every target, with scikit-learn defaults (n_estimators = 100, no depth limit, random_state = 42) in Google Colab. The paper uses one model family to isolate the effect of data variability, not to benchmark algorithms.",
+      "es": "Se usa un solo algoritmo, Random Forest, para todos los objetivos, con los valores por defecto de scikit-learn (n_estimators = 100, sin límite de profundidad, random_state = 42) en Google Colab. El artículo usa una sola familia de modelos para aislar el efecto de la variabilidad de los datos, no para comparar algoritmos.",
+      "blocks": [
+        "s3-p24",
+        "s3-p28"
+      ],
+      "key": "random-forest",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "Four scenarios: (1) hospital to hospital; (2) hospital to office; (3) hospital + office to recreational facility; (4) hospital + office + a partial sample of the recreational facility, tested on the rest of it.",
+      "es": "Cuatro escenarios: (1) hospital a hospital; (2) hospital a oficina; (3) hospital + oficina a instalación recreativa; (4) hospital + oficina + una muestra parcial de la instalación recreativa, probado con el resto de ella.",
+      "blocks": [
+        "s3-p22",
+        "s3-p23"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "Models are grouped by combined_room so identical transitions never fall on both sides of a train/test split. Scenario 1 uses GroupKFold cross-validation (up to 10 folds). Scenarios 2–4 use one fixed project-based hold-out. Only Scenarios 2 and 3 are strictly disjoint cross-project tests; Scenario 4 is a domain-adaptation setup.",
+      "es": "Los modelos se agrupan por combined_room para que transiciones idénticas nunca queden en ambos lados de una partición entrenamiento/prueba. El escenario 1 usa validación cruzada GroupKFold (hasta 10 particiones). Los escenarios 2–4 usan una sola partición fija por proyecto. Solo los escenarios 2 y 3 son pruebas estrictamente disjuntas entre proyectos; el escenario 4 es una configuración de adaptación de dominio.",
+      "blocks": [
+        "s3-p25"
+      ],
+      "key": "groupkfold",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "Baselines are majority-class prediction for classification and mean-value prediction for regression. Classification is reported with Accuracy, Precision, Recall, F1 and confusion matrices, with Macro-F1 as the primary indicator under imbalance. Regression is reported with MAE in millimeters and R².",
+      "es": "Las líneas base son la predicción de la clase mayoritaria para clasificación y la predicción del valor medio para regresión. La clasificación se reporta con exactitud, precisión, recall, F1 y matrices de confusión, con Macro-F1 como indicador principal ante el desbalance. La regresión se reporta con MAE en milímetros y R².",
+      "blocks": [
+        "s3-p27",
+        "s3-p29",
+        "s3-p30"
+      ],
+      "key": "macro-f1",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "Class imbalance appears in all four categorical targets. The hospital data are the most concentrated, the office slightly more varied, and the recreational facility the most heterogeneous. Some labels exist in only some projects, so label spaces are not aligned.",
+      "es": "El desbalance de clases aparece en los cuatro objetivos categóricos. Los datos del hospital son los más concentrados, los de la oficina un poco más variados y los de la instalación recreativa los más heterogéneos. Algunas etiquetas existen solo en ciertos proyectos, así que los espacios de etiquetas no están alineados.",
+      "blocks": [
+        "s3-p19",
+        "s3-p20",
+        "s3-p21",
+        "fig-2",
+        "fig-3",
+        "fig-4",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "Scenario 1 (hospital to hospital), the best case: leaf material Accuracy 0.927, Macro-F1 0.926; leaf type 0.905 and 0.789; frame type Accuracy 0.996 but Macro-F1 0.576; fire/smoke rating 0.817 and 0.622. Door width: MAE = 93.5 mm, R² = 0.620.",
+      "es": "Escenario 1 (hospital a hospital), el mejor caso: material de la hoja con exactitud 0.927 y Macro-F1 0.926; tipo de hoja 0.905 y 0.789; tipo de marco con exactitud 0.996 pero Macro-F1 0.576; clasificación de fuego/humo 0.817 y 0.622. Ancho de puerta: MAE = 93.5 mm, R² = 0.620.",
+      "blocks": [
+        "s4-p2",
+        "fig-6",
+        "fig-7",
+        "fig-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "In Scenario 1, door height gives MAE = 0.0 mm and R² = 1.000 only because every hospital door is 2160 mm. The paper treats this as a data artifact, not predictive skill, and excludes it from positive evaluation.",
+      "es": "En el escenario 1, la altura de puerta da MAE = 0.0 mm y R² = 1.000 solo porque todas las puertas del hospital miden 2160 mm. El artículo lo trata como un artefacto de los datos, no como capacidad predictiva, y lo excluye de la evaluación positiva.",
+      "blocks": [
+        "s4-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Scenario 2 (hospital to office), classification: leaf material Macro-F1 0.464 (Accuracy 0.839, Precision 0.992); leaf type Macro-F1 0.372 (Accuracy 0.932); fire/smoke rating Accuracy 0.724, Macro-F1 0.229. The paper reads this as majority-class bias under distribution shift.",
+      "es": "Escenario 2 (hospital a oficina), clasificación: material de la hoja con Macro-F1 0.464 (exactitud 0.839, precisión 0.992); tipo de hoja con Macro-F1 0.372 (exactitud 0.932); clasificación de fuego/humo con exactitud 0.724 y Macro-F1 0.229. El artículo lo interpreta como sesgo hacia la clase mayoritaria bajo cambio de distribución.",
+      "blocks": [
+        "s4-p3",
+        "s4-p5",
+        "fig-9",
+        "fig-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "In Scenario 2, frame type cannot be estimated. The two projects share only one frame class, CORNER FRAME, so the frame type metrics collapse to zero.",
+      "es": "En el escenario 2, el tipo de marco no se puede estimar. Los dos proyectos comparten solo una clase de marco, CORNER FRAME, así que las métricas del tipo de marco colapsan a cero.",
+      "blocks": [
+        "s4-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "Scenario 2, regression: door width MAE = 163.5 mm, R² = 0.037; door height MAE = 225.8 mm, R² = −1.817. The paper attributes this to the hospital's uniform 2160 mm height against the office's much broader range.",
+      "es": "Escenario 2, regresión: ancho de puerta con MAE = 163.5 mm y R² = 0.037; alto de puerta con MAE = 225.8 mm y R² = −1.817. El artículo lo atribuye a la altura uniforme de 2160 mm del hospital frente al rango mucho más amplio de la oficina.",
+      "blocks": [
+        "s4-p5",
+        "fig-11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "Scenario 3 (hospital + office to recreational facility): leaf material Accuracy 0.342, Macro-F1 0.209; leaf type 0.676 and 0.404; fire/smoke rating 0.482 and 0.262; frame type not evaluable. Door width MAE = 266.1 mm, R² = −0.134; door height MAE = 396.5 mm, R² = −0.809.",
+      "es": "Escenario 3 (hospital + oficina a instalación recreativa): material de la hoja con exactitud 0.342 y Macro-F1 0.209; tipo de hoja 0.676 y 0.404; clasificación de fuego/humo 0.482 y 0.262; tipo de marco no evaluable. Ancho de puerta con MAE = 266.1 mm y R² = −0.134; alto de puerta con MAE = 396.5 mm y R² = −0.809.",
+      "blocks": [
+        "s4-p7",
+        "fig-12",
+        "fig-13",
+        "fig-14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "Pooling more source projects does not by itself improve generalization. Hospital and recreational leaf materials are mostly steel while the office is mostly wooden with some glass, so the larger training set weakens the learned class boundaries.",
+      "es": "Juntar más proyectos de origen no mejora por sí solo la generalización. Los materiales de hoja del hospital y de la instalación recreativa son sobre todo acero, mientras que los de la oficina son sobre todo madera con algo de vidrio, así que el conjunto de entrenamiento más grande debilita los límites de clase aprendidos.",
+      "blocks": [
+        "s4-p7",
+        "s2-2-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "Scenario 4 (about 20% of the recreational facility added for training, 80% held out), classification: leaf material Accuracy 0.628, Macro-F1 0.336; leaf type 0.706 and 0.255; frame type Accuracy 0.355, Macro-F1 0.090; fire/smoke rating Accuracy 0.451 vs. 0.482 in Scenario 3. The paper calls the gains modest and still far from Scenario 1.",
+      "es": "Escenario 4 (alrededor de 20% de la instalación recreativa añadido al entrenamiento, 80% reservado para prueba), clasificación: material de la hoja con exactitud 0.628 y Macro-F1 0.336; tipo de hoja 0.706 y 0.255; tipo de marco con exactitud 0.355 y Macro-F1 0.090; clasificación de fuego/humo con exactitud 0.451 vs. 0.482 en el escenario 3. El artículo describe las mejoras como modestas y aún lejos del escenario 1.",
+      "blocks": [
+        "s2-2-p1",
+        "fig-15",
+        "fig-16"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "Scenario 4, regression: door width MAE = 247.7 mm, R² = 0.064; door height MAE = 330.0 mm, R² = −0.327. This is the clearest benefit of domain-augmented retraining, though heights remain poorly explained.",
+      "es": "Escenario 4, regresión: ancho de puerta con MAE = 247.7 mm y R² = 0.064; alto de puerta con MAE = 330.0 mm y R² = −0.327. Es el beneficio más claro del reentrenamiento con aumento de dominio, aunque las alturas siguen explicándose mal.",
+      "blocks": [
+        "s2-2-p1",
+        "fig-17"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "claim",
+      "en": "Across scenarios, matched hospital-to-hospital training is the practical upper bound. Cross-project transfer exposes vocabulary and label shift, pooling projects does not fix it, and light target adaptation gives only partial, task-specific recovery below within-project reliability.",
+      "es": "En todos los escenarios, el entrenamiento hospital a hospital con condiciones equivalentes es el límite superior práctico. La transferencia entre proyectos expone cambios de vocabulario y de etiquetas, juntar proyectos no lo resuelve, y una adaptación ligera al proyecto objetivo da solo una recuperación parcial y específica por tarea, por debajo de la confiabilidad dentro de un mismo proyecto.",
+      "blocks": [
+        "s2-2-p2",
+        "s2-2-p3",
+        "fig-18",
+        "fig-19"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "claim",
+      "en": "Accuracy alone can mislead under class imbalance. Majority-class baseline accuracies exceed 0.90 in some targets, and high accuracy can coexist with low Macro-F1.",
+      "es": "La exactitud por sí sola puede engañar ante el desbalance de clases. Las exactitudes de la línea base de clase mayoritaria superan 0.90 en algunos objetivos, y una exactitud alta puede coexistir con un Macro-F1 bajo.",
+      "blocks": [
+        "s2-2-p3",
+        "s4-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "claim",
+      "en": "The cross-project drop comes from inconsistent naming, class imbalance, label mismatch (unseen or non-overlapping categories) and divergent modeling standards. The results reflect data heterogeneity as well as model limits.",
+      "es": "La caída entre proyectos viene de nombres inconsistentes, desbalance de clases, desajuste de etiquetas (categorías no vistas o sin traslape) y estándares de modelado divergentes. Los resultados reflejan la heterogeneidad de los datos y también los límites del modelo.",
+      "blocks": [
+        "s2-2-p7",
+        "s2-2-p8",
+        "s0-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "claim",
+      "en": "Cross-project use needs three things: consistent label definitions and naming, explicit handling of class imbalance, and light adaptation with a small sample of the new project. The paper ties these to Revit shared parameters or IFC property sets and basic data standards.",
+      "es": "El uso entre proyectos necesita tres cosas: definiciones de etiquetas y nombres consistentes, manejo explícito del desbalance de clases y una adaptación ligera con una muestra pequeña del proyecto nuevo. El artículo las vincula con parámetros compartidos de Revit o conjuntos de propiedades de IFC y estándares de datos básicos.",
+      "blocks": [
+        "s2-2-p4",
+        "s2-2-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "claim",
+      "en": "Conclusion: RQ1 is supported within controlled, project-specific contexts, while RQ2 is only partially validated. Spatial-functional adjacency is useful but insufficient for cross-project prediction without data standardization and adaptation.",
+      "es": "Conclusión: PI1 se sostiene en contextos controlados y específicos de un proyecto, mientras que PI2 solo se valida parcialmente. La adyacencia espacial-funcional es útil pero insuficiente para predecir entre proyectos sin estandarización de datos y adaptación.",
+      "blocks": [
+        "s2-2-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "limitation",
+      "en": "The work is a proof of concept run as a standalone analytical pipeline outside Revit, not an implemented decision support system. It has no interactive component, and benefits such as less manual effort or more consistency are not evaluated.",
+      "es": "El trabajo es una prueba de concepto ejecutada como un flujo analítico independiente fuera de Revit, no un sistema de apoyo a la decisión implementado. No tiene componente interactivo, y beneficios como menos esfuerzo manual o más consistencia no se evalúan.",
+      "blocks": [
+        "s1-p10",
+        "s2-2-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "limitation",
+      "en": "The data are three projects from one firm (ENKA Design Center), anonymized and not public. Only structured metadata on spatial configuration and component attributes are used. The code is available from the corresponding author on reasonable request.",
+      "es": "Los datos son tres proyectos de una sola empresa (ENKA Design Center), anonimizados y no públicos. Solo se usan metadatos estructurados de configuración espacial y atributos de componentes. El código está disponible con la autora o el autor de correspondencia bajo solicitud razonable.",
+      "blocks": [
+        "s2-2-p12",
+        "s3-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "future",
+      "en": "Future work: embed such models in design workflows, as a Revit plugin, Dynamo script or external API, to give context-aware recommendations while designing. The approach could also extend to other components and other BIM environments.",
+      "es": "Trabajo futuro: integrar estos modelos en los flujos de diseño, como un plugin de Revit, un script de Dynamo o una API externa, para dar recomendaciones sensibles al contexto mientras se diseña. El enfoque también podría extenderse a otros componentes y a otros entornos BIM.",
+      "blocks": [
+        "s2-2-p6",
+        "s1-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i35",
+      "kind": "future",
+      "en": "Future work: larger and more standardized datasets, domain adaptation techniques, semantic or hierarchical encodings, and a comparison with linear models such as logistic regression or linear SVM on the Bag-of-Words features.",
+      "es": "Trabajo futuro: conjuntos de datos más grandes y estandarizados, técnicas de adaptación de dominio, codificaciones semánticas o jerárquicas y una comparación con modelos lineales como regresión logística o SVM lineal sobre las variables Bag-of-Words.",
+      "blocks": [
+        "s2-2-p10",
+        "s3-p24"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i36",
+      "kind": "claim",
+      "en": "Main contribution: information in archived BIM data, especially the relation between spatial configuration and component choice, can be used to estimate component-level properties. BIM is reframed as a knowledge system that grows with accumulated experience.",
+      "es": "Contribución principal: la información de los datos BIM archivados, en especial la relación entre configuración espacial y elección de componentes, puede usarse para estimar propiedades a nivel de componente. BIM se replantea como un sistema de conocimiento que evoluciona con la experiencia acumulada.",
+      "blocks": [
+        "s1-p11",
+        "s1-p4",
+        "s0-p5"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i3",
+      "to": "i1",
+      "type": "supports",
+      "why": "Archived knowledge going unused is the gap that motivates asking whether it can become decision support."
+    },
+    {
+      "from": "i4",
+      "to": "i36",
+      "type": "supports",
+      "why": "Fixed knowledge bases versus adaptive data-driven learning motivates learning from archived models."
+    },
+    {
+      "from": "i5",
+      "to": "i6",
+      "type": "supports",
+      "why": "The gap in component-level design decisions motivates choosing doors as the test domain."
+    },
+    {
+      "from": "i2",
+      "to": "i6",
+      "type": "uses",
+      "why": "RQ2 is tested on door attributes, which depend on adjacent spaces."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "part-of",
+      "why": "The 5,763 door count is what remains after preprocessing."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "part-of",
+      "why": "Label normalization is one preprocessing step."
+    },
+    {
+      "from": "i33",
+      "to": "i7",
+      "type": "part-of",
+      "why": "Single-firm origin and confidentiality qualify what the dataset can claim."
+    },
+    {
+      "from": "i11",
+      "to": "i10",
+      "type": "part-of",
+      "why": "Losing direction is a consequence of choosing Bag-of-Words."
+    },
+    {
+      "from": "i12",
+      "to": "i10",
+      "type": "uses",
+      "why": "All six models take only the Bag-of-Words room transition as input."
+    },
+    {
+      "from": "i13",
+      "to": "i10",
+      "type": "uses",
+      "why": "Random Forest is trained on the sparse Bag-of-Words matrix."
+    },
+    {
+      "from": "i14",
+      "to": "i15",
+      "type": "uses",
+      "why": "Each scenario is evaluated with GroupKFold or a fixed hold-out."
+    },
+    {
+      "from": "i16",
+      "to": "i18",
+      "type": "measures",
+      "why": "Macro-F1, MAE and R² are how Scenario 1 is reported."
+    },
+    {
+      "from": "i16",
+      "to": "i23",
+      "type": "measures",
+      "why": "The same metrics and baselines are applied to Scenario 3."
+    },
+    {
+      "from": "i17",
+      "to": "i29",
+      "type": "supports",
+      "why": "Imbalance and non-overlapping labels in the distributions explain the cross-project degradation."
+    },
+    {
+      "from": "i21",
+      "to": "i29",
+      "type": "example-of",
+      "why": "Frame type is the clearest case of label-space mismatch."
+    },
+    {
+      "from": "i18",
+      "to": "i1",
+      "type": "supports",
+      "why": "High within-project scores show past data can predict door specifications in a controlled setting."
+    },
+    {
+      "from": "i19",
+      "to": "i22",
+      "type": "supports",
+      "why": "The hospital's constant 2160 mm height explains why the model fails on the office's wider range."
+    },
+    {
+      "from": "i23",
+      "to": "i2",
+      "type": "contradicts",
+      "why": "Low cross-project scores show adjacency alone does not carry over to a new project."
+    },
+    {
+      "from": "i26",
+      "to": "i2",
+      "type": "supports",
+      "why": "Partial recovery with target data suggests adjacency helps once conventions are aligned."
+    },
+    {
+      "from": "i23",
+      "to": "i24",
+      "type": "supports",
+      "why": "Scenario 3 scores below Scenario 2 despite a larger training set."
+    },
+    {
+      "from": "i24",
+      "to": "i27",
+      "type": "supports",
+      "why": "Pooling failing is one part of the overall pattern."
+    },
+    {
+      "from": "i18",
+      "to": "i28",
+      "type": "example-of",
+      "why": "Frame type has Accuracy 0.996 but Macro-F1 0.576."
+    },
+    {
+      "from": "i18",
+      "to": "i27",
+      "type": "part-of",
+      "why": "Scenario 1 is the upper bound in the overall pattern."
+    },
+    {
+      "from": "i20",
+      "to": "i27",
+      "type": "part-of",
+      "why": "Scenario 2 shows the vocabulary and label shift."
+    },
+    {
+      "from": "i25",
+      "to": "i27",
+      "type": "part-of",
+      "why": "Scenario 4 shows partial recovery."
+    },
+    {
+      "from": "i25",
+      "to": "i30",
+      "type": "supports",
+      "why": "Modest gains from a small target sample back the light-adaptation recommendation."
+    },
+    {
+      "from": "i26",
+      "to": "i30",
+      "type": "supports",
+      "why": "Regression shows the clearest benefit of light adaptation."
+    },
+    {
+      "from": "i29",
+      "to": "i30",
+      "type": "supports",
+      "why": "The identified causes (naming, imbalance, labels) map directly onto the three recommended steps."
+    },
+    {
+      "from": "i27",
+      "to": "i31",
+      "type": "supports",
+      "why": "The scenario pattern underlies the verdict on RQ1 and RQ2."
+    },
+    {
+      "from": "i29",
+      "to": "i31",
+      "type": "supports",
+      "why": "Data heterogeneity is why RQ2 is only partly validated."
+    },
+    {
+      "from": "i32",
+      "to": "i34",
+      "type": "supports",
+      "why": "Being an offline pipeline motivates embedding the models in authoring tools."
+    },
+    {
+      "from": "i35",
+      "to": "i30",
+      "type": "supports",
+      "why": "Standardized datasets and domain adaptation extend the same cross-project needs."
+    },
+    {
+      "from": "i34",
+      "to": "i36",
+      "type": "supports",
+      "why": "Embedding in tools is how archived knowledge would reach new design work."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i18",
+      "to": "hypothesis",
+      "why": "Support: with doors as elements and room-to-room transitions as their relation, a model finds usable patterns within one project (leaf material Macro-F1 0.926)."
+    },
+    {
+      "idea": "i27",
+      "to": "hypothesis",
+      "why": "Challenge: the patterns found do not transfer across projects without standardized labels and adaptation, so learning them depends on consistent data."
+    },
+    {
+      "idea": "i31",
+      "to": "question",
+      "why": "Partial evidence: it predicts attributes of single elements from a relation and does not decompose a model or generate a new one; the cross-project answer is only partial."
+    },
+    {
+      "idea": "i27",
+      "to": "gec-guzelci-2026",
+      "why": "Gives the node its answer: a model learns well from one project's Revit data and much less across projects."
+    },
+    {
+      "idea": "i14",
+      "to": "gec-guzelci-2026",
+      "why": "Method to borrow: four scenarios from intra-project to domain-augmented, with grouped splits to separate transfer from memorization."
+    },
+    {
+      "idea": "i4",
+      "to": "explicit-vs-learned",
+      "why": "Sets rule-based and ontology systems, limited by predefined knowledge, against learned models, then finds the learned model needs standardized labels to travel."
+    },
+    {
+      "idea": "i30",
+      "to": "standardize-the-handoff",
+      "why": "Cross-project learning depends on shared parameters or IFC property sets and consistent labels, which is standardizing the hand-off."
+    },
+    {
+      "idea": "i11",
+      "to": "hornung-2025",
+      "why": "Gap: the paper names sequence-aware or graph-based representations as the missing piece for direction and asymmetric relations, which graph datasets of real IFC files address."
+    },
+    {
+      "idea": "i13",
+      "to": "method-one-task",
+      "why": "Method to borrow: a single task (doors) and a single model family keep the comparison about the data, not about algorithms."
+    }
+  ]
+}

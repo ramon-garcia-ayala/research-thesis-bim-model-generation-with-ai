@@ -1,0 +1,752 @@
+{
+  "version": 1,
+  "node": "cbim-2023",
+  "title": "CBIM: A Graph-based Approach to Enhance Interoperability Using Semantic Enrichment",
+  "source": "files/CBIM - A Graph-based Approach to Enhance Interoperability Using Semantic Enrichment.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Preliminares"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "CBIM: A Graph-based Approach to Enhance Interoperability",
+            "es": "CBIM: un enfoque basado en grafos (graph) para mejorar la interoperabilidad (interoperability)"
+          }
+        },
+        {
+          "id": "s0-h2",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "Using Semantic Enrichment",
+            "es": "mediante enriquecimiento semántico (semantic enrichment)"
+          }
+        },
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Zijian Wang1, Huaquan Ying1, Rafael Sacks1, André Borrmann2",
+            "es": "Zijian Wang1, Huaquan Ying1, Rafael Sacks1, André Borrmann2"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "1Technion Israel Institute of Technology, Israel 2Technical University of Munich, Germany zijian.wang@campus.technion.ac.il",
+            "es": "1Technion Israel Institute of Technology, Israel 2Technical University of Munich, Alemania zijian.wang@campus.technion.ac.il"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Abstract. Interoperability remains a challenge in the construction industry. In this study, we propose a semantic enrichment approach to construct BIM knowledge graphs from pure building object geometries and demonstrate its potential to support BIM interoperability. Our approach involves machine learning and rule-based methods for object classification, relationship determination (e.g., hosting and adjacent) and attribute computation. The enriched results are compiled into a BIM graph. A case study was conducted to illustrate the approach for facilitating interoperability between different versions of the BIM authoring software Autodesk Revit. First, pure object geometries of an architectural apartment model were exported from Revit 2023 and fed into the developed tools in sequence to generate a BIM graph. Then, essential information was extracted from the graph and used to reconstruct an architectural model in the version 2022 of Revit. Upon examination, the reconstructed model was consistent with the original one. The success of this experiment demonstrates the feasibility of generating a BIM graph from object geometries and utilizing it to support interoperability.",
+            "es": "Resumen. La interoperabilidad sigue siendo un desafío en la industria de la construcción. En este estudio proponemos un enfoque de enriquecimiento semántico para construir grafos de conocimiento (knowledge graphs) BIM a partir de geometrías puras de objetos de construcción y demostramos su potencial para apoyar la interoperabilidad BIM. Nuestro enfoque involucra métodos de aprendizaje automático (machine learning) y métodos basados en reglas (rule-based) para la clasificación de objetos, la determinación de relaciones (p. ej., alojamiento (hosting) y adyacencia (adjacent)) y el cálculo de atributos. Los resultados enriquecidos se compilan en un grafo BIM. Se realizó un estudio de caso para ilustrar el enfoque en la facilitación de la interoperabilidad entre distintas versiones del software de autoría BIM Autodesk Revit. Primero, las geometrías puras de los objetos de un modelo arquitectónico de un departamento se exportaron desde Revit 2023 y se introdujeron en secuencia en las herramientas desarrolladas para generar un grafo BIM. Luego, se extrajo información esencial del grafo y se utilizó para reconstruir un modelo arquitectónico en la versión 2022 de Revit. Tras su examen, el modelo reconstruido fue consistente con el original. El éxito de este experimento demuestra la viabilidad de generar un grafo BIM a partir de geometrías de objetos y utilizarlo para apoyar la interoperabilidad."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1. Introduction",
+        "es": "1. Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The Architecture, Engineering, and Construction (AEC) industry is characterized by its fragmented structure, requiring collaboration among numerous stakeholders with specialized skills throughout a project's lifecycle (Borrmann et al., 2018). Building Information Modelling (BIM), which presents models in a digital format, significantly enhances planning, design, construction, maintenance, and other processes across the entire building lifecycle (Sacks et al., 2018). However, interoperability remains a challenge when delivering and exchanging BIM models. Software vendors have developed proprietary data schemas used within their own software ecosystems, resulting in data and files created by one vendor's applications incompatible with other vendors.",
+            "es": "La industria de la Arquitectura, Ingeniería y Construcción (Architecture, Engineering, and Construction, AEC) se caracteriza por su estructura fragmentada, que requiere la colaboración de numerosas partes interesadas (stakeholders) con habilidades especializadas a lo largo del ciclo de vida de un proyecto (Borrmann et al., 2018). El Modelado de Información de Construcción (Building Information Modelling, BIM), que presenta los modelos en formato digital, mejora significativamente la planeación, el diseño, la construcción, el mantenimiento y otros procesos a lo largo de todo el ciclo de vida del edificio (Sacks et al., 2018). Sin embargo, la interoperabilidad sigue siendo un desafío al entregar e intercambiar modelos BIM. Los proveedores de software han desarrollado esquemas de datos (data schemas) propietarios que se usan dentro de sus propios ecosistemas de software, lo que da como resultado que los datos y archivos creados por las aplicaciones de un proveedor sean incompatibles con los de otros proveedores."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "To improve the interoperability between various applications, the AEC industry has invested efforts in constructing open standards for sharing BIM information across platforms, such as the Industry Foundation Classes (IFC) schemas (buildingSMART, 2018). This also requires BIM software to compile models from proprietary schemas into the open schema, which potentially causes information loss and errors during the conversion process (Pazlar and Turk, 2008; Venugopal, Eastman and Teizer, 2015).",
+            "es": "Para mejorar la interoperabilidad entre diversas aplicaciones, la industria AEC ha invertido esfuerzos en construir estándares abiertos para compartir información BIM entre plataformas, como los esquemas Industry Foundation Classes (IFC) (buildingSMART, 2018). Esto también requiere que el software BIM compile los modelos desde esquemas propietarios hacia el esquema abierto, lo que potencialmente provoca pérdida de información y errores durante el proceso de conversión (Pazlar and Turk, 2008; Venugopal, Eastman and Teizer, 2015)."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Semantic enrichment (SE) for BIM models has been proposed to infer implicit semantic information based on existing BIM data and supplement it back into the models (Belsky, Sacks and Brilakis, 2016; Bloch, 2022). A significant application domain of SE is to improve BIM data quality and enhance BIM interoperability. However, prior studies primarily concentrate on exploring techniques that can be employed on SE tasks, like adopting expert systems and deep learning algorithms to classify BIM objects. These studies validated the feasibility of various techniques for SE, but they presented the enriched results to users instead of inserting back to models (Bloch, 2022), and the prediction was limited to specific types of data instead of providing comprehensive required building information.",
+            "es": "Se ha propuesto el enriquecimiento semántico (SE) para modelos BIM con el fin de inferir información semántica implícita a partir de los datos BIM existentes y volver a incorporarla en los modelos (Belsky, Sacks and Brilakis, 2016; Bloch, 2022). Un ámbito de aplicación importante del SE es mejorar la calidad de los datos BIM y la interoperabilidad BIM. Sin embargo, los estudios previos se concentran principalmente en explorar técnicas que pueden emplearse en tareas de SE, como adoptar sistemas expertos (expert systems) y algoritmos de aprendizaje profundo (deep learning) para clasificar objetos BIM. Estos estudios validaron la viabilidad de diversas técnicas para el SE, pero presentaron los resultados enriquecidos a los usuarios en lugar de insertarlos de vuelta en los modelos (Bloch, 2022), y la predicción se limitó a tipos específicos de datos en lugar de proporcionar toda la información requerida del edificio."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In this study, we explore adoption of SE tools to infer building semantics from object geometries and represent the results as a BIM graph. Subsequently, we propose a novel approach to enhance interoperability across software by leveraging the enriched semantics and software APIs. The launch point of SE is object geometries, which are the fundamental data of BIM models from LOD 200. Almost all BIM design software supports consistent export of solid geometries into generic and accessible file formats. Additionally, graphs have a flexible data structure and the inherent advantage of representing object relationships explicitly.",
+            "es": "En este estudio exploramos la adopción de herramientas de SE para inferir la semántica del edificio a partir de geometrías de objetos y representar los resultados como un grafo BIM. Posteriormente, proponemos un enfoque novedoso para mejorar la interoperabilidad entre programas aprovechando la semántica enriquecida y las API del software. El punto de partida del SE son las geometrías de objetos, que son los datos fundamentales de los modelos BIM desde LOD 200. Casi todo el software de diseño BIM admite la exportación consistente de geometrías sólidas a formatos de archivo genéricos y accesibles. Además, los grafos tienen una estructura de datos flexible y la ventaja inherente de representar explícitamente las relaciones entre objetos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2. Background",
+        "es": "2. Antecedentes"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Interoperability refers to the ability to exchange data across software and platforms, and the AEC industry continues to face challenges posed by interoperability issues (Sacks et al., 2018). The fragmented nature of the AEC industry involves experts with a wide range of skills, leading that data to be represented in various formats to fulfill specific requirements. This diversity in data representation increases the complexity of interoperability. Furthermore, vendors create their own proprietary schemas for storing and exchanging data within their software ecosystems, resulting in the situation where files generated by one vendor's applications are potentially inaccessible on other platforms.",
+            "es": "La interoperabilidad se refiere a la capacidad de intercambiar datos entre programas y plataformas, y la industria AEC sigue enfrentando los desafíos que plantean los problemas de interoperabilidad (Sacks et al., 2018). La naturaleza fragmentada de la industria AEC involucra a expertos con una amplia gama de habilidades, lo que lleva a que los datos se representen en diversos formatos para cumplir requisitos específicos. Esta diversidad en la representación de los datos aumenta la complejidad de la interoperabilidad. Además, los proveedores crean sus propios esquemas propietarios para almacenar e intercambiar datos dentro de sus ecosistemas de software, lo que da lugar a la situación en que los archivos generados por las aplicaciones de un proveedor son potencialmente inaccesibles en otras plataformas."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Researchers aim to use semantic enrichment to enhance interoperability. For example, Wu & Zhang (2019) proposed a nine-step rule-based approach to classify IFC entities into predefined categories, in which the classification scope is more detailed than the general object classes in the IFC schema, such as a U-shaped beam. Some researchers employ machine learning algorithms to re-identify IFC object types that may have been misclassified during the data exchange phase (Koo and Shin, 2018). In these cases, an SE process serves as an automatic data quality check.",
+            "es": "Los investigadores buscan usar el enriquecimiento semántico para mejorar la interoperabilidad. Por ejemplo, Wu & Zhang (2019) propusieron un enfoque basado en reglas de nueve pasos para clasificar entidades IFC en categorías predefinidas, en el cual el alcance de la clasificación es más detallado que las clases generales de objetos del esquema IFC, como una viga en forma de U. Algunos investigadores emplean algoritmos de aprendizaje automático para reidentificar tipos de objetos IFC que pudieron haberse clasificado erróneamente durante la fase de intercambio de datos (Koo and Shin, 2018). En estos casos, un proceso de SE sirve como verificación automática de la calidad de los datos."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Later, 3D geometric deep learning networks, such as Multi-view CNN and PointNet, were employed to predict subtypes of BIM door elements (Koo, Jung and Yu, 2021). Furthermore, solid BIM entities were sampled into points and converted into an object graph to enable the use of graph neural networks (GNNs) (Collins et al., 2021). Researchers also constructed apartment BIM graphs, with nodes representing spaces and edges denoting relationships, and implemented a customized GNN algorithm to classify space types (Wang et al., 2021; Wang et al., 2022). In addition, Costa & Sicilia (2020) explored the potential of representing IFC models as RDF graphs to enable semantic web query and facilitate information exchange across platforms.",
+            "es": "Más adelante se emplearon redes de aprendizaje profundo geométrico 3D, como Multi-view CNN y PointNet, para predecir subtipos de elementos de puertas BIM (Koo, Jung and Yu, 2021). Además, las entidades sólidas BIM se muestrearon en puntos y se convirtieron en un grafo de objetos para permitir el uso de redes neuronales de grafos (graph neural networks, GNNs) (Collins et al., 2021). Los investigadores también construyeron grafos BIM de departamentos, con nodos (nodes) que representan espacios y aristas (edges) que denotan relaciones, e implementaron un algoritmo GNN personalizado para clasificar tipos de espacios (Wang et al., 2021; Wang et al., 2022). Asimismo, Costa & Sicilia (2020) exploraron el potencial de representar modelos IFC como grafos RDF para habilitar consultas de web semántica (semantic web) y facilitar el intercambio de información entre plataformas."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "These studies have expanded the scope of techniques available for SE. However, they narrowly focus on developing techniques for individual SE tasks. As a result, the enrichment is limited to specific types of information, such as building object types. Instead, the missing information causing interoperability issues goes beyond object types and encompasses relationships between objects, object attributes, and even more. A comprehensive approach that can generically enrich various types of information is a necessary pre-requisite to address interoperability issues.",
+            "es": "Estos estudios han ampliado el alcance de las técnicas disponibles para el SE. Sin embargo, se centran estrechamente en desarrollar técnicas para tareas individuales de SE. Como resultado, el enriquecimiento se limita a tipos específicos de información, como los tipos de objetos de construcción. En cambio, la información faltante que causa los problemas de interoperabilidad va más allá de los tipos de objetos y abarca las relaciones entre objetos, los atributos de los objetos e incluso más. Un enfoque integral que pueda enriquecer de manera genérica diversos tipos de información es un prerrequisito necesario para abordar los problemas de interoperabilidad."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In addition to the lack of semantics, Bloch (2022) also points out that the predicted data are often presented to users rather than being integrated back into models, leading to difficulties in reusing the data in downstream applications. To address this problem, researchers have started to adopt graphs to represent building information (Venugopal, Eastman and Teizer, 2015; Pauwels and Terkaj, 2016). A graph consists of nodes and edges with the advantage of storing information flexibly and representing relationships explicitly (Zhou et al., 2018). By leveraging these explicit relationships, researchers have developed various applications on building graphs, such as searching shortest fire egress path (Ismail, Strug and Ślusarczyk, 2018), querying information (Khalili and Chua, 2015) and semantic enrichment (Wang, Sacks and Yeung, 2022). Furthermore, the Linked Building Data (LBD) community has made efforts to standardize the terminologies and formats of BIM graphs by constructing ontologies and using the techniques from the semantic web domain (Pauwels, Costin and Rasmussen, 2022).",
+            "es": "Además de la falta de semántica, Bloch (2022) también señala que los datos predichos suelen presentarse a los usuarios en lugar de integrarse de nuevo en los modelos, lo que dificulta reutilizar los datos en aplicaciones posteriores. Para abordar este problema, los investigadores han comenzado a adoptar grafos para representar la información de los edificios (Venugopal, Eastman and Teizer, 2015; Pauwels and Terkaj, 2016). Un grafo consta de nodos y aristas, con la ventaja de almacenar información de forma flexible y representar relaciones de manera explícita (Zhou et al., 2018). Aprovechando estas relaciones explícitas, los investigadores han desarrollado diversas aplicaciones sobre grafos de edificios, como la búsqueda de la ruta de evacuación contra incendios más corta (Ismail, Strug and Ślusarczyk, 2018), la consulta de información (Khalili and Chua, 2015) y el enriquecimiento semántico (Wang, Sacks and Yeung, 2022). Además, la comunidad de Linked Building Data (LBD) ha hecho esfuerzos por estandarizar la terminología y los formatos de los grafos BIM mediante la construcción de ontologías (ontologies) y el uso de técnicas del dominio de la web semántica (Pauwels, Costin and Rasmussen, 2022)."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The primary objective of this study is to explore a new approach that uses multiple SE tools to construct a BIM graph for addressing the interoperability issues. To achieve this, we: 1) propose a pipeline to construct a BIM knowledge graph by implementing SE tools on the fundamental object geometries of BIM models; 2) design an approach to ease the interoperability problem by reconstructing BIM models across software by leveraging BIM graphs.",
+            "es": "El objetivo principal de este estudio es explorar un nuevo enfoque que utiliza múltiples herramientas de SE para construir un grafo BIM con el fin de abordar los problemas de interoperabilidad. Para lograrlo: 1) proponemos un flujo de trabajo (pipeline) para construir un grafo de conocimiento BIM implementando herramientas de SE sobre las geometrías fundamentales de los objetos de los modelos BIM; 2) diseñamos un enfoque para aliviar el problema de interoperabilidad mediante la reconstrucción de modelos BIM entre programas aprovechando los grafos BIM."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3. Pipeline of Constructing BIM Graphs from Object Geometries",
+        "es": "3. Flujo de trabajo para construir grafos BIM a partir de geometrías de objetos"
+      },
+      "blocks": [
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: Pipeline of generating BIM knowledge graphs from object geometries.",
+            "es": "Figura 1: Flujo de trabajo para generar grafos de conocimiento BIM a partir de geometrías de objetos."
+          }
+        },
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Figure 1 presents the pipeline using SE tools to construct the BIM knowledge graph from object geometries. It employs three artificial intelligence tools to infer BIM semantics in sequence and to represent the inferred semantics as an interoperable graph. The input, pure object geometries, can be exported from BIM editors and stored in a generic file format, such as PLY, which represents geometries as triangle or polygon meshes in a global coordinate system. Additionally, the names and usages of nodes and edges in the knowledge graph follow ontologies from the LBD community to ensure its accessibility. Tools from the semantic web domain, like RDF, are adopted to compile and retrieve graphs.",
+            "es": "La Figura 1 presenta el flujo de trabajo que utiliza herramientas de SE para construir el grafo de conocimiento BIM a partir de geometrías de objetos. Emplea tres herramientas de inteligencia artificial para inferir en secuencia la semántica BIM y para representar la semántica inferida como un grafo interoperable. La entrada, las geometrías puras de objetos, puede exportarse desde editores BIM y almacenarse en un formato de archivo genérico, como PLY, que representa las geometrías como mallas (meshes) de triángulos o polígonos en un sistema de coordenadas global. Además, los nombres y usos de los nodos y aristas en el grafo de conocimiento siguen las ontologías de la comunidad LBD para garantizar su accesibilidad. Se adoptan herramientas del dominio de la web semántica, como RDF, para compilar y recuperar grafos."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "To design experiments for validating this pipeline, the case of apartment design at the initial design stage was selected. Architects frequently exchange model files with participants and sometimes reconstruct their models from scratch. From the perspective of implementation, this scenario is not overly complex for evaluating the feasibility. Specifically, the first step in the enrichment process is to classify the object types from geometries (detailed in Section 3.1), where the predicted results are inserted back into the graph (as denoted by the first graph database of Figure 1). Subsequently, hosting or hosted and adjacent relationships among BIM objects are instantiated by leveraging geometry features, as detailed in Section 3.2. Lastly, attributes are computed based on geometries and object types, and stored as node features in the graph (see Section 3.3).",
+            "es": "Para diseñar experimentos que validen este flujo de trabajo, se seleccionó el caso del diseño de departamentos en la etapa inicial de diseño. Los arquitectos intercambian con frecuencia archivos de modelos con los participantes y a veces reconstruyen sus modelos desde cero. Desde la perspectiva de la implementación, este escenario no es excesivamente complejo para evaluar la viabilidad. Específicamente, el primer paso del proceso de enriquecimiento es clasificar los tipos de objetos a partir de las geometrías (detallado en la Sección 3.1), donde los resultados predichos se insertan de vuelta en el grafo (como indica la primera base de datos de grafos de la Figura 1). Posteriormente, las relaciones de alojamiento o de ser alojado y de adyacencia entre los objetos BIM se instancian aprovechando las características de la geometría, como se detalla en la Sección 3.2. Por último, los atributos se calculan con base en las geometrías y los tipos de objetos, y se almacenan como características de los nodos en el grafo (véase la Sección 3.3)."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "3.1.Object classification",
+            "es": "3.1. Clasificación de objetos"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Classifying BIM objects is a well-studied problem, with numerous approaches investigated by researchers. Wu et al. (2022) discovered that machine learning algorithms utilizing geometric, locational, and metadata features can achieve accurate and robust performance, with around 99% precision for five classes. However, machine learning often surpasses deep learning in computational efficiency and provides greater scalability compared to rule-based algorithms, which require manual development of rule sets. Considering these factors, we adopted machine learning for the task of apartment object classification.",
+            "es": "Clasificar objetos BIM es un problema bien estudiado, con numerosos enfoques investigados por los investigadores. Wu et al. (2022) descubrieron que los algoritmos de aprendizaje automático que utilizan características geométricas, de ubicación y de metadatos pueden lograr un desempeño preciso y robusto, con alrededor de 99% de precisión (precision) para cinco clases. Sin embargo, el aprendizaje automático a menudo supera al aprendizaje profundo en eficiencia computacional y ofrece mayor escalabilidad en comparación con los algoritmos basados en reglas, que requieren el desarrollo manual de conjuntos de reglas. Considerando estos factores, adoptamos el aprendizaje automático para la tarea de clasificación de objetos de departamentos."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: Dataset samples and statistics.",
+            "es": "Figura 2: Muestras y estadísticas del conjunto de datos (dataset)."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In the initial design phase of an apartment, BIM models typically include four object types: walls, floors, windows, and doors. We collected 32 architectural apartment units from real projects in Israel, which were originally designed in Revit 2019. Each architectural building object was then extracted from the Revit database and saved as a single PLY mesh geometry file using the Dynamo exporter (Wang, et al. 2023). The dataset comprises 1,484 object instances after removing duplicates, as shown in Figure 2.",
+            "es": "En la fase inicial de diseño de un departamento, los modelos BIM suelen incluir cuatro tipos de objetos: muros, pisos, ventanas y puertas. Recopilamos 32 unidades de departamentos arquitectónicos de proyectos reales en Israel, que originalmente se diseñaron en Revit 2019. Cada objeto de construcción arquitectónico se extrajo después de la base de datos de Revit y se guardó como un único archivo de geometría de malla PLY mediante el exportador de Dynamo (Wang, et al. 2023). El conjunto de datos comprende 1,484 instancias de objetos después de eliminar duplicados, como se muestra en la Figura 2."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 4,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: Results of nine machine learning algorithms on the constructed datasets.",
+            "es": "Tabla 1: Resultados de nueve algoritmos de aprendizaje automático en los conjuntos de datos construidos."
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Nineteen features related to object dimensions, mesh characteristics, and locations were utilized in the feature engineering, such as area, volume, number of faces, maximum value on the xaxis, and so on. The dataset was randomly divided into training, validation, and test sets at a ratio of 7:1:2. Nine classic machine learning algorithms were implemented using Python and the scikit-learn library. The results are displayed in Table 1. Both the decision tree and random forest algorithms demonstrate a strong ability to classify objects, achieving 100% accuracy for both the validation and test sets. This indicates that these two algorithms can effectively predict the types of geometries. We selected random forest as the algorithm for apartment object classification in this study.",
+            "es": "En la ingeniería de características (feature engineering) se utilizaron diecinueve características relacionadas con las dimensiones de los objetos, las propiedades de la malla y las ubicaciones, como área, volumen, número de caras, valor máximo en el eje x, etc. El conjunto de datos se dividió aleatoriamente en conjuntos de entrenamiento, validación y prueba en una proporción de 7:1:2. Se implementaron nueve algoritmos clásicos de aprendizaje automático con Python y la biblioteca scikit-learn. Los resultados se muestran en la Tabla 1. Tanto el algoritmo de árbol de decisión (decision tree) como el de bosque aleatorio (random forest) demuestran una gran capacidad para clasificar objetos, logrando una exactitud (accuracy) de 100% tanto en el conjunto de validación como en el de prueba. Esto indica que estos dos algoritmos pueden predecir eficazmente los tipos de geometrías. Seleccionamos el bosque aleatorio como el algoritmo para la clasificación de objetos de departamentos en este estudio."
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "3.2.Relationship determination",
+            "es": "3.2. Determinación de relaciones"
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "This study aims to generate two types of object relationships. The first is adjacency, which describes the topological fact that two objects are physically touching each other. We use cbim:adjacentTo from the CBIM ontology to represent the generated adjacency relationships (Sacks et al., 2022). The second type is hosting, a semantic relationship illustrating that one object functionally hosts another. We adopt cbim:hosting/cbim:hosted from the CBIM ontology to display the hosting relationships with directions.",
+            "es": "Este estudio busca generar dos tipos de relaciones entre objetos. La primera es la adyacencia, que describe el hecho topológico de que dos objetos se tocan físicamente. Usamos cbim:adjacentTo de la ontología CBIM para representar las relaciones de adyacencia generadas (Sacks et al., 2022). El segundo tipo es el alojamiento, una relación semántica que ilustra que un objeto aloja funcionalmente a otro. Adoptamos cbim:hosting/cbim:hosted de la ontología CBIM para mostrar las relaciones de alojamiento con dirección."
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "We designed a rule-based method to generate hosting, hosted and adjacent relationships by leveraging object geometry characteristics. First, we calculate the bounding box distance in three axes for two objects and proceed only if the sum of the three distances is zero. This step filters out pairs of objects that cannot physically touch and speeds up the process. Then, we compute the exact geometry distance between the two objects and continue only if the distance is close to zero, which avoids the situations where two objects are either too far apart or overlapping. After that, we use the topological relationships of the two objects' bounding boxes in three dimensions to determine the final relationship. For example, if the bounding box of one object contains the bounding box of another object, we assign the cbim:hosting relationship. Similarly, if one object's bounding box is consistently contained by the bounding box of another object, we assign a cbim:hosted instance. Otherwise, cbim:adjacentTo is assigned. Experiments show that the method can achieve an accuracy and F1 score of 0.99 on test data.",
+            "es": "Diseñamos un método basado en reglas para generar relaciones de alojamiento (hosting), de elemento alojado (hosted) y de adyacencia, aprovechando las características geométricas de los objetos. Primero calculamos la distancia entre las cajas delimitadoras de dos objetos en tres ejes y continuamos solo si la suma de las tres distancias es cero. Este paso descarta los pares de objetos que no pueden tocarse físicamente y acelera el proceso. Después calculamos la distancia geométrica exacta entre los dos objetos y seguimos solo si es cercana a cero, lo que evita los casos en que dos objetos están demasiado lejos o se traslapan. A continuación, usamos las relaciones topológicas de las cajas delimitadoras de los dos objetos en tres dimensiones para determinar la relación final. Por ejemplo, si la caja delimitadora de un objeto contiene la de otro, asignamos la relación cbim:hosting. De manera similar, si la caja delimitadora de un objeto está contenida sistemáticamente por la de otro, asignamos una instancia de cbim:hosted. En caso contrario, se asigna cbim:adjacentTo. Los experimentos muestran que el método puede alcanzar una exactitud y un puntaje F1 de 0.99 en los datos de prueba."
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "3.3.Attribute computation",
+            "es": "3.3. Cálculo de atributos"
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In this study, we primarily compute dimensional attributes of objects using object geometries and object types. Geometry serves as the basic source for measurement, and object types assist in determining attribute names. Taking the slab as an example, the measure in the Z-dimension can be interpreted as thickness. However, when evaluating a wall, the measure value in the Z-dimension would be regarded as height. The algorithms developed in this study can compute various attributes, such as area, volume, height, width, perimeter, thickness, slope, length, and depth.",
+            "es": "En este estudio calculamos principalmente atributos dimensionales de los objetos usando las geometrías y los tipos de objetos. La geometría sirve como fuente básica para la medición, y los tipos de objetos ayudan a determinar los nombres de los atributos. Tomando la losa como ejemplo, la medida en la dimensión Z puede interpretarse como espesor. Sin embargo, al evaluar un muro, el valor de la medida en la dimensión Z se consideraría altura. Los algoritmos desarrollados en este estudio pueden calcular diversos atributos, como área, volumen, altura, ancho, perímetro, espesor, pendiente, longitud y profundidad."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4. Applications on Enhancing Interoperability Using BIM Graphs",
+        "es": "4. Aplicaciones para mejorar la interoperabilidad (interoperability) mediante grafos BIM (BIM graphs)"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Designers frequently encounter situations where they cannot access models saved in one software’s default format when using another vendor’s software. Sometimes, even within the same vendor environment, earlier version software is unable to read a model created by later version software. For example, legacy versions of Revit cannot access models created by the latest version of Revit. To address the interoperability issue, users often need to export models from the proprietary schema to an open data schema like IFC.",
+            "es": "Los diseñadores con frecuencia se encuentran con situaciones en las que no pueden acceder a modelos guardados en el formato predeterminado de un software al usar el software de otro proveedor. A veces, incluso dentro del entorno de un mismo proveedor, el software de una versión anterior no puede leer un modelo creado por el software de una versión posterior. Por ejemplo, las versiones heredadas de Revit no pueden acceder a modelos creados por la versión más reciente de Revit. Para abordar el problema de interoperabilidad, los usuarios a menudo necesitan exportar los modelos del esquema propietario (proprietary schema) a un esquema de datos abierto (open data schema) como IFC."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In this study, we propose a novel approach to alleviate the interoperability problem by leveraging the generated BIM graph and software APIs. The process of downgrading a Revit model to an earlier version is illustrated in Figure 3. The whole process mainly contains three parts: 1) Exporting object geometries from a later version Revit 2023; 2) Generating the BIM graph by the developed SE tools, 3) Reconstructing BIM models in Revit 2022 using the enriched semantics and software APIs.",
+            "es": "En este estudio proponemos un enfoque novedoso para aliviar el problema de interoperabilidad aprovechando el grafo BIM generado y las API de software (software APIs). El proceso de degradar un modelo de Revit a una versión anterior se ilustra en la Figura 3. Todo el proceso contiene principalmente tres partes: 1) exportar las geometrías de los objetos desde una versión posterior, Revit 2023; 2) generar el grafo BIM mediante las herramientas de enriquecimiento semántico (semantic enrichment, SE) desarrolladas; 3) reconstruir modelos BIM en Revit 2022 utilizando la semántica enriquecida y las API del software."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In the first step of Figure 3, object geometries were exported by a program from the Revit 2023 database and saved as independent PLY files. The Geometry exporter is implemented by Dynamo (Wang et al., 2023), which leverages the APIs released by Autodesk.",
+            "es": "En el primer paso de la Figura 3, las geometrías de los objetos fueron exportadas por un programa desde la base de datos de Revit 2023 y guardadas como archivos PLY independientes. El Geometry exporter está implementado en Dynamo (Wang et al., 2023), que aprovecha las API publicadas por Autodesk."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Next, the three SE tools were executed in sequence to predict the object types, instantiate hosting, hosted and adjacent relationships, and calculate object attributes. All the predicted results were organized into a knowledge graph, as shown in Figure 4. Nodes in the graph represent BIM objects, each named by their object type and unique ID. Edges indicate objectobject relationships. The first part of Figure 4 illustrates the cbim:adjacentTo relationships between two walls, while the second part showcases the cbim:hosted or cbim:hosting relationships between walls and windows or doors. Attributes are attached to nodes but hidden in the graph for readability.",
+            "es": "A continuación, las tres herramientas SE se ejecutaron en secuencia para predecir los tipos de objeto, instanciar las relaciones de alojamiento (hosting), de objeto alojado (hosted) y de adyacencia (adjacent), y calcular los atributos de los objetos. Todos los resultados predichos se organizaron en un grafo de conocimiento (knowledge graph), como se muestra en la Figura 4. Los nodos del grafo representan objetos BIM, cada uno nombrado por su tipo de objeto y su ID único. Las aristas indican relaciones objeto-objeto. La primera parte de la Figura 4 ilustra las relaciones cbim:adjacentTo entre dos muros, mientras que la segunda parte muestra las relaciones cbim:hosted o cbim:hosting entre muros y ventanas o puertas. Los atributos se adjuntan a los nodos, pero se ocultan en el grafo para facilitar la lectura."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: Process of using semantic enrichment to improve interoperability: a Revit downgrading case.",
+            "es": "Figura 3: Proceso de uso del enriquecimiento semántico para mejorar la interoperabilidad: un caso de degradación de Revit."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4: Generated BIM knowledge graph of an architectural apartment model (① illustrates the cbim:adjacentTo relationships, ② depicts the cbim:hosting/hosted relationships).",
+            "es": "Figura 4: Grafo de conocimiento BIM generado de un modelo arquitectónico de apartamento (① ilustra las relaciones cbim:adjacentTo, ② muestra las relaciones cbim:hosting/hosted)."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Finally, a Reconstructor was employed to retrieve the necessary information from the BIM graph and construct objects in a lower version of the software, Revit 2022. The Reconstructor is implemented in Dynamo, and part of the code is presented in Figure 5. Generally, it reads the knowledge graph by object types and extracts the information required for object construction. Taking the window construction as an example, it needs the hosted object, the window type, and the window's central point. Therefore, the Reconstructor begins by reading one window instance and searching for its hosted wall using the explicit cbim:hosted relationship. Additionally, it retrieves the window's locations and computes the central point. The reconstruction process utilizes all enriched semantics, including object types, hosted relationships, and computed attributes.",
+            "es": "Finalmente, se empleó un Reconstructor para recuperar la información necesaria del grafo BIM y construir objetos en una versión inferior del software, Revit 2022. El Reconstructor está implementado en Dynamo, y parte del código se presenta en la Figura 5. En general, lee el grafo de conocimiento por tipos de objeto y extrae la información requerida para la construcción de los objetos. Tomando como ejemplo la construcción de una ventana, necesita el objeto alojado, el tipo de ventana y el punto central de la ventana. Por lo tanto, el Reconstructor comienza leyendo una instancia de ventana y buscando su muro anfitrión mediante la relación explícita cbim:hosted. Además, recupera las ubicaciones de la ventana y calcula el punto central. El proceso de reconstrucción utiliza toda la semántica enriquecida, incluidos los tipos de objeto, las relaciones de objeto alojado y los atributos calculados."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5: Diagram of part of the Dynamo code from the Reconstructor.",
+            "es": "Figura 5: Diagrama de parte del código de Dynamo del Reconstructor."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We performed a manual comparison of each object pair across the two different Revit models. We found that the location, dimensions, and object types matched. It is worth noting that the object IDs have been changed, as this process focuses on reconstructing models rather than duplicating information. Furthermore, one requirement for successful reconstruction in Revit 2022 is that Dynamo should have permission to access the internal schema and modify the data in Revit's internal database.",
+            "es": "Realizamos una comparación manual de cada par de objetos entre los dos modelos de Revit diferentes. Encontramos que la ubicación, las dimensiones y los tipos de objeto coincidían. Cabe señalar que los ID de los objetos han cambiado, ya que este proceso se centra en reconstruir modelos en lugar de duplicar información. Además, un requisito para una reconstrucción exitosa en Revit 2022 es que Dynamo tenga permiso para acceder al esquema interno y modificar los datos en la base de datos interna de Revit."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5. Discussion",
+        "es": "5. Discusión"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The first strength of this study is the proposed novel approach of generating BIM graphs from object geometries and using the knowledge graph to downgrade design models from a later version to an earlier one, addressing interoperability issues. Furthermore, we developed a Dynamo Reconstructor program to retrieve information on graphs and generate objects within the Revit environment.",
+            "es": "La primera fortaleza de este estudio es el enfoque novedoso propuesto de generar grafos BIM a partir de las geometrías de los objetos y usar el grafo de conocimiento para degradar modelos de diseño de una versión posterior a una anterior, abordando los problemas de interoperabilidad. Además, desarrollamos un programa Reconstructor en Dynamo para recuperar información de los grafos y generar objetos dentro del entorno de Revit."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Despite these strengths, this study faces several limitations, which can guide future research directions. Firstly, there is still room for enriching BIM graphs. For example, building spatial structural objects, from the site to the building to the levels, represent essential hierarchy information (Ying et al., 2019). Additionally, space objects are necessary for running various building performance simulations (Ying and Lee, 2021) and quantity take-offs (Bloch and Sacks, 2018).",
+            "es": "A pesar de estas fortalezas, este estudio enfrenta varias limitaciones, que pueden orientar futuras líneas de investigación. En primer lugar, todavía hay margen para enriquecer los grafos BIM. Por ejemplo, los objetos estructurales espaciales del edificio, desde el sitio hasta el edificio y los niveles, representan información jerárquica esencial (Ying et al., 2019). Además, los objetos de espacio son necesarios para ejecutar diversas simulaciones de desempeño de edificios (Ying and Lee, 2021) y cuantificaciones de materiales (quantity take-offs) (Bloch and Sacks, 2018)."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Secondly, this study achieves three types of SE tasks: object classification, relationship determination and attribute computation. The need remains to explore object generation, another type of SE task (Bloch and Sacks, 2020). One direction could involve leveraging physical building objects to generate virtual objects automatically, such as using walls and floors to create space objects. This could reduce manual modeling efforts in the design phase and provide useful semantics for downstream applications.",
+            "es": "En segundo lugar, este estudio realiza tres tipos de tareas de SE: clasificación de objetos, determinación de relaciones y cálculo de atributos. Sigue pendiente explorar la generación de objetos, otro tipo de tarea de SE (Bloch and Sacks, 2020). Una dirección podría consistir en aprovechar objetos físicos del edificio para generar objetos virtuales de forma automática, por ejemplo usando muros y pisos para crear objetos de espacio. Esto podría reducir el esfuerzo de modelado manual en la fase de diseño y proporcionar semántica útil para aplicaciones posteriores."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Thirdly, this study showcases the use of enriched graphs for interoperability, but there is still a need to develop more intelligent applications on graphs. Researchers have investigated the feasibility of controlling design versions on graphs (Esser, Vilgertshofer and Borrmann, 2022) and demonstrated interdisciplinary consistency maintenance (Wang, Ouyang and Sacks, 2022).",
+            "es": "En tercer lugar, este estudio muestra el uso de grafos enriquecidos para la interoperabilidad, pero aún es necesario desarrollar aplicaciones más inteligentes sobre los grafos. Los investigadores han estudiado la viabilidad de controlar las versiones de diseño sobre grafos (Esser, Vilgertshofer and Borrmann, 2022) y han demostrado el mantenimiento de la consistencia interdisciplinaria (Wang, Ouyang and Sacks, 2022)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6. Conclusion",
+        "es": "6. Conclusión"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "This study explores the adoption of semantic enrichment to generate BIM graphs for enhancing the interoperability of BIM. The main conclusions and findings are as follows:",
+            "es": "Este estudio explora la adopción del enriquecimiento semántico para generar grafos BIM con el fin de mejorar la interoperabilidad de BIM. Las principales conclusiones y hallazgos son los siguientes:"
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "• We proposed a pipeline for predicting various types of semantics from object geometries and organizing them as a knowledge graph. • We illustrated a novel approach of using the BIM graph to enhance interoperability by downgrading a later version Revit model to an earlier version model.",
+            "es": "• Propusimos un flujo de trabajo para predecir diversos tipos de semántica a partir de las geometrías de los objetos y organizarla como un grafo de conocimiento. • Ilustramos un enfoque novedoso de uso del grafo BIM para mejorar la interoperabilidad degradando un modelo de Revit de una versión posterior a un modelo de una versión anterior."
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The success of the experiment demonstrates the feasibility of constructing building knowledge graphs from object geometries to improve the interoperability of BIM. This research can pave the way for researchers to develop more SE tools using object geometries and explore more intelligent applications on BIM graphs.",
+            "es": "El éxito del experimento demuestra la viabilidad de construir grafos de conocimiento de edificios a partir de las geometrías de los objetos para mejorar la interoperabilidad de BIM. Esta investigación puede allanar el camino para que los investigadores desarrollen más herramientas SE usando las geometrías de los objetos y exploren aplicaciones más inteligentes sobre los grafos BIM."
+          }
+        },
+        {
+          "id": "s6-h1",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "Acknowledgements",
+            "es": "Agradecimientos"
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The work is part of the Cloud-based Building Information Modelling (CBIM) project, a European Training Network. The CBIM project receives funding from the European Union’s Horizon 2020 research and innovation programme under the Marie Skłodowska-Curie grant with agreement No 860555.",
+            "es": "Este trabajo forma parte del proyecto Cloud-based Building Information Modelling (CBIM), una Red de Formación Europea. El proyecto CBIM recibe financiamiento del programa de investigación e innovación Horizon 2020 de la Unión Europea, en el marco de la subvención Marie Skłodowska-Curie con el acuerdo No 860555."
+          }
+        },
+        {
+          "id": "s6-h2",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "Reference",
+            "es": "Referencias"
+          }
+        },
+        {
+          "id": "s6-p5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Belsky, M., Sacks, R. and Brilakis, I. (2016) ‘Semantic Enrichment for Building Information Modeling’, Computer-Aided Civil and Infrastructure Engineering, 31(4), pp. 261–274. doi: 10.1111/mice.12128.",
+            "es": "Belsky, M., Sacks, R. and Brilakis, I. (2016) ‘Semantic Enrichment for Building Information Modeling’, Computer-Aided Civil and Infrastructure Engineering, 31(4), pp. 261–274. doi: 10.1111/mice.12128."
+          }
+        },
+        {
+          "id": "s6-p6",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Bloch, T. (2022) ‘Connecting research on semantic enrichment of BIM-review of approaches, methods and possible applications’, Journal of Information Technology in Construction (ITcon), 27. doi: 10.36680/j.itcon.2022.020.",
+            "es": "Bloch, T. (2022) ‘Connecting research on semantic enrichment of BIM-review of approaches, methods and possible applications’, Journal of Information Technology in Construction (ITcon), 27. doi: 10.36680/j.itcon.2022.020."
+          }
+        },
+        {
+          "id": "s6-p7",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Bloch, T. and Sacks, R. (2018) ‘Comparing machine learning and rule-based inferencing for semantic enrichment of BIM models’, Automation in Construction, 91(July 2017), pp. 256–272. doi: 10.1016/j.autcon.2018.03.018.",
+            "es": "Bloch, T. and Sacks, R. (2018) ‘Comparing machine learning and rule-based inferencing for semantic enrichment of BIM models’, Automation in Construction, 91(July 2017), pp. 256–272. doi: 10.1016/j.autcon.2018.03.018."
+          }
+        },
+        {
+          "id": "s6-p8",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Bloch, T. and Sacks, R. (2020) ‘Clustering Information Types for Semantic Enrichment of Building Information Models to Support Automated Code Compliance Checking’, Journal of Computing in Civil Engineering, 34(6), p. 04020040. doi: 10.1061/(asce)cp.1943-5487.0000922.",
+            "es": "Bloch, T. and Sacks, R. (2020) ‘Clustering Information Types for Semantic Enrichment of Building Information Models to Support Automated Code Compliance Checking’, Journal of Computing in Civil Engineering, 34(6), p. 04020040. doi: 10.1061/(asce)cp.1943-5487.0000922."
+          }
+        },
+        {
+          "id": "s6-p9",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Borrmann, A. et al. (2018) Building Information Modeling, Building Information Modeling: Technology Foundations and Industry Practice. Edited by A. Borrmann et al. Cham: Springer International Publishing. doi: 10.1007/978-3-319-92862-3. buildingSMART (2018) buildingSMART -The Home of BIM, buildingSMART. Available at: https://www.buildingsmart.org/ (Accessed: 17 May 2020).",
+            "es": "Borrmann, A. et al. (2018) Building Information Modeling, Building Information Modeling: Technology Foundations and Industry Practice. Edited by A. Borrmann et al. Cham: Springer International Publishing. doi: 10.1007/978-3-319-92862-3. buildingSMART (2018) buildingSMART -The Home of BIM, buildingSMART. Available at: https://www.buildingsmart.org/ (Accessed: 17 May 2020)."
+          }
+        },
+        {
+          "id": "s6-p10",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Collins, F. C. et al. (2021) ‘Assessing IFC classes with means of geometric deep learning on different graph encodings’, Proceedings of the 2021 European Conference on Computing in Construction, 2, pp. 332–341. doi: 10.35490/ec3.2021.168.",
+            "es": "Collins, F. C. et al. (2021) ‘Assessing IFC classes with means of geometric deep learning on different graph encodings’, Proceedings of the 2021 European Conference on Computing in Construction, 2, pp. 332–341. doi: 10.35490/ec3.2021.168."
+          }
+        },
+        {
+          "id": "s6-p11",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Costa, G. and Sicilia, A. (2020) ‘Alternatives for facilitating automatic transformation of BIM data using semantic query languages’, Automation in Construction, 120, p. 103384. doi: 10.1016/J.AUTCON.2020.103384.",
+            "es": "Costa, G. and Sicilia, A. (2020) ‘Alternatives for facilitating automatic transformation of BIM data using semantic query languages’, Automation in Construction, 120, p. 103384. doi: 10.1016/J.AUTCON.2020.103384."
+          }
+        },
+        {
+          "id": "s6-p12",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Esser, S., Vilgertshofer, S. and Borrmann, A. (2022) ‘Graph-based version control for asynchronous BIM collaboration’, Advanced Engineering Informatics, 53, p. 101664. doi: 10.1016/j.aei.2022.101664.",
+            "es": "Esser, S., Vilgertshofer, S. and Borrmann, A. (2022) ‘Graph-based version control for asynchronous BIM collaboration’, Advanced Engineering Informatics, 53, p. 101664. doi: 10.1016/j.aei.2022.101664."
+          }
+        },
+        {
+          "id": "s6-p13",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Ismail, A., Strug, B. and Ślusarczyk, G. (2018) ‘Building knowledge extraction from BIM/IFC data for analysis in graph databases’, in Lecture Notes in Computer Science. Springer Verlag, pp. 652–664. doi: 10.1007/978-3-319-91262-2_57.",
+            "es": "Ismail, A., Strug, B. and Ślusarczyk, G. (2018) ‘Building knowledge extraction from BIM/IFC data for analysis in graph databases’, in Lecture Notes in Computer Science. Springer Verlag, pp. 652–664. doi: 10.1007/978-3-319-91262-2_57."
+          }
+        },
+        {
+          "id": "s6-p14",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Khalili, A. and Chua, D. K. H. (2015) ‘IFC-based graph data model for topological queries on building elements’, Journal of Computing in Civil Engineering, 29(3), pp. 1–14. doi: 10.1061/(ASCE)CP.1943-5487.0000331.",
+            "es": "Khalili, A. and Chua, D. K. H. (2015) ‘IFC-based graph data model for topological queries on building elements’, Journal of Computing in Civil Engineering, 29(3), pp. 1–14. doi: 10.1061/(ASCE)CP.1943-5487.0000331."
+          }
+        },
+        {
+          "id": "s6-p15",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Koo, B., Jung, R. and Yu, Y. (2021) ‘Automatic classification of wall and door BIM element subtypes using 3D geometric deep neural networks’, Advanced Engineering Informatics, 47(October 2020), p. 101200. doi: 10.1016/j.aei.2020.101200.",
+            "es": "Koo, B., Jung, R. and Yu, Y. (2021) ‘Automatic classification of wall and door BIM element subtypes using 3D geometric deep neural networks’, Advanced Engineering Informatics, 47(October 2020), p. 101200. doi: 10.1016/j.aei.2020.101200."
+          }
+        },
+        {
+          "id": "s6-p16",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Koo, B. and Shin, B. (2018) ‘Applying novelty detection to identify model element to IFC class misclassifications on architectural and infrastructure Building Information Models’, Journal of Computational Design and Engineering, 5(4), pp. 391–400. doi: 10.1016/j.jcde.2018.03.002.",
+            "es": "Koo, B. and Shin, B. (2018) ‘Applying novelty detection to identify model element to IFC class misclassifications on architectural and infrastructure Building Information Models’, Journal of Computational Design and Engineering, 5(4), pp. 391–400. doi: 10.1016/j.jcde.2018.03.002."
+          }
+        },
+        {
+          "id": "s6-p17",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Pauwels, P., Costin, A. and Rasmussen, M. H. (2022) ‘Knowledge Graphs and Linked Data for the Built Environment’, in. Springer, Cham, pp. 157–183. doi: 10.1007/978-3-030-82430-3_7.",
+            "es": "Pauwels, P., Costin, A. and Rasmussen, M. H. (2022) ‘Knowledge Graphs and Linked Data for the Built Environment’, in. Springer, Cham, pp. 157–183. doi: 10.1007/978-3-030-82430-3_7."
+          }
+        },
+        {
+          "id": "s6-p18",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Pauwels, P. and Terkaj, W. (2016) ‘EXPRESS to OWL for construction industry: Towards a recommendable and usable ifcOWL ontology’, Automation in Construction, 63, pp. 100–133. doi: 10.1016/j.autcon.2015.12.003.",
+            "es": "Pauwels, P. and Terkaj, W. (2016) ‘EXPRESS to OWL for construction industry: Towards a recommendable and usable ifcOWL ontology’, Automation in Construction, 63, pp. 100–133. doi: 10.1016/j.autcon.2015.12.003."
+          }
+        },
+        {
+          "id": "s6-p19",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Pazlar, T. and Turk, Ž. (2008) ‘Interoperability in practice: Geometric data exchange using the IFC standard’, Electronic Journal of Information Technology in Construction, 13, pp. 362–380.",
+            "es": "Pazlar, T. and Turk, Ž. (2008) ‘Interoperability in practice: Geometric data exchange using the IFC standard’, Electronic Journal of Information Technology in Construction, 13, pp. 362–380."
+          }
+        },
+        {
+          "id": "s6-p20",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Sacks, R. et al. (2018) BIM Handbook, John Wiley & Sons. Hoboken, New Jersey: John Wiley & Sons, Inc. doi: 10.1002/9781119287568.",
+            "es": "Sacks, R. et al. (2018) BIM Handbook, John Wiley & Sons. Hoboken, New Jersey: John Wiley & Sons, Inc. doi: 10.1002/9781119287568."
+          }
+        },
+        {
+          "id": "s6-p21",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Sacks, R. et al. (2022) ‘Toward artificially intelligent cloud-based building information modelling for collaborative multidisciplinary design’, Advanced Engineering Informatics, 53(June), p. 101711. doi: 10.1016/j.aei.2022.101711.",
+            "es": "Sacks, R. et al. (2022) ‘Toward artificially intelligent cloud-based building information modelling for collaborative multidisciplinary design’, Advanced Engineering Informatics, 53(June), p. 101711. doi: 10.1016/j.aei.2022.101711."
+          }
+        },
+        {
+          "id": "s6-p22",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Venugopal, M., Eastman, C. M. and Teizer, J. (2015) ‘An ontology-based analysis of the industry foundation class schema for building information model exchanges’, Advanced Engineering Informatics, 29(4), pp. 940–957. doi: 10.1016/j.aei.2015.09.006.",
+            "es": "Venugopal, M., Eastman, C. M. and Teizer, J. (2015) ‘An ontology-based analysis of the industry foundation class schema for building information model exchanges’, Advanced Engineering Informatics, 29(4), pp. 940–957. doi: 10.1016/j.aei.2015.09.006."
+          }
+        },
+        {
+          "id": "s6-p23",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Wang, Z., Ouyang, B. and Sacks, R. (2022) ‘CBIM: Graph-Based Inter-domain Consistency Maintenance for BIM Models’, SSRN Electronic Journal. doi: 10.2139/ssrn.4259999.",
+            "es": "Wang, Z., Ouyang, B. and Sacks, R. (2022) ‘CBIM: Graph-Based Inter-domain Consistency Maintenance for BIM Models’, SSRN Electronic Journal. doi: 10.2139/ssrn.4259999."
+          }
+        },
+        {
+          "id": "s6-p24",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Wang, Z., Ouyang, B. and Sacks Vclab, R. (2023) ‘CBIM: object-level cloud collaboration platform for supporting across-domain asynchronous design’. Available at: https://arxiv.org/abs/2303.03854v1 (Accessed: 5 April 2023).",
+            "es": "Wang, Z., Ouyang, B. and Sacks Vclab, R. (2023) ‘CBIM: object-level cloud collaboration platform for supporting across-domain asynchronous design’. Available at: https://arxiv.org/abs/2303.03854v1 (Accessed: 5 April 2023)."
+          }
+        },
+        {
+          "id": "s6-p25",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Wang, Z., Sacks, R. and Su, Z. (2021) ‘Room Type Classification for Semantic Enrichment of Building Information Modeling Using Graph Neural Networks’.",
+            "es": "Wang, Z., Sacks, R. and Su, Z. (2021) ‘Room Type Classification for Semantic Enrichment of Building Information Modeling Using Graph Neural Networks’."
+          }
+        },
+        {
+          "id": "s6-p26",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Wang, Z., Sacks, R. and Yeung, T. (2022) ‘Exploring graph neural networks for semantic enrichment: Room type classification’, Automation in Construction, 134(June 2021), p. 104039. doi: 10.1016/j.autcon.2021.104039.",
+            "es": "Wang, Z., Sacks, R. and Yeung, T. (2022) ‘Exploring graph neural networks for semantic enrichment: Room type classification’, Automation in Construction, 134(June 2021), p. 104039. doi: 10.1016/j.autcon.2021.104039."
+          }
+        },
+        {
+          "id": "s6-p27",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Wu, J. et al. (2022) ‘Constructing Invariant Signatures for AEC Objects to Support BIM-Based Analysis Automation through Object Classification’. doi: 10.1061/(ASCE)CP.1943-5487.0001012.",
+            "es": "Wu, J. et al. (2022) ‘Constructing Invariant Signatures for AEC Objects to Support BIM-Based Analysis Automation through Object Classification’. doi: 10.1061/(ASCE)CP.1943-5487.0001012."
+          }
+        },
+        {
+          "id": "s6-p28",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Wu, J. and Zhang, J. (2019) ‘New Automated BIM Object Classification Method to Support BIM Interoperability’, Journal of Computing in Civil Engineering, 33(5), p. 04019033. doi: 10.1061/(asce)cp.1943-5487.0000858.",
+            "es": "Wu, J. and Zhang, J. (2019) ‘New Automated BIM Object Classification Method to Support BIM Interoperability’, Journal of Computing in Civil Engineering, 33(5), p. 04019033. doi: 10.1061/(asce)cp.1943-5487.0000858."
+          }
+        },
+        {
+          "id": "s6-p29",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Ying, H. and Lee, S. (2021) ‘Generating second-level space boundaries from large-scale IFC-compliant building information models using multiple geometry representations’, Automation in Construction, 126, p. 103659. doi: 10.1016/J.AUTCON.2021.103659.",
+            "es": "Ying, H. and Lee, S. (2021) ‘Generating second-level space boundaries from large-scale IFC-compliant building information models using multiple geometry representations’, Automation in Construction, 126, p. 103659. doi: 10.1016/J.AUTCON.2021.103659."
+          }
+        },
+        {
+          "id": "s6-p30",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Ying, Huaquan et al. (2019) ‘Semantic Enrichment of As-is BIMs for Building Energy Simulation’, Advances in Informatics and Computing in Civil and Construction Engineering, pp. 733–740. doi: 10.1007/978-3-030-00220-6_88.",
+            "es": "Ying, Huaquan et al. (2019) ‘Semantic Enrichment of As-is BIMs for Building Energy Simulation’, Advances in Informatics and Computing in Civil and Construction Engineering, pp. 733–740. doi: 10.1007/978-3-030-00220-6_88."
+          }
+        },
+        {
+          "id": "s6-p31",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Zhou, J. et al. (2018) ‘Graph Neural Networks: A Review of Methods and Applications’, arXiv. Available at: http://arxiv.org/abs/1812.08434 (Accessed: 8 February 2021).",
+            "es": "Zhou, J. et al. (2018) ‘Graph Neural Networks: A Review of Methods and Applications’, arXiv. Available at: http://arxiv.org/abs/1812.08434 (Accessed: 8 February 2021)."
+          }
+        }
+      ]
+    }
+  ]
+}

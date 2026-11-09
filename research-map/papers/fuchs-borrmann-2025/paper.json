@@ -1,0 +1,892 @@
+{
+  "version": 1,
+  "node": "fuchs-borrmann-2025",
+  "title": "Towards Semantic Enrichment of IFC Models through Language Modeling",
+  "source": "files/Towards Semantic Enrichment of IFC Models through Language Modeling.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Datos preliminares"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "STEFAN FUCHS,1 ANDRÉ BORRMANN1,2",
+            "es": "STEFAN FUCHS,1 ANDRÉ BORRMANN1,2"
+          }
+        },
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "1Chair of Computing in Civil and Building Engineering, Technical University of Munich, Munich, Germany 2TUM Georg Nemetschek Institute, Technical University of Munich, Munich, Germany",
+            "es": "1Chair of Computing in Civil and Building Engineering, Technical University of Munich, Munich, Germany 2TUM Georg Nemetschek Institute, Technical University of Munich, Munich, Germany"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "ABSTRACT: Semantic enrichment of Building Information Models (BIM) is critical for improving model quality and supporting downstream applications, such as compliance checking and design automation. This study explores continued pre-training of large language models on building information models in the Industry Foundation Classes (IFC) format to infer missing information required for Automated Compliance Checking (ACC). By evaluating encoder-only and decoder-only transformer architectures across different test cases, we demonstrate how much information can be inferred automatically and identify which model types and data representations are most suitable for the task. A modified ifcJSON-5a* representation was found to improve performance over traditional EXPRESS formats. The findings suggest that domain-adapted language models are a promising approach for advancing semantic enrichment in BIM and open new directions for integrating AI more deeply into the building design process.",
+            "es": "RESUMEN: El enriquecimiento semántico (semantic enrichment) de los modelos de información de construcción (Building Information Models, BIM) es fundamental para mejorar la calidad de los modelos y respaldar aplicaciones posteriores (downstream applications), como la verificación de cumplimiento normativo y la automatización del diseño. Este estudio explora el preentrenamiento continuo (continued pre-training) de modelos de lenguaje de gran tamaño (large language models) con modelos de información de construcción en el formato Industry Foundation Classes (IFC), con el fin de inferir la información faltante requerida para la verificación automatizada de cumplimiento normativo (Automated Compliance Checking, ACC). Al evaluar arquitecturas de transformadores (transformer) de solo codificador (encoder-only) y de solo decodificador (decoder-only) en diferentes casos de prueba, demostramos qué cantidad de información puede inferirse de forma automática e identificamos qué tipos de modelos y representaciones de datos son los más adecuados para la tarea. Se encontró que una representación ifcJSON-5a* modificada mejora el desempeño frente a los formatos EXPRESS tradicionales. Los hallazgos sugieren que los modelos de lenguaje adaptados al dominio (domain-adapted) son un enfoque prometedor para avanzar en el enriquecimiento semántico en BIM y abren nuevas direcciones para integrar la inteligencia artificial (AI) de manera más profunda en el proceso de diseño de edificios."
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "KEYWORDS: Semantic Enrichment, Large Language Model, Transformer, Building Information Model, Automated Compliance Checking",
+            "es": "PALABRAS CLAVE: Enriquecimiento semántico, Modelo de lenguaje de gran tamaño, Transformador, Modelo de información de construcción, Verificación automatizada de cumplimiento normativo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1. INTRODUCTION",
+        "es": "1. INTRODUCCIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Ensuring safety, accessibility, and energy efficiency in buildings is a critical priority within the Architecture, Engineering, and Construction (AEC) industry. To guarantee that buildings meet applicable codes and standards, obtaining a building permit is mandatory. However, the process of reviewing building permit applications is often time-intensive, resource-demanding, and criticized for inconsistencies. Automated Compliance Checking (ACC) has been proposed as a promising solution to streamline this process. Despite significant research and commercial development efforts, achieving fully automated checks remains elusive (Amor & Dimyadi, 2021).",
+            "es": "Garantizar la seguridad, la accesibilidad y la eficiencia energética de los edificios es una prioridad fundamental dentro de la industria de Arquitectura, Ingeniería y Construcción (Architecture, Engineering, and Construction, AEC). Para asegurar que los edificios cumplan con los códigos y las normas aplicables, es obligatorio obtener un permiso de construcción. Sin embargo, el proceso de revisión de las solicitudes de permisos de construcción suele requerir mucho tiempo y recursos, y se le critica por sus inconsistencias. La verificación automatizada de cumplimiento normativo (ACC) se ha propuesto como una solución prometedora para agilizar este proceso. A pesar de los importantes esfuerzos de investigación y de desarrollo comercial, lograr verificaciones totalmente automatizadas sigue siendo una meta difícil de alcanzar (Amor & Dimyadi, 2021)."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Two primary bottlenecks hinder progress in",
+            "es": "Dos cuellos de botella principales obstaculizan el progreso en"
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "ACC: the complexity of regulatory requirements and the availability of the necessary information within Building Information Models (BIM). More complex requirements, such as those involving inferred properties or extended data structures, present a particular challenge (Solihin & Eastman, 2015). While Information Delivery Standards (IDS) can help by specifying the properties that BIM modelers must provide, relying too heavily on this approach may become impractical. Some aspects of ACC can be efficiently covered using IDS, but attempting to enforce it for all required information could place an excessive burden on modelers.",
+            "es": "la ACC: la complejidad de los requisitos regulatorios y la disponibilidad de la información necesaria dentro de los modelos de información de construcción (BIM). Los requisitos más complejos, como los que involucran propiedades inferidas o estructuras de datos ampliadas, plantean un desafío particular (Solihin & Eastman, 2015). Si bien los estándares de entrega de información (Information Delivery Standards, IDS) pueden ayudar al especificar las propiedades que los modeladores BIM deben proporcionar, depender demasiado de este enfoque puede volverse poco práctico. Algunos aspectos de la ACC pueden cubrirse de manera eficiente mediante IDS, pero intentar exigirlos para toda la información requerida podría imponer una carga excesiva a los modeladores."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "To address these challenges, a balance must be found between information that can be inferred automatically and information that must be",
+            "es": "Para abordar estos desafíos, se debe encontrar un equilibrio entre la información que puede inferirse de forma automática y la información que debe ser"
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Fuchs, S., & Borrmann, A. Towards semantic enrichment of IFC models through language modeling. In A. Moreno-Rangel, & B. Kumar (Eds.), EG-ICE 2025: AI-Driven Collaboration for Sustainable and Resilient Built Environments Conference Proceedings University of Strathclyde Publishing. https://doi.org/10.17868/strath.00093271 explicitly provided by architects and engineers. For example, many compliance checks rely on space use classifications being provided to decide their applicability. However, BIM modelers often only provide this classification implicitly through the space names. Semantic enrichment, the process of automatically inferring concepts and properties required for ACC, offers a promising pathway (Bloch & Sacks, 2020). Recent advancements include the use of Graph Neural Networks (GNNs) for semantic enrichment (Bloch et al., 2023; Wang et al., 2023), as well as the application of large language models (LLMs) and semantic similarity (Forth & Borrmann, 2024).",
+            "es": "Fuchs, S., & Borrmann, A. Towards semantic enrichment of IFC models through language modeling. In A. Moreno-Rangel, & B. Kumar (Eds.), EG-ICE 2025: AI-Driven Collaboration for Sustainable and Resilient Built Environments Conference Proceedings University of Strathclyde Publishing. https://doi.org/10.17868/strath.00093271 proporcionada de manera explícita por arquitectos e ingenieros. Por ejemplo, muchas verificaciones de cumplimiento dependen de que se proporcionen clasificaciones de uso de los espacios para decidir su aplicabilidad. Sin embargo, los modeladores BIM a menudo solo proporcionan esta clasificación de forma implícita a través de los nombres de los espacios. El enriquecimiento semántico, el proceso de inferir de forma automática los conceptos y las propiedades requeridos para la ACC, ofrece una vía prometedora (Bloch & Sacks, 2020). Los avances recientes incluyen el uso de redes neuronales de grafos (Graph Neural Networks, GNNs) para el enriquecimiento semántico (Bloch et al., 2023; Wang et al., 2023), así como la aplicación de modelos de lenguaje de gran tamaño (LLMs) y de la similitud semántica (semantic similarity) (Forth & Borrmann, 2024)."
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Building on these developments, this paper seeks to combine the strengths of both of those semantic enrichment strategies. Specifically, we propose continued pre-training of LLMs, tailoring them for BIM data. By familiarizing the language model with Industry Foundation Classes (IFC) data and employing Masked Language Modeling (MLM) and Causal Language Modeling (CLM) objectives, we hypothesize that such models can effectively predict the information required for ACC, such as space classifications, accessibility, and loadbearing status. Doing so, this study focuses on predicting missing values, instead of inferring the required types of information. Two key Research Questions (RQs) guide this study:",
+            "es": "Partiendo de estos avances, este artículo busca combinar las fortalezas de ambas estrategias de enriquecimiento semántico. En concreto, proponemos el preentrenamiento continuo de LLMs, adaptándolos a datos BIM. Al familiarizar al modelo de lenguaje con datos de Industry Foundation Classes (IFC) y emplear los objetivos de modelado de lenguaje enmascarado (Masked Language Modeling, MLM) y de modelado de lenguaje causal (Causal Language Modeling, CLM), planteamos la hipótesis de que dichos modelos pueden predecir de manera eficaz la información requerida para la ACC, como las clasificaciones de espacios, la accesibilidad y la condición de elemento portante. De este modo, este estudio se centra en predecir valores faltantes, en lugar de inferir los tipos de información requeridos. Dos preguntas de investigación (Research Questions, RQs) clave guían este estudio:"
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• RQ1: What is the most suitable representation of IFC data for language modeling tasks? • RQ2: Which transformer architecture is best suited for the semantic enrichment of IFC models? To address RQ1, we evaluate various data representations by strategically masking properties in previously unseen IFC models and assessing the models’ ability to accurately predict the original values. For RQ2, we investigate the accuracy of encoder-only versus decoder-only transformer architectures in performing this task.",
+            "es": "• RQ1: ¿Cuál es la representación más adecuada de los datos IFC para las tareas de modelado de lenguaje? • RQ2: ¿Qué arquitectura de transformadores es la más adecuada para el enriquecimiento semántico de modelos IFC? Para abordar la RQ1, evaluamos diversas representaciones de datos enmascarando estratégicamente propiedades en modelos IFC no vistos previamente y evaluando la capacidad de los modelos para predecir con exactitud los valores originales. Para la RQ2, investigamos la exactitud de las arquitecturas de transformadores de solo codificador frente a las de solo decodificador al realizar esta tarea."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2. BACKGROUND AND RELATED WORK",
+        "es": "2. ANTECEDENTES Y TRABAJOS RELACIONADOS"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "2.1 Language models Transformer models and the underlying parallelization capability of the self-attention mechanism (Vaswani et al., 2017) have revolutionized Natural Language Processing (NLP) by enabling large-scale language modeling pretraining. Unlike sequential models such as Long Short-Term Memory (LSTM) networks (Hochreiter & Schmidhuber, 1997), where computation depends on prior time steps, creating a bottleneck for efficiency and scalability, transformers allow for parallel processing, making it possible to scale both model parameters and training data effectively.",
+            "es": "2.1 Modelos de lenguaje Los modelos transformadores y la capacidad de paralelización subyacente del mecanismo de autoatención (self-attention mechanism) (Vaswani et al., 2017) han revolucionado el procesamiento del lenguaje natural (Natural Language Processing, NLP) al hacer posible el preentrenamiento de modelos de lenguaje a gran escala. A diferencia de los modelos secuenciales como las redes de memoria a corto y largo plazo (Long Short-Term Memory, LSTM) (Hochreiter & Schmidhuber, 1997), en las que el cálculo depende de pasos de tiempo previos, lo que crea un cuello de botella para la eficiencia y la escalabilidad, los transformadores permiten el procesamiento en paralelo, lo que hace posible escalar de manera efectiva tanto los parámetros del modelo como los datos de entrenamiento."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "This advancement has led to increasingly large language models whose general-purpose knowledge can be transferred across a wide range of downstream tasks. Transformer architectures can be broadly categorized into three types: encoder-only, encoder-decoder, and decoder-only models. The original transformer architecture, introduced by Vaswani et al. (2017), featured an encoder-decoder architecture designed for translation tasks, allowing the encoder and decoder to learn distinct embedding spaces for source and target languages.",
+            "es": "Este avance ha dado lugar a modelos de lenguaje cada vez más grandes cuyo conocimiento de propósito general puede transferirse a una amplia gama de tareas posteriores. Las arquitecturas de transformadores pueden clasificarse en términos generales en tres tipos: modelos de solo codificador, de codificador-decodificador (encoder-decoder) y de solo decodificador. La arquitectura de transformadores original, presentada por Vaswani et al. (2017), contaba con una arquitectura de codificador-decodificador diseñada para tareas de traducción, lo que permitía que el codificador y el decodificador aprendieran espacios de incrustación (embedding spaces) distintos para los idiomas de origen y de destino."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Subsequently, the encoder and decoder transformer stacks have been adapted as standalone models, each with its own standard pretraining objective. Encoder-only models typically employ MLM, where a portion of tokens is masked and predicted using bidirectional context, making them well-suited for classification and sequence labeling. The most well-known example is Bidirectional Encoder Representations from Transformers (BERT) by Devlin et al. (2018).",
+            "es": "Posteriormente, las pilas de codificador y de decodificador del transformador se han adaptado como modelos independientes, cada uno con su propio objetivo de preentrenamiento estándar. Los modelos de solo codificador suelen emplear MLM, en el que una parte de los tokens se enmascara y se predice usando el contexto bidireccional (bidirectional context), lo que los hace muy adecuados para la clasificación y el etiquetado de secuencias (sequence labeling). El ejemplo más conocido es Bidirectional Encoder Representations from Transformers (BERT) de Devlin et al. (2018)."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In contrast, decoder-only models, which have gained broader adoption due to their generative capabilities, are trained using CLM. This autoregressive approach predicts tokens sequentially to reconstruct the original input and is often followed by supervised fine-tuning or reinforcement learning to enhance task-specific performance during inference. The generalization abilities of models such as Generative Pretrained Transformers (GPT) have been demonstrated in numerous studies (Radford et al., 2019).",
+            "es": "En contraste, los modelos de solo decodificador, que han tenido una adopción más amplia debido a sus capacidades generativas, se entrenan mediante CLM. Este enfoque autorregresivo (autoregressive) predice tokens de forma secuencial para reconstruir la entrada original y con frecuencia va seguido de un ajuste fino supervisado (supervised fine-tuning) o de aprendizaje por refuerzo (reinforcement learning) para mejorar el desempeño específico de la tarea durante la inferencia (inference). Las capacidades de generalización de modelos como los Generative Pretrained Transformers (GPT) se han demostrado en numerosos estudios (Radford et al., 2019)."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Despite their success, original transformer models suffer from a significant limitation: a restricted context length due to the quadratic complexity of the attention mechanism with respect to the sequence length. This becomes particularly problematic for processing IFC models, which are often large and require extensive context windows. To address this, recent research has focused on long-context transformers that reduce attention complexity through architectural innovations. Two prominent approaches are localized attention mechanisms, as employed by models like Transformer-XL (Dai et al., 2019) and Longformer (Beltagy et al., 2020), and linearized attention mechanisms, used in models such as Performer (Choromanski et al., 2020) and Linear Transformer (Katharopoulos et al., 2020).",
+            "es": "A pesar de su éxito, los modelos transformadores originales sufren una limitación importante: una longitud de contexto restringida (restricted context length) debido a la complejidad cuadrática del mecanismo de atención (attention mechanism) con respecto a la longitud de la secuencia. Esto resulta particularmente problemático para procesar modelos IFC, que con frecuencia son grandes y requieren ventanas de contexto (context windows) extensas. Para abordar esto, la investigación reciente se ha centrado en los transformadores de contexto largo (long-context transformers), que reducen la complejidad de la atención mediante innovaciones arquitectónicas. Dos enfoques destacados son los mecanismos de atención localizada (localized attention mechanisms), como los empleados por modelos como Transformer-XL (Dai et al., 2019) y Longformer (Beltagy et al., 2020), y los mecanismos de atención linealizada (linearized attention mechanisms), utilizados en modelos como Performer (Choromanski et al., 2020) y Linear Transformer (Katharopoulos et al., 2020)."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "A recent example of a long-context encoderonly model is ModernBERT (Warner et al., 2024), which extends the capabilities of BERT by combining local attention with global context tokens. It also incorporates Rotary Position Embedding (RoPE) (Su et al., 2024), allowing the model to scale its input length from BERT’s original",
+            "es": "Un ejemplo reciente de un modelo de solo codificador de contexto largo es ModernBERT (Warner et al., 2024), que amplía las capacidades de BERT al combinar la atención local con tokens de contexto global. También incorpora Rotary Position Embedding (RoPE) (Su et al., 2024), lo que permite al modelo escalar su longitud de entrada desde la longitud original de BERT de"
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "512 tokens to up to 8192 tokens. This makes it a strong candidate for applications involving large, structured data such as BIM.",
+            "es": "512 tokens hasta un máximo de 8192 tokens. Esto lo convierte en un candidato sólido para aplicaciones que involucran datos grandes y estructurados como los de BIM."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Alternatively, decoder-only models with infilling capabilities are of particular relevance to this study. These models, frequently used in code completion tasks, can generate missing content based on both the left and right context. Two features of such models could be especially beneficial for the semantic enrichment of IFC data. The first is the pretraining on source code, which shares structural similarities with the IFC and ifcJSON representations, including the hierarchical structures, identifiers, and key-value properties. Code models may also exhibit enhanced handling of numeric and symbolic data, which is particularly advantageous for the geometry-rich nature of IFC files. Second, their ability to perform bidirectional contextual reasoning through infilling makes them suitable for tasks involving incomplete data. A broad range of recent decoder-only models optimized for code, such as WizardCoder (Luo et al., 2023), StarCoder (Li et al., 2023; Lozhkov et al., 2024), CodeGemma (CodeGemma Team et al., 2024), and Qwen2.5-Coder (Hui et al., 2024), exemplify this trend.",
+            "es": "Por otra parte, los modelos de solo decodificador con capacidades de relleno (infilling) son de particular relevancia para este estudio. Estos modelos, usados con frecuencia en tareas de completado de código (code completion), pueden generar contenido faltante con base en el contexto tanto izquierdo como derecho. Dos características de dichos modelos podrían ser especialmente benéficas para el enriquecimiento semántico de datos IFC. La primera es el preentrenamiento con código fuente (source code), que comparte similitudes estructurales con las representaciones IFC e ifcJSON, incluidas las estructuras jerárquicas, los identificadores y las propiedades de clave-valor (key-value). Los modelos de código también pueden mostrar un manejo mejorado de los datos numéricos y simbólicos, lo cual es particularmente ventajoso dada la naturaleza de los archivos IFC, rica en geometría. La segunda es que su capacidad para realizar razonamiento contextual bidireccional mediante el relleno los hace adecuados para tareas que involucran datos incompletos. Una amplia gama de modelos recientes de solo decodificador optimizados para código, como WizardCoder (Luo et al., 2023), StarCoder (Li et al., 2023; Lozhkov et al., 2024), CodeGemma (CodeGemma Team et al., 2024) y Qwen2.5-Coder (Hui et al., 2024), ejemplifican esta tendencia."
+          }
+        },
+        {
+          "id": "s2-h1",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "2.2 Semantic Enrichment",
+            "es": "2.2 Enriquecimiento semántico"
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Semantic enrichment in the context of BIM refers to the process of augmenting a model with explicit information derived from implicit data. Examples include the automatic classification of spaces (Forth & Borrmann, 2024), the identification of topological relationships (Lilis et al., 2025), and the prediction of material properties (Kaltenegger et al., 2024). A more comprehensive overview of semantic enrichment tasks in the context of ACC, including the classification of information types, is provided by Bloch and Sacks (2020).",
+            "es": "El enriquecimiento semántico en el contexto de BIM se refiere al proceso de aumentar un modelo con información explícita derivada de datos implícitos. Los ejemplos incluyen la clasificación automática de espacios (Forth & Borrmann, 2024), la identificación de relaciones topológicas (Lilis et al., 2025) y la predicción de propiedades de materiales (Kaltenegger et al., 2024). Bloch y Sacks (2020) ofrecen una visión general más completa de las tareas de enriquecimiento semántico en el contexto de la ACC, incluida la clasificación de los tipos de información."
+          }
+        },
+        {
+          "id": "s2-p10",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In existing research, semantic enrichment using machine learning has primarily relied on graphbased methods (Austern et al., 2024) and semantic similarity approaches (Forth & Borrmann, 2024). GNNs are commonly employed to reason over structured data and can incorporate text embeddings as features at the node level. However, their learning is typically constrained to the explicit graph structure, meaning that semantic relationships are propagated only through connected nodes. As a result, GNNs may struggle to capture the full semantic richness of textual BIM representations, especially when these semantics span across distant or unconnected parts of the graph. Moreover, pretrained GNNs are relatively scarce compared to pretrained transformer-based language models, which limits the prospect of transfer learning.",
+            "es": "En la investigación existente, el enriquecimiento semántico mediante aprendizaje automático (machine learning) se ha basado principalmente en métodos basados en grafos (graph-based methods) (Austern et al., 2024) y en enfoques de similitud semántica (Forth & Borrmann, 2024). Las GNNs se emplean comúnmente para razonar sobre datos estructurados y pueden incorporar incrustaciones de texto (text embeddings) como características a nivel de nodo (node level). Sin embargo, su aprendizaje suele estar limitado a la estructura explícita del grafo, lo que significa que las relaciones semánticas se propagan únicamente a través de los nodos conectados. Como resultado, las GNNs pueden tener dificultades para capturar toda la riqueza semántica de las representaciones textuales de BIM, especialmente cuando dicha semántica abarca partes distantes o no conectadas del grafo. Además, las GNNs preentrenadas son relativamente escasas en comparación con los modelos de lenguaje preentrenados basados en transformadores, lo que limita las perspectivas del aprendizaje por transferencia (transfer learning)."
+          }
+        },
+        {
+          "id": "s2-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Similarly, semantic similarity approaches that rely on cosine distance between text embeddings can fail to capture nuanced meaning, particularly when contextual information or domain-specific cues are important. These limitations highlight the need for alternative approaches that can model both structure and semantics in a more integrated manner.",
+            "es": "De manera similar, los enfoques de similitud semántica que se basan en la distancia coseno (cosine distance) entre incrustaciones de texto pueden no lograr capturar significados matizados, particularmente cuando la información contextual o las pistas específicas del dominio son importantes. Estas limitaciones ponen de relieve la necesidad de enfoques alternativos que puedan modelar tanto la estructura como la semántica de una manera más integrada."
+          }
+        },
+        {
+          "id": "s2-p12",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "This motivates the approach proposed in this study: training a language model directly on IFC representations, thereby leveraging their relational structure in text form. We operate on both IFC and ifcJSON formats.",
+            "es": "Esto motiva el enfoque propuesto en este estudio: entrenar un modelo de lenguaje directamente sobre representaciones IFC, aprovechando así su estructura relacional en forma de texto. Operamos tanto con el formato IFC como con el formato ifcJSON."
+          }
+        },
+        {
+          "id": "s2-p13",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Recognizing that their interconnected entity references increasingly resemble graph-like structures, this trajectory might naturally move toward a linearized graph representation in the future. However, by using a textual representation, the model can potentially transfer semantic understanding acquired from large-scale pretraining on code and natural language to BIM-specific tasks. Such a language modeling approach could support semantic enrichment across multiple scales and stages of the building design process, offering an alternative to traditional graph-based techniques while capitalizing on the representational power of transformer models.",
+            "es": "Al reconocer que sus referencias entre entidades interconectadas se asemejan cada vez más a estructuras de tipo grafo, esta trayectoria podría avanzar de manera natural hacia una representación de grafo linealizada en el futuro. Sin embargo, al usar una representación textual, el modelo puede transferir potencialmente la comprensión semántica adquirida del preentrenamiento a gran escala con código y lenguaje natural a tareas específicas de BIM. Dicho enfoque de modelado de lenguaje podría respaldar el enriquecimiento semántico en múltiples escalas y etapas del proceso de diseño de edificios, ofreciendo una alternativa a las técnicas tradicionales basadas en grafos y aprovechando al mismo tiempo el poder de representación de los modelos transformadores."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3. METHODOLOGY",
+        "es": "3. METODOLOGÍA"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "For semantic enrichment through language modeling, two key components are required: a pretrained language model and suitable training data. Using a pretrained model as a foundation reduces the amount of in-domain data needed and typically improves the models’ generalization capabilities.",
+            "es": "Para el enriquecimiento semántico (semantic enrichment) mediante modelado de lenguaje (language modeling), se requieren dos componentes clave: un modelo de lenguaje preentrenado (pretrained language model) y datos de entrenamiento adecuados. Usar un modelo preentrenado como base reduce la cantidad de datos del dominio (in-domain) necesarios y, por lo general, mejora las capacidades de generalización (generalization) de los modelos."
+          }
+        },
+        {
+          "id": "s3-h1",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "3.1 Dataset",
+            "es": "3.1 Conjunto de datos (Dataset)"
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The dataset used for domain adaptation consists of 422 IFC models of office and residential buildings sourced from student projects, as exemplified in Figure 1. These were split into training (80%), validation (10%), and testing (10%), resulting in 338 models for training, 42 for validation, and 42 for testing. The majority of models (92.7%) were created using Autodesk Revit, followed by ArchiCAD (6.9%).",
+            "es": "El conjunto de datos utilizado para la adaptación de dominio (domain adaptation) consta de 422 modelos IFC de edificios de oficinas y residenciales provenientes de proyectos estudiantiles, como se ejemplifica en la Figura 1. Estos se dividieron en entrenamiento (80%), validación (10%) y prueba (10%), lo que resultó en 338 modelos para entrenamiento, 42 para validación y 42 para prueba. La mayoría de los modelos (92.7%) se crearon con Autodesk Revit, seguido de ArchiCAD (6.9%)."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "This study evaluates the following three representations of IFC data, which are detailed further throughout this section:",
+            "es": "Este estudio evalúa las siguientes tres representaciones de los datos IFC, que se detallan más adelante en esta sección:"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "• IFC4 in EXPRESS format • ifcJSON-5a, a JSON-based representation • ifcJSON-5a*, a modified version of ifcJSON-5a in which all properties and quantities are directly attached to the respective elements To manage processing efficiency and reduce training time, geometry data was excluded from all representations. However, recognizing its",
+            "es": "• IFC4 en formato EXPRESS • ifcJSON-5a, una representación basada en JSON • ifcJSON-5a*, una versión modificada de ifcJSON-5a en la que todas las propiedades y cantidades se adjuntan directamente a los elementos respectivos Para gestionar la eficiencia del procesamiento y reducir el tiempo de entrenamiento, se excluyeron los datos de geometría de todas las representaciones. Sin embargo, al reconocer su"
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: Example building. Screenshot taken from",
+            "es": "Figura 1: Edificio de ejemplo. Captura de pantalla tomada de"
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Solibri Anywhere.",
+            "es": "Solibri Anywhere."
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "To improve tokenization of the EXPRESS format, all IFC keywords appearing more than 10 times were added to the ModernBERT tokenizer (see Section 3.2). The model’s embedding layer was resized accordingly, and new token embeddings were initialized by averaging the embeddings of the constituent tokens.",
+            "es": "Para mejorar la tokenización (tokenization) del formato EXPRESS, todas las palabras clave de IFC que aparecen más de 10 veces se añadieron al tokenizador (tokenizer) de ModernBERT (véase la Sección 3.2). La capa de embeddings (embedding layer) del modelo se redimensionó en consecuencia, y los nuevos embeddings de tokens se inicializaron promediando los embeddings de los tokens constituyentes."
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "All floating-point numbers were normalized to two decimal places, or to the last non-zero digit for small values. In the EXPRESS format, scientific notation (e-notation) was preserved, where applicable, and the same normalization was applied. Additionally, globally unique identifiers (GUIDs) were removed, as entity references are established via # notation in EXPRESS. In ifcJSON, however, GUIDs are used for referencing. We replaced these GUIDs with semantic IDs (e.g., space_1), which are more interpretable by LLMs.",
+            "es": "Todos los números de punto flotante (floating-point numbers) se normalizaron a dos decimales, o hasta el último dígito distinto de cero en el caso de valores pequeños. En el formato EXPRESS se conservó la notación científica (e-notation), cuando aplicaba, y se aplicó la misma normalización. Además, se eliminaron los identificadores únicos globales (globally unique identifiers, GUIDs), ya que las referencias entre entidades se establecen mediante la notación # en EXPRESS. En ifcJSON, en cambio, los GUID se usan para referenciar. Sustituimos estos GUID por identificadores semánticos (p. ej., space_1), que los LLM pueden interpretar mejor."
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Conversion from IFC4 to ifcJSON-5a was performed using a buildingSMART community project1. While ifcJSON-4 closely adheres to the IFC4.3 schema, ifcJSON-5a introduces several adjustments to reduce verbosity and improve readability, making it more suitable for language modeling. However, redundancy was introduced by duplicating some properties at the object level (e.g., \"isExternal\": true) but keeping the property sets. In our modified version, ifcJSON-5a*, these redundant property sets were removed, and the",
+            "es": "La conversión de IFC4 a ifcJSON-5a se realizó mediante un proyecto de la comunidad buildingSMART1. Si bien ifcJSON-4 se apega estrechamente al esquema IFC4.3, ifcJSON-5a introduce varios ajustes para reducir la verbosidad y mejorar la legibilidad, lo que lo hace más adecuado para el modelado de lenguaje. Sin embargo, se introdujo redundancia al duplicar algunas propiedades a nivel de objeto (p. ej., \"isExternal\": true) pero conservando los conjuntos de propiedades. En nuestra versión modificada, ifcJSON-5a*, estos conjuntos de propiedades redundantes se eliminaron, y el"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "1 https://github.com/buildingsmart-community/ifcJSON ifcJSON-5a format; however, they still remain larger than IFC EXPRESS.",
+            "es": "1 https://github.com/buildingsmart-community/ifcJSON formato ifcJSON-5a; sin embargo, siguen siendo más grandes que IFC EXPRESS."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: Excerpt of an IFC model in ifcJSONv5* Table 1 summarizes the file size statistics for the original and modified representations. The EXPRESS format is more compact due to its schema-based structure, whereas the ifcJSON representations are more verbose, as all keys are made explicit. Despite the larger size, this verbosity is expected to benefit language modeling by providing more semantically meaningful context. Notably, geometry data accounts for more than three-quarters of the IFC file sizes in the training set, underscoring its importance for future integration.",
+            "es": "Figura 2: Extracto de un modelo IFC en ifcJSONv5* La Tabla 1 resume las estadísticas de tamaño de archivo de las representaciones original y modificadas. El formato EXPRESS es más compacto debido a su estructura basada en esquemas, mientras que las representaciones ifcJSON son más verbosas, ya que todas las claves se hacen explícitas. A pesar del mayor tamaño, se espera que esta verbosidad beneficie el modelado de lenguaje al proporcionar un contexto semánticamente más significativo. En particular, los datos de geometría representan más de tres cuartas partes del tamaño de los archivos IFC en el conjunto de entrenamiento, lo que subraya su importancia para una integración futura."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 4,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: IFC model statistics. Minimum, maximum, and average file sizes in Megabytes (MB) for the original IFC data and the three tested representations.",
+            "es": "Tabla 1: Estadísticas de los modelos IFC. Tamaños de archivo mínimo, máximo y promedio en megabytes (MB) para los datos IFC originales y las tres representaciones evaluadas."
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To evaluate the impact of key preprocessing decisions, we trained two alternative models, for an ablation study:",
+            "es": "Para evaluar el impacto de decisiones clave de preprocesamiento, entrenamos dos modelos alternativos para un estudio de ablación (ablation study):"
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "• A variant retaining IFC GUIDs and geometry information. • A variant without specialized IFC keyword tokens, to examine the effect of embedding resizing in low-resource training scenarios. These models help isolate the effects of tokenization and the omission of identifiers and geometry on downstream semantic enrichment performance.",
+            "es": "• Una variante que conserva los GUID y la información de geometría de IFC. • Una variante sin tokens especializados para palabras clave de IFC, para examinar el efecto de redimensionar los embeddings en escenarios de entrenamiento con pocos recursos (low-resource). Estos modelos ayudan a aislar los efectos de la tokenización y de la omisión de identificadores y geometría sobre el desempeño del enriquecimiento semántico en tareas posteriores (downstream)."
+          }
+        },
+        {
+          "id": "s3-h2",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "3.2 Language Model Training",
+            "es": "3.2 Entrenamiento del modelo de lenguaje"
+          }
+        },
+        {
+          "id": "s3-h3",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "3.2.1 Model Selection",
+            "es": "3.2.1 Selección del modelo"
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "We define two selection criteria. First, the model needs to have infilling capability to be able to perform the semantic enrichment task out of the box, and the model should include source code in its pretraining corpus. We hypothesize that pretraining on structured, formal languages (such as source code) makes models particularly wellaligned with the relational and syntax-heavy structure of IFC and ifcJSON.",
+            "es": "Definimos dos criterios de selección. Primero, el modelo debe tener capacidad de relleno (infilling) para poder realizar la tarea de enriquecimiento semántico de forma inmediata (out of the box), y el modelo debe incluir código fuente en su corpus de preentrenamiento (pretraining corpus). Planteamos la hipótesis de que el preentrenamiento con lenguajes formales y estructurados (como el código fuente) hace que los modelos estén particularmente bien alineados con la estructura relacional y de sintaxis densa de IFC e ifcJSON."
+          }
+        },
+        {
+          "id": "s3-p13",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To evaluate RQ1, we selected an encoder-only transformer model with an MLM objective, as this architecture supports bidirectional context. Specifically, we used ModernBERT (Warner et al., 2024) as the base model due to its extended context length, pretraining on programming code, and architectural enhancements such as disabled bias terms and RoPE.",
+            "es": "Para evaluar RQ1, seleccionamos un modelo transformer de solo codificador (encoder-only) con un objetivo MLM, ya que esta arquitectura admite contexto bidireccional. En concreto, usamos ModernBERT (Warner et al., 2024) como modelo base debido a su longitud de contexto extendida, su preentrenamiento con código de programación y mejoras arquitectónicas como los términos de sesgo (bias) deshabilitados y RoPE."
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "However, the MLM setup requires the number of masked tokens to be known in advance. This constraint reveals information about the token count of the target. Additionally, each mask is predicted independently, limiting coherence when predicting multi-token properties. For this reason, we use the encoder-only model primarily to explore differences in representation formats.",
+            "es": "Sin embargo, la configuración MLM requiere conocer de antemano el número de tokens enmascarados. Esta restricción revela información sobre la cantidad de tokens del objetivo. Además, cada máscara se predice de forma independiente, lo que limita la coherencia al predecir propiedades de varios tokens. Por esta razón, usamos el modelo de solo codificador principalmente para explorar las diferencias entre formatos de representación."
+          }
+        },
+        {
+          "id": "s3-p15",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Encoder-decoder models offer more flexibility in span prediction by allowing variable-length infilling with a single mask token. However, few longcontext encoder-decoder models are currently available. One candidate, LongT5 (Guo et al., 2021), is optimized for text summarization and not well-suited for fine-grained infilling, so this architecture was excluded from initial experiments.",
+            "es": "Los modelos codificador-decodificador (encoder-decoder) ofrecen más flexibilidad en la predicción de tramos (span prediction) al permitir el relleno de longitud variable con un solo token de máscara. Sin embargo, actualmente hay pocos modelos codificador-decodificador de contexto largo disponibles. Un candidato, LongT5 (Guo et al., 2021), está optimizado para el resumen de texto y no es adecuado para un relleno de grano fino, por lo que esta arquitectura se excluyó de los experimentos iniciales."
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In contrast, decoder-only models with infilling capabilities are commonly used in code completion and allow for coherent and context-aware generation. Among recent models, we selected Qwen2.5-Coder for its competitive performance at the time of experimentation, support for infilling, and availability in a size comparable to ModernBERT-large (0.5 billion parameters). This size allowed for full fine-tuning on the available hardware without the need for parameter-efficient fine-tuning, which is planned for future work.",
+            "es": "En contraste, los modelos de solo decodificador (decoder-only) con capacidad de relleno se usan comúnmente en la completación de código y permiten una generación coherente y consciente del contexto. Entre los modelos recientes, seleccionamos Qwen2.5-Coder por su desempeño competitivo en el momento de la experimentación, su soporte para relleno y su disponibilidad en un tamaño comparable a ModernBERT-large (0.5 mil millones de parámetros). Este tamaño permitió el ajuste fino completo (full fine-tuning) en el hardware disponible sin necesidad de ajuste fino eficiente en parámetros (parameter-efficient fine-tuning), que está planeado para trabajo futuro."
+          }
+        },
+        {
+          "id": "s3-h4",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "3.2.2 Model Training",
+            "es": "3.2.2 Entrenamiento del modelo"
+          }
+        },
+        {
+          "id": "s3-p17",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "ModernBERT was trained using a random masking strategy with a masking probability of 30%. In future work, more targeted strategies, such as masking complete lines or only property values, may be explored to improve downstream performance. The hyperparameters listed in Table 2 were specified based on the original ModernBERT training configuration and our exploratory testing. All other parameters were left at their default values as defined in the Huggingface Trainer. The training was conducted using two A100 GPUs with data parallelization.",
+            "es": "ModernBERT se entrenó con una estrategia de enmascaramiento aleatorio (random masking) con una probabilidad de enmascaramiento de 30%. En trabajos futuros se podrían explorar estrategias más dirigidas, como enmascarar líneas completas o solo valores de propiedades, para mejorar el desempeño en tareas posteriores. Los hiperparámetros (hyperparameters) enumerados en la Tabla 2 se especificaron con base en la configuración original de entrenamiento de ModernBERT y en nuestras pruebas exploratorias. Todos los demás parámetros se dejaron en sus valores predeterminados, tal como se definen en el Huggingface Trainer. El entrenamiento se realizó con dos GPU A100 con paralelización de datos (data parallelization)."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 5,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2: Model and training hyperparameters for ModernBERT and Qwen2.5-Coder. The effective batch size was computed as the product of the number of GPUs, gradient accumulation steps, and the per-device batch size.",
+            "es": "Tabla 2: Hiperparámetros del modelo y del entrenamiento para ModernBERT y Qwen2.5-Coder. El tamaño de lote efectivo (effective batch size) se calculó como el producto del número de GPU, los pasos de acumulación de gradiente (gradient accumulation steps) y el tamaño de lote por dispositivo."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: FIM sample with Suffix-Prefix-Middle (SPM) strategy, as used for model evaluation (Section 3.3.2)",
+            "es": "Figura 3: Muestra de FIM con la estrategia Sufijo-Prefijo-Medio (Suffix-Prefix-Middle, SPM), tal como se usó para la evaluación del modelo (Sección 3.3.2)"
+          }
+        },
+        {
+          "id": "s3-p18",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "FIM was applied with a probability of 0.66, split equally between PSM and SPM. In contrast to the original FIM setup, we used smaller in-filling ratios between 0.02 and 0.2, reflecting the shorter target spans expected during inference in semantic enrichment tasks.",
+            "es": "FIM se aplicó con una probabilidad de 0.66, dividida en partes iguales entre PSM y SPM. A diferencia de la configuración original de FIM, usamos proporciones de relleno (in-filling ratios) menores, entre 0.02 y 0.2, lo que refleja los tramos objetivo más cortos que se esperan durante la inferencia (inference) en tareas de enriquecimiento semántico."
+          }
+        },
+        {
+          "id": "s3-p19",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Based on initial experiments, a reduced learning rate and an adjusted number of training epochs were chosen for the Qwen2.5-Coder model. Although the model supports a context length of up to 32,768 tokens, we limited it to 16,384 tokens to fit the model on a single GPU during training with a batch size of 1. Gradient accumulation steps and early stopping patience were adjusted accordingly. All other training settings were kept consistent with those used for ModernBERT. The best model was selected based on the lowest validation loss with random masking (for MLM) or causal language modeling, depending on the architecture.",
+            "es": "Con base en experimentos iniciales, se eligieron una tasa de aprendizaje (learning rate) reducida y un número ajustado de épocas de entrenamiento (training epochs) para el modelo Qwen2.5-Coder. Aunque el modelo admite una longitud de contexto de hasta 32,768 tokens, la limitamos a 16,384 tokens para que el modelo cupiera en una sola GPU durante el entrenamiento con un tamaño de lote de 1. Los pasos de acumulación de gradiente y la paciencia de la detención temprana (early stopping patience) se ajustaron en consecuencia. Todos los demás ajustes de entrenamiento se mantuvieron consistentes con los usados para ModernBERT. El mejor modelo se seleccionó con base en la menor pérdida de validación (validation loss) con enmascaramiento aleatorio (para MLM) o modelado de lenguaje causal (causal language modeling), según la arquitectura."
+          }
+        },
+        {
+          "id": "s3-h5",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.3 Model Evaluation",
+            "es": "3.3 Evaluación del modelo"
+          }
+        },
+        {
+          "id": "s3-h6",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.3.1 Representations",
+            "es": "3.3.1 Representaciones"
+          }
+        },
+        {
+          "id": "s3-p20",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "To address RQ1, we designed a series of evaluation scenarios, with decreasing complexity but increasing practical relevance. In the best case, we would evaluate the models on well-defined and manually curated semantic enrichment tasks. However, due to the lack of public benchmark datasets and our own efforts to establish a benchmark still being in progress, we are opting for evaluation scenarios that can be automatically established. The focus was on assessing the model’s ability to infer information about spaces, a central entity in compliance checking. Specifically, we examine whether the model can predict space names given the associated properties and, conversely, whether it can infer those properties from the space name. However, tasks such as space classification were deferred to future work due to the manual effort required for labeling. For this evaluation, we limited the scope to values that were explicitly specified in the IFC models.",
+            "es": "Para abordar RQ1, diseñamos una serie de escenarios de evaluación, con complejidad decreciente pero relevancia práctica creciente. En el mejor de los casos, evaluaríamos los modelos en tareas de enriquecimiento semántico bien definidas y curadas manualmente. Sin embargo, debido a la falta de conjuntos de datos de referencia (benchmark datasets) públicos y a que nuestros propios esfuerzos por establecer una referencia de evaluación aún están en curso, optamos por escenarios de evaluación que pueden establecerse automáticamente. El enfoque se centró en evaluar la capacidad del modelo para inferir información sobre los espacios, una entidad central en la verificación de cumplimiento normativo (compliance checking). En concreto, examinamos si el modelo puede predecir los nombres de los espacios a partir de las propiedades asociadas y, a la inversa, si puede inferir esas propiedades a partir del nombre del espacio. Sin embargo, tareas como la clasificación de espacios se pospusieron para trabajo futuro debido al esfuerzo manual que requiere el etiquetado. Para esta evaluación, limitamos el alcance a los valores que estaban especificados explícitamente en los modelos IFC."
+          }
+        },
+        {
+          "id": "s3-p21",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The following six scenarios were tested using ModernBERT across each representation format introduced in Section 3.1:",
+            "es": "Los siguientes seis escenarios se probaron con ModernBERT en cada formato de representación presentado en la Sección 3.1:"
+          }
+        },
+        {
+          "id": "s3-p22",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "• All spaces – All properties: All property values are masked for all spaces simultaneously. This scenario evaluates whether the model can predict property values based on global distribution patterns learned during training. Contextual clues from related elements (e.g., containment or associations) may contribute to the predictions. • All spaces – Space name properties: Only name properties (Name, LongName, and Reference) are masked for all spaces at once. This tests the model’s ability to generalize naming conventions across different models, without relying on project-specific patterns. However, the model still has access to supporting information, such as area measurements or isExternal flags, which may aid in predicting the appropriate space name. • All spaces – Other properties: Name properties are provided, while all other space properties and quantities are masked. This scenario assesses whether space names have predictive power for inferring other attributes. However, the model cannot leverage project-specific spatial characteristics conveyed through the masked properties of other spaces. • One space – All properties: Only the properties of a single space are masked per test sample. This setup reflects a more practical use case, such as missing data or newly added elements in an IFC model. Local context and intra-model naming conventions are expected to guide the model toward more accurate predictions. • One space – Space name properties: Only the name-related properties of one space are masked at a time. This scenario approximates an initial step toward space classification, where the model attempts to infer a label or identifier from the surrounding context. • One space – Other properties: All properties except naming fields are masked for a single space. With the space name and local context available, the model is expected to make more informed predictions. This scenario reflects a more realistic use case where only a few property values are missing or where new elements are added to an existing IFC model. The total number of predicted values varies between test cases and representations. Differences arise from factors such as the reuse of property values by multiple building elements in IFC EXPRESS, direct property assignment to IfcSpace instances, redundancy in ifcJSON, conversion artifacts, and the occasional splitting of property values into different samples during tokenization and chunking. As a reference point, in the ifcJSON-5a* representation, a total of 63,868 property values were included in the test set. Of these, 13,557 were space names and references, while 50,309 were other properties and quantities.",
+            "es": "• Todos los espacios – Todas las propiedades: Todos los valores de propiedades se enmascaran para todos los espacios simultáneamente. Este escenario evalúa si el modelo puede predecir valores de propiedades con base en patrones de distribución global aprendidos durante el entrenamiento. Las pistas contextuales de elementos relacionados (p. ej., contención o asociaciones) pueden contribuir a las predicciones. • Todos los espacios – Propiedades de nombre de espacio: Solo las propiedades de nombre (Name, LongName y Reference) se enmascaran para todos los espacios a la vez. Esto prueba la capacidad del modelo para generalizar convenciones de nomenclatura entre distintos modelos, sin depender de patrones específicos del proyecto. Sin embargo, el modelo aún tiene acceso a información de apoyo, como mediciones de área o indicadores isExternal, que pueden ayudar a predecir el nombre de espacio apropiado. • Todos los espacios – Otras propiedades: Los nombres se proporcionan, mientras que todas las demás propiedades y cantidades del espacio se enmascaran. Este escenario evalúa si los nombres de espacio tienen poder predictivo para inferir otros atributos. Sin embargo, el modelo no puede aprovechar las características espaciales específicas del proyecto transmitidas por las propiedades enmascaradas de otros espacios. • Un espacio – Todas las propiedades: Solo se enmascaran las propiedades de un único espacio por muestra de prueba. Esta configuración refleja un caso de uso más práctico, como datos faltantes o elementos recién añadidos en un modelo IFC. Se espera que el contexto local y las convenciones de nomenclatura internas del modelo guíen al modelo hacia predicciones más precisas. • Un espacio – Propiedades de nombre de espacio: Solo se enmascaran a la vez las propiedades relacionadas con el nombre de un espacio. Este escenario aproxima un primer paso hacia la clasificación de espacios, donde el modelo intenta inferir una etiqueta o un identificador a partir del contexto circundante. • Un espacio – Otras propiedades: Se enmascaran todas las propiedades excepto los campos de nombre para un solo espacio. Con el nombre del espacio y el contexto local disponibles, se espera que el modelo haga predicciones más informadas. Este escenario refleja un caso de uso más realista en el que faltan solo unos pocos valores de propiedades o en el que se añaden nuevos elementos a un modelo IFC existente. El número total de valores predichos varía entre casos de prueba y representaciones. Las diferencias surgen de factores como la reutilización de valores de propiedades por varios elementos de construcción en IFC EXPRESS, la asignación directa de propiedades a instancias de IfcSpace, la redundancia en ifcJSON, artefactos de conversión y la división ocasional de valores de propiedades en distintas muestras durante la tokenización y la fragmentación (chunking). Como punto de referencia, en la representación ifcJSON-5a*, se incluyó un total de 63,868 valores de propiedades en el conjunto de prueba. De estos, 13,557 eran nombres y referencias de espacios, mientras que 50,309 eran otras propiedades y cantidades."
+          }
+        },
+        {
+          "id": "s3-h7",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "3.3.2 Transformer Architecture",
+            "es": "3.3.2 Arquitectura Transformer"
+          }
+        },
+        {
+          "id": "s3-p23",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "To evaluate RQ2, we tested Qwen2.5-Coder on the “One space – All properties” scenario using the ifcJSON-5a* representation. This scenario was selected for its higher practical relevance, as it reflects a typical real-world case where individual elements may be newly added. The ifcJSON-5a* format was chosen based on its high accuracy in the \"One space\" scenarios with ModernBERT (as reported in Table 3).",
+            "es": "Para evaluar RQ2, probamos Qwen2.5-Coder en el escenario “Un espacio – Todas las propiedades” usando la representación ifcJSON-5a*. Este escenario se seleccionó por su mayor relevancia práctica, ya que refleja un caso típico del mundo real en el que pueden añadirse elementos individuales nuevos. El formato ifcJSON-5a* se eligió por su alta exactitud en los escenarios \"Un espacio\" con ModernBERT (como se informa en la Tabla 3)."
+          }
+        },
+        {
+          "id": "s3-p24",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Preparing the input to match this scenario required careful handling. In contrast to the masked tokens in BERT, simply replacing specific values with dummy tokens or empty strings could inadvertently lead to the model repeating the dummy content. To maintain consistency and comparability with ModernBERT, we retained the full file structure, removing all properties but one for a single space and repeating the process for each property. However, this leads to 63,868 independent generation tasks, making the evaluation very time-consuming. In the future, generating the complete element, rather than individual properties, should be tested.",
+            "es": "Preparar la entrada para ajustarse a este escenario requirió un manejo cuidadoso. A diferencia de los tokens enmascarados en BERT, simplemente reemplazar valores específicos con tokens ficticios o cadenas vacías podría llevar inadvertidamente a que el modelo repita el contenido ficticio. Para mantener la consistencia y la comparabilidad con ModernBERT, conservamos la estructura completa del archivo, eliminando todas las propiedades excepto una para un solo espacio y repitiendo el proceso para cada propiedad. Sin embargo, esto lleva a 63,868 tareas de generación independientes, lo que hace que la evaluación consuma mucho tiempo. En el futuro, se debería probar la generación del elemento completo, en lugar de propiedades individuales."
+          }
+        },
+        {
+          "id": "s3-p25",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Qwen2.5-Coder was evaluated using three different context configurations: LHS, PSM, and SPM, as discussed in Section 3.2.2.",
+            "es": "Qwen2.5-Coder se evaluó con tres configuraciones de contexto distintas: LHS, PSM y SPM, como se expuso en la Sección 3.2.2."
+          }
+        },
+        {
+          "id": "s3-p26",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Each FIM mode was tested at two context lengths: 4,000 and 8,000 tokens. For PSM and SPM, the available tokens were evenly divided between prefix and suffix segments. These settings were chosen to explore how both prompt structure and context size affect the model’s ability to perform semantic enrichment.",
+            "es": "Cada modo FIM se probó con dos longitudes de contexto: 4,000 y 8,000 tokens. Para PSM y SPM, los tokens disponibles se dividieron en partes iguales entre los segmentos de prefijo y sufijo. Estos ajustes se eligieron para explorar cómo la estructura del prompt y el tamaño del contexto afectan la capacidad del modelo para realizar el enriquecimiento semántico."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4. RESEARCH FINDINGS",
+        "es": "4. HALLAZGOS DE LA INVESTIGACIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "RQ1 investigated which representation format is best suited for training LLMs on IFC models. Table 3 presents the results of training ModernBERT across different representation formats, evaluated using the test cases described in Section 3.3.1.",
+            "es": "RQ1 investigó qué formato de representación (representation format) es el más adecuado para entrenar LLMs con modelos IFC. La Tabla 3 presenta los resultados del entrenamiento de ModernBERT con diferentes formatos de representación, evaluados mediante los casos de prueba (test cases) descritos en la Sección 3.3.1."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Somewhat unexpectedly, models trained on the EXPRESS format outperformed others in the baseline scenarios, where all properties were masked simultaneously, with the exception of cases focused solely on space name prediction, where ifcJSON-5a* yielded the best performance. A tendency towards ifcJSON-5a* was also observed in the more realistic \"One space\" scenarios, where properties were masked for individual spaces while leveraging context from the surrounding spaces. In these cases, ifcJSON-5a* achieved an accuracy improvement of up to 15% compared to EXPRESS. Notably, the model trained with the standard ifcJSON-5a also slightly outperformed EXPRESS in most of these scenarios, except for the space name prediction task, where access to the surrounding context seems to have an especially large impact.",
+            "es": "De manera algo inesperada, los modelos entrenados con el formato EXPRESS superaron a los demás en los escenarios de referencia (baseline), en los que todas las propiedades se enmascaraban (masked) simultáneamente, con la excepción de los casos centrados únicamente en la predicción del nombre del espacio, donde ifcJSON-5a* obtuvo el mejor desempeño. También se observó una tendencia a favor de ifcJSON-5a* en los escenarios más realistas de \"Un espacio\", en los que se enmascaraban las propiedades de espacios individuales aprovechando el contexto de los espacios circundantes. En estos casos, ifcJSON-5a* logró una mejora de hasta 15% en la precisión (accuracy) en comparación con EXPRESS. Cabe destacar que el modelo entrenado con el ifcJSON-5a estándar también superó ligeramente a EXPRESS en la mayoría de estos escenarios, excepto en la tarea de predicción del nombre del espacio, donde el acceso al contexto circundante parece tener un impacto especialmente grande."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "These findings suggest that ifcJSON-5a* is better suited for language modeling tasks than the other formats, likely due to its reduced verbosity and increased semantic information, which allows for more relevant information to fit within the models’ context window. Additionally, the ablation experiments showed that neither extending the tokenizer with IFC-specific keywords nor removing geometry improved prediction performance for the “All Spaces” scenarios.",
+            "es": "Estos hallazgos sugieren que ifcJSON-5a* es más adecuado que los otros formatos para tareas de modelado de lenguaje (language modeling), probablemente debido a su menor verbosidad (verbosity) y a su mayor información semántica, lo que permite que quepa más información relevante dentro de la ventana de contexto (context window) de los modelos. Además, los experimentos de ablación (ablation experiments) mostraron que ni extender el tokenizador (tokenizer) con palabras clave específicas de IFC ni eliminar la geometría mejoraron el desempeño de predicción en los escenarios de “Todos los espacios”."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "In contrast, the model trained on IFC geometry had the overall best accuracy for the “All spaces – All properties” and “All spaces – Other properties” scenarios. However, the larger size due to the additional geometry prevented the model from benefiting from the information about the surrounding spaces in the “One space” scenarios.",
+            "es": "En contraste, el modelo entrenado con la geometría IFC tuvo la mejor precisión general en los escenarios “Todos los espacios – Todas las propiedades” y “Todos los espacios – Otras propiedades”. Sin embargo, el mayor tamaño debido a la geometría adicional impidió que el modelo se beneficiara de la información sobre los espacios circundantes en los escenarios de “Un espacio”."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "A measurable benefit of these interventions, especially the geometry removal, was the reduced training time. These results motivate future research into more effective ways of incorporating geometry into the language modeling process without overwhelming the model’s input space. Table 3: Accuracy of property prediction for ModernBERT across different IFC representation formats and test scenarios. Results reflect the models’ performance on space-level semantic enrichment tasks defined in Section 3.3.1.",
+            "es": "Un beneficio medible de estas intervenciones, especialmente de la eliminación de la geometría, fue la reducción del tiempo de entrenamiento. Estos resultados motivan investigaciones futuras sobre formas más eficaces de incorporar la geometría al proceso de modelado de lenguaje sin saturar el espacio de entrada del modelo. Tabla 3: Precisión de la predicción de propiedades para ModernBERT con diferentes formatos de representación IFC y escenarios de prueba. Los resultados reflejan el desempeño de los modelos en las tareas de enriquecimiento semántico (semantic enrichment) a nivel de espacio definidas en la Sección 3.3.1."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Representation All spaces One Space All Properties Space Name Others All Properties Space Name Others EXPRESS 16.91 2.86 24.45 43.52 41.39 46.49 - Special Tokens 18.96 4.97 25.62 44.3 43.77 47.33 + Geometry 23.44 1.12 32.46 29.51 3.57 36.09 ifcJSONv5 13.23 2.02 18.31 45.37 17.47 53.82 ifcJSONv5* 13.37 10.85 18.27 58.96 66.41 61.37",
+            "es": "Representación Todos los espacios Un espacio Todas las propiedades Nombre del espacio Otras Todas las propiedades Nombre del espacio Otras EXPRESS 16.91 2.86 24.45 43.52 41.39 46.49 - Tokens especiales 18.96 4.97 25.62 44.3 43.77 47.33 + Geometría 23.44 1.12 32.46 29.51 3.57 36.09 ifcJSONv5 13.23 2.02 18.31 45.37 17.47 53.82 ifcJSONv5* 13.37 10.85 18.27 58.96 66.41 61.37"
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "A qualitative inspection of the predictions revealed that many correct values could be attributed to repetition and regularity within IFC models, for instance, repeated height values across storeys or repetitive naming patterns. Nevertheless, many false predictions were also semantically plausible: predicted numeric values often had the correct order of magnitude, and space names frequently resembled the intended label. However, the independent prediction of each mask token made coherent predictions inherently difficult for multi-token fields.",
+            "es": "Una inspección cualitativa de las predicciones reveló que muchos valores correctos podían atribuirse a la repetición y la regularidad dentro de los modelos IFC, por ejemplo, valores de altura repetidos entre niveles o patrones de nomenclatura repetitivos. No obstante, muchas predicciones falsas también eran semánticamente plausibles: los valores numéricos predichos a menudo tenían el orden de magnitud correcto, y los nombres de espacios con frecuencia se parecían a la etiqueta prevista. Sin embargo, la predicción independiente de cada token de máscara (mask token) hacía que las predicciones coherentes fueran inherentemente difíciles en campos de varios tokens."
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "This naturally leads to RQ2: Are other model architectures, particularly decoder-only with infilling capability, better suited for semantic enrichment?",
+            "es": "Esto conduce naturalmente a RQ2: ¿Son otras arquitecturas de modelo, en particular las de solo decodificador (decoder-only) con capacidad de relleno (infilling), más adecuadas para el enriquecimiento semántico?"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Table 4 presents the results of experiments conducted with Qwen2.5-Coder-0.5B on the \"One Space – All Properties\" scenario. With 54.05%, the best-performing Qwen2.5-Coder configuration achieved an accuracy of approximately 5% lower than the best ModernBERT model in the same scenario. However, it is important to note that in the case of ModernBERT, the number of masked tokens had to be specified in advance, leaking information about the target values and providing an advantage. The SPM configuration performed best, followed by the strategy with left-hand side context, indicating that bidirectional context can help the prediction accuracy, but only if the input stays coherent. In all cases, more context improved the accuracy slightly.",
+            "es": "La Tabla 4 presenta los resultados de los experimentos realizados con Qwen2.5-Coder-0.5B en el escenario \"Un espacio – Todas las propiedades\". Con 54.05%, la configuración de Qwen2.5-Coder con mejor desempeño alcanzó una precisión aproximadamente 5% menor que la del mejor modelo ModernBERT en el mismo escenario. Sin embargo, es importante señalar que, en el caso de ModernBERT, el número de tokens enmascarados tuvo que especificarse de antemano, lo que filtraba información sobre los valores objetivo y le daba una ventaja. La configuración SPM tuvo el mejor desempeño, seguida de la estrategia con contexto del lado izquierdo, lo que indica que el contexto bidireccional puede ayudar a la precisión de la predicción, pero solo si la entrada se mantiene coherente. En todos los casos, más contexto mejoró ligeramente la precisión."
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Beyond overall accuracy, a qualitative review showed that many of the predictions generated by Qwen2.5-Coder appeared more semantically plausible and coherent compared to those produced by ModernBERT. This was particularly evident for floating-point values. On average, the float prediction error for Qwen2.5-Coder was 231.55, whereas the best ModernBERT configuration in the same scenario (i.e., IFC EXPRESS without special tokens) exhibited a much higher average error of 6161.54. Even under its best-performing condition for floating-point prediction, the \"All Spaces – Other Properties\" scenario using the EXPRESS representation, ModernBERT achieved an average error of 631.53, still more than twice that of Qwen2.5-Coder.",
+            "es": "Más allá de la precisión general, una revisión cualitativa mostró que muchas de las predicciones generadas por Qwen2.5-Coder parecían más plausibles y coherentes semánticamente que las producidas por ModernBERT. Esto fue particularmente evidente en los valores de punto flotante (floating-point). En promedio, el error de predicción de valores flotantes de Qwen2.5-Coder fue de 231.55, mientras que la mejor configuración de ModernBERT en el mismo escenario (es decir, IFC EXPRESS sin tokens especiales) presentó un error promedio mucho mayor, de 6161.54. Incluso en su mejor condición para la predicción de punto flotante, el escenario \"Todos los espacios – Otras propiedades\" con la representación EXPRESS, ModernBERT logró un error promedio de 631.53, que sigue siendo más del doble del de Qwen2.5-Coder."
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "These results suggest that both model types have distinct strengths: while masked language models like ModernBERT benefit from controlled masking strategies and faster inference, decoderonly models with infilling capabilities demonstrate greater consistency and realism, particularly for numeric data. For a more comprehensive comparison, future studies could evaluate encoderdecoder against decoder-only architectures or test other span-based masking strategies (Du et al., 2021) to better understand the trade-offs between generation quality, contextual reasoning, and architectural flexibility for semantic enrichment tasks. Table 4: Accuracy of property prediction for Qwen2.5-Coder-0.5B on the \"One Space – All Properties\" scenario, evaluated across different context lengths (i.e., tokens) and FIM strategies. Results are shown for PSM, SPM, and LHS context configurations.",
+            "es": "Estos resultados sugieren que ambos tipos de modelo tienen fortalezas distintas: mientras que los modelos de lenguaje enmascarados (masked language models) como ModernBERT se benefician de estrategias de enmascaramiento controladas y de una inferencia (inference) más rápida, los modelos de solo decodificador con capacidad de relleno demuestran mayor consistencia y realismo, en particular con datos numéricos. Para una comparación más completa, estudios futuros podrían evaluar arquitecturas de codificador-decodificador (encoder-decoder) frente a las de solo decodificador, o probar otras estrategias de enmascaramiento basadas en segmentos (span-based masking) (Du et al., 2021), para comprender mejor las compensaciones entre la calidad de la generación, el razonamiento contextual y la flexibilidad arquitectónica en las tareas de enriquecimiento semántico. Tabla 4: Precisión de la predicción de propiedades para Qwen2.5-Coder-0.5B en el escenario \"Un espacio – Todas las propiedades\", evaluada con diferentes longitudes de contexto (es decir, tokens) y estrategias FIM. Los resultados se muestran para las configuraciones de contexto PSM, SPM y LHS."
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Tokens LHS PSM SPM 4000 47.88 43.19 52.51 8000 48.71 44.51 54.05",
+            "es": "Tokens LHS PSM SPM 4000 47.88 43.19 52.51 8000 48.71 44.51 54.05"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5. DISCUSSION",
+        "es": "5. DISCUSIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "This research explored the feasibility and effectiveness of continued pretraining of language models with IFC, for semantic enrichment tasks in the context of BIM. A simplified version of the community-driven ifcJSON-5a representation was identified as the most suitable format for language modeling in our experiments. Additional refinements, such as directly attaching properties to elements, were introduced to reduce verbosity and redundancy. However, these changes complicate lossless conversion back to the original IFC schema. This can be especially problematic when integrating geometry in the future, since some parsing errors were already encountered by the IFC to ifcJSON converter.",
+            "es": "Esta investigación exploró la viabilidad y la eficacia del preentrenamiento continuo (continued pretraining) de modelos de lenguaje (language models) con IFC, para tareas de enriquecimiento semántico en el contexto de BIM. Una versión simplificada de la representación ifcJSON-5a, impulsada por la comunidad, fue identificada como el formato más adecuado para el modelado de lenguaje en nuestros experimentos. Se introdujeron refinamientos adicionales, como adjuntar las propiedades directamente a los elementos, para reducir la verbosidad y la redundancia. Sin embargo, estos cambios complican la conversión sin pérdida de vuelta al esquema IFC original. Esto puede ser especialmente problemático al integrar la geometría en el futuro, ya que el conversor de IFC a ifcJSON ya encontró algunos errores de análisis sintáctico."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "This raises the question of how such a language model might be integrated into practice, whether directly within the design process or primarily as a preprocessing tool for tasks such as compliance checking. In the latter case, mappings between semantic IDs and original GUIDs could serve as a bridge to the source BIM. However, an important aspect to consider is model ownership, which would result in different disciplines being responsible for performing semantic enrichment independently. To address this challenge, integrating the language model with Information Delivery Specifications (IDS) could provide a viable solution. Such an integration would enable the enrichment of models with required properties, supported by real-time suggestions within design software environments.",
+            "es": "Esto plantea la pregunta de cómo podría integrarse en la práctica un modelo de lenguaje de este tipo: directamente dentro del proceso de diseño o principalmente como herramienta de preprocesamiento para tareas como la verificación de cumplimiento normativo (compliance checking). En este último caso, las correspondencias entre los ID semánticos y los GUID originales podrían servir como puente hacia el BIM de origen. Sin embargo, un aspecto importante a considerar es la propiedad del modelo, que haría que diferentes disciplinas fueran responsables de realizar el enriquecimiento semántico de manera independiente. Para abordar este desafío, integrar el modelo de lenguaje con las Especificaciones de Entrega de Información (Information Delivery Specifications, IDS) podría ofrecer una solución viable. Dicha integración permitiría enriquecer los modelos con las propiedades requeridas, apoyada por sugerencias en tiempo real dentro de los entornos de software de diseño."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "A threat to the validity of this study lies in the training data used for this initial experimentation. Although some filtering was applied by excluding models in IFC2x3 format and those smaller than 1 MB, the remaining IFC models vary significantly in Level of Development (LOD) and are largely limited to the architectural discipline. Additionally, the accuracy and realism of specified properties are of mixed quality, as many models may rely heavily on default values rather than design intent. Also, some of the IFC models used languages different from English, with German being the most frequent. This also causes potential issues due to the IFC-specific encoding of characters that are not specified in ISO 8859-1, which includes the German “Umlaut”. To address these concerns, future work will incorporate real-world industry and open-source models and manually validated test cases for a broader range of well-defined semantic enrichment tasks. These tasks may include:",
+            "es": "Una amenaza a la validez de este estudio radica en los datos de entrenamiento utilizados para esta experimentación inicial. Aunque se aplicó cierto filtrado al excluir los modelos en formato IFC2x3 y los de menos de 1 MB, los modelos IFC restantes varían significativamente en Nivel de Desarrollo (Level of Development, LOD) y se limitan en gran medida a la disciplina arquitectónica. Además, la precisión y el realismo de las propiedades especificadas son de calidad dispar, ya que muchos modelos pueden depender en gran medida de valores predeterminados en lugar de la intención de diseño. Asimismo, algunos de los modelos IFC utilizaban idiomas distintos del inglés, siendo el alemán el más frecuente. Esto también causa posibles problemas debido a la codificación específica de IFC de los caracteres que no están especificados en ISO 8859-1, que incluye la “Umlaut” alemana. Para abordar estas preocupaciones, el trabajo futuro incorporará modelos reales de la industria y de código abierto, y casos de prueba validados manualmente para una gama más amplia de tareas de enriquecimiento semántico bien definidas. Estas tareas pueden incluir:"
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "• Converting IfcProxy elements to appropriate IFC classes • Enforcing consistency for shared parameters (e.g., fire resistance for similar door types) • Standardizing naming conventions across IFC entities • Classifying spaces based on context and properties Such curated benchmarks, based on established classifications, would improve test quality and allow a more nuanced evaluation of the language models’ capabilities in this domain.",
+            "es": "• Convertir elementos IfcProxy en clases IFC apropiadas • Imponer consistencia en los parámetros compartidos (p. ej., resistencia al fuego para tipos de puerta similares) • Estandarizar las convenciones de nomenclatura en todas las entidades IFC • Clasificar espacios con base en el contexto y las propiedades Tales puntos de referencia (benchmarks) curados, basados en clasificaciones establecidas, mejorarían la calidad de las pruebas y permitirían una evaluación más matizada de las capacidades de los modelos de lenguaje en este dominio."
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "As discussed in Section 3, geometry plays a critical role in BIM and is central to many semantic enrichment tasks. While geometry was mostly excluded in this study to reduce computational load, it will be integrated in future work. Following suggestions by Pauwels et al. (2017), geometry could be modeled separately from IFC, potentially through dedicated geometric embedding models. Alternatively, bounding boxes or other geometric summaries may offer a lightweight yet effective way to incorporate spatial context for enrichment tasks.",
+            "es": "Como se discutió en la Sección 3, la geometría desempeña un papel crítico en BIM y es central en muchas tareas de enriquecimiento semántico. Aunque en este estudio la geometría se excluyó en su mayor parte para reducir la carga computacional, se integrará en trabajos futuros. Siguiendo las sugerencias de Pauwels et al. (2017), la geometría podría modelarse por separado de IFC, posiblemente mediante modelos dedicados de incrustaciones geométricas (geometric embedding models). Alternativamente, las cajas delimitadoras (bounding boxes) u otros resúmenes geométricos pueden ofrecer una forma ligera pero eficaz de incorporar el contexto espacial en las tareas de enriquecimiento."
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Beyond enrichment, the pretraining strategy explored here opens up broader applications in building design automation. For instance, IFC-aware language models may be used to generate building components from scratch or extend existing models with semantically complete elements. To this end, future work will evaluate Qwen2.5-Coder and related models for generating entire building elements, including both their semantic and geometric components. This approach would allow evaluation through recall and precision of predicted properties, eliminating the need to design test samples for each property individually. Reinforcement learning could be employed to better align model outputs with the user intent in such use cases and reward the model for syntactic correctness.",
+            "es": "Más allá del enriquecimiento, la estrategia de preentrenamiento explorada aquí abre aplicaciones más amplias en la automatización del diseño de edificios. Por ejemplo, los modelos de lenguaje con conocimiento de IFC pueden usarse para generar componentes de edificio desde cero o para extender modelos existentes con elementos semánticamente completos. Con este fin, el trabajo futuro evaluará Qwen2.5-Coder y modelos relacionados para generar elementos de edificio completos, incluyendo tanto sus componentes semánticos como geométricos. Este enfoque permitiría la evaluación mediante la exhaustividad (recall) y la precisión (precision) de las propiedades predichas, eliminando la necesidad de diseñar muestras de prueba para cada propiedad individualmente. Podría emplearse el aprendizaje por refuerzo (reinforcement learning) para alinear mejor las salidas del modelo con la intención del usuario en estos casos de uso y recompensar al modelo por la corrección sintáctica."
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Several promising extensions to this work can be envisioned:",
+            "es": "Pueden vislumbrarse varias extensiones prometedoras de este trabajo:"
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "• Exploration of lightweight representations: Testing more compact formats optimized for language modeling and token efficiency. • The amount of training data could be increased through synthetic building models. • Zero-shot semantic enrichment with larger LLMs: Comparing direct application of general-purpose LLMs against the domainspecific pretraining approach proposed in this study. • Use of global tokens: Capturing documentwide context in long IFC files for more informed predictions. • Improved mask prediction strategies: Addressing ModernBERT’s limitation of independent mask prediction through: A language modeling head or diffusion-based approaches, iterative span-filling, predicting one span at a time, or testing encoderdecoder models for more natural span-based masking.",
+            "es": "• Exploración de representaciones ligeras: Probar formatos más compactos optimizados para el modelado de lenguaje y la eficiencia de tokens. • La cantidad de datos de entrenamiento podría aumentarse mediante modelos de edificios sintéticos. • Enriquecimiento semántico de cero disparos (zero-shot) con LLMs más grandes: Comparar la aplicación directa de LLMs de propósito general con el enfoque de preentrenamiento específico de dominio propuesto en este estudio. • Uso de tokens globales: Capturar el contexto de todo el documento en archivos IFC largos para obtener predicciones mejor informadas. • Estrategias mejoradas de predicción de máscaras: Abordar la limitación de ModernBERT de predecir las máscaras de forma independiente mediante: un cabezal de modelado de lenguaje (language modeling head) o enfoques basados en difusión, relleno iterativo de segmentos, predicción de un segmento a la vez, o la prueba de modelos de codificador-decodificador para un enmascaramiento basado en segmentos más natural."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6. CONCLUSION",
+        "es": "6. CONCLUSIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "This study explored a language modeling strategy for semantic enrichment of BIM data, identifying a modified ifcJSON-5a* representation as a particularly effective choice. In practical enrichment scenarios, ifcJSON-5a* consistently outperformed traditional EXPRESS-based formats.",
+            "es": "Este estudio exploró una estrategia de modelado de lenguaje para el enriquecimiento semántico de datos BIM, identificando una representación ifcJSON-5a* modificada como una opción particularmente eficaz. En escenarios prácticos de enriquecimiento, ifcJSON-5a* superó consistentemente a los formatos tradicionales basados en EXPRESS."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The encoder-only model (ModernBERT) demonstrated stronger semantic enrichment capabilities under controlled evaluation settings and served as an effective testbed for systematically comparing different representations and testing scenarios, benefiting from faster inference times. In contrast, the decoder-only model (Qwen2.5-Coder) exhibited greater semantic consistency, particularly in the prediction of floating-point attributes, highlighting its potential and practical usability. This suggests that decoderonly models may be especially valuable in applications with fewer but clearly defined semantic enrichment tasks.",
+            "es": "El modelo de solo codificador (encoder-only) (ModernBERT) demostró mayores capacidades de enriquecimiento semántico en entornos de evaluación controlados y sirvió como un banco de pruebas eficaz para comparar sistemáticamente diferentes representaciones y escenarios de prueba, beneficiándose de tiempos de inferencia más rápidos. En contraste, el modelo de solo decodificador (Qwen2.5-Coder) exhibió mayor consistencia semántica, particularmente en la predicción de atributos de punto flotante, lo que destaca su potencial y su utilidad práctica. Esto sugiere que los modelos de solo decodificador pueden ser especialmente valiosos en aplicaciones con menos tareas de enriquecimiento semántico, pero claramente definidas."
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Overall, while the results are promising, several avenues for future work remain critical. These include the creation of manually curated test cases, the development of improved representation formats, the integration of geometric information, and the comparison of domain-specific models against general-purpose LLMs using zero-shot learning approaches.",
+            "es": "En general, aunque los resultados son prometedores, varias vías de trabajo futuro siguen siendo críticas. Estas incluyen la creación de casos de prueba curados manualmente, el desarrollo de formatos de representación mejorados, la integración de información geométrica y la comparación de modelos específicos de dominio con LLMs de propósito general mediante enfoques de aprendizaje de cero disparos."
+          }
+        },
+        {
+          "id": "s6-h1",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "ACKNOWLEDGEMENTS",
+            "es": "AGRADECIMIENTOS"
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Stefan Fuchs gratefully acknowledges the support received as a LOC scholarship holder from the Leonhard Obermeyer Center of the Technical University of Munich.",
+            "es": "Stefan Fuchs agradece el apoyo recibido como becario LOC del Leonhard Obermeyer Center de la Technical University of Munich."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "REFERENCES"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Amor, R., & Dimyadi, J. (2021). The promise of automated compliance checking. Developments in the Built Environment, 5, 100039. Austern, G., Bloch, T., & Abulafia, Y. (2024). Incorporating context into BIM-derived data—leveraging graph neural networks for building element classification. Buildings. https://doi.org/10.3390/buildings14020527 Bavarian, M., Jun, H., Tezak, N., Schulman, J., McLeavey, C., Tworek, J., & Chen, M. (2022). Efficient training of language models to fill in the middle. In arXiv [cs.CL]. arXiv. http://arxiv.org/abs/2207.14255 Beltagy, I., Peters, M. E., & Cohan, A. (2020). Longformer: The Long-Document Transformer. In arXiv [cs.CL]. arXiv. http://arxiv.org/abs/2004.05150 Bloch, T., Borrmann, A., & Pauwels, P. (2023). Graph-based learning for automated code checking – Exploring the application of graph neural networks for design review. Advanced Engineering Informatics, 58, 102137. Bloch, T., & Sacks, R. (2020). Clustering information types for semantic enrichment of building information models to support automated code compliance checking. Journal of Computing in Civil Engineering, 34(6), 04020040. Choromanski, K., Likhosherstov, V., Dohan, D., Song, X., Gane, A., Sarlós, T., Hawkins, P., Davis, J., Mohiuddin, A., Kaiser, L., Belanger, D., Colwell, L. J., & Weller, A. (2020). Rethinking attention with Performers. International Conference on Learning Representations, abs/2009.14794. CodeGemma Team, Zhao, H., Hui, J., Howland, J., Nguyen, N., Zuo, S., Hu, A., Choquette-Choo, C. A., Shen, J., Kelley, J., Bansal, K., Vilnis, L., Wirth, M., Michel, P., Choy, P., Joshi, P., Kumar, R., Hashmi, S., Agrawal, S., … Huffman, S. (2024). CodeGemma: Open Code Models Based on Gemma. In arXiv [cs.CL]. arXiv. http://arxiv.org/abs/2406.11409 Dai, Z., Yang, Z., Yang, Y., Carbonell, J., Le, Q. V., & Salakhutdinov, R. (2019). Transformer-XL: Attentive language models beyond a fixed-length context. In arXiv [cs.LG]. arXiv. http://arxiv.org/abs/1901.02860 Devlin, J., Chang, M.-W., Lee, K., & Toutanova, K. (2018). BERT: Pre-training of deep bidirectional Transformers for language understanding. In arXiv [cs.CL]. arXiv. http://arxiv.org/abs/1810.04805 Du, Z., Qian, Y., Liu, X., Ding, M., Qiu, J., Yang, Z., & Tang, J. (2021). GLM: General Language Model pretraining with autoregressive blank infilling. In arXiv [cs.CL]. arXiv. http://arxiv.org/abs/2103.10360 Forth, K., & Borrmann, A. (2024). Semantic enrichment for BIM-based building energy performance simulations using semantic textual similarity and finetuning multilingual LLM. Journal of Building Engineering, 110312. Hochreiter, S., & Schmidhuber, J. (1997). Long shortterm memory. Neural Computation, 9(8), 1735–1780. Hui, B., Yang, J., Cui, Z., Yang, J., Liu, D., Zhang, L., Liu, T., Zhang, J., Yu, B., Dang, K., Yang, A.,"
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Men, R., Huang, F., Ren, X., Ren, X., Zhou, J., & Lin, J. (2024). Qwen2.5-Coder Technical Report. In arXiv [cs.CL]. arXiv. http://arxiv.org/abs/2409.12186 Kaltenegger, J., Petrova, E., Borrmann, A., & Pauwels, P. (2024). A conceptual system architecture for enriching Digital Twins with material performance data using symbolic and sub-symbolic Artificial Intelligence. 12th Linked Data in Architecture and Construction Workshop, LDAC 2024. Katharopoulos, A., Vyas, A., Pappas, N., & Fleuret, F. (2020). Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention. In H. D. Iii & A. Singh (Eds.), Proceedings of the 37th International Conference on Machine Learning (Vol. 119, pp. 5156–5165). PMLR. Li, R., Allal, L. B., Zi, Y., Muennighoff, N., Kocetkov, D., Mou, C., Marone, M., Akiki, C., Li, J., Chim, J., Liu, Q., Zheltonozhskii, E., Zhuo, T. Y., Wang, T., Dehaene, O., Davaadorj, M., Lamy-Poirier, J., Monteiro, J., Shliazhko, O., … de Vries, H. (2023). StarCoder: may the source be with you! In arXiv [cs.CL]. arXiv. http://arxiv.org/abs/2305.06161 Lilis, G. N., Wang, M., Katsigarakis, K., Mavrokapnidis, D., Korolija, I., & Dimitrios, R. (2025). BIM-based semantic enrichment and knowledge graph generation via geometric relation checking. Automation in Construction, 173(106081), 106081. Lozhkov, A., Li, R., Allal, L. B., Cassano, F., Lamy-Poirier, J., Tazi, N., Tang, A., Pykhtar, D., Liu, J., Wei, Y., Liu, T., Tian, M., Kocetkov, D., Zucker, A., Belkada, Y., Wang, Z., Liu, Q., Abulkhanov, D., Paul, I., … de Vries, H. (2024). StarCoder 2 and The Stack v2: The next generation. In arXiv [cs.SE]. arXiv. http://arxiv.org/abs/2402.19173 Luo, Z., Xu, C., Zhao, P., Sun, Q., Geng, X., Hu, W., Tao, C., Ma, J., Lin, Q., & Jiang, D. (2023). WizardCoder: Empowering Code Large Language Models with Evol-Instruct. Pauwels, P., Krijnen, T., Terkaj, W., & Beetz, J. (2017). Enhancing the ifcOWL ontology with an alternative representation for geometric data. Automation in Construction, 80, 77–94. Radford, A., Wu, J., Child, R., Luan, D., Amodei, D., & Sutskever, I. (2019). Language Models are Unsupervised Multitask Learners. Solihin, W., & Eastman, C. (2015). Classification of rules for automated BIM rule checking development. Automation in Construction, 53, 69–82. Su, J., Ahmed, M., Lu, Y., Pan, S., Bo, W., & Liu, Y. (2024). RoFormer: Enhanced transformer with Rotary Position Embedding. Neurocomputing, 568(127063), 127063. Vaswani, A., Shazeer, N., Parmar, N., & Uszkoreit, J. (2017). Attention is all you need. Advances in neural information processing systems, 30. Wang, Z., Ying, H., Sacks, R., & Borrmann, A. (2023). CBIM: A graph-based approach to enhance interoperability using semantic enrichment. In arXiv [cs.SE]. arXiv. http://arxiv.org/abs/2304.11672"
+          }
+        }
+      ]
+    }
+  ]
+}

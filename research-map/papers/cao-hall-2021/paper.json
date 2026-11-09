@@ -1,0 +1,832 @@
+{
+  "version": 1,
+  "node": "cao-hall-2021",
+  "title": "Module library development via graph mining",
+  "source": "files/Module library development via graph mining.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "ABSTRACT",
+        "es": "RESUMEN"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The use of prefabricated modules can benefit the construction industry with the economy of scales and production efficiency. However, the existing approach to develop module libraries is project-based, lacking the potential to reuse and manage in future projects. By taking the repeatability and manufacturability into account, this paper proposes a graph-based framework to identify possible modules automatically from multiple projects by frequent pattern mining. The results show that the repeated patterns share a degree of standardization and can be considered as module candidates. Finally, the framework is implemented as add-ons in the BIM environment to support module lifecycle management.",
+            "es": "El uso de módulos prefabricados (prefabricated modules) puede beneficiar a la industria de la construcción con economías de escala (economies of scale) y eficiencia en la producción. Sin embargo, el enfoque existente para desarrollar bibliotecas de módulos (module libraries) se basa en proyectos individuales, y carece de potencial para su reutilización y gestión en proyectos futuros. Al tomar en cuenta la repetibilidad (repeatability) y la manufacturabilidad (manufacturability), este artículo propone un marco basado en grafos (graph-based framework) para identificar automáticamente posibles módulos a partir de múltiples proyectos mediante minería de patrones frecuentes (frequent pattern mining). Los resultados muestran que los patrones repetidos comparten cierto grado de estandarización (standardization) y pueden considerarse candidatos a módulos. Finalmente, el marco se implementa como complementos (add-ons) en el entorno BIM para apoyar la gestión del ciclo de vida de los módulos (module lifecycle management)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "INTRODUCTION",
+        "es": "INTRODUCCIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Modular construction is experiencing a new wave of attention and investment. In 2019 McKinsey report, the construction industry could deliver a $20 billion annual savings and 50% time saving if modular construction is adopted (McKinsey Capital Projects, 2019). The modular construction takes the strategy of DfMA (Design for Manufacturing and Assembly), developing standard types of modules, like LEGOs, and then giving those kit-of-parts to architects to fulfill design intentions (WikiHouse, 2019). The strategy benefits modular construction in particular for the structure sharing a degree of repeatability and standardization (McKinsey Capital Projects, 2019), such as hotels, affordable housing and schools. Moreover, the standardization does not mean the design has to be “one-size-fits-all”. Instead, modular construction could provide design flexibility in various configurations by selecting and recombining modules from module libraries (Cui et al., 2020). New industrialized construction firms, such as DMD Modular, Project Frog, CIMC MBS and etc., start to develop their own module libraries as their core products, or product catalog, and claim to offer more competitive pricing, expedited project schedules, and increased product quality.",
+            "es": "La construcción modular (modular construction) está experimentando una nueva ola de atención e inversión. Según el informe de McKinsey de 2019, la industria de la construcción podría lograr ahorros anuales de $20 mil millones y un ahorro de tiempo de 50% si se adopta la construcción modular (McKinsey Capital Projects, 2019). La construcción modular adopta la estrategia de DfMA (diseño para la manufactura y el ensamblaje, Design for Manufacturing and Assembly), que consiste en desarrollar tipos estándar de módulos, como LEGOs, y luego entregar esos kits de piezas (kit-of-parts) a los arquitectos para que cumplan las intenciones de diseño (WikiHouse, 2019). La estrategia beneficia en particular a la construcción modular en estructuras que comparten cierto grado de repetibilidad y estandarización (McKinsey Capital Projects, 2019), como hoteles, vivienda asequible y escuelas. Además, la estandarización no significa que el diseño tenga que ser “una talla única para todos”. Por el contrario, la construcción modular podría ofrecer flexibilidad de diseño en diversas configuraciones mediante la selección y recombinación de módulos de las bibliotecas de módulos (Cui et al., 2020). Nuevas empresas de construcción industrializada (industrialized construction), como DMD Modular, Project Frog, CIMC MBS, entre otras, comienzan a desarrollar sus propias bibliotecas de módulos como sus productos principales, o catálogo de productos, y afirman ofrecer precios más competitivos, calendarios de proyecto más ágiles y mayor calidad de producto."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The development and application of module libraries are still limited in construction projects. The development is mostly built upon specialist knowledge and accumulated experience. Although many researchers propose various techniques and guidelines to support the module identification (Isaac, Bock and Stoliar, 2016; Salama et al., 2017; Samarasinghe et al., 2019), the configuration of modules is still determined project by project (Gosling et al., 2016). In that case, the unique typology of modules will grow rapidly, end up with costs to balloon. A helpful analogy can be found from LEGO Group in the early 2000s, when the unique pieces reaching 12,000, nearly bankrupted the company (Feloni, 2014). Therefore, it is crucial to consider repeatability among projects in determining a module library or product catalog. The repeatability indicates that a standard and adaptable design can be applied in multiple projects. The reuse of the modules in future projects will lead to the continuous improvement of project quality and return of investment made initially inside a single project (Tetik et al., 2019).",
+            "es": "El desarrollo y la aplicación de bibliotecas de módulos siguen siendo limitados en los proyectos de construcción. El desarrollo se basa en su mayor parte en el conocimiento de especialistas y en la experiencia acumulada. Aunque muchos investigadores proponen diversas técnicas y guías para apoyar la identificación de módulos (Isaac, Bock and Stoliar, 2016; Salama et al., 2017; Samarasinghe et al., 2019), la configuración de los módulos se sigue determinando proyecto por proyecto (Gosling et al., 2016). En ese caso, la tipología única de módulos crecerá rápidamente y terminará por disparar los costos. Una analogía útil se encuentra en LEGO Group a principios de los 2000, cuando las piezas únicas llegaron a 12,000 y casi llevaron a la empresa a la quiebra (Feloni, 2014). Por lo tanto, es crucial considerar la repetibilidad entre proyectos al determinar una biblioteca de módulos o un catálogo de productos. La repetibilidad indica que un diseño estándar y adaptable puede aplicarse en múltiples proyectos. La reutilización de los módulos en proyectos futuros llevará a la mejora continua de la calidad de los proyectos y al retorno de la inversión realizada inicialmente dentro de un solo proyecto (Tetik et al., 2019)."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "This research proposes a graph-based framework for identifying a reusable module library from historical projects. To take repeatability into account, we apply the frequent pattern mining to a dataset of building projects. Besides, to facilitate library lifecycle management, BIM (Building Information Model) is used as product digital representations. Unlike early studies of knowledge reuse, such as drawings (Strug and Ślusarczyk, 2009) and simulations (Hiyama et al., 2014), BIM modules can be semantically enriched for their use in the design and production phases (Hamid, Tolba and El Antably, 2018). Meanwhile, the information stored in BIM supports the module analysis in terms of their performance, such as manufacturability. In this way, previous studies on metric-based module identification (Salama et al., 2017) can be integrated within our framework.",
+            "es": "Esta investigación propone un marco basado en grafos para identificar una biblioteca de módulos reutilizables a partir de proyectos históricos. Para tomar en cuenta la repetibilidad, aplicamos la minería de patrones frecuentes a un conjunto de datos de proyectos de edificación. Además, para facilitar la gestión del ciclo de vida de la biblioteca, se usa BIM (modelo de información de construcción, Building Information Model) como representación digital de los productos. A diferencia de los primeros estudios sobre reutilización del conocimiento (knowledge reuse), como los de planos (Strug and Ślusarczyk, 2009) y simulaciones (Hiyama et al., 2014), los módulos BIM pueden enriquecerse semánticamente para su uso en las fases de diseño y producción (Hamid, Tolba and El Antably, 2018). Asimismo, la información almacenada en BIM apoya el análisis de los módulos en cuanto a su desempeño, como la manufacturabilidad. De esta manera, los estudios previos sobre la identificación de módulos basada en métricas (Salama et al., 2017) pueden integrarse dentro de nuestro marco."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The paper is organized as follows. In the next section, we conduct a literature review on the study of modules and the application of the graph modeling in the construction industry. Then, we introduce the proposed graph-based framework for module identification in the BIM environment. After that, we give an illustrative example of how the framework is applied to a dataset of residential projects. Finally, a discussion and conclusion of our contribution to the literature, as well as future work, is given.",
+            "es": "El artículo está organizado de la siguiente manera. En la siguiente sección, realizamos una revisión de la literatura sobre el estudio de los módulos y la aplicación del modelado con grafos en la industria de la construcción. Después, presentamos el marco propuesto basado en grafos para la identificación de módulos en el entorno BIM. A continuación, damos un ejemplo ilustrativo de cómo se aplica el marco a un conjunto de datos de proyectos residenciales. Por último, se presentan una discusión y una conclusión sobre nuestra contribución a la literatura, así como el trabajo futuro."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "LITERATURE REVIEW",
+        "es": "REVISIÓN DE LA LITERATURA"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Modules in construction projects In the construction industry, the definition of a module, or a modular system and modularization, is not explained consistently in the construction literature (Gosling et al., 2016). Murtaza, Fisher and Skibniewski (Murtaza, Fisher and Skibniewski, 1993) described a module as “a volume fitted with all structural elements, finishes, and process components that, regardless of system, function, or installing craft, are designed to occupy that space”. More recent definitions not only refer to a module as a structural unit composed of walls, floors, ceilings, as well as their finishes, but also highlight the off-site fabrication (Hwang, Shan and Looi, 2018) and supply chain integration (Peltokorpi et al., 2018). In this study, we inherit the definition of the module above, and enrich it with a library of standardized and reusable design which can be applied to multiple projects. Previous studies have shown that a library of parametric prefabricated components can simplify the design process and improve production efficiency (Nath et al., 2015).",
+            "es": "Módulos en proyectos de construcción. En la industria de la construcción, la definición de módulo, o de sistema modular y modularización, no se explica de manera consistente en la literatura de construcción (Gosling et al., 2016). Murtaza, Fisher and Skibniewski (Murtaza, Fisher and Skibniewski, 1993) describieron un módulo como “un volumen equipado con todos los elementos estructurales, acabados y componentes de proceso que, sin importar el sistema, la función o el oficio de instalación, están diseñados para ocupar ese espacio”. Las definiciones más recientes no solo se refieren a un módulo como una unidad estructural compuesta por muros, pisos y techos, así como sus acabados, sino que también resaltan la fabricación fuera de sitio (off-site fabrication) (Hwang, Shan and Looi, 2018) y la integración de la cadena de suministro (supply chain integration) (Peltokorpi et al., 2018). En este estudio, heredamos la definición anterior de módulo y la enriquecemos con una biblioteca de diseño estandarizado y reutilizable que puede aplicarse a múltiples proyectos. Estudios previos han demostrado que una biblioteca de componentes prefabricados paramétricos (parametric prefabricated components) puede simplificar el proceso de diseño y mejorar la eficiencia de la producción (Nath et al., 2015)."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Graph modeling in construction projects In computer science, a graph is an abstract data structure, consisting of a finite set of nodes and a set of ordered or unordered pairs of edges. The structure may also be assigned with certain values to each node or edge, such as a categorical label or a numeric value. More advanced graph structures, such as hypergraphs, contain edges which can connect any number of nodes. Although graph has been proved to be a useful way to represent complex engineering systems (Boccaletti et al., 2006; Zawiślak and Rysiński, 2017), there is not much research studying the graph modeling in construction projects. Existing research using graph-based modeling in building design is mostly limited in the floorplans and spatial layouts. In that case, each room or space is represented as a node, and the adjacency relations are represented as edges. Node attributes represent the properties of rooms. The graph structure, as well as graph-based algorithms, facilitate the application of floorplan design and indoor navigation.",
+            "es": "Modelado con grafos en proyectos de construcción. En ciencias de la computación, un grafo (graph) es una estructura de datos abstracta que consta de un conjunto finito de nodos (nodes) y un conjunto de pares ordenados o no ordenados de aristas (edges). A la estructura también se le pueden asignar ciertos valores a cada nodo o arista, como una etiqueta categórica o un valor numérico. Estructuras de grafos más avanzadas, como los hipergrafos (hypergraphs), contienen aristas que pueden conectar cualquier número de nodos. Aunque se ha comprobado que el grafo es una manera útil de representar sistemas de ingeniería complejos (Boccaletti et al., 2006; Zawiślak and Rysiński, 2017), no hay mucha investigación que estudie el modelado con grafos en proyectos de construcción. La investigación existente que usa modelado basado en grafos en el diseño de edificios se limita en su mayoría a los planos de planta (floorplans) y las distribuciones espaciales (spatial layouts). En ese caso, cada habitación o espacio se representa como un nodo, y las relaciones de adyacencia (adjacency relations) se representan como aristas. Los atributos de los nodos representan las propiedades de las habitaciones. La estructura de grafo, así como los algoritmos basados en grafos, facilitan la aplicación al diseño de planos de planta y a la navegación en interiores (indoor navigation)."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "There are three main approaches related to floorplan design via graph-based modeling, including graph transformations (Wang, Yang and Zhang, 2018), evolutionary approach (Wong and Chan, 2009; Strug, Grabska and Ślusarczyk, 2014), and deep learning approach (Nauata et al., 2020). The graph transformation approach is built upon input graphs representing the original floorplans, and then graph manipulations, such as node/edge addition and subtraction, are performed to produce the floorplan variations (Wang, Yang and Zhang, 2018). The evolutionary approach introduces graph-based evolutionary operators, namely cross-over and mutation, in the floorplan generation process (Wong and Chan, 2009; Strug, Grabska and Ślusarczyk, 2014) The deep learning approach is achieved via a Generative Adversarial Networks (GAN), which takes a large dataset of pixel-based floorplans as inputs and generate novel ones by performing a generator and a discriminator on their graph representations (Nauata et al., 2020). Having graph-represented design solutions of floorplans, Strug and Ślusarczyk detected the frequent patterns via graph mining technique (Strug and Ślusarczyk, 2009). These patterns are further used as design features to evaluate the new floorplan design (Strug, 2013).",
+            "es": "Hay tres enfoques principales relacionados con el diseño de planos de planta mediante modelado basado en grafos: las transformaciones de grafos (graph transformations) (Wang, Yang and Zhang, 2018), el enfoque evolutivo (evolutionary approach) (Wong and Chan, 2009; Strug, Grabska and Ślusarczyk, 2014) y el enfoque de aprendizaje profundo (deep learning approach) (Nauata et al., 2020). El enfoque de transformación de grafos parte de grafos de entrada que representan los planos de planta originales, y luego se realizan manipulaciones de grafos, como la adición y sustracción de nodos o aristas, para producir las variaciones del plano de planta (Wang, Yang and Zhang, 2018). El enfoque evolutivo introduce operadores evolutivos basados en grafos, a saber, cruza (cross-over) y mutación (mutation), en el proceso de generación de planos de planta (Wong and Chan, 2009; Strug, Grabska and Ślusarczyk, 2014). El enfoque de aprendizaje profundo se logra mediante una Red Generativa Antagónica (Generative Adversarial Networks, GAN), que toma como entrada un gran conjunto de datos de planos de planta basados en píxeles y genera otros nuevos al aplicar un generador y un discriminador sobre sus representaciones en grafos (Nauata et al., 2020). Al contar con soluciones de diseño de planos de planta representadas como grafos, Strug y Ślusarczyk detectaron los patrones frecuentes mediante una técnica de minería de grafos (graph mining) (Strug and Ślusarczyk, 2009). Estos patrones se usan después como características de diseño para evaluar el nuevo diseño del plano de planta (Strug, 2013)."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Through a similar representation approach, the graphbased floorplans also enable space navigation. Skandhakumar et al. constructed a graph from IFC files to represent a floorplan. The space adjacency and accessibility relationship represented in the graph facilitate the BIM in the navigation and access control applications (Skandhakumar et al., 2016). Ślusarczyk et al. proposed a multi-hierarchical graph to represent threedimension of a floorplan, including spatial arrangement, accessibility, and administrative structure of the building. The shortest path algorithm is then performed for the application of mobile robot control for a mail delivery task (Ślusarczyk et al., 2017).",
+            "es": "Mediante un enfoque de representación similar, los planos de planta basados en grafos también permiten la navegación espacial. Skandhakumar et al. construyeron un grafo a partir de archivos IFC para representar un plano de planta. La relación de adyacencia y accesibilidad entre los espacios representada en el grafo facilita el uso de BIM en aplicaciones de navegación y control de acceso (Skandhakumar et al., 2016). Ślusarczyk et al. propusieron un grafo multijerárquico (multi-hierarchical graph) para representar las tres dimensiones de un plano de planta, incluyendo la disposición espacial, la accesibilidad y la estructura administrativa del edificio. Después se aplica el algoritmo de ruta más corta (shortest path algorithm) para la aplicación de control de un robot móvil en una tarea de entrega de correo (Ślusarczyk et al., 2017)."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Although above and many other studies have shown that graph-based modeling is suitable to represent construction projects, few studies tested the graph representation at the granularity of the element level and how it could support construction project management (Isaac and Navon, 2013).  Within this domain, one of the main research directions is to detect prefabricated modules for industrialized construction. Previous scholars study modules mostly by case studies (Viana, Tommelein and Formoso, 2017; Peltokorpi et al., 2018), and identify the configuration of modules based on their experience and guidelines (Salama et al., 2017). Graph-based modeling can support the detection of modules automatically or semi-automatically. Khalili and Chua developed a graph-based modeling approach to group single precast elements into higher-level prefabrication assemblies (Khalili and Chua, 2013). They searched for all subgraphs exhaustively and filtered out the feasible configurations by constructability rules. Isaac, Bock and Stoliar applied a clustering algorithm to detect optimal configurations of modules (Isaac, Bock and Stoliar, 2016b). Those modules are represented as subgraphs, which share two characteristics: 1. relationships are dense within the subgraph and are sparse between the subgraph. 2. the nodes, representing the building elements, in the subgraph have similar attributes, such as replacing rates. A similar clustering algorithm was also taken by Samarasinghe et al. to detect modules in mechanical, electrical and plumbing systems (Samarasinghe et al., 2019). However, the above research rarely takes into account the repeatability and manufacturability in discovering the building modules. Besides, the approaches are based on a single project, ending up with the detected modules which might not be representative for standardization. An increasing number of unique modules might deteriorate the production efficiency. Last but not least, the previous studies end up with graph represented solutions, rather than BIMs (Strug and Ślusarczyk, 2009; Isaac, Bock and Stoliar, 2016; Samarasinghe et al., 2019). How could those graph patterns be managed as BIMs remains unsolved. In this research, we detect repeated and representative modules in multiples building projects, and then validate the modules using manufacturing constraints. Finally, the results are visualized and stored in the BIM environment for future reuse.",
+            "es": "Aunque los estudios anteriores y muchos otros han demostrado que el modelado basado en grafos es adecuado para representar proyectos de construcción, pocos estudios han probado la representación con grafos a nivel de granularidad de elemento (granularity of the element level) y cómo podría apoyar la gestión de proyectos de construcción (Isaac and Navon, 2013). Dentro de este ámbito, una de las principales líneas de investigación es detectar módulos prefabricados para la construcción industrializada. Los académicos previos estudian los módulos principalmente mediante estudios de caso (Viana, Tommelein and Formoso, 2017; Peltokorpi et al., 2018), e identifican la configuración de los módulos con base en su experiencia y en guías (Salama et al., 2017). El modelado basado en grafos puede apoyar la detección de módulos de manera automática o semiautomática. Khalili y Chua desarrollaron un enfoque de modelado basado en grafos para agrupar elementos prefabricados de concreto individuales (precast elements) en ensambles de prefabricación de nivel superior (Khalili and Chua, 2013). Buscaron exhaustivamente todos los subgrafos (subgraphs) y filtraron las configuraciones factibles mediante reglas de constructibilidad (constructability rules). Isaac, Bock and Stoliar aplicaron un algoritmo de agrupamiento (clustering algorithm) para detectar configuraciones óptimas de módulos (Isaac, Bock and Stoliar, 2016b). Esos módulos se representan como subgrafos, que comparten dos características: 1. las relaciones son densas dentro del subgrafo y escasas entre subgrafos. 2. los nodos del subgrafo, que representan los elementos de construcción, tienen atributos similares, como las tasas de reemplazo. Samarasinghe et al. también emplearon un algoritmo de agrupamiento similar para detectar módulos en sistemas mecánicos, eléctricos y de plomería (Samarasinghe et al., 2019). Sin embargo, la investigación anterior rara vez toma en cuenta la repetibilidad y la manufacturabilidad al descubrir los módulos de construcción. Además, los enfoques se basan en un solo proyecto, lo que da como resultado módulos detectados que podrían no ser representativos para la estandarización. Un número creciente de módulos únicos podría deteriorar la eficiencia de la producción. Por último, pero no menos importante, los estudios previos terminan con soluciones representadas como grafos, en lugar de BIMs (Strug and Ślusarczyk, 2009; Isaac, Bock and Stoliar, 2016; Samarasinghe et al., 2019). Cómo podrían gestionarse esos patrones de grafos como BIMs sigue sin resolverse. En esta investigación, detectamos módulos repetidos y representativos en múltiples proyectos de edificación, y luego validamos los módulos usando restricciones de manufactura. Finalmente, los resultados se visualizan y se almacenan en el entorno BIM para su reutilización futura."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "PROPOSED FRAMEWORK",
+        "es": "MARCO PROPUESTO"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In this section, the proposed graph mining framework for the module library development is described. The framework is composed of the following steps (Figure 1):.",
+            "es": "En esta sección se describe el marco propuesto de minería de grafos para el desarrollo de la biblioteca de módulos. El marco se compone de los siguientes pasos (Figura 1):."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: Proposed framework architecture",
+            "es": "Figura 1: Arquitectura del marco propuesto"
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "System boundary definition The system boundary is restricted in terms of three aspects, building types, elements types, and element attributes. Firstly, since the module library is a collection of components suitable for a specific type of building, such as prefabricated concrete buildings, the BIM file inputs representing projects should be limited within the specified category. Secondly, a project usually contains hundreds of building elements. To narrow down the scope of modules, the users are able to select the element types for the library development. For example, a company doing timber volumetric modules might select wall and floor panels as building parts. Thirdly, the attributes of building elements, such as dimensions, material properties, and cost, can be used to support the graph representation and the pattern analysis in the following configuration reasoner.",
+            "es": "Definición del límite del sistema (System boundary definition). El límite del sistema se restringe en tres aspectos: los tipos de edificio, los tipos de elementos y los atributos de los elementos. En primer lugar, dado que la biblioteca de módulos es una colección de componentes adecuados para un tipo específico de edificio, como los edificios prefabricados de concreto, los archivos BIM de entrada que representan los proyectos deben limitarse a la categoría especificada. En segundo lugar, un proyecto suele contener cientos de elementos de construcción. Para acotar el alcance de los módulos, los usuarios pueden seleccionar los tipos de elementos para el desarrollo de la biblioteca. Por ejemplo, una empresa que trabaja con módulos volumétricos de madera (timber volumetric modules) podría seleccionar paneles de muro y de piso como partes del edificio. En tercer lugar, los atributos de los elementos de construcción, como las dimensiones, las propiedades de los materiales y el costo, pueden usarse para apoyar la representación con grafos y el análisis de patrones en el siguiente razonador de configuraciones (configuration reasoner)."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Graph representation The graph model can be used to represent design objects at different levels of detail and at different stages of the process (Ślusarczyk et al., 2017). In this study, we apply a labeled attributed graph to the design representation. Let us first define a labeled attributed graph. Definition 1. A labeled attributed graph over the node set (N) and the edge set (E) is a system G = (N, E, LN, AN), where:",
+            "es": "Representación con grafos. El modelo de grafo puede usarse para representar objetos de diseño en distintos niveles de detalle y en distintas etapas del proceso (Ślusarczyk et al., 2017). En este estudio, aplicamos un grafo atribuido etiquetado (labeled attributed graph) a la representación del diseño. Primero definamos un grafo atribuido etiquetado. Definición 1. Un grafo atribuido etiquetado sobre el conjunto de nodos (N) y el conjunto de aristas (E) es un sistema G = (N, E, LN, AN), donde:"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "• N is the node sets, representing a set of building elements. • E is the edge sets, representing a set of relationships between elements, such as adjacency relationship. • LN is the label of the node, representing the distinct category of building elements, such as exterior walls. • AN is the attributes of nodes, representing the properties of the building elements.",
+            "es": "• N es el conjunto de nodos, que representa un conjunto de elementos de construcción. • E es el conjunto de aristas, que representa un conjunto de relaciones entre elementos, como la relación de adyacencia. • LN es la etiqueta del nodo, que representa la categoría distintiva de los elementos de construcción, como los muros exteriores. • AN son los atributos de los nodos, que representan las propiedades de los elementos de construcción."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In order to build such a graph structure, we first utilize the BIM application programming interface (API) to perform data extraction from design input files. The extracted data include the selected element categories and properties. Then, a 3D collision detection algorithm is implemented to determine the spatial relationship between those elements, and returns an adjacency matrix. Finally, the matrix is transformed into a graph structure, and the extracted categories and properties are attached to node labels and attributes.",
+            "es": "Para construir esa estructura de grafo, primero usamos la interfaz de programación de aplicaciones (API) de BIM para extraer datos de los archivos de diseño. Los datos extraídos incluyen las categorías de elementos seleccionadas y sus propiedades. Después se implementa un algoritmo de detección de colisiones en 3D para determinar la relación espacial entre esos elementos, el cual devuelve una matriz de adyacencia. Por último, la matriz se transforma en una estructura de grafo, y las categorías y propiedades extraídas se asignan a las etiquetas y atributos de los nodos."
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Frequent pattern mining Frequent pattern mining is used to discover repeated or similar substructures in the multiple graph structures. It was widely applied in bioinformatics (Mrzic et al., 2018). Let us define the frequent pattern as follows:",
+            "es": "Minería de patrones frecuentes. La minería de patrones frecuentes se usa para descubrir subestructuras repetidas o similares en las múltiples estructuras de grafos. Se ha aplicado ampliamente en la bioinformática (Mrzic et al., 2018). Definamos el patrón frecuente de la siguiente manera:"
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Definition 2. A subgraph (g) is a frequent pattern if the number of its occurrence (S), including its belonging nodes and edges, exceed a specified threshold in the entire dataset, where:",
+            "es": "Definición 2. Un subgrafo (g) es un patrón frecuente si el número de sus ocurrencias (S), incluyendo los nodos y aristas que le pertenecen, excede un umbral (threshold) especificado en el conjunto de datos completo, donde:"
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "• g is a subgraph of the graph G. The node set and edge set of g are denoted as n and e respectively, where n ⊆N and e⊆E.",
+            "es": "• g es un subgrafo del grafo G. El conjunto de nodos y el conjunto de aristas de g se denotan como n y e respectivamente, donde n ⊆N y e⊆E."
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In the construction domain, these frequent substructures represent a cluster of building elements that repeatedly occurred in the examined projects. In some sense, they might represent a standard design or “common knowledge” from previous works (Strug and Ślusarczyk, 2009). In this study, we apply “gSpan” algorithm (Yan and Han, 2002) to potential module identification. The algorithm is implemented in a depth-first search (DFS) approach and generates the subgraphs via the right-most path extension. It combines the subgraph search with the isomorphism testing, thus achieving efficient mining in a large graph set. The work is implemented in the python environment.",
+            "es": "En el dominio de la construcción, estas subestructuras frecuentes representan un conjunto de elementos de construcción que ocurrieron repetidamente en los proyectos examinados. En cierto sentido, podrían representar un diseño estándar o “conocimiento común” de trabajos previos (Strug and Ślusarczyk, 2009). En este estudio, aplicamos el algoritmo “gSpan” (Yan and Han, 2002) para la identificación de módulos potenciales. El algoritmo se implementa con un enfoque de búsqueda en profundidad (depth-first search, DFS) y genera los subgrafos mediante la extensión por la ruta más a la derecha (right-most path extension). Combina la búsqueda de subgrafos con las pruebas de isomorfismo (isomorphism testing), logrando así una minería eficiente en un conjunto grande de grafos. El trabajo se implementa en el entorno de python."
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Configuration reasoner The configuration reasoner is aimed at retrieving reasonable configurations from all frequent patterns. This is done in two steps. Firstly, shape analysis is performed on identified frequent subgraphs. By calculating graph properties, such as degrees and circles, the shape of represented substructures can be inferred. For example, a subgraph with a circle, namely the cyclic graph, might represent a closed substructure, which might be a volumetric module. Secondly, with the element attributes embedded in the nodes of a subgraph, a manufacturability analysis is further conducted. For instance, the length and weight of elements can be used to filter out the configurations feasible for manufacturing. In addition, a graph-based structural analysis might be necessary for some substructural system, such as frames. The structural analysis is not in the scope of this research, and might be included in the future step. The related study can be found in Chang’s work (Chang and Cheng, 2020).",
+            "es": "Razonador de configuraciones. El razonador de configuraciones tiene como objetivo recuperar configuraciones razonables a partir de todos los patrones frecuentes. Esto se hace en dos pasos. En primer lugar, se realiza un análisis de forma (shape analysis) sobre los subgrafos frecuentes identificados. Al calcular propiedades de los grafos, como los grados y los ciclos, se puede inferir la forma de las subestructuras representadas. Por ejemplo, un subgrafo con un ciclo, es decir, el grafo cíclico (cyclic graph), podría representar una subestructura cerrada, que podría ser un módulo volumétrico. En segundo lugar, con los atributos de los elementos incorporados en los nodos de un subgrafo, se realiza además un análisis de manufacturabilidad. Por ejemplo, la longitud y el peso de los elementos pueden usarse para filtrar las configuraciones factibles para su manufactura. Además, podría ser necesario un análisis estructural basado en grafos para algunos sistemas subestructurales, como los marcos. El análisis estructural no está dentro del alcance de esta investigación, y podría incluirse en un paso futuro. El estudio relacionado se puede encontrar en el trabajo de Chang (Chang and Cheng, 2020)."
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Configuration visualization The development of the module library is an iterative process, which incorporates different requirements in the reasoning process. To support specialists’ visualization and validation of feasible candidates, we map the subgraph patterns back to building information models. This is achieved by a subgraph matching algorithm, developed by Bonnici et al. (Bonnici et al., 2013). Firstly, the targeted subgraph is compared to all possible subgraphs in the graph datasets, and return any subgraphs which is a subgraph isomorphism. Then, the element ID stored as attributes in the original graph datasets can be obtained. As a result, the considered subgraph can be tracked and visualized as a 3D BIM model. We implemented this function with BIM API, so as to highlight the substructures in the project. Once the configurations are checked by specialists, the substructures will be added into the module library for future reuse.",
+            "es": "Visualización de configuraciones. El desarrollo de la biblioteca de módulos es un proceso iterativo, que incorpora diferentes requisitos en el proceso de razonamiento. Para apoyar la visualización y validación de los candidatos factibles por parte de los especialistas, asignamos los patrones de subgrafos de vuelta a los modelos de información de construcción. Esto se logra mediante un algoritmo de coincidencia de subgrafos (subgraph matching algorithm), desarrollado por Bonnici et al. (Bonnici et al., 2013). En primer lugar, el subgrafo objetivo se compara con todos los posibles subgrafos de los conjuntos de datos de grafos, y se devuelve cualquier subgrafo que sea un isomorfismo de subgrafos (subgraph isomorphism). Después, se puede obtener el ID del elemento almacenado como atributo en los conjuntos de datos de grafos originales. Como resultado, el subgrafo considerado puede rastrearse y visualizarse como un modelo BIM 3D. Implementamos esta función con la API de BIM, a fin de resaltar las subestructuras en el proyecto. Una vez que los especialistas verifican las configuraciones, las subestructuras se agregarán a la biblioteca de módulos para su reutilización futura."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "ILLUSTRATIVE CASE",
+        "es": "CASO ILUSTRATIVO"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The main objective of this section is to validate the performance of the proposed framework. In this study, we select residential timber projects as illustrative cases. First, we collect two standard types of modules (Figure 2) from a collaborative company, and use them to create ten customized floorplans in BIM. Figure 3 shows some examples of design. To test the robustness of the framework, we add some changes to each module. These include 1. adding and deleting interior walls to partition rooms; 2. swapping wall types to suit room requirments. For example, the thickness of structural walls are 260 mm, while the thickness of non-structural walls can be 100 mm and 120 mm. Besides, the walls for the bathroom are furnished with tiles. By doing so, we obtain modules with different functions, such as a living room module and a module with two bedrooms and a bathroom. To be noted, this is exactly how the studied company and many other modular companies might do to achieve product diversification. Besides, the implementation also inserts some “noise” to the input data, so as to test whether the framework can still detect the unchanged parts, or the standard parts of the original modules.",
+            "es": "El objetivo principal de esta sección es validar el desempeño del marco de trabajo (framework) propuesto. En este estudio seleccionamos proyectos residenciales de madera como casos ilustrativos. Primero, recopilamos dos tipos estándar de módulos (modules) (Figura 2) de una empresa colaboradora y los usamos para crear diez planos de planta (floorplans) personalizados en BIM. La Figura 3 muestra algunos ejemplos de diseño. Para probar la robustez del marco de trabajo, añadimos algunos cambios a cada módulo. Estos incluyen 1. agregar y eliminar muros interiores para dividir los espacios; 2. intercambiar los tipos de muro para adaptarlos a los requisitos de cada espacio. Por ejemplo, el espesor de los muros estructurales es de 260 mm, mientras que el espesor de los muros no estructurales puede ser de 100 mm y 120 mm. Además, los muros del baño están revestidos con azulejos. De este modo, obtenemos módulos con distintas funciones, como un módulo de sala de estar y un módulo con dos recámaras y un baño. Cabe señalar que esto es exactamente lo que la empresa estudiada y muchas otras empresas de construcción modular podrían hacer para lograr la diversificación de sus productos. Además, la implementación también inserta algo de “ruido” en los datos de entrada, con el fin de probar si el marco de trabajo aún puede detectar las partes sin cambios, o las partes estándar de los módulos originales."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: Two standard modules",
+            "es": "Figura 2: Dos módulos estándar"
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: Examples of customized floorplans",
+            "es": "Figura 3: Ejemplos de planos de planta personalizados"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Next, the building elements, as well as their properties are extracted from the BIM files using the developed addon (Figure 4). In this case, we select walls and floors as element categories, and the length of walls and the element ID as element properties from the design files.",
+            "es": "A continuación, los elementos de construcción, así como sus propiedades, se extraen de los archivos BIM mediante el complemento (addon) desarrollado (Figura 4). En este caso, seleccionamos muros y pisos como categorías de elementos, y la longitud de los muros y el ID del elemento como propiedades de los elementos de los archivos de diseño."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Two documents are generated as outputs automatically: an attribute file and a relationship file, in the .csv format. The attribute file contains the selected types of elements (e.g. OST_Walls), and rows of associated properties (e.g. Length). The relationship file decodes the spatial relationship between elements as an adjacency matrix. In the matrix, the spatial relationships include having physical connections referred to as 1 and having no connection as 0. More types of connections, such as plate connections, can be specified for higher level-of-detail models. closed substructures. Both composed of three exterior structural walls (node 1) and two different types of interior walls (node 2, 6, 8), all of which are connected to the floor (node 0). They can be considered as partial structures of a volumetric module. With more elements selected at the system boundary definition step, the patterns will be more complicated and include more features, such as ceilings and openings. Other information of the structure, such as the length and cost, can be obtained from the node attributes.",
+            "es": "Se generan automáticamente dos documentos como salidas: un archivo de atributos (attribute file) y un archivo de relaciones (relationship file), en formato .csv. El archivo de atributos contiene los tipos de elementos seleccionados (p. ej., OST_Walls) y filas de propiedades asociadas (p. ej., Length). El archivo de relaciones decodifica la relación espacial entre los elementos como una matriz de adyacencia (adjacency matrix). En la matriz, las relaciones espaciales incluyen tener conexiones físicas, denotadas con 1, y no tener conexión, denotada con 0. Se pueden especificar más tipos de conexiones, como las conexiones de placa, para modelos con un mayor nivel de detalle (level-of-detail). subestructuras cerradas. Ambas están compuestas por tres muros estructurales exteriores (nodo (node) 1) y dos tipos diferentes de muros interiores (nodos 2, 6, 8), todos los cuales están conectados al piso (nodo 0). Pueden considerarse estructuras parciales de un módulo volumétrico. Con más elementos seleccionados en el paso de definición de los límites del sistema, los patrones serán más complicados e incluirán más características, como techos y aberturas. Otra información de la estructura, como la longitud y el costo, puede obtenerse de los atributos de los nodos."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4: Add-ons for BIM data extraction After the data extraction, we implemented a python script to transform two documents into graph representations. Each building element is matched to a node in the graph, while the properties of that element are assigned to the node attributes. Besides, the adjacency matrix specifies the edge connection between nodes. An example of a transformed graph is shown in Figure 5. This step is done using the Python library NetworkX.",
+            "es": "Figura 4: Complementos para la extracción de datos BIM Después de la extracción de datos, implementamos un script de Python para transformar los dos documentos en representaciones de grafo (graph). Cada elemento de construcción se asocia con un nodo del grafo, mientras que las propiedades de ese elemento se asignan a los atributos del nodo. Además, la matriz de adyacencia especifica la conexión de aristas entre los nodos. En la Figura 5 se muestra un ejemplo de un grafo transformado. Este paso se realiza con la biblioteca de Python NetworkX."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5: An example of graph representations The procedure after the graph representation is to detect frequent subgraphs. A number of parameters can be set to support the subgraph mining. Those include the minimal and maximal nodes in the subgraph, and the number of the subgraph’s occurrence, namely support. Examples of the identified subgraphs with the number of nodes equals 6 and the frequency equals 10 are displayed in Figure 6. The index on the nodes indicates the type of building elements. In Figure 6, the graphs represent two",
+            "es": "Figura 5: Un ejemplo de representaciones de grafo El procedimiento posterior a la representación en grafo consiste en detectar subgrafos frecuentes (frequent subgraphs). Se pueden establecer varios parámetros para apoyar la minería de subgrafos. Estos incluyen el mínimo y el máximo de nodos en el subgrafo, y el número de ocurrencias del subgrafo, es decir, el soporte (support). En la Figura 6 se muestran ejemplos de los subgrafos identificados con un número de nodos igual a 6 y una frecuencia igual a 10. El índice de los nodos indica el tipo de elementos de construcción. En la Figura 6, los grafos representan dos"
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6: Examples of graph representations To further validate the modular structure, we apply the manufacturing restrictions on the detected subgraphs. We consider an acceptable timber module is in the range of 3 m in width and 8 m in length and 3.2 m high. Other criteria can be set by selecting the targeted element property and applying math equations. The application window of the developed add-on is depicted in Figure 7. Finally, the detected subgraphs are matched in the original project datasets for visualization. Figure 8 displays the frequent subgraph in Figure 6 (left) in the BIM environment.",
+            "es": "Figura 6: Ejemplos de representaciones de grafo Para validar aún más la estructura modular, aplicamos las restricciones de manufactura a los subgrafos detectados. Consideramos que un módulo de madera aceptable está en el rango de 3 m de ancho, 8 m de largo y 3.2 m de alto. Se pueden establecer otros criterios seleccionando la propiedad del elemento objetivo y aplicando ecuaciones matemáticas. La ventana de aplicación del complemento desarrollado se muestra en la Figura 7. Finalmente, los subgrafos detectados se asocian con los conjuntos de datos de los proyectos originales para su visualización. La Figura 8 muestra el subgrafo frecuente de la Figura 6 (izquierda) en el entorno BIM."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Comparing the detected structures with original models, we found that the structures match the original modules in terms of their four side wall types and floor types, and do not match the interior walls which are varied from projects to projects. It indicates that the framework is robust to extract the standard and repeated structures from multiple projects.",
+            "es": "Al comparar las estructuras detectadas con los modelos originales, encontramos que las estructuras coinciden con los módulos originales en cuanto a sus cuatro tipos de muros laterales y tipos de piso, y no coinciden con los muros interiores, que varían de un proyecto a otro. Esto indica que el marco de trabajo es robusto para extraer las estructuras estándar y repetidas de múltiples proyectos."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7: Configuration reasoner",
+            "es": "Figura 7: Razonador de configuración (configuration reasoner)"
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Figure 8: Frequent subgraph visualization in BIM",
+            "es": "Figura 8: Visualización de un subgrafo frecuente en BIM"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "DISCUSSION & LIMITATION",
+        "es": "DISCUSIÓN Y LIMITACIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The proposed framework provides a new method for the module library development by extracting frequent patterns from past projects. This matches the nature of most modular construction which shares a degree of repeatability. Besides, since the detected modules exist frequently in past projects, it might indicate a standard structure or process. Therefore, by developing such module libraries, the industrialized construction firms could not only obtain their featured product catalog but boost their productivity through standardization.",
+            "es": "El marco de trabajo propuesto ofrece un nuevo método para el desarrollo de bibliotecas de módulos (module library) mediante la extracción de patrones frecuentes de proyectos pasados. Esto coincide con la naturaleza de la mayor parte de la construcción modular (modular construction), que comparte cierto grado de repetibilidad. Además, dado que los módulos detectados existen con frecuencia en proyectos pasados, esto podría indicar una estructura o un proceso estándar. Por lo tanto, al desarrollar dichas bibliotecas de módulos, las empresas de construcción industrializada (industrialized construction) podrían no solo obtener su catálogo de productos distintivos, sino también aumentar su productividad mediante la estandarización."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The above work emphasizes the opportunity for productization of traditional construction projects. Past scholarship has suggested the need to achieve a higher level of product modularization in order to minimize the total number of components (Khalili and Chua, 2013). Similar research related to the optimal configuration of modules also highlights the importance of partitioning the building structures into independent components, so as to eliminate the interference caused by design change (Isaac and Navon, 2013). However, these approaches are project-based module identification. The modules might have different typologies in projects. With an increasing number of unique modules, the company might lose the production efficiency guaranteed by mass production.",
+            "es": "El trabajo anterior subraya la oportunidad de convertir en productos los proyectos de construcción tradicionales. Estudios previos han sugerido la necesidad de lograr un mayor nivel de modularización de productos con el fin de minimizar el número total de componentes (Khalili and Chua, 2013). Investigaciones similares relacionadas con la configuración óptima de módulos también destacan la importancia de dividir las estructuras de los edificios en componentes independientes, con el fin de eliminar la interferencia causada por los cambios de diseño (Isaac and Navon, 2013). Sin embargo, estos enfoques identifican módulos a nivel de proyecto. Los módulos podrían tener diferentes tipologías en distintos proyectos. Con un número creciente de módulos únicos, la empresa podría perder la eficiencia de producción que garantiza la producción en masa."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "By comparison, the framework presented in this study requires efforts to build a reusable module library. Since the modules are identified from past projects, the supply chain information, such as cost, quality and production time, etc., is easy to be obtained. When a new project comes in, the company can switch out one module for an alternative if required and notice the performance change immediately. In addition, the reuse of those modules will provide a continuous improvement cycle for companies to upgrade their projects and gain the return of investment from a single project (Tetik et al., 2019). As a result, the application of reusable modules can help the industry achieve economy of scale and integration along the value chain.",
+            "es": "En comparación, el marco de trabajo presentado en este estudio requiere esfuerzo para construir una biblioteca de módulos reutilizables. Dado que los módulos se identifican a partir de proyectos pasados, la información de la cadena de suministro, como el costo, la calidad y el tiempo de producción, entre otros, es fácil de obtener. Cuando llega un nuevo proyecto, la empresa puede sustituir un módulo por una alternativa si es necesario y notar de inmediato el cambio en el desempeño. Además, la reutilización de esos módulos proporcionará un ciclo de mejora continua para que las empresas actualicen sus proyectos y obtengan el retorno de la inversión a partir de un solo proyecto (Tetik et al., 2019). Como resultado, la aplicación de módulos reutilizables puede ayudar a la industria a lograr economías de escala e integración a lo largo de la cadena de valor."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "However, the framework has certain limitations. First, the detected patterns contain many irregular configurations. The same problem also exists in  Khalili’s research (Khalili and Chua, 2013). Existing shape analysis functions need to be improved. Secondly, historical project data might not share a consistent naming convention, causing lots of trouble to identify identical element types during the data preprocessing. A possible solution is to identify the same element by their common properties. Thirdly, the study does not incorporate structural analysis. Local boundary conditions, as well as connection types, are not specified clearly in most BIM files. Finally, the illustrative case demonstrates that the framework can detect standard and repeated patterns in the projects. More project settings need to be done, especially for industrialized construction firms without module libraries.",
+            "es": "Sin embargo, el marco de trabajo tiene ciertas limitaciones. Primero, los patrones detectados contienen muchas configuraciones irregulares. El mismo problema existe también en la investigación de Khalili (Khalili and Chua, 2013). Es necesario mejorar las funciones existentes de análisis de formas. En segundo lugar, los datos históricos de los proyectos podrían no compartir una convención de nomenclatura consistente, lo que causa muchas dificultades para identificar tipos de elementos idénticos durante el preprocesamiento de los datos. Una posible solución es identificar el mismo elemento por sus propiedades comunes. En tercer lugar, el estudio no incorpora análisis estructural. Las condiciones de frontera locales, así como los tipos de conexión, no se especifican con claridad en la mayoría de los archivos BIM. Por último, el caso ilustrativo demuestra que el marco de trabajo puede detectar patrones estándar y repetidos en los proyectos. Es necesario realizar más pruebas con otras configuraciones de proyectos, especialmente para empresas de construcción industrializada que no cuentan con bibliotecas de módulos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "CONCLUSION",
+        "es": "CONCLUSIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Modular construction demonstrates a series of benefits over traditional construction for appropriate project settings (Ferdous et al., 2019). More stakeholders adopt this approach by delivering their products from design to manufacturing and assembly. A module library is an important property owned by industrialized construction firms. The definition and categorization of modules have been illustrated in previous studies (Gosling et al., 2016) but the development of a reusable module library is limited due to the neglect of repeatability. To enable the adoption of modular construction by a greater segment of the industry, this research proposes a graph-based framework to identify modules from historical data automatically.",
+            "es": "La construcción modular demuestra una serie de beneficios frente a la construcción tradicional en entornos de proyecto apropiados (Ferdous et al., 2019). Más partes interesadas adoptan este enfoque al entregar sus productos desde el diseño hasta la manufactura y el ensamblaje. Una biblioteca de módulos es un activo importante de las empresas de construcción industrializada. La definición y la categorización de los módulos se han ilustrado en estudios previos (Gosling et al., 2016), pero el desarrollo de una biblioteca de módulos reutilizables es limitado debido a que se ha descuidado la repetibilidad. Para permitir la adopción de la construcción modular por un segmento mayor de la industria, esta investigación propone un marco de trabajo basado en grafos para identificar módulos de forma automática a partir de datos históricos."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "This paper attempts to make several contributions to the literature. First, it enriches the existing study of graphbased approach in the modular building design. The proposed framework represents design files as graphs and applied frequent pattern mining to identify the potential reusable modular structures. Second, it proves that manufacturability of the design can be integrated into the module development. The configuration reasoner could identify volumetric modules which satisfy manufacturing constraints. Third, the identified modules are tracked in the BIM environment for visualization and management. A BIM-based module library can benefit the integration of data from multi-stakeholders throughout the project life cycle.",
+            "es": "Este artículo pretende hacer varias contribuciones a la literatura. Primero, enriquece el estudio existente del enfoque basado en grafos en el diseño de edificios modulares. El marco de trabajo propuesto representa los archivos de diseño como grafos y aplica minería de patrones frecuentes (frequent pattern mining) para identificar las posibles estructuras modulares reutilizables. Segundo, demuestra que la manufacturabilidad del diseño puede integrarse en el desarrollo de módulos. El razonador de configuración podría identificar módulos volumétricos que satisfacen las restricciones de manufactura. Tercero, los módulos identificados se rastrean en el entorno BIM para su visualización y gestión. Una biblioteca de módulos basada en BIM puede beneficiar la integración de datos de múltiples partes interesadas a lo largo del ciclo de vida del proyecto."
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Future research should investigate additional questions such as:",
+            "es": "Las investigaciones futuras deberían indagar preguntas adicionales como:"
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "1. How could the module library be used to replace the existing design, to achieve economy of scales? This might require techniques of pattern matching. 2. How could design flexibility be implemented with a module library? A possible solution can be dividing the design into standard parts detected by our framework and remaining part for customization. 3. How scalable of the framework is regarding other project contexts? We plan to test the framework in different contextual settings.",
+            "es": "1. ¿Cómo podría usarse la biblioteca de módulos para reemplazar el diseño existente, a fin de lograr economías de escala? Esto podría requerir técnicas de coincidencia de patrones (pattern matching). 2. ¿Cómo podría implementarse la flexibilidad de diseño con una biblioteca de módulos? Una posible solución puede ser dividir el diseño en partes estándar detectadas por nuestro marco de trabajo y una parte restante para la personalización. 3. ¿Qué tan escalable es el marco de trabajo en relación con otros contextos de proyecto? Planeamos probar el marco de trabajo en diferentes contextos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "REFERENCE"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Boccaletti, S. et al. (2006) Complex networks: Structure and dynamics, Physics Reports, 424(4–5), pp. 175– 308."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Bonnici, V. et al. (2013) A subgraph isomorphism algorithm and its application to biochemical data, BMC Bioinformatics. BioMed Central Ltd, 14(SUPPL7), p. S13."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Chang, K.-H. and Cheng, C.-Y. (2020) Learning to simulate and design for structural engineering."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Cui, Y. et al. (2020) Creation and Diversified"
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Applications of Plane Module Libraries for Prefabricated Houses Based on BIM, Sustainability, 12(2), p.453."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Feloni, R. (2014) How Lego Came Back From The Brink"
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Of Bankruptcy, viewed Dec 2020, < https://www.businessinsider.com/how-lego-made-a-huge-turnaround-2014-2?r=US&IR=T>."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Ferdous, W. et al. (2019) New advancements, challenges and opportunities of multi-storey modular buildings – A state-of-the-art review, Engineering Structures, 183(January), pp. 883–893."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Gosling, J. et al. (2016) Defining and Categorizing"
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Modules in Building Projects: An International Perspective, Journal of Construction Engineering and Management, 142(11), pp. 1–11."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Hamid, M., Tolba, O. and El Antably, A. (2018) BIM semantics for digital fabrication: A knowledge-based approach, Automation in Construction, 91(March), pp. 62–82."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Hiyama, K. et al. (2014) A new method for reusing building information models of past projects to optimize the default configuration for performance simulations, Energy and Buildings, 73, pp. 83–91."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Hwang, B., Shan, M. and Looi, K. (2018) Key constraints and mitigation strategies for prefabricated pre fi nished volumetric construction, Journal of Cleaner Production, 183, pp. 183–193."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Isaac, S., Bock, T. and Stoliar, Y. (2016) A methodology for the optimal modularization of building design, Automation in Construction, 65, pp. 116–124."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Isaac, S. and Navon, R. (2013) A graph-based model for the identification of the impact of design changes, Automation in Construction, 31, pp. 31–40."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Khalili, A. and Chua, D. K. H. (2013) IFC-Based"
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Framework to Move beyond Individual Building Elements toward Configuring a Higher Level of Prefabrication, Journal of Computing in Civil Engineering, 27(3), pp. 243–253."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "McKinsey Capital Projects (2019) Modular construction :"
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "From projects to products, viewed Dec 2020, <https://www.mckinsey.com/business-functions/operations/our-insights/modular-construction-from-projects-to-products>."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Mrzic, A. et al. (2018) Grasping frequent subgraph mining for bioinformatics applications, BioData Mining, 11(1), pp. 1–24."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Murtaza, M. B., Fisher, D. J. and Skibniewski, M. J."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "(1993) Knowledge‐Based Approach to Modular Construction Decision Support, Journal of Construction Engineering and Management, 119(1), pp. 115–130."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Nath, T. et al. (2015) Automation in Construction"
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Productivity improvement of precast shop drawings generation through BIM-based process reengineering, Automation in Construction, 54, pp. 54– 68."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Nauata, N. et al. (2020) House-GAN: Relational"
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Generative Adversarial Networks for Graph-constrained House Layout Generation."
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Peltokorpi, A. et al. (2018) Categorizing modularization strategies to achieve various objectives of building investments, Construction Management and Economics, 36(1), pp. 32–48."
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Salama, T. et al. (2017) Near optimum selection of module configuration for efficient modular construction, Automation in Construction, 83, pp. 316–329."
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Samarasinghe, T. et al. (2019) Dependency Structure"
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Matrix and Hierarchical Clustering based algorithm for optimum module identification in MEP systems, Automation in Construction, 104(May 2018), pp. 153–178."
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Skandhakumar, N. et al. (2016) Graph theory based representation of building information models for access control applications, Automation in Construction, 68, pp. 44–51."
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Ślusarczyk, G. et al. (2017) An extended hierarchical graph-based building model for design and engineering problems, Automation in Construction, 74, pp. 95–102."
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Strug, B. (2013) Automatic design quality evaluation using graph similarity measures, Automation in Construction, 32, pp. 187–195."
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Strug, B., Grabska, E. and Ślusarczyk, G. (2014)"
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Supporting the design process with hypergraph genetic operators, Advanced Engineering Informatics, 28(1), pp. 11–27."
+          }
+        },
+        {
+          "id": "refs-36",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Strug, B. and Ślusarczyk, G. (2009) Reasoning about designs through frequent patterns mining, Advanced Engineering Informatics, 23(4), pp. 361–369."
+          }
+        },
+        {
+          "id": "refs-37",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Tetik, M. et al. (2019) Direct digital construction:"
+          }
+        },
+        {
+          "id": "refs-38",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Technology-based operations management practice for continuous improvement of construction industry performance, Automation in Construction, 107(July), p. 102910."
+          }
+        },
+        {
+          "id": "refs-39",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Viana, D., Tommelein, I. and Formoso, C. (2017) Using"
+          }
+        },
+        {
+          "id": "refs-40",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Modularity to Reduce Complexity of Industrialized Building Systems for Mass Customization, Energies, 10(10), p. 1622."
+          }
+        },
+        {
+          "id": "refs-41",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Wang, X., Yang, Y. and Zhang, K. (2018) Customization and generation of floor plans based on graph transformations, Automation in Construction, 94(December 2017), pp. 405–416."
+          }
+        },
+        {
+          "id": "refs-42",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "WikiHouse (2019) The DfMA Housing Manual, viewed"
+          }
+        },
+        {
+          "id": "refs-43",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Dec 2020, <https://docs.google.com/document/d/1OiLXP7QJ2h 4wMbdmypQByAi_fso7zWjLSdg8Lf4KvaY/edit>."
+          }
+        },
+        {
+          "id": "refs-44",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Wong, S. S. Y. and Chan, K. C. C. (2009) EvoArch: An evolutionary algorithm for architectural layout design, CAD Computer Aided Design, 41(9), pp. 649–667."
+          }
+        },
+        {
+          "id": "refs-45",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Yan, X. and Han, J. (2002) gSpan: Graph-based substructure pattern mining, Proceedings of the IEEE International Conference on Data Mining, ICDM, pp. 721–724."
+          }
+        },
+        {
+          "id": "refs-46",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Zawiślak, S. and Rysiński, J. (2017) Graph-Based"
+          }
+        },
+        {
+          "id": "refs-47",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Modelling in Engineering. Springer, Cham."
+          }
+        }
+      ]
+    }
+  ]
+}

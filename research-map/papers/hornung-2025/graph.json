@@ -1,0 +1,685 @@
+{
+  "version": 1,
+  "node": "hornung-2025",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "How can real-world BIM/IFC projects be converted into graph representations suitable for training Graph Neural Networks (GNNs)?",
+      "es": "¿Cómo se pueden convertir proyectos BIM/IFC reales en representaciones de grafo adecuadas para entrenar redes neuronales de grafos (GNN)?",
+      "blocks": [
+        "s0-p4",
+        "s2-p11"
+      ],
+      "key": "ifc-to-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "question",
+      "en": "Can a network trained on these graphs complete partial spatial graphs, predicting missing building components (node type and features) from the existing building context?",
+      "es": "¿Puede una red entrenada con estos grafos completar grafos espaciales parciales y predecir componentes faltantes (tipo de nodo y atributos) a partir del contexto del edificio existente?",
+      "blocks": [
+        "s0-p4",
+        "s2-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "A heterogeneous graph differentiates node and edge types to represent both geometric connections and semantic groupings. For example, it can model a column that is physically attached to a slab and semantically assigned to a room on a given building story.",
+      "es": "Un grafo heterogéneo distingue tipos de nodos y de aristas para representar conexiones geométricas y agrupaciones semánticas. Por ejemplo, puede modelar una columna unida físicamente a una losa y asignada semánticamente a un espacio de un nivel del edificio.",
+      "blocks": [
+        "s2-p9",
+        "fig-1"
+      ],
+      "key": "heterogeneous-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "claim",
+      "en": "Two gaps persist: heterogeneous graphs are scarcely employed in architectural ML, and most studies use synthetic or simplified data. Real IFC datasets from BIM projects remain largely untapped because of the complexity of parsing IFC schemas and the lack of a standardized graph-conversion pipeline.",
+      "es": "Persisten dos vacíos: los grafos heterogéneos casi no se usan en aprendizaje automático para arquitectura, y la mayoría de los estudios usa datos sintéticos o simplificados. Los conjuntos de datos IFC reales de proyectos BIM siguen sin aprovecharse por la complejidad de leer los esquemas IFC y la falta de un proceso estandarizado de conversión a grafos.",
+      "blocks": [
+        "s2-p9",
+        "s2-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "claim",
+      "en": "Image-based generative methods work on pixel data and do not encode true 3D geometry. Voxel-based 3D approaches struggle with non-orthogonal and unstructured geometries and cannot distinguish walls, doors and windows without extensive post-processing.",
+      "es": "Los métodos generativos basados en imágenes trabajan con píxeles y no codifican geometría 3D real. Los enfoques 3D con vóxeles tienen dificultades con geometrías no ortogonales y no estructuradas, y no distinguen muros, puertas y ventanas sin mucho posprocesamiento.",
+      "blocks": [
+        "s2-p5",
+        "s2-p6",
+        "s2-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "concept",
+      "en": "Autocompletion systems generate multiple probabilistic suggestions conditioned on partial user input, letting users select or refine proposals in real time (Lehmann and Buschek). The iterative feedback loop keeps the final output aligned with the user's intent.",
+      "es": "Los sistemas de autocompletado generan varias sugerencias probabilísticas a partir de una entrada parcial del usuario, que puede elegirlas o refinarlas en tiempo real (Lehmann y Buschek). El ciclo iterativo de retroalimentación mantiene el resultado alineado con la intención del usuario.",
+      "blocks": [
+        "s2-p2"
+      ],
+      "key": "autocompletion",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "dataset",
+      "en": "No public qualitative dataset was found, so residential BIM projects were solicited from offices in Germany and Austria: of 148 firms contacted, 24 provided substantive feedback, yielding 50 IFC files, of which 22 remained suitable. The other 28 lacked one or more of the six required IfcElement classes or failed from corruption or IfcOpenShell parsing errors.",
+      "es": "No se encontró un conjunto de datos público de calidad, así que se solicitaron proyectos BIM residenciales a oficinas de Alemania y Austria: de 148 despachos contactados, 24 dieron respuesta sustantiva y entregaron 50 archivos IFC, de los cuales 22 resultaron aptos. Los otros 28 carecían de una o más de las seis clases IfcElement requeridas o fallaron por corrupción o errores de lectura en IfcOpenShell.",
+      "blocks": [
+        "s3-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "To address the limited number of samples, data augmentation by rotating and mirroring expanded the dataset to approximately 109 buildings.",
+      "es": "Para compensar el número limitado de muestras, se aumentaron los datos rotando y reflejando los edificios, con lo que el conjunto llegó a aproximadamente 109 edificios.",
+      "blocks": [
+        "s3-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "IFC-standardized conventions for component types were adopted as a consistent baseline across all files, and customizable parameters were excluded because they are not standardized. Common issues, such as incorrect aggregation across stories and improper IFC categories (IfcColumn used for façade shading), required rigorous preprocessing.",
+      "es": "Se adoptaron las convenciones estándar de IFC para los tipos de componente como base uniforme en todos los archivos, y se excluyeron los parámetros personalizables por no estar estandarizados. Problemas comunes, como agregaciones incorrectas entre niveles y categorías IFC mal asignadas (IfcColumn usada para protección solar de fachada), exigieron un preprocesamiento riguroso.",
+      "blocks": [
+        "s3-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "A custom schema, inspired by the BOT ontology, turns each building into a directed NetworkX graph whose nodes are IfcObject instances. Edges encode spatial and semantic relations based on bounding-box overlap and IFC containment or aggregation metadata.",
+      "es": "Un esquema propio, inspirado en la ontología BOT, convierte cada edificio en un grafo dirigido de NetworkX cuyos nodos son instancias de IfcObject. Las aristas codifican relaciones espaciales y semánticas a partir del traslape de cajas envolventes y de los metadatos IFC de contención o agregación.",
+      "blocks": [
+        "s3-p4",
+        "fig-2"
+      ],
+      "key": "ifc-graph-schema",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "Six basic IfcElements describe a simple building: IfcBuildingStorey, IfcSpace, IfcSlab, IfcWall, IfcColumn and IfcBeam. Relations are stored as subject-predicate-object triplets (e.g. isAbove, hasWall, inStorey, intersectsSpace) used as directed edges.",
+      "es": "Seis IfcElements básicos describen un edificio simple: IfcBuildingStorey, IfcSpace, IfcSlab, IfcWall, IfcColumn e IfcBeam. Las relaciones se guardan como tripletas sujeto-predicado-objeto (por ejemplo isAbove, hasWall, inStorey, intersectsSpace) que funcionan como aristas dirigidas.",
+      "blocks": [
+        "s3-p5",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Each node gets a simplified geometry, a minimal oriented bounding box, because doors, windows and openings create irregular polygons. Box center, width, length, height and normalized box vectors plus a six-dimensional one-hot node type make a 15-dimensional vector per node.",
+      "es": "Cada nodo recibe una geometría simplificada, una caja envolvente orientada mínima, porque puertas, ventanas y huecos generan polígonos irregulares. El centro de la caja, su ancho, largo y alto, los vectores normalizados de la caja y un one-hot de seis dimensiones para el tipo de nodo forman un vector de 15 dimensiones por nodo.",
+      "blocks": [
+        "s3-p6",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "The 15-dimensional vectors produced overly abstract geometries, so the tensor was reduced to [x, y, z, α, mx, my, mz]. Each element's local vz is assumed to be (0, 0, 1), vx is projected to the global XY-plane, vy comes from a cross product, and α is the angle of vx to the global X-axis normalized to [0, 1].",
+      "es": "Los vectores de 15 dimensiones producían geometrías demasiado abstractas, así que el tensor se redujo a [x, y, z, α, mx, my, mz]. Se supone que el vz local de cada elemento es (0, 0, 1), vx se proyecta al plano XY global, vy sale de un producto cruz, y α es el ángulo de vx respecto al eje X global normalizado a [0, 1].",
+      "blocks": [
+        "s3-p12",
+        "s3-p13",
+        "s3-e4",
+        "s3-e5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "A modified Breadth-First Search (BFS) divided each building graph into subgraphs of 20 nodes each. This yielded over 600.000 heterogeneous subgraphs of building components and their local relationships.",
+      "es": "Una búsqueda en anchura (BFS) modificada dividió cada grafo de edificio en subgrafos de 20 nodos cada uno. Esto produjo más de 600.000 subgrafos heterogéneos con componentes del edificio y sus relaciones locales.",
+      "blocks": [
+        "s3-p14",
+        "s3-p15"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "Inspired by DGMG, each subgraph is iteratively deconstructed by removing nodes and edges. The partially deconstructed graph is stored as the training input, paired with the removed nodes as ground truth; no removal may split the graph into disjoint parts.",
+      "es": "Inspirada en DGMG, cada subgrafo se deconstruye de forma iterativa quitando nodos y aristas. El grafo parcialmente deconstruido se guarda como entrada de entrenamiento, emparejado con los nodos removidos como verdad de referencia; ninguna remoción puede partir el grafo en partes desconectadas.",
+      "blocks": [
+        "s3-p16",
+        "s3-p17"
+      ],
+      "key": "graph-deconstruction",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "Node removal order follows one of three algorithms: hierarchical BFS (hBFS) and random BFS (rBFS), which differ in a hierarchical prioritized or a random starting point, and Minimum Node Degree (MND), which takes the node with the smallest edge degree.",
+      "es": "El orden de remoción de nodos sigue uno de tres algoritmos: BFS jerárquico (hBFS) y BFS aleatorio (rBFS), que difieren en usar un punto de partida jerárquico priorizado o uno aleatorio, y grado mínimo de nodo (MND), que toma el nodo con menos aristas.",
+      "blocks": [
+        "s3-p16"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "dataset",
+      "en": "Deconstruction produced over 1.8 million subgraph and removed-node pairs. Over- and undersampling balanced the node types (walls and spaces were over-represented), giving IFC_180k with 180 000 unique samples and no more than 30.000 instances per node type, and a smaller IFC_18k with 18.000 samples and 3.000 elements per type.",
+      "es": "La deconstrucción produjo más de 1.8 millones de pares de subgrafo y nodo removido. El sobremuestreo y submuestreo balanceó los tipos de nodo (muros y espacios estaban sobrerrepresentados) y dio IFC_180k con 180 000 muestras únicas y no más de 30.000 instancias por tipo de nodo, además de un IFC_18k más pequeño con 18.000 muestras y 3.000 elementos por tipo.",
+      "blocks": [
+        "s3-p18",
+        "tab-2"
+      ],
+      "key": "ifc-180k",
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Graph-level embeddings of the 109 buildings come from a lightweight GNN (SAGEConv, layer sizes 13-32-64-128, one GRU layer, AdaptiveMaxPool1d of size 512). K-means with the elbow method sets the number of clusters, and PCA reduces to 2D for visualization; the same analysis is applied to IFC_hBFS_180k, IFC_rBFS_180k and IFC_MND_180k.",
+      "es": "Los embeddings a nivel de grafo de los 109 edificios provienen de una GNN ligera (SAGEConv, capas de 13-32-64-128, una capa GRU, AdaptiveMaxPool1d de tamaño 512). K-means con el método del codo fija el número de clústeres y PCA reduce a 2D para visualizar; el mismo análisis se aplica a IFC_hBFS_180k, IFC_rBFS_180k e IFC_MND_180k.",
+      "blocks": [
+        "s3-p20",
+        "s3-p21",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "The elbow method showed k = 2 and k = 4 as the most expressive, where inertia decreased the sharpest. The PCA view of the buildings revealed distinct clusters, each a group of buildings with similar characteristics.",
+      "es": "El método del codo mostró que k = 2 y k = 4 eran los más expresivos, donde la inercia disminuía más bruscamente. La vista PCA de los edificios reveló clústeres distintos, cada uno con edificios de características similares.",
+      "blocks": [
+        "s3-p20",
+        "s3-p21",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "The cluster analysis indicated a skewed distribution, reflecting the limited diversity of the initial building sample. IFC_hBFS_180k differs markedly from IFC_rBFS_180k and IFC_MND_180k, likely due to their random sampling, and training on the three datasets gave differentiated performance metrics.",
+      "es": "El análisis de clústeres indicó una distribución sesgada, reflejo de la poca diversidad de la muestra inicial de edificios. IFC_hBFS_180k difiere notablemente de IFC_rBFS_180k e IFC_MND_180k, probablemente por su muestreo aleatorio, y el entrenamiento con los tres conjuntos dio métricas de desempeño distintas.",
+      "blocks": [
+        "s4-p2",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "method",
+      "en": "Two test networks were trained: a multi-label classification network that predicts new node labels and a regression network that predicts new node features. DGL handled graph operations and PyTorch the perceptrons, pooling and training workflow; hyperparameters were not exhaustively optimized.",
+      "es": "Se entrenaron dos redes de prueba: una red de clasificación multietiqueta que predice nuevas etiquetas de nodo y una red de regresión que predice nuevos atributos de nodo. DGL manejó las operaciones de grafos y PyTorch los perceptrones, el pooling y el flujo de entrenamiento; los hiperparámetros no se optimizaron exhaustivamente.",
+      "blocks": [
+        "s4-p1",
+        "s4-p3",
+        "s3-p19"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "After 20 epochs (approximately 80 hours) on IFC_hBFS_180k, the classification network reaches an overall accuracy of about 79% in predicting node types. Macro-averaged precision is 79.0% and recall 79.29%, and micro-averaged precision and recall are both 79.26%.",
+      "es": "Tras 20 épocas (aproximadamente 80 horas) con IFC_hBFS_180k, la red de clasificación alcanza una exactitud global de cerca de 79% al predecir tipos de nodo. La precisión macro promedio es 79.0% y la exhaustividad 79.29%, y la precisión y la exhaustividad micro promedio son ambas 79.26%.",
+      "blocks": [
+        "s4-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "Class precisions are 91.2% for building storey, 77.3% for space, 68.9% for slab, 69.0% for wall, 80.6% for column and 87.0% for beam.",
+      "es": "Las precisiones por clase son 91.2% para nivel del edificio, 77.3% para espacio, 68.9% para losa, 69.0% para muro, 80.6% para columna y 87.0% para viga.",
+      "blocks": [
+        "s4-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "Comparing vertices of the reconstructed bounding box with ground truth, the regression models reach an average convergence distance of approximately 15 meters when coordinates are known, versus approximately 22 meters when unknown. Known coordinates leave only angle and dimensions to predict, reducing the output size to four.",
+      "es": "Al comparar los vértices de la caja envolvente reconstruida con la verdad de referencia, los modelos de regresión alcanzan una distancia promedio de convergencia de aproximadamente 15 metros cuando se conocen las coordenadas, frente a aproximadamente 22 metros cuando no se conocen. Con coordenadas conocidas solo quedan por predecir el ángulo y las dimensiones, y la salida se reduce a cuatro valores.",
+      "blocks": [
+        "s4-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "Although a 22 meter error is conventionally considered poor, visual inspection shows the network captured correct spatial relationships between components. Columns were frequently predicted with proportions consistent with their context and positioned between or close to slabs.",
+      "es": "Aunque un error de 22 metros se considera convencionalmente malo, la inspección visual muestra que la red captó relaciones espaciales correctas entre componentes. Las columnas se predijeron con frecuencia con proporciones coherentes con su contexto y ubicadas entre las losas o cerca de ellas.",
+      "blocks": [
+        "s4-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "method",
+      "en": "A Hops script links Python to Rhinoceros-3D/Grasshopper: user-defined 3D components become graphs, the networks predict node type and features, and predictions return as 3D geometry. Users accept, reject or manually adjust each component, and each interaction updates the graph and triggers a new prediction.",
+      "es": "Un script de Hops conecta Python con Rhinoceros-3D/Grasshopper: los componentes 3D definidos por el usuario se vuelven grafos, las redes predicen tipo de nodo y atributos, y las predicciones regresan como geometría 3D. El usuario acepta, rechaza o ajusta a mano cada componente, y cada interacción actualiza el grafo y dispara una nueva predicción.",
+      "blocks": [
+        "s4-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "The visual evaluation of predicted building elements revealed both effective and flawed predictions (Figure 6 shows a poor and a good one). The authors read this as showing the model's potential and areas for improvement in spatial reasoning.",
+      "es": "La evaluación visual de los elementos predichos reveló predicciones tanto acertadas como defectuosas (la Figura 6 muestra una mala y una buena). Los autores lo leen como muestra del potencial del modelo y de áreas de mejora en razonamiento espacial.",
+      "blocks": [
+        "s4-p6",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "claim",
+      "en": "The methodology shows how IFC data can be transformed into a graph representation suitable for training generative models. This enables tools like an architectural design co-pilot that suggests building components based on spatial and functional context.",
+      "es": "La metodología muestra cómo los datos IFC pueden transformarse en una representación de grafo adecuada para entrenar modelos generativos. Esto permite herramientas como un copiloto de diseño arquitectónico que sugiere componentes del edificio según el contexto espacial y funcional.",
+      "blocks": [
+        "s5-p1",
+        "s0-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "claim",
+      "en": "LLM agents act as co-pilots for design autocompletion; for example, Text2BIM turns text descriptions into BIM elements and code validated against regulations. They depend on text and rule-based checks rather than direct use of geometric IFC data.",
+      "es": "Los agentes basados en LLM funcionan como copilotos para autocompletar el diseño; por ejemplo, Text2BIM convierte descripciones de texto en elementos BIM y código validado contra reglamentos. Dependen de texto y de verificaciones basadas en reglas, no del uso directo de datos geométricos IFC.",
+      "blocks": [
+        "s2-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "concept",
+      "en": "Graphs represent entities as nodes and their interactions as edges, integrating topological information directly into processing and analysis. Hillier argues that the complexity of the built environment emerges from local configurational rules that descriptive language alone cannot capture.",
+      "es": "Los grafos representan entidades como nodos y sus interacciones como aristas, e integran la información topológica directamente en el procesamiento y el análisis. Hillier sostiene que la complejidad del entorno construido surge de reglas configuracionales locales que el lenguaje descriptivo por sí solo no puede capturar.",
+      "blocks": [
+        "s2-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "limitation",
+      "en": "Real IFC data is inconsistent because modeling practices are not standardized, which complicates preprocessing. The usable sample is small (22 of 50 files) and of limited diversity.",
+      "es": "Los datos IFC reales son inconsistentes porque las prácticas de modelado no están estandarizadas, lo que complica el preprocesamiento. La muestra utilizable es pequeña (22 de 50 archivos) y de diversidad limitada.",
+      "blocks": [
+        "s5-p2",
+        "s3-p3",
+        "s4-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "limitation",
+      "en": "Simplifications such as bounding-box approximation and tensor engineering were found to potentially lose spatial and relational details.",
+      "es": "Se encontró que simplificaciones como la aproximación con cajas envolventes y la ingeniería del tensor podrían perder detalles espaciales y relacionales.",
+      "blocks": [
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "limitation",
+      "en": "The large, dense nature of heterogeneous graphs, while expressive, posed computational challenges.",
+      "es": "La naturaleza grande y densa de los grafos heterogéneos, aunque expresiva, planteó retos computacionales.",
+      "blocks": [
+        "s5-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "limitation",
+      "en": "The results are preliminary: configurations and hyperparameters were not exhaustively optimized. The authors state that additional evaluation is necessary to fully assess the methodology's effectiveness and practical relevance.",
+      "es": "Los resultados son preliminares: las configuraciones y los hiperparámetros no se optimizaron exhaustivamente. Los autores indican que hace falta más evaluación para valorar por completo la efectividad de la metodología y su relevancia práctica.",
+      "blocks": [
+        "s4-p1",
+        "s5-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i35",
+      "kind": "limitation",
+      "en": "The graph uses only six IfcElement classes, sufficient for a simple building, and excludes customizable parameters because of the lack of standardization. The simplified DGMG-style deconstruction stores only nodes and disregards edge deletion and termination probability.",
+      "es": "El grafo usa solo seis clases IfcElement, suficientes para un edificio simple, y excluye los parámetros personalizables por falta de estandarización. La deconstrucción al estilo DGMG simplificado guarda solo nodos y no considera la eliminación de aristas ni la probabilidad de terminación.",
+      "blocks": [
+        "s3-p5",
+        "s3-p4",
+        "s3-p17"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i36",
+      "kind": "future",
+      "en": "Integrate more features or explore other techniques to simplify geometry while preserving critical information. Use vector similarity search or hardcoded dictionaries for variable custom properties and naming, and filter more selectively, for example by retaining IFC property sets and excluding only files that lack essential elements or have technical errors.",
+      "es": "Integrar más atributos o explorar otras técnicas para simplificar la geometría conservando la información crítica. Usar búsqueda por similitud de vectores o diccionarios predefinidos para la variabilidad de propiedades personalizadas y nombres, y filtrar con más matiz, por ejemplo conservando conjuntos de propiedades IFC y excluyendo solo archivos sin elementos esenciales o con errores técnicos.",
+      "blocks": [
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i37",
+      "kind": "future",
+      "en": "Study architectural graph ontologies and their impact on GNN performance. Expanding the ontology to material properties, spatial programs and qualitative attributes would improve applications such as Mechanical, Electrical, and Plumbing (MEP) systems.",
+      "es": "Estudiar las ontologías de grafos arquitectónicos y su efecto en el desempeño de las GNN. Ampliar la ontología a propiedades de materiales, programas espaciales y atributos cualitativos mejoraría aplicaciones como los sistemas de instalaciones mecánicas, eléctricas y sanitarias (MEP).",
+      "blocks": [
+        "s5-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i38",
+      "kind": "future",
+      "en": "Embed the geometry-to-graph transformation and AI prediction pipeline directly within BIM platforms through native plugins and platform APIs. This would enable seamless IFC ingestion and real-time, context-informed design feedback.",
+      "es": "Integrar la transformación de geometría a grafo y el proceso de predicción con IA directamente en plataformas BIM mediante plugins nativos y APIs de la plataforma. Esto permitiría ingerir IFC sin fricción y dar retroalimentación de diseño en tiempo real según el contexto.",
+      "blocks": [
+        "s5-p4"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i4",
+      "to": "i1",
+      "type": "supports",
+      "why": "The gap in graph-based work with real data motivates the conversion question."
+    },
+    {
+      "from": "i5",
+      "to": "i3",
+      "type": "supports",
+      "why": "Pixel and voxel limits motivate graphs that keep individual elements apart."
+    },
+    {
+      "from": "i30",
+      "to": "i3",
+      "type": "supports",
+      "why": "Graphs put relationships and topology directly into the representation."
+    },
+    {
+      "from": "i29",
+      "to": "i4",
+      "type": "supports",
+      "why": "LLM approaches rely on text and rules, leaving geometric IFC data untapped."
+    },
+    {
+      "from": "i10",
+      "to": "i3",
+      "type": "uses",
+      "why": "The schema produces heterogeneous graphs with typed nodes and edges."
+    },
+    {
+      "from": "i11",
+      "to": "i10",
+      "type": "part-of",
+      "why": "The six classes and the Table 1 predicates define the schema's content."
+    },
+    {
+      "from": "i9",
+      "to": "i10",
+      "type": "supports",
+      "why": "IFC-standard component types give all files a consistent baseline for the schema."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "uses",
+      "why": "Rotation and mirroring expand the 22 usable files."
+    },
+    {
+      "from": "i12",
+      "to": "i10",
+      "type": "part-of",
+      "why": "Node features attach to the nodes the schema defines."
+    },
+    {
+      "from": "i13",
+      "to": "i12",
+      "type": "uses",
+      "why": "The 7-value tensor is a reduction of the 15-dimensional node vector."
+    },
+    {
+      "from": "i14",
+      "to": "i8",
+      "type": "uses",
+      "why": "Splitting is applied to the 109 augmented building graphs."
+    },
+    {
+      "from": "i15",
+      "to": "i14",
+      "type": "uses",
+      "why": "Each 20-node subgraph is deconstructed into input-output pairs."
+    },
+    {
+      "from": "i16",
+      "to": "i15",
+      "type": "part-of",
+      "why": "The three algorithms set the order in which nodes are removed."
+    },
+    {
+      "from": "i17",
+      "to": "i15",
+      "type": "uses",
+      "why": "The 1.8 million pairs come from deconstruction and are then balanced."
+    },
+    {
+      "from": "i18",
+      "to": "i17",
+      "type": "measures",
+      "why": "Clustering examines how the preprocessed datasets are distributed."
+    },
+    {
+      "from": "i19",
+      "to": "i8",
+      "type": "measures",
+      "why": "Clusters of the 109 building embeddings show how the buildings group."
+    },
+    {
+      "from": "i20",
+      "to": "i17",
+      "type": "measures",
+      "why": "Compares the distribution of the three deconstruction variants of the dataset."
+    },
+    {
+      "from": "i20",
+      "to": "i31",
+      "type": "supports",
+      "why": "A skewed distribution reflects the limited diversity of the initial sample."
+    },
+    {
+      "from": "i7",
+      "to": "i31",
+      "type": "supports",
+      "why": "Only 22 of 50 files were usable."
+    },
+    {
+      "from": "i21",
+      "to": "i17",
+      "type": "uses",
+      "why": "Both networks train on the deconstruction datasets, reported here for IFC_hBFS_180k."
+    },
+    {
+      "from": "i22",
+      "to": "i21",
+      "type": "measures",
+      "why": "Accuracy, precision and recall of the classification network."
+    },
+    {
+      "from": "i23",
+      "to": "i22",
+      "type": "part-of",
+      "why": "Per-class precisions break down the overall figures."
+    },
+    {
+      "from": "i24",
+      "to": "i21",
+      "type": "measures",
+      "why": "Bounding-box vertex distance for the regression network."
+    },
+    {
+      "from": "i22",
+      "to": "i2",
+      "type": "supports",
+      "why": "Missing element types are predicted at about 79% accuracy."
+    },
+    {
+      "from": "i25",
+      "to": "i2",
+      "type": "supports",
+      "why": "Visual inspection finds correct spatial relationships despite the large distance error."
+    },
+    {
+      "from": "i26",
+      "to": "i21",
+      "type": "uses",
+      "why": "It loads the trained networks to predict components in context."
+    },
+    {
+      "from": "i26",
+      "to": "i6",
+      "type": "example-of",
+      "why": "Suggest, then accept or refine, follows the autocompletion loop."
+    },
+    {
+      "from": "i27",
+      "to": "i26",
+      "type": "measures",
+      "why": "Visual evaluation of what the Grasshopper co-pilot proposes."
+    },
+    {
+      "from": "i28",
+      "to": "i1",
+      "type": "supports",
+      "why": "The paper claims its pipeline answers the conversion question."
+    },
+    {
+      "from": "i22",
+      "to": "i28",
+      "type": "supports",
+      "why": "Classification results show a model can learn from the graphs."
+    },
+    {
+      "from": "i27",
+      "to": "i28",
+      "type": "supports",
+      "why": "Good predictions in the co-pilot show the idea can work."
+    },
+    {
+      "from": "i36",
+      "to": "i31",
+      "type": "supports",
+      "why": "Proposed remedy for variable properties, naming and file filtering."
+    },
+    {
+      "from": "i36",
+      "to": "i32",
+      "type": "supports",
+      "why": "Proposed alternative geometry simplifications that preserve more information."
+    },
+    {
+      "from": "i37",
+      "to": "i33",
+      "type": "supports",
+      "why": "Ontology studies are proposed to address dense graphs."
+    },
+    {
+      "from": "i38",
+      "to": "i26",
+      "type": "supports",
+      "why": "Would move the suggestion loop from Grasshopper into BIM platforms."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i15",
+      "to": "question",
+      "why": "A concrete way to decompose models into elements and relations and use the removed pieces as training targets for generation."
+    },
+    {
+      "idea": "i22",
+      "to": "hypothesis",
+      "why": "Support: a model trained on element-and-relation graphs predicts missing node types at about 79% accuracy, though the regression error of about 22 meters keeps it preliminary."
+    },
+    {
+      "idea": "i10",
+      "to": "ifc",
+      "why": "A worked IFC-to-graph schema (six classes, containment and bounding-box edges) that also lists the data problems real IFC files bring."
+    },
+    {
+      "idea": "i26",
+      "to": "proposed-vs-kept",
+      "why": "The accept, reject or adjust loop is where proposed-versus-kept signals would arise; the paper does not record them."
+    },
+    {
+      "idea": "i4",
+      "to": "procthor-2022",
+      "why": "Challenge: it argues the gap is real files rather than synthetic ones, a point against purely procedural datasets."
+    },
+    {
+      "idea": "i38",
+      "to": "cbim-2023",
+      "why": "Gap: predictions come back as Rhino geometry, not BIM elements, and return to a BIM platform is left as future work."
+    },
+    {
+      "idea": "i17",
+      "to": "dataset-purposes",
+      "why": "A dataset built for one purpose, training node completion, and balanced by element type through over- and undersampling."
+    },
+    {
+      "idea": "i14",
+      "to": "cao-hall-2021",
+      "why": "Cuts buildings into fixed 20-node BFS subgraphs instead of mining recurring modules, a contrast worth comparing."
+    },
+    {
+      "idea": "i35",
+      "to": "correct-by-construction",
+      "why": "Gap: predictions carry only node type and bounding-box features, with customizable parameters excluded, so generated output holds little BIM information."
+    }
+  ]
+}

@@ -1,0 +1,570 @@
+{
+  "version": 1,
+  "node": "ladron-2025",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "claim",
+      "en": "The paper argues that progress in room-level BIM layout is bottlenecked less by the algorithm than by the representation it operates on. A good representation must expose structure, generalize across typologies, and remain BIM-editable.",
+      "es": "El artículo sostiene que el avance en la distribución de cuartos en BIM está limitado menos por el algoritmo que por la representación sobre la que opera. Una buena representación debe exponer la estructura, generalizar entre tipologías y seguir siendo editable en BIM.",
+      "blocks": [
+        "s1-p1"
+      ],
+      "key": "representation-bottleneck",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "question",
+      "en": "Can a BIM-native tokenization serve as a useful primitive for constraint-aware room layout synthesis? The paper does not claim a new general Transformer architecture, only that a careful tokenization helps.",
+      "es": "¿Puede una tokenización nativa de BIM servir como primitiva útil para sintetizar distribuciones de cuartos que respeten restricciones? El artículo no afirma una nueva arquitectura Transformer general, solo que una tokenización cuidadosa ayuda.",
+      "blocks": [
+        "s1-p3",
+        "s0-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "A BIM-Token Bundle is a sequence unit for one logical element (topology, layout, wall, door, window or entity). It carries the element's category, hosting wall, parametric position, offset, dimensions and rotation, so every output stays editable as a BIM object.",
+      "es": "Un BIM-Token Bundle es una unidad de secuencia para un elemento lógico (topología, layout, muro, puerta, ventana o entidad). Lleva la categoría, el muro anfitrión, la posición paramétrica, el desfase, las dimensiones y la rotación, por lo que cada salida sigue siendo editable como objeto BIM.",
+      "blocks": [
+        "s1-p2",
+        "s3-p5",
+        "s3-p6",
+        "s3-p7"
+      ],
+      "key": "bim-token-bundle",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "Positions are expressed relative to the host wall (edge index, normalized position t in [0,1], lateral offset), which makes them invariant to absolute translation and scale. This follows the BIM convention that many elements are hosted by and edited relative to a wall.",
+      "es": "Las posiciones se expresan relativas al muro anfitrión (índice de arista, posición normalizada t en [0,1], desfase lateral), lo que las hace invariantes a la traslación y escala absolutas. Esto sigue la convención de BIM de que muchos elementos están alojados en un muro y se editan respecto a él.",
+      "blocks": [
+        "s1-p2",
+        "s3-p4"
+      ],
+      "key": "wall-referenced-coordinates",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "Each room is decomposed into an envelope (room type, global scalars, walls, doors, windows) and contents (props and casework). The encoder reads only the envelope and the decoder generates the entity sequence.",
+      "es": "Cada cuarto se descompone en una envolvente (tipo de cuarto, escalares globales, muros, puertas, ventanas) y un contenido (muebles y carpintería). El codificador lee solo la envolvente y el decodificador genera la secuencia de entidades.",
+      "blocks": [
+        "s3-p3",
+        "s3-p1"
+      ],
+      "key": "room-decomposition",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Walls are directed segments in counter-clockwise order that define the room polygon, and doors and windows are hosted on a wall edge. Each entity stores its type, supporting edge, wall-relative position, lateral offset, size, rotation (props only) and other categorical attributes.",
+      "es": "Los muros son segmentos dirigidos en sentido antihorario que definen el polígono del cuarto, y las puertas y ventanas se alojan en una arista de muro. Cada entidad guarda su tipo, arista de soporte, posición relativa al muro, desfase lateral, tamaño, rotación (solo muebles) y otros atributos categóricos.",
+      "blocks": [
+        "s3-e1",
+        "s3-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "Bundles are the columns of a sparse attribute–feature matrix whose rows are token features, with inactive entries filled by a sentinel value of -100. This lets one backbone handle topology, wall, opening and entity tokens without forcing them into a lossy common schema.",
+      "es": "Los bundles son las columnas de una matriz dispersa de atributos–características cuyas filas son rasgos del token, con las entradas inactivas rellenadas con un valor centinela de -100. Así un mismo backbone maneja tokens de topología, muros, aberturas y entidades sin forzarlos a un esquema común con pérdida.",
+      "blocks": [
+        "s3-p7",
+        "s1-p2"
+      ],
+      "key": "attribute-feature-matrix",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "A shared FeatureEmbedding turns the matrix into token vectors: embedding tables for categorical features, small MLPs for scalars, and a MultiContinuousEmbedding with self-attention for grouped continuous features. A validity mask zeroes inactive features and the bundle embedding is the sum of the active ones.",
+      "es": "Un FeatureEmbedding compartido convierte la matriz en vectores de token: tablas de embeddings para variables categóricas, MLP pequeños para escalares y un MultiContinuousEmbedding con autoatención para rasgos continuos agrupados. Una máscara de validez anula los rasgos inactivos y el embedding del bundle es la suma de los activos.",
+      "blocks": [
+        "s3-p7"
+      ],
+      "key": "mixed-type-embedding",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "One Transformer encoder–decoder runs in two modes sharing weights. Encoder-only gives a pooled CLS room embedding for retrieval, and encoder–decoder mode (DDEP, Data-Driven Entity Prediction) places entities autoregressively.",
+      "es": "Un solo Transformer codificador–decodificador opera en dos modos que comparten pesos. El modo solo codificador da un embedding de cuarto (CLS) para recuperación, y el modo codificador–decodificador (DDEP, Data-Driven Entity Prediction) coloca entidades de forma autorregresiva.",
+      "blocks": [
+        "s3-p1",
+        "s3-p9",
+        "s1-p2"
+      ],
+      "key": "ddep",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "At inference a constrained decoding layer filters the output distribution to enforce BIM validity, including egress clearance and door-swing zones. The paper describes it as a validity guard over candidate tokens, not a post-hoc layout optimizer.",
+      "es": "En la inferencia, una capa de decodificación restringida filtra la distribución de salida para imponer validez BIM, incluidas la holgura de salida y las zonas de abatimiento de puertas. El artículo la describe como una guarda de validez sobre tokens candidatos, no como un optimizador posterior del layout.",
+      "blocks": [
+        "s3-p9",
+        "s1-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "Training has two stages: encoder pretraining with room-type classification, masked-token prediction, graded triplet contrastive learning and geometric preservation, then encoder–decoder fine-tuning via teacher forcing. Cross-entropy is used on categorical heads and MSE on continuous heads.",
+      "es": "El entrenamiento tiene dos etapas: preentrenamiento del codificador con clasificación de tipo de cuarto, predicción de tokens enmascarados, aprendizaje contrastivo con tripletas graduadas y preservación geométrica; luego ajuste fino codificador–decodificador con teacher forcing. Se usa entropía cruzada en las cabezas categóricas y MSE en las continuas.",
+      "blocks": [
+        "s3-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "dataset",
+      "en": "The controlled same-data benchmark uses a frozen split of 15,740/2,009/1,826 rooms (train/val/test) across five room types. All methods train from scratch for 200 epochs with no method-specific tuning and are evaluated on a shared 1,225-room geometry-valid intersection.",
+      "es": "El benchmark controlado con los mismos datos usa una partición fija de 15,740/2,009/1,826 cuartos (entrenamiento/validación/prueba) en cinco tipos de cuarto. Todos los métodos se entrenan desde cero por 200 épocas sin ajuste específico y se evalúan en una intersección compartida de 1,225 cuartos con geometría válida.",
+      "blocks": [
+        "s4-p4"
+      ],
+      "key": "ladron-controlled-split",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "dataset",
+      "en": "Production DDEP pretrains the encoder on a full augmented corpus of 439,932 samples over 53 room types, then fine-tunes per room type on a 75,720-sample DDEP subset (14 types). It is tested on a 50-room held-out set, drawn from a proprietary corpus of professional residential BIM scenes.",
+      "es": "El DDEP de producción preentrena el codificador con un corpus aumentado de 439,932 muestras en 53 tipos de cuarto, y luego lo ajusta por tipo de cuarto con un subconjunto DDEP de 75,720 muestras (14 tipos). Se prueba en un conjunto reservado de 50 cuartos, tomado de un corpus propietario de escenas BIM residenciales profesionales.",
+      "blocks": [
+        "s4-p5",
+        "s4-p1",
+        "s5-p2"
+      ],
+      "key": "higharc-production-corpus",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "Three metrics are reported together. Coverage (Cov.) scores the placed inventory against allowed counts, Navigability (Nav = 100(SR − 0.35 DF)) uses A* routing from door portals to essential targets, and Overlap–Clearance (OC) measures overlaps and door-clearance intrusion. Each can be gamed alone (sparse rooms have good OC), so they must be read jointly.",
+      "es": "Se reportan tres métricas en conjunto. La cobertura (Cov.) califica el inventario colocado contra los conteos permitidos, la navegabilidad (Nav = 100(SR − 0.35 DF)) usa ruteo A* desde las puertas hasta los objetivos esenciales, y el traslape–holgura (OC) mide traslapes e intrusión en la holgura de puertas. Cada una puede manipularse por separado (los cuartos vacíos tienen buen OC), por lo que deben leerse juntas.",
+      "blocks": [
+        "s4-p5",
+        "s4-p6",
+        "s4-p7"
+      ],
+      "key": "coverage-nav-oc",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "result",
+      "en": "On the same-data benchmark, DDEP reaches 54.9 coverage and 14.6 navigability, beating ATISS by +14.1 coverage and +44.9 navigability and BLT by +37.1 coverage and +33.2 navigability. Its SR is 0.36 vs. 0.03/0.12 and its DF is 0.60 vs. 0.97/0.88.",
+      "es": "En el benchmark con los mismos datos, DDEP alcanza 54.9 de cobertura y 14.6 de navegabilidad, superando a ATISS por +14.1 de cobertura y +44.9 de navegabilidad, y a BLT por +37.1 de cobertura y +33.2 de navegabilidad. Su SR es 0.36 frente a 0.03/0.12 y su DF es 0.60 frente a 0.97/0.88.",
+      "blocks": [
+        "s4-p15",
+        "s4-p11",
+        "s4-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "The baselines fail in opposite ways. ATISS has a near-zero OC (0.5%) because its outputs are sparse and leave almost all targets unreachable, while BLT has 35.7% OC. The paper calls the key result a functional tradeoff rather than a single scalar win.",
+      "es": "Las líneas base fallan de formas opuestas. ATISS tiene un OC casi nulo (0.5%) porque sus salidas son escasas y dejan casi todos los objetivos inalcanzables, mientras que BLT tiene 35.7% de OC. El artículo dice que el resultado clave es un compromiso funcional y no una victoria en un solo escalar.",
+      "blocks": [
+        "s4-p15",
+        "s4-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "Ablations: No Continuous Groups costs −12.3 cov and −13.9 nav (the most damaging change). Ordering changes cost −12.3/−10.5 (t first) and −8.4/−6.8 (edge, t desc), Wall-Only costs −4.1/−5.0, and No Edge Coordinates is nearly neutral at +1.8/−0.2.",
+      "es": "Ablaciones: quitar los grupos continuos cuesta −12.3 de cobertura y −13.9 de navegabilidad (el cambio más dañino). Los cambios de orden cuestan −12.3/−10.5 (t primero) y −8.4/−6.8 (arista, t descendente), Wall-Only cuesta −4.1/−5.0, y quitar las coordenadas de arista es casi neutral con +1.8/−0.2.",
+      "blocks": [
+        "s4-p15",
+        "s4-p14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "claim",
+      "en": "The paper concludes that joint embedding of correlated geometric features is the central inductive bias, and that the canonical edge-then-position ordering is also material. Opening positions help the decoder reason about clearances.",
+      "es": "El artículo concluye que el embedding conjunto de rasgos geométricos correlacionados es el sesgo inductivo central, y que el orden canónico arista–posición también es relevante. Las posiciones de las aberturas ayudan al decodificador a razonar sobre las holguras.",
+      "blocks": [
+        "s4-p15"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "On the 50-room deployment benchmark, production DDEP reaches 98.1 coverage, 79.2 navigability, 1.9% OC and 3.18±0.18 s latency. It is the only method with a high-coverage, high-navigability, low-OC profile.",
+      "es": "En el benchmark de despliegue con 50 cuartos, el DDEP de producción alcanza 98.1 de cobertura, 79.2 de navegabilidad, 1.9% de OC y 3.18±0.18 s de latencia. Es el único método con un perfil de alta cobertura, alta navegabilidad y bajo OC.",
+      "blocks": [
+        "s4-p17",
+        "s4-p18"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Frontier LLM/VLMs close part of the semantic gap but stay less reliable spatially, and the domain-specific systems keep OC low only while missing large portions of the room program. Baselines got a tuned prompt, a coordinate system, an entity catalog and an example output, and were run once per room.",
+      "es": "Los LLM/VLM de frontera cierran parte de la brecha semántica pero siguen siendo menos confiables espacialmente, y los sistemas específicos del dominio mantienen bajo el OC solo al omitir grandes partes del programa del cuarto. Las líneas base recibieron un prompt ajustado, un sistema de coordenadas, un catálogo de entidades y un ejemplo de salida, y se corrieron una vez por cuarto.",
+      "blocks": [
+        "s4-p17",
+        "s4-p18"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "In embedding evaluation, text encoders lead on within-type nDCG (E5 86.7 vs. SBM 68.2). SBM gives more coherent type-level clusters (NMI 0.726 vs. 0.371; ARI 0.437 vs. ≤0), which is the property used for retrieval-augmented BIM generation.",
+      "es": "En la evaluación de embeddings, los codificadores de texto lideran en nDCG dentro de cada tipo (E5 86.7 frente a SBM 68.2). SBM produce grupos más coherentes por tipo (NMI 0.726 frente a 0.371; ARI 0.437 frente a ≤0), que es la propiedad usada en la generación BIM aumentada por recuperación.",
+      "blocks": [
+        "s4-p20"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "VLM baselines tend to overfill rooms and block circulation and door swings, and domain-specific methods leave narrow or blocked paths. DDEP failures are under-populating ambiguous open-plan rooms, dropping an entity when door clearance is over-tight, and misaligning casework on short walls. Compact baths and laundries stay harder.",
+      "es": "Las líneas base VLM tienden a sobrellenar los cuartos y bloquear la circulación y el abatimiento de puertas, y los métodos específicos del dominio dejan pasos estrechos o bloqueados. Los fallos de DDEP son subpoblar cuartos ambiguos de planta abierta, omitir una entidad cuando la holgura de puerta es muy estricta y desalinear carpintería en muros cortos. Los baños compactos y los cuartos de lavado siguen siendo más difíciles.",
+      "blocks": [
+        "s4-p23",
+        "s4-p15",
+        "fig-3",
+        "fig-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "concept",
+      "en": "Prior transformer scene generators (ATISS, SceneFormer, BLT) assume flat object vocabularies with absolute or grid-aligned poses and do not keep BIM's wall-hosted, mixed categorical–continuous structure. LLM/VLM and floorplan methods do not unify semantic, relational and wall-referenced attributes in one sequence form.",
+      "es": "Los generadores previos de escenas con transformers (ATISS, SceneFormer, BLT) suponen vocabularios planos de objetos con poses absolutas o alineadas a una cuadrícula y no conservan la estructura de BIM con elementos alojados en muros y atributos mixtos categóricos–continuos. Los métodos LLM/VLM y de plantas no unifican atributos semánticos, relacionales y referidos al muro en una sola forma de secuencia.",
+      "blocks": [
+        "s2-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "limitation",
+      "en": "ATISS and BLT outputs are bridged into the wall-referenced format (descale formula, affine map, nearest-wall projection), and DDEP is native to it. The authors cannot rule out that part of the gap reflects conversion loss, and a conversion-free comparison would need retraining the baselines on wall-referenced targets.",
+      "es": "Las salidas de ATISS y BLT se convierten al formato referido al muro (fórmula de reescalado, mapa afín, proyección al muro más cercano), mientras que DDEP es nativo de ese formato. Los autores no pueden descartar que parte de la brecha refleje pérdida por conversión, y una comparación sin conversión requeriría reentrenar las líneas base con objetivos referidos al muro.",
+      "blocks": [
+        "s4-p15",
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "limitation",
+      "en": "The evaluation covers only residential rooms from a proprietary corpus, which constrains external reproducibility. Any release of data or code would be announced on the project page.",
+      "es": "La evaluación cubre solo cuartos residenciales de un corpus propietario, lo que limita la reproducibilidad externa. Cualquier publicación de datos o código se anunciaría en la página del proyecto.",
+      "blocks": [
+        "s5-p2",
+        "s4-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "limitation",
+      "en": "The LLM/VLM comparison pits trained DDEP against off-the-shelf zero-shot models, so it is a calibration floor and not a fair architectural comparison. In-domain fine-tuning of an open model may close part of the gap.",
+      "es": "La comparación con LLM/VLM enfrenta a DDEP entrenado contra modelos listos para usar en cero disparos, así que es un piso de calibración y no una comparación arquitectónica justa. El ajuste fino en el dominio de un modelo abierto podría cerrar parte de la brecha.",
+      "blocks": [
+        "s4-p17",
+        "s2-p1",
+        "s5-p2",
+        "s1-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "Per-room deviations are large relative to the means because Cov. and Nav are bounded with mass near the extremes, so the metrics are read as a joint profile and not as individually significant scalars. The shared 256-dim from-scratch model versus the 512-dim per-type specialists only brackets the effect of capacity, pre-training and data.",
+      "es": "Las desviaciones por cuarto son grandes respecto a las medias porque Cov. y Nav están acotadas con masa cerca de los extremos, por lo que las métricas se leen como un perfil conjunto y no como escalares significativos por separado. El modelo compartido de 256 dimensiones entrenado desde cero frente a los especialistas de 512 dimensiones por tipo solo acota el efecto de capacidad, preentrenamiento y datos.",
+      "blocks": [
+        "s4-p15"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "All five ablations test choices within the tokenization, so they do not test the structure itself. HouseDiffusion and LayoutGPT comparisons are omitted because their polygonal or object–relation outputs need a non-trivial bridge to wall-hosted BIM entities.",
+      "es": "Las cinco ablaciones prueban decisiones dentro de la tokenización, así que no prueban la estructura en sí. Se omiten comparaciones con HouseDiffusion y LayoutGPT porque sus salidas poligonales o de objeto–relación requieren un puente no trivial hacia entidades BIM alojadas en muros.",
+      "blocks": [
+        "s4-p15",
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "future",
+      "en": "The next critical experiment is a flat-serialization baseline that removes the attribute–feature structure entirely. Also pending are a fixed-capacity shared-versus-specialist ablation and in-domain fine-tuning of an open LLM.",
+      "es": "El siguiente experimento crítico es una línea base de serialización plana que elimine por completo la estructura de atributos–características. También quedan pendientes una ablación de capacidad fija entre modelo compartido y especialista, y el ajuste fino en el dominio de un LLM abierto.",
+      "blocks": [
+        "s5-p2",
+        "s4-p15",
+        "s4-p18"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "future",
+      "en": "A user-guided path through an agentic layer is a prospective integration that the BIM-native output tokens enable, but it is not evaluated here. Non-residential typologies, building-scale layouts, vertical constraints and local code variation also remain open.",
+      "es": "Una vía guiada por el usuario mediante una capa agéntica es una integración prospectiva que habilitan los tokens de salida nativos de BIM, pero no se evalúa aquí. También siguen abiertos las tipologías no residenciales, los layouts a escala de edificio, las restricciones verticales y la variación de códigos locales.",
+      "blocks": [
+        "fig-2",
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "claim",
+      "en": "The core takeaway is representational: modestly sized, domain-specific sequence models over well-designed, BIM-editable tokens are a useful primitive for constraint-aware spatial generation. They are complementary to general-purpose LLMs/VLMs.",
+      "es": "La conclusión central es de representación: los modelos de secuencia de tamaño modesto y específicos del dominio, sobre tokens bien diseñados y editables en BIM, son una primitiva útil para la generación espacial con restricciones. Son complementarios a los LLM/VLM de propósito general.",
+      "blocks": [
+        "s5-p1",
+        "s0-p3"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i2",
+      "type": "supports",
+      "why": "The representation bottleneck motivates asking whether a BIM-native tokenization helps."
+    },
+    {
+      "from": "i5",
+      "to": "i3",
+      "type": "uses",
+      "why": "The envelope and contents are each turned into bundles."
+    },
+    {
+      "from": "i4",
+      "to": "i3",
+      "type": "part-of",
+      "why": "Wall-referenced coordinates are one of the properties of every bundle."
+    },
+    {
+      "from": "i6",
+      "to": "i4",
+      "type": "example-of",
+      "why": "Door and entity parameters (edge index, t, offset) are the wall-referenced scheme in concrete form."
+    },
+    {
+      "from": "i3",
+      "to": "i7",
+      "type": "part-of",
+      "why": "Bundles are the columns of the attribute–feature matrix."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "uses",
+      "why": "The embedding module turns the sparse matrix into token vectors."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "uses",
+      "why": "Both modes of the backbone read the mixed-type embeddings."
+    },
+    {
+      "from": "i9",
+      "to": "i10",
+      "type": "uses",
+      "why": "DDEP decoding is filtered by the constrained decoding layer."
+    },
+    {
+      "from": "i11",
+      "to": "i9",
+      "type": "uses",
+      "why": "The two-stage schedule trains the encoder and then DDEP."
+    },
+    {
+      "from": "i12",
+      "to": "i15",
+      "type": "supports",
+      "why": "Table I is computed on the controlled split."
+    },
+    {
+      "from": "i14",
+      "to": "i15",
+      "type": "measures",
+      "why": "Cov., Nav, SR, DF and OC are the columns of Table I."
+    },
+    {
+      "from": "i16",
+      "to": "i15",
+      "type": "supports",
+      "why": "The baselines' opposite failure modes explain why DDEP's joint profile is better."
+    },
+    {
+      "from": "i17",
+      "to": "i18",
+      "type": "supports",
+      "why": "The ablation deltas are the evidence for the inductive-bias claim."
+    },
+    {
+      "from": "i13",
+      "to": "i19",
+      "type": "supports",
+      "why": "The production benchmark evaluates the model trained on this corpus."
+    },
+    {
+      "from": "i14",
+      "to": "i19",
+      "type": "measures",
+      "why": "Table II reports the same coverage, navigability and OC metrics."
+    },
+    {
+      "from": "i20",
+      "to": "i26",
+      "type": "supports",
+      "why": "Zero-shot baselines on a tuned prompt are the setup that makes the comparison a floor."
+    },
+    {
+      "from": "i22",
+      "to": "i19",
+      "type": "supports",
+      "why": "The qualitative failures illustrate the metric gaps in Table II."
+    },
+    {
+      "from": "i21",
+      "to": "i9",
+      "type": "measures",
+      "why": "Embedding evaluation tests the encoder-only mode."
+    },
+    {
+      "from": "i23",
+      "to": "i1",
+      "type": "supports",
+      "why": "The related-work gap shows why existing representations fall short."
+    },
+    {
+      "from": "i24",
+      "to": "i15",
+      "type": "contradicts",
+      "why": "Possible conversion loss may overstate the gap over ATISS and BLT."
+    },
+    {
+      "from": "i27",
+      "to": "i15",
+      "type": "contradicts",
+      "why": "Large deviations limit reading single metrics as significant."
+    },
+    {
+      "from": "i28",
+      "to": "i18",
+      "type": "contradicts",
+      "why": "Within-tokenization ablations do not show that the structure itself is what helps."
+    },
+    {
+      "from": "i29",
+      "to": "i28",
+      "type": "supports",
+      "why": "The flat-serialization baseline is the proposed fix for the untested structure."
+    },
+    {
+      "from": "i15",
+      "to": "i31",
+      "type": "supports",
+      "why": "The benchmark win is the main evidence for the representational takeaway."
+    },
+    {
+      "from": "i19",
+      "to": "i31",
+      "type": "supports",
+      "why": "The production results show the approach beating zero-shot LLM/VLMs on this task."
+    },
+    {
+      "from": "i30",
+      "to": "i9",
+      "type": "uses",
+      "why": "The agentic layer would sit on top of the BIM-editable output tokens."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i31",
+      "to": "ladron-2025",
+      "why": "This is the map node for this paper; its headline claim is that a BIM-native tokenization is a useful primitive for generation."
+    },
+    {
+      "idea": "i5",
+      "to": "hypothesis",
+      "why": "Decomposing each room into an envelope and contents of typed elements and relations is the kind of decomposition the hypothesis relies on, and the generator learns placement patterns from it."
+    },
+    {
+      "idea": "i3",
+      "to": "hypothesis",
+      "why": "A bundle keeps each element's category, hosting wall and parametric placement, which shows how elements and relations can be encoded for a model to learn from."
+    },
+    {
+      "idea": "i10",
+      "to": "correct-by-construction",
+      "why": "Constrained decoding enforces validity at inference so outputs stay editable BIM entities, a concrete way for generated models to be valid by construction."
+    },
+    {
+      "idea": "i10",
+      "to": "explicit-vs-learned",
+      "why": "It combines learned placement with explicit clearance rules acting as a guard, so neither pure rules nor pure learning."
+    },
+    {
+      "idea": "i20",
+      "to": "tool-levels",
+      "why": "Frontier LLM/VLMs and domain-specific layout systems are compared against a trained domain model, with the domain model more reliable spatially."
+    },
+    {
+      "idea": "i28",
+      "to": "hypothesis",
+      "why": "A flat-serialization baseline is not tested, so the paper does not show that the element structure itself is what lets the model find patterns."
+    },
+    {
+      "idea": "i25",
+      "to": "question",
+      "why": "The corpus is proprietary and residential-only, so a gap remains for training a decompose-and-generate model on openly available data."
+    },
+    {
+      "idea": "i30",
+      "to": "tool-levels",
+      "why": "An agentic layer on top of editable BIM tokens is proposed but not evaluated, which marks the agent level as a gap."
+    }
+  ]
+}
