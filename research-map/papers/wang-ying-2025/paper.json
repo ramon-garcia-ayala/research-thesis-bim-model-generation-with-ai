@@ -1,0 +1,1088 @@
+{
+  "version": 1,
+  "node": "wang-ying-2025",
+  "title": "Graph Representation Learning: Embedding Multimodality BIM Models into Graphs",
+  "source": "files/Graph Representation Learning  Embedding Multimodality BIM Models into Graphs.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "Graph Representation Learning: Embedding Multimodality BIM Models into Graphs",
+            "es": "Aprendizaje de representaciones de grafos: incrustación de modelos BIM multimodales en grafos"
+          }
+        },
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Zijian Wang¹*, and Huaquan Ying²*",
+            "es": "Zijian Wang¹*, y Huaquan Ying²*"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "2025 European Conference on Computing in Construction. CIB W78 Conference on IT in Construction. Porto, Portugal, July 14-17, 2025",
+            "es": "2025 European Conference on Computing in Construction. CIB W78 Conference on IT in Construction. Porto, Portugal, 14-17 de julio de 2025"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "¹ TUM Georg Nemetschek Institute, Technical University of Munich, Munich, Germany",
+            "es": "¹ TUM Georg Nemetschek Institute, Technical University of Munich, Múnich, Alemania"
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "² Faculty of Civil and Environment Engineering, Technion Israel Institute of Technology, Israel",
+            "es": "² Facultad de Ingeniería Civil y Ambiental, Technion Israel Institute of Technology, Israel"
+          }
+        },
+        {
+          "id": "s0-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "* These authors contributed equally to this work.",
+            "es": "* Estos autores contribuyeron por igual a este trabajo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Existing AI research in BIM often overlooks the multimodal nature of BIM data. This study proposes a graph representation learning approach to embed multimodal design data into high-dimensional vectors for supporting learning. Specifically, large text embedding models are utilized to encode object attributes, while geometries are embedded by a point cloud-based approach. The individual embeddings are concatenated and processed by GraphSAGE to leverage graph topology. An object classification experiment on a self-constructed graph dataset achieved 97.7% accuracy and an F1 score of 0.97 using attributes and graph topology. Future work will refine geometry embeddings and explore broader BIM applications.",
+            "es": "La investigación existente de IA en BIM suele pasar por alto la naturaleza multimodal de los datos BIM. Este estudio propone un enfoque de aprendizaje de representaciones de grafos (graph representation learning) para incrustar (embed) datos de diseño multimodales en vectores de alta dimensión que apoyen el aprendizaje. En concreto, se utilizan grandes modelos de incrustación de texto (text embedding models) para codificar los atributos de los objetos, mientras que las geometrías se incrustan mediante un enfoque basado en nubes de puntos (point cloud). Las incrustaciones (embeddings) individuales se concatenan y se procesan con GraphSAGE para aprovechar la topología del grafo (graph topology). Un experimento de clasificación de objetos (object classification) en un conjunto de datos de grafos construido por los autores alcanzó 97.7% de exactitud (accuracy) y una puntuación F1 de 0.97 utilizando los atributos y la topología del grafo. El trabajo futuro refinará las incrustaciones de geometría y explorará aplicaciones BIM más amplias."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "Introduction",
+        "es": "Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Machine learning has been extensively applied in the BIM domain. Most existing studies adopt an approach where researchers first select a specific machine learning algorithm and then process a subset of building information into the required data format to fit the algorithm. For instance, in the task of BIM object classification for semantic enrichment, Koo et al. (2019) employed Support Vector Machines (SVM) algorithm. Then they constructed a tabular dataset by extracting BIM object attributes such as width, height, and area, which was fed into the SVM model for training and classification.",
+            "es": "El aprendizaje automático (machine learning) se ha aplicado ampliamente en el ámbito BIM. La mayoría de los estudios existentes adoptan un enfoque en el que los investigadores primero seleccionan un algoritmo de aprendizaje automático específico y luego procesan un subconjunto de la información del edificio para darle el formato de datos requerido y ajustarlo al algoritmo. Por ejemplo, en la tarea de clasificación de objetos BIM para el enriquecimiento semántico (semantic enrichment), Koo et al. (2019) emplearon el algoritmo de máquinas de vectores de soporte (Support Vector Machines, SVM). Luego construyeron un conjunto de datos tabular (tabular dataset) extrayendo atributos de los objetos BIM como ancho, alto y área, que se introdujo en el modelo SVM para el entrenamiento y la clasificación."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Similarly, instead of using attribute data, Collins et al. (2021) processed object geometries by converting them into points to form mesh graphs, enabling the application of 3D deep learning techniques. Another study involved capturing virtual images of BIM objects using simulated cameras and utilizing them as input for a vision-based deep learning model, MVCNN, to classify object types and sub-types (Koo et al., 2021). This method achieved high accuracy and F1-scores of 0.98, as the rendered object images with clear backgrounds devoid of noise (Koo et al., 2021).",
+            "es": "De manera similar, en lugar de usar datos de atributos, Collins et al. (2021) procesaron las geometrías de los objetos convirtiéndolas en puntos para formar grafos de malla, lo que permitió aplicar técnicas de aprendizaje profundo 3D. Otro estudio capturó imágenes virtuales de objetos BIM con cámaras simuladas y las usó como entrada de un modelo de aprendizaje profundo basado en visión, MVCNN, para clasificar tipos y subtipos de objetos (Koo et al., 2021). Este método alcanzó una exactitud alta y puntuaciones F1 de 0.98, pues las imágenes renderizadas de los objetos tenían fondos claros y sin ruido (Koo et al., 2021)."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Beyond geometries and attributes, researchers have also explored the use of object relationships in classification tasks. Wang et al. (2022) investigated the effectiveness of leveraging topology for room type classification. They compiled BIM design models into graphs, where nodes represented rooms and edges captured various connection types. An improved graph neural network (GNN) trained on this graph dataset achieved an accuracy of approximately 80%, by only utilizing topology (Z. Wang et al., 2022).",
+            "es": "Más allá de las geometrías y los atributos, los investigadores también han explorado el uso de las relaciones entre objetos en tareas de clasificación. Wang et al. (2022) investigaron la eficacia de aprovechar la topología para la clasificación de tipos de habitación. Compilaron modelos de diseño BIM en grafos, donde los nodos representaban habitaciones y las aristas capturaban distintos tipos de conexión. Una red neuronal de grafos (graph neural network, GNN) mejorada, entrenada con este conjunto de datos de grafos, alcanzó una exactitud de aproximadamente 80%, utilizando únicamente la topología (Z. Wang et al., 2022)."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Despite the success of these studies, they primarily focus on a single data modality of BIM models. However, BIM inherently consists of heterogeneous data, encompassing at least 1) 3D geometry that defines object shapes and locations, 2) object properties that provide descriptive attributes, and 3) object relationships that capture contextual semantics (Sacks et al., 2018). Some recent studies have developed AI systems that consume multiple types of BIM data, such as semantic properties and geometry (Utkucu et al., 2024). However, these systems are often designed for specific tasks and are not end-to-end learnable. They often employ ensemble learning mechanisms to integrate multiple subsystems, each specialized in processing a specific type of BIM data. As a result, this significantly restricts their generalization and scalability.",
+            "es": "A pesar del éxito de estos estudios, se centran principalmente en una sola modalidad de datos de los modelos BIM. Sin embargo, BIM consta inherentemente de datos heterogéneos, que abarcan al menos 1) la geometría 3D que define las formas y ubicaciones de los objetos, 2) las propiedades de los objetos que aportan atributos descriptivos, y 3) las relaciones entre objetos que capturan la semántica contextual (Sacks et al., 2018). Algunos estudios recientes han desarrollado sistemas de IA que consumen varios tipos de datos BIM, como propiedades semánticas y geometría (Utkucu et al., 2024). Sin embargo, estos sistemas suelen diseñarse para tareas específicas y no son aprendibles de extremo a extremo (end-to-end learnable). Suelen emplear mecanismos de aprendizaje por conjuntos (ensemble learning) para integrar múltiples subsistemas, cada uno especializado en procesar un tipo específico de datos BIM. Como resultado, esto restringe significativamente su generalización y escalabilidad."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Integrating these multimodal data sources is essential for a more comprehensive representation of BIM models. Additionally, existing AI applications in BIM lack representation techniques that can embed multimodal building information effectively in a machine-learning way to facilitate further learning and diverse BIM applications.",
+            "es": "Integrar estas fuentes de datos multimodales es esencial para una representación más completa de los modelos BIM. Además, las aplicaciones de IA existentes en BIM carecen de técnicas de representación que puedan incrustar eficazmente información multimodal del edificio de forma propia del aprendizaje automático, a fin de facilitar un aprendizaje posterior y diversas aplicaciones BIM."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "However, successful advancements in various computer science domains highlight the crucial role of representation learning. It transforms raw symbolic data into structured numerical formats that capture underlying relationships and semantic meanings (Bengio et al., 2013). In other words, it converts data from a human-understandable format into a learning-suitable representation that is suitable for machines to learn. The effectiveness of representation learning can pave the way for downstream statistic pattern discovery, and prediction tasks.",
+            "es": "Sin embargo, los avances exitosos en diversos dominios de las ciencias de la computación ponen de relieve el papel crucial del aprendizaje de representaciones (representation learning). Este transforma datos simbólicos en bruto en formatos numéricos estructurados que capturan las relaciones subyacentes y los significados semánticos (Bengio et al., 2013). En otras palabras, convierte los datos de un formato comprensible para los humanos en una representación adecuada para el aprendizaje, que es apropiada para que las máquinas aprendan. La eficacia del aprendizaje de representaciones puede abrir el camino al descubrimiento de patrones estadísticos y a tareas de predicción posteriores."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "For example, in the domain of Natural Language Processing (NLP), representation learning has been instrumental in developing models that understand and generate human language. A pioneering example is Word2Vec, which embeds text into dense high-dimensional vectors that capture semantic and syntactic relationships between words (Mikolov et al., 2013). This transformation from human-readable words to learning-suitable dense vectors has significantly contributed to the success of subsequent algorithms, allowing them to identify statistical patterns and improve performance in tasks such as translation and sentiment analysis.",
+            "es": "Por ejemplo, en el campo del procesamiento del lenguaje natural (Natural Language Processing, NLP), el aprendizaje de representaciones ha sido fundamental para desarrollar modelos que comprenden y generan lenguaje humano. Un ejemplo pionero es Word2Vec, que incrusta texto en vectores densos de alta dimensión que capturan relaciones semánticas y sintácticas entre palabras (Mikolov et al., 2013). Esta transformación de palabras legibles por humanos a vectores densos adecuados para el aprendizaje ha contribuido significativamente al éxito de algoritmos posteriores, permitiéndoles identificar patrones estadísticos y mejorar el desempeño en tareas como la traducción y el análisis de sentimientos (sentiment analysis)."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Similarly, in computer vision, representation learning focuses on extracting meaningful information from images, facilitating tasks such as object recognition and image classification. A notable example is the encoding process in Convolutional Neural Networks (CNNs), where the initial layers transform raw pixel values into deep and compact feature representations (Krizhevsky et al., 2017; LeCun et al., 1998). The feature maps produced by the early CNN layers serve as powerful representations of the input image, enabling the model to effectively understand and recognize visual content across various applications.",
+            "es": "De manera similar, en visión por computadora (computer vision), el aprendizaje de representaciones se centra en extraer información significativa de las imágenes, facilitando tareas como el reconocimiento de objetos y la clasificación de imágenes. Un ejemplo notable es el proceso de codificación en las redes neuronales convolucionales (Convolutional Neural Networks, CNN), donde las capas iniciales transforman los valores de píxeles en bruto en representaciones de características profundas y compactas (Krizhevsky et al., 2017; LeCun et al., 1998). Los mapas de características (feature maps) producidos por las primeras capas de la CNN sirven como representaciones potentes de la imagen de entrada, permitiendo que el modelo comprenda y reconozca eficazmente el contenido visual en diversas aplicaciones."
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In summary, AI studies in the BIM domain have predominantly followed an inverse research approach, where mature AI techniques are selected first, and building information is subsequently sampled and formatted to fit the algorithm's requirements. This approach often overlooks the inherent complexity, richness, and multimodality of building information. As a result, fundamental research questions related to applying AI to BIM are unaddressed: from identifying a suitable data format to store and integrate heterogeneous design data, developing representation learning techniques, and designing learning algorithms that can leverage these embeddings for domain-specific applications (Z. Wang et al., 2024).",
+            "es": "En resumen, los estudios de IA en el ámbito BIM han seguido predominantemente un enfoque de investigación inverso, en el que primero se seleccionan técnicas de IA maduras y posteriormente se muestrea y formatea la información del edificio para ajustarla a los requisitos del algoritmo. Este enfoque suele pasar por alto la complejidad, la riqueza y la multimodalidad inherentes de la información del edificio. Como resultado, quedan sin abordar preguntas de investigación fundamentales relacionadas con la aplicación de la IA a BIM: desde identificar un formato de datos adecuado para almacenar e integrar datos de diseño heterogéneos, pasando por desarrollar técnicas de aprendizaje de representaciones, hasta diseñar algoritmos de aprendizaje que puedan aprovechar estas incrustaciones para aplicaciones específicas del dominio (Z. Wang et al., 2024)."
+          }
+        },
+        {
+          "id": "s2-p10",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In this study, we identify a critical research gap: The lack of exploration into representation learning on BIM, which aims to process diverse BIM data into a high-dimensional vector space to support learning.",
+            "es": "En este estudio identificamos una brecha de investigación crítica: la falta de exploración del aprendizaje de representaciones en BIM, que busca procesar diversos datos BIM en un espacio vectorial de alta dimensión para apoyar el aprendizaje."
+          }
+        },
+        {
+          "id": "s2-p11",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To address this gap, we explore using graphs to integrate and embed building information. This study seeks to answer the following research question: Can graph representation learning effectively embed complex and multimodal building information into high-dimensional vector spaces?",
+            "es": "Para abordar esta brecha, exploramos el uso de grafos para integrar e incrustar información del edificio. Este estudio busca responder la siguiente pregunta de investigación: ¿Puede el aprendizaje de representaciones de grafos incrustar eficazmente información de edificios compleja y multimodal en espacios vectoriales de alta dimensión?"
+          }
+        },
+        {
+          "id": "s2-p12",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To achieve that, we propose a multi-step method that embeds individual data modalities separately and subsequently integrates the embedding vectors. Additionally, a pilot experiment on object classification is conducted to evaluate feasibility. The experiment results and subsequent discussions are presented in the following sections.",
+            "es": "Para lograrlo, proponemos un método de varios pasos que incrusta por separado cada modalidad de datos y posteriormente integra los vectores de incrustación. Además, se realiza un experimento piloto de clasificación de objetos para evaluar la viabilidad. Los resultados del experimento y las discusiones posteriores se presentan en las secciones siguientes."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "Graph representation learning of BIM models",
+        "es": "Aprendizaje de representaciones de grafos de modelos BIM"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To enable AI in Building Information Modeling (BIM), it is essential to embed heterogeneous BIM data effectively. Given the inherent graph structure of BIM data, a graph-based embedding approach is proposed. The workflow of this approach is illustrated in Figure 1 and consists of three key steps:",
+            "es": "Para habilitar la IA en el modelado de información de construcción (Building Information Modeling, BIM), es esencial incrustar eficazmente datos BIM heterogéneos. Dada la estructura de grafo inherente de los datos BIM, se propone un enfoque de incrustación basado en grafos. El flujo de trabajo (workflow) de este enfoque se ilustra en la Figura 1 y consta de tres pasos clave:"
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "(1) Graph representation of BIM data, where a simple graph data structure is designed to restructure BIM data into a uniform graph format suitable for AI applications;",
+            "es": "(1) Representación de los datos BIM como grafo, donde se diseña una estructura de datos de grafo simple para reestructurar los datos BIM en un formato de grafo uniforme adecuado para aplicaciones de IA;"
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "(2) BIM object embedding, which embeds each single modality and then concatenates multi-modal vectors together;",
+            "es": "(2) Incrustación de objetos BIM, que incrusta cada modalidad individual y luego concatena los vectores multimodales;"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "(3) BIM object embedding updating, which updates the BIM object embeddings achieved in step (2) by considering graph topology using a graph learning-based approach.",
+            "es": "(3) Actualización de la incrustación de objetos BIM, que actualiza las incrustaciones de objetos BIM obtenidas en el paso (2) considerando la topología del grafo mediante un enfoque basado en aprendizaje de grafos (graph learning)."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "As an initial exploration of effective graph representation learning for BIM, this study focuses on embedding BIM objects specifically within the architectural domain.",
+            "es": "Como exploración inicial del aprendizaje de representaciones de grafos eficaz para BIM, este estudio se centra en incrustar objetos BIM específicamente dentro del dominio arquitectónico."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: Graph representation learning (GRL) of BIM models",
+            "es": "Figura 1: Aprendizaje de representaciones de grafos (GRL) de modelos BIM"
+          }
+        },
+        {
+          "id": "s3-h1",
+          "type": "heading",
+          "page": 2,
+          "text": {
+            "en": "BIM graph representation",
+            "es": "Representación de BIM como grafo"
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "BIM provides an essential approach to generating and managing digital representations of the physical and functional characteristics of buildings and other physical assets. A real-world BIM model typically contains extensive and diverse data, often structured in an object-oriented manner based on well-defined data schemas. Due to the wide range of object types, properties, and relationships, BIM data schemas tend to be highly complex to ensure comprehensive coverage.",
+            "es": "BIM ofrece un enfoque esencial para generar y gestionar representaciones digitales de las características físicas y funcionales de edificios y otros activos físicos. Un modelo BIM del mundo real normalmente contiene datos extensos y diversos, a menudo estructurados de forma orientada a objetos con base en esquemas de datos bien definidos. Debido a la amplia variedad de tipos de objetos, propiedades y relaciones, los esquemas de datos BIM tienden a ser muy complejos para garantizar una cobertura integral."
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "As the most widely used open and standardized BIM data schema, Industry Foundation Classes (IFC) provides a typical example. The latest official version (IFC 4.3 ADD2) contains 876 entities and 2,513 properties and continues to evolve. BIM object instances and properties following the IFC schema are often represented hierarchically and in a nested structure. Although these schemas provide an effective framework for data storage and retrieval, their complexity poses significant challenges for AI applications, particularly at the BIM model level.",
+            "es": "Como el esquema de datos BIM abierto y estandarizado más utilizado, Industry Foundation Classes (IFC) constituye un ejemplo típico. La versión oficial más reciente (IFC 4.3 ADD2) contiene 876 entidades y 2,513 propiedades y sigue evolucionando. Las instancias de objetos BIM y las propiedades que siguen el esquema IFC suelen representarse de forma jerárquica y en una estructura anidada. Aunque estos esquemas ofrecen un marco eficaz para el almacenamiento y la recuperación de datos, su complejidad plantea desafíos significativos para las aplicaciones de IA, particularmente a nivel de modelo BIM."
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In this study, we propose a simple, flexible, and, most importantly, AI-suitable data structure for BIM based on graph theory. Although prior efforts, such as IfcOWL (Pauwels & Terkaj 2016), have introduced graph-like representations using semantic web technologies, they largely preserve the structure of IFC schemas while merely altering the representation format, as their goal is to represent and integrate data, rather than supporting learning tasks. As a result, these approaches remain complex and are not well-suited for AI applications.",
+            "es": "En este estudio proponemos una estructura de datos para BIM simple, flexible y, sobre todo, adecuada para la IA, basada en la teoría de grafos. Aunque esfuerzos previos, como IfcOWL (Pauwels & Terkaj 2016), han introducido representaciones similares a grafos mediante tecnologías de web semántica (semantic web), en gran medida conservan la estructura de los esquemas IFC y solo alteran el formato de representación, ya que su objetivo es representar e integrar datos, no apoyar tareas de aprendizaje. Como resultado, estos enfoques siguen siendo complejos y no son adecuados para aplicaciones de IA."
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our proposed graph structure is currently focused on the architectural domain and is defined as follows.",
+            "es": "La estructura de grafo que proponemos se centra actualmente en el dominio arquitectónico y se define de la siguiente manera."
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Each node represents a physical building element (e.g., wall, slab, column, and roof) or a key spatial element (e.g., site, building, and story). Node attributes consist of two components. The first component encompasses all semantic properties, which are simply organized as a dictionary of key-value pairs (e.g., <ClassName: value>, <PropertyName: value>) and/or sub-dictionaries. Unlike existing data schemas, our approach does not require a unified terminology for properties. Thanks to advanced text embedding techniques (see the BIM graph node embedding section), properties with different names but similar meanings can be effectively processed without strict standardization. This significantly simplifies the graph structure.",
+            "es": "Cada nodo representa un elemento físico del edificio (p. ej., muro, losa, columna y cubierta) o un elemento espacial clave (p. ej., sitio, edificio y nivel). Los atributos del nodo constan de dos componentes. El primer componente abarca todas las propiedades semánticas, que simplemente se organizan como un diccionario de pares clave-valor (p. ej., <ClassName: value>, <PropertyName: value>) y/o subdiccionarios. A diferencia de los esquemas de datos existentes, nuestro enfoque no requiere una terminología unificada para las propiedades. Gracias a las técnicas avanzadas de incrustación de texto (véase la sección de incrustación de nodos del grafo BIM), las propiedades con nombres distintos pero significados similares pueden procesarse eficazmente sin una estandarización estricta. Esto simplifica significativamente la estructura del grafo."
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The second component refers to geometry data, which are uniformly represented as a triangle mesh, regardless of whether the geometry is a surface or a solid. This further reduces structural complexity.",
+            "es": "El segundo componente se refiere a los datos de geometría, que se representan de manera uniforme como una malla de triángulos (triangle mesh), sin importar si la geometría es una superficie o un sólido. Esto reduce aún más la complejidad estructural."
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "With respect to the edge, we currently only consider spatial and topological relationships among architectural BIM objects. More specifically, four types of relationships are included: belonging (defines spatial relationships between physical and spatial elements), host (defines the topological relationship between openings and their host elements), touch (identifies when two physical elements are in direct geometric contact), and intersect (represents instances where two physical elements geometrically intersect). In short, we consider the building topology and organize them into graphs as edges.",
+            "es": "Con respecto a las aristas, actualmente solo consideramos las relaciones espaciales y topológicas entre los objetos BIM arquitectónicos. Más específicamente, se incluyen cuatro tipos de relaciones: pertenencia (belonging; define las relaciones espaciales entre elementos físicos y espaciales), anfitrión (host; define la relación topológica entre las aberturas y sus elementos anfitriones), contacto (touch; identifica cuándo dos elementos físicos están en contacto geométrico directo) e intersección (intersect; representa los casos en que dos elementos físicos se intersecan geométricamente). En resumen, consideramos la topología del edificio y la organizamos en grafos como aristas."
+          }
+        },
+        {
+          "id": "s3-p13",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "To facilitate the construction of instance graphs, we have developed a dedicated IFC-to-BIMGraph converter, which transforms IFC-based BIM models into our proposed BIM graph structure.",
+            "es": "Para facilitar la construcción de grafos de instancia, hemos desarrollado un convertidor dedicado IFC-to-BIMGraph, que transforma modelos BIM basados en IFC en la estructura de grafo BIM que proponemos."
+          }
+        },
+        {
+          "id": "s3-h2",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "BIM graph node embedding",
+            "es": "Incrustación de nodos del grafo BIM"
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "To enable AI applications, each graph node—specifically its attributes—must be transformed from raw representations into high-dimensional vector embeddings. As discussed earlier, node attributes comprise two independent data modalities: semantic text and geometry, which require separate processing.",
+            "es": "Para habilitar aplicaciones de IA, cada nodo del grafo —específicamente sus atributos— debe transformarse de representaciones en bruto a incrustaciones vectoriales de alta dimensión. Como se discutió anteriormente, los atributos de los nodos comprenden dos modalidades de datos independientes: texto semántico y geometría, que requieren un procesamiento por separado."
+          }
+        },
+        {
+          "id": "s3-h3",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "Semantic text embedding",
+            "es": "Incrustación de texto semántico"
+          }
+        },
+        {
+          "id": "s3-p15",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "We leverage text embedding techniques to convert semantic attributes into numerical vectors. In NLP, text embedding is a fundamental step for transforming raw text into vector representations, facilitating meaningful AI model training and processing (Patil et al., 2023). Various text embedding techniques exist and with the rise of large language models (LLMs), deep transformer-based embedding models trained on vast corpora have become powerful tools for generating context-aware, dynamic embeddings for varying-length text, including full sentences and paragraphs. These embeddings enable applications such as semantic search, classification, clustering, and recommendation systems. Ying & Sacks (2024) have utilized LLM embedding models to facilitate natural language-based querying of building design requirements.",
+            "es": "Aprovechamos técnicas de incrustación de texto para convertir los atributos semánticos en vectores numéricos. En NLP, la incrustación de texto es un paso fundamental para transformar texto en bruto en representaciones vectoriales, facilitando un entrenamiento y procesamiento significativos de los modelos de IA (Patil et al., 2023). Existen diversas técnicas de incrustación de texto y, con el auge de los modelos de lenguaje de gran tamaño (large language models, LLMs), los modelos de incrustación profundos basados en transformadores (transformer-based), entrenados con vastos corpus, se han convertido en herramientas poderosas para generar incrustaciones dinámicas y sensibles al contexto para texto de longitud variable, incluidas oraciones y párrafos completos. Estas incrustaciones permiten aplicaciones como la búsqueda semántica, la clasificación, el agrupamiento (clustering) y los sistemas de recomendación. Ying & Sacks (2024) han utilizado modelos de incrustación de LLM para facilitar la consulta de requisitos de diseño de edificios en lenguaje natural."
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "For our study, we employ a compact version of OpenAI’s embedding models—text-embedding-3-small (OpenAI, 2025)—as node attributes are generally short text strings. Additionally, we reduce the output vector length from the default 1,536 to 1,000, starting with a shorter version to test its effectiveness.",
+            "es": "Para nuestro estudio empleamos una versión compacta de los modelos de incrustación de OpenAI —text-embedding-3-small (OpenAI, 2025)—, ya que los atributos de los nodos suelen ser cadenas de texto cortas. Además, reducimos la longitud del vector de salida del valor predeterminado de 1,536 a 1,000, comenzando con una versión más corta para probar su eficacia."
+          }
+        },
+        {
+          "id": "s3-h4",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "Geometry embedding",
+            "es": "Incrustación de geometría"
+          }
+        },
+        {
+          "id": "s3-p17",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "For geometric attributes, we propose a point cloud-based embedding method. The process consists of three key steps:",
+            "es": "Para los atributos geométricos proponemos un método de incrustación basado en nubes de puntos. El proceso consta de tres pasos clave:"
+          }
+        },
+        {
+          "id": "s3-p18",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "1) Point Sampling: We sample 1,024 points from the triangle mesh using the farthest point sampling (FPS) technique (Qi et al., 2017), ensuring a uniform distribution that preserves the geometric structure of the original shape.",
+            "es": "1) Muestreo de puntos: Muestreamos 1,024 puntos de la malla de triángulos mediante la técnica de muestreo del punto más lejano (farthest point sampling, FPS) (Qi et al., 2017), lo que garantiza una distribución uniforme que preserva la estructura geométrica de la forma original."
+          }
+        },
+        {
+          "id": "s3-p19",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "2) Normalization: The 3D coordinates of sampled points are centralized and normalized to a unit sphere, which aids AI training while maintaining shape integrity.",
+            "es": "2) Normalización: Las coordenadas 3D de los puntos muestreados se centran y se normalizan a una esfera unitaria, lo que ayuda al entrenamiento de la IA a la vez que mantiene la integridad de la forma."
+          }
+        },
+        {
+          "id": "s3-p20",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "3) Feature Preservation: To retain location and scale information, we concatenate the center point (3D coordinates) and scale factor (1D) with the normalized point cloud. After flattening all sampled points, the resulting geometry embedding vector has a length of 3,076.",
+            "es": "3) Preservación de características: Para conservar la información de ubicación y escala, concatenamos el punto central (coordenadas 3D) y el factor de escala (1D) con la nube de puntos normalizada. Tras aplanar todos los puntos muestreados, el vector de incrustación de geometría resultante tiene una longitud de 3,076."
+          }
+        },
+        {
+          "id": "s3-p21",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Once both semantic and geometry embeddings are obtained, they are concatenated into a 4,076-dimensional vector representing the BIM object node. This unified representation enables efficient AI-driven processing of BIM data.",
+            "es": "Una vez obtenidas las incrustaciones semántica y de geometría, se concatenan en un vector de 4,076 dimensiones que representa el nodo del objeto BIM. Esta representación unificada permite un procesamiento eficiente de los datos BIM impulsado por IA."
+          }
+        },
+        {
+          "id": "s3-h5",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "BIM graph node embedding updating",
+            "es": "Actualización de la incrustación de nodos del grafo BIM"
+          }
+        },
+        {
+          "id": "s3-p22",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The BIM object embeddings obtained so far represent only individual embeddings, derived from each object’s semantic properties and geometric features. However, these embeddings do not yet incorporate graph topology, which defines relationships between BIM objects through edges. The local neighborhood structure of each BIM object can provide valuable contextual information to enrich its embedding",
+            "es": "Las incrustaciones de objetos BIM obtenidas hasta ahora representan únicamente incrustaciones individuales, derivadas de las propiedades semánticas y de las características geométricas de cada objeto. Sin embargo, estas incrustaciones aún no incorporan la topología del grafo, que define las relaciones entre objetos BIM mediante aristas. La estructura de vecindad local de cada objeto BIM puede aportar información contextual valiosa para enriquecer su incrustación"
+          }
+        },
+        {
+          "id": "s3-p23",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "To integrate this relational information, we apply the GraphSAGE model (Hamilton et al., 2017), a general and inductive GNN framework. GraphSAGE enhances node embeddings by aggregating features from neighboring nodes, allowing for a more contextualized representation of each BIM object.",
+            "es": "Para integrar esta información relacional aplicamos el modelo GraphSAGE (Hamilton et al., 2017), un marco de GNN general e inductivo (inductive). GraphSAGE mejora las incrustaciones de nodos agregando características de los nodos vecinos, lo que permite una representación más contextualizada de cada objeto BIM."
+          }
+        },
+        {
+          "id": "s3-p24",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In our context, we apply this algorithm for the task of BIM object classification. We consider a three-level neighborhood aggregation strategy, where the mean aggregator is used to compute the embedding of a node as the mean of its own features and those of its neighbors across multiple levels.",
+            "es": "En nuestro contexto aplicamos este algoritmo a la tarea de clasificación de objetos BIM. Consideramos una estrategia de agregación de vecindad de tres niveles, en la que se usa el agregador de media (mean aggregator) para calcular la incrustación de un nodo como la media de sus propias características y las de sus vecinos a lo largo de múltiples niveles."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "Experiment",
+        "es": "Experimento"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "An initial experiment was conducted to evaluate the feasibility of the proposed graph representation learning approach for BIM models, focusing on node classification. It is a fundamental task in BIM, as object classes provide essential semantic information that enhances interoperability and supports various applications (Belsky et al., 2016). Moreover, node classification is a starting point for GRL due to its simplicity and interpretability. It offers a clear evaluation of how well the proposed embeddings capture the underlying relationships and characteristics of BIM objects.",
+            "es": "Se realizó un experimento inicial para evaluar la viabilidad del enfoque propuesto de aprendizaje de representaciones de grafos (graph representation learning, GRL) para modelos BIM, centrado en la clasificación de nodos (node classification). Es una tarea fundamental en BIM, ya que las clases de objetos proporcionan información semántica esencial que mejora la interoperabilidad (interoperability) y apoya diversas aplicaciones (Belsky et al., 2016). Además, la clasificación de nodos es un punto de partida para el GRL por su simplicidad e interpretabilidad. Ofrece una evaluación clara de qué tan bien las incrustaciones (embeddings) propuestas capturan las relaciones y características subyacentes de los objetos BIM."
+          }
+        },
+        {
+          "id": "s4-h1",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "Dataset construction",
+            "es": "Construcción del conjunto de datos (dataset)"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "A graph dataset was constructed using five BIM models created with different software and covering various building scenarios, as summarized in Table 1.",
+            "es": "Se construyó un conjunto de datos de grafos usando cinco modelos BIM creados con distintos programas y que abarcan diversos escenarios de edificación, como se resume en la Tabla 1."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 4,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: Statistic of the constructed dataset",
+            "es": "Tabla 1: Estadísticas del conjunto de datos construido"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The dataset consists of 15 IFC object classes, 21,083 nodes, and 137,381 edges. All models were stored in the Industry Foundation Classes (IFC) format to facilitate interoperability. A graph compiler, developed using Python and IfcOpenShell (2024), was employed to extract building information from IFC files and organize it into graph structures. An example graph and its corresponding model are shown in Figure 2.",
+            "es": "El conjunto de datos consta de 15 clases de objetos IFC, 21,083 nodos (nodes) y 137,381 aristas (edges). Todos los modelos se almacenaron en el formato Industry Foundation Classes (IFC) para facilitar la interoperabilidad. Se empleó un compilador de grafos (graph compiler), desarrollado con Python e IfcOpenShell (2024), para extraer la información del edificio de los archivos IFC y organizarla en estructuras de grafo. En la Figura 2 se muestra un grafo de ejemplo y su modelo correspondiente."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: Examples of examples and corresponding graph representation",
+            "es": "Figura 2: Ejemplos de ejemplos y su representación en grafo correspondiente"
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "This compiler systematically extracts building objects categorized under the IfcObject class, along with their associated attributes and relationships.",
+            "es": "Este compilador extrae sistemáticamente los objetos de construcción categorizados bajo la clase IfcObject, junto con sus atributos y relaciones asociados."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In terms of attributes, all available properties associated with each building object were extracted, covering material properties, dimensions, and functional definitions. Additionally, user-defined property sets were extracted to capture custom data. The extracted attributes were stored in CSV format for subsequent processing.",
+            "es": "En cuanto a los atributos, se extrajeron todas las propiedades disponibles asociadas con cada objeto de construcción, que abarcan propiedades de materiales, dimensiones y definiciones funcionales. Además, se extrajeron conjuntos de propiedades definidos por el usuario para capturar datos personalizados. Los atributos extraídos se almacenaron en formato CSV para su procesamiento posterior."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "For relationships, the dataset includes relationships extracted from the IFC schema and enriched relationships by geometric computations. The IfcRelContainedInSpatialStructure relationship, which defines the spatial hierarchy among sites, buildings, storeys, and their contained objects, was extracted and regarded as belonging edges in the graph. Hosting relationships were identified using IfcOpeningElement, capturing dependencies where objects are hosted by others. To further enrich the graph structure, spatial relationships such as touch and intersect were introduced through geometric computations.",
+            "es": "Respecto a las relaciones, el conjunto de datos incluye relaciones extraídas del esquema IFC y relaciones enriquecidas mediante cálculos geométricos. La relación IfcRelContainedInSpatialStructure, que define la jerarquía espacial entre sitios, edificios, niveles y los objetos que contienen, se extrajo y se consideró como aristas de pertenencia en el grafo. Las relaciones de alojamiento (hosting) se identificaron mediante IfcOpeningElement, capturando dependencias en las que unos objetos son alojados por otros. Para enriquecer aún más la estructura del grafo, se introdujeron relaciones espaciales como contacto (touch) e intersección (intersect) mediante cálculos geométricos."
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "For geometric data, the geometry of every solid object was extracted and saved as separate OBJ files. However, abstract objects such as IfcBuilding, IfcSite, and IfcStorey do not inherently contain geometric information. To ensure compatibility with the geometry embedding method, synthetic geometries were generated for these classes. Specifically, a bounding box was created for IfcBuilding to encompass all contained objects, a horizontal plane was generated at the corresponding altitude for IfcStorey, and a plane was generated at the site’s altitude for IfcSite.",
+            "es": "Para los datos geométricos, la geometría de cada objeto sólido se extrajo y se guardó en archivos OBJ independientes. Sin embargo, los objetos abstractos como IfcBuilding, IfcSite e IfcStorey no contienen inherentemente información geométrica. Para garantizar la compatibilidad con el método de incrustación de geometría, se generaron geometrías sintéticas para estas clases. En concreto, se creó una caja delimitadora (bounding box) para IfcBuilding que abarca todos los objetos contenidos, se generó un plano horizontal a la altitud correspondiente para IfcStorey y se generó un plano a la altitud del sitio para IfcSite."
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "To ensure label accuracy, a manual verification process was conducted by visually inspecting the original geometries. It was observed that object types were frequently misclassified in the original models. For example, walls were sometimes modeled as columns, and slabs when positioning them horizontally. In the No.2 residential building, 566 objects, including walls, columns, covers, and windows, were relabeled to enhance data accuracy. This manual refinement improves the reliability of the dataset for subsequent learning tasks.",
+            "es": "Para garantizar la exactitud de las etiquetas, se llevó a cabo un proceso de verificación manual mediante la inspección visual de las geometrías originales. Se observó que los tipos de objetos con frecuencia estaban mal clasificados en los modelos originales. Por ejemplo, a veces los muros se modelaban como columnas, y las losas cuando se las colocaba horizontalmente. En el edificio residencial No.2, se reetiquetaron 566 objetos, entre ellos muros, columnas, cubiertas y ventanas, para mejorar la exactitud de los datos. Este refinamiento manual mejora la confiabilidad del conjunto de datos para las tareas de aprendizaje posteriores."
+          }
+        },
+        {
+          "id": "s4-h2",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "Experiment plan",
+            "es": "Plan del experimento"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The experiment is organized into two groups to evaluate the contributions of embeddings and graph topology in the proposed GRL approach, as shown in Table 2.",
+            "es": "El experimento se organiza en dos grupos para evaluar las contribuciones de las incrustaciones y de la topología del grafo en el enfoque GRL propuesto, como se muestra en la Tabla 2."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 5,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2: Experiment results of graph representation learning on BIM",
+            "es": "Tabla 2: Resultados experimentales del aprendizaje de representaciones de grafos en BIM"
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The first group (No.1 to No.3) focuses on assessing the effectiveness of different types of node embeddings while utilizing all available edge connections. Specifically, Experiment No.1 combines attribute-based embeddings and geometry-based embeddings by concatenating the two feature types directly. Experiment No.2 relies solely on geometric embeddings to analyze the impact of shape-related features on representation learning, while No.3 evaluates the effectiveness of text-based embeddings alone.",
+            "es": "El primer grupo (No.1 a No.3) se centra en evaluar la efectividad de distintos tipos de incrustaciones de nodos utilizando todas las conexiones de aristas disponibles. En concreto, el Experimento No.1 combina incrustaciones basadas en atributos e incrustaciones basadas en geometría concatenando directamente los dos tipos de características. El Experimento No.2 depende únicamente de incrustaciones geométricas para analizar el impacto de las características relacionadas con la forma en el aprendizaje de representaciones, mientras que el No.3 evalúa la efectividad de las incrustaciones basadas en texto por sí solas."
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The second group (No.4 to No.7) investigates the influence of graph topology by varying the types of edge connections while excluding node embeddings. In this configuration, only the presence or absence of connections between nodes is considered, without leveraging edge features such as edge classes. Experiment No.4 evaluates a fully connected graph incorporating all edge types, whereas Experiments No.5 to No.7 selectively adopt subsets of edge connections to analyze their contributions to performance.",
+            "es": "El segundo grupo (No.4 a No.7) investiga la influencia de la topología del grafo variando los tipos de conexiones de aristas y excluyendo las incrustaciones de nodos. En esta configuración solo se considera la presencia o ausencia de conexiones entre nodos, sin aprovechar características de las aristas como las clases de aristas. El Experimento No.4 evalúa un grafo totalmente conectado que incorpora todos los tipos de aristas, mientras que los Experimentos No.5 a No.7 adoptan selectivamente subconjuntos de conexiones de aristas para analizar sus contribuciones al desempeño."
+          }
+        },
+        {
+          "id": "s4-h3",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "Training and evaluation",
+            "es": "Entrenamiento y evaluación"
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "During implementation, we utilize the Deep Graph Library (DGL) (M. Wang et al., 2019). We employ a three-layer GraphSAGE architecture (Hamilton et al., 2017) with a hidden size of 64, which enables the model to capture both local and higher-order neighborhood information effectively. Dropout regularization with a rate of 0.2 is applied to mitigate overfitting.",
+            "es": "Durante la implementación utilizamos la Deep Graph Library (DGL) (M. Wang et al., 2019). Empleamos una arquitectura GraphSAGE de tres capas (Hamilton et al., 2017) con un tamaño oculto (hidden size) de 64, lo que permite al modelo capturar de manera efectiva tanto la información local como la de vecindarios de orden superior. Se aplica regularización por abandono (dropout) con una tasa de 0.2 para mitigar el sobreajuste (overfitting)."
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To enhance computational efficiency and scalability, mini-batch training is adopted, allowing the model to process subsets of nodes at each step rather than the entire graph at once. During the training, each graph is randomly split into training, validation, and test sets with a ratio of 60%, 20%, and 20%, respectively.",
+            "es": "Para mejorar la eficiencia computacional y la escalabilidad se adopta el entrenamiento por minilotes (mini-batch training), que permite al modelo procesar subconjuntos de nodos en cada paso en lugar de todo el grafo a la vez. Durante el entrenamiento, cada grafo se divide aleatoriamente en conjuntos de entrenamiento, validación y prueba con una proporción de 60%, 20% y 20%, respectivamente."
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "For evaluation, accuracy and F1-score are selected as the primary performance metrics. Accuracy, a widely used metric in classification tasks, measures the proportion of correctly classified instances relative to the total number of instances F1-score; on the other hand, it provides a balanced evaluation by considering both precision and recall, making it particularly useful in cases of imbalanced class distributions.",
+            "es": "Para la evaluación se eligen la exactitud (accuracy) y la puntuación F1 (F1-score) como métricas principales de desempeño. La exactitud, una métrica muy usada en las tareas de clasificación, mide la proporción de instancias clasificadas correctamente respecto del total de instancias. La puntuación F1, en cambio, ofrece una evaluación equilibrada al considerar tanto la precisión como la exhaustividad (recall), lo que la hace especialmente útil cuando las clases están desbalanceadas."
+          }
+        },
+        {
+          "id": "s4-h4",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "Results",
+            "es": "Resultados"
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The experimental results are presented in Table 2. The first group of experiments (No.1 to No.3) explores the impact of different embeddings. The results demonstrate that attribute-based embeddings (No.3) yield the highest accuracy of 97.7% and an F1-score of 0.97, indicating that using large text embedding models is effective for processing object attributes as embeddings.",
+            "es": "Los resultados experimentales se presentan en la Tabla 2. El primer grupo de experimentos (No.1 a No.3) explora el impacto de distintas incrustaciones. Los resultados demuestran que las incrustaciones basadas en atributos (No.3) producen la mayor exactitud, de 97.7%, y una puntuación F1 de 0.97, lo que indica que usar modelos grandes de incrustación de texto es efectivo para procesar los atributos de los objetos como incrustaciones."
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In contrast, the concatenation of attribute and geometry embeddings (No.1) achieves an accuracy of 86.6% and an F1-score of 0.83, which is 11% lower than using attribute embeddings alone. Additionally, Experiment No.2 with only geometry embeddings resulted in significantly lower accuracy (58.8%) and F1-score (0.57). The results from No.1 and No.2 illustrate that the geometry embeddings do not contribute to performance or even decrease accuracy.",
+            "es": "En contraste, la concatenación de incrustaciones de atributos y de geometría (No.1) alcanza una exactitud de 86.6% y una puntuación F1 de 0.83, que es 11% menor que al usar únicamente incrustaciones de atributos. Además, el Experimento No.2, con solo incrustaciones de geometría, resultó en una exactitud (58.8%) y una puntuación F1 (0.57) significativamente menores. Los resultados de No.1 y No.2 ilustran que las incrustaciones de geometría no contribuyen al desempeño o incluso disminuyen la exactitud."
+          }
+        },
+        {
+          "id": "s4-p17",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The second group (No.4 to No.7) investigates the influence of different edge connections without node embeddings. Experiment No.4, which considers all edge types, achieves an accuracy of 57.9% and an F1-score of 0.53, showing that relational information alone, even without node attributes, can still capture meaningful semantics. This demonstrates the potential of graphs to encode spatial and contextual information inherent in BIM data.",
+            "es": "El segundo grupo (No.4 a No.7) investiga la influencia de distintas conexiones de aristas sin incrustaciones de nodos. El Experimento No.4, que considera todos los tipos de aristas, alcanza una exactitud de 57.9% y una puntuación F1 de 0.53, lo que muestra que la información relacional por sí sola, incluso sin atributos de los nodos, aún puede capturar semántica significativa. Esto demuestra el potencial de los grafos para codificar la información espacial y contextual inherente a los datos BIM."
+          }
+        },
+        {
+          "id": "s4-p18",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Overall, the results suggest that attribute embeddings provide the most significant contribution to classification accuracy, while the geometric embeddings could decrease the performance. It means that the geometry embedding technique is not effective and needs to be further improved. On the other hand, graph topology alone, without node embeddings, offers a strong baseline, making graph representation a viable approach for BIM analysis tasks where other modality data may be incomplete or unavailable.",
+            "es": "En general, los resultados sugieren que las incrustaciones de atributos aportan la contribución más significativa a la exactitud de la clasificación, mientras que las incrustaciones geométricas podrían disminuir el desempeño. Esto significa que la técnica de incrustación de geometría no es efectiva y necesita mejorarse más. Por otro lado, la topología del grafo por sí sola, sin incrustaciones de nodos, ofrece una línea base (baseline) sólida, lo que hace de la representación en grafo un enfoque viable para tareas de análisis BIM en las que otros datos de modalidad pueden estar incompletos o no estar disponibles."
+          }
+        },
+        {
+          "id": "s4-h5",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "Compare with other machine learning algorithms",
+            "es": "Comparación con otros algoritmos de aprendizaje automático (machine learning)"
+          }
+        },
+        {
+          "id": "s4-p19",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The comparison results between the GRL approach and selected machine learning algorithms are presented in Table 3. All comparisons are conducted under the same dataset division and the same embeddings. The results demonstrate that the accuracy and F1-scores of GraphSAGE are closely aligned with those of traditional machine learning models, such as decision trees and random forests. Notably, the training time of GraphSAGE is comparable to or even shorter than some traditional models.",
+            "es": "Los resultados de la comparación entre el enfoque GRL y algoritmos de aprendizaje automático seleccionados se presentan en la Tabla 3. Todas las comparaciones se realizan con la misma división del conjunto de datos y las mismas incrustaciones. Los resultados demuestran que la exactitud y las puntuaciones F1 de GraphSAGE están muy cercanas a las de modelos tradicionales de aprendizaje automático, como los árboles de decisión (decision trees) y los bosques aleatorios (random forests). Cabe destacar que el tiempo de entrenamiento de GraphSAGE es comparable o incluso menor que el de algunos modelos tradicionales."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 6,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3: Comparison with other machine learning methods",
+            "es": "Tabla 3: Comparación con otros métodos de aprendizaje automático"
+          }
+        },
+        {
+          "id": "s4-p20",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The findings also validate the effectiveness of using large text embedding models to embed BIM text-based attributes, as different algorithms consistently achieve higher accuracy and F1 scores when using geometry embeddings. The relatively lower performance of geometry-based embeddings indicates that further improvements are needed.",
+            "es": "Los hallazgos también validan la efectividad de usar modelos grandes de incrustación de texto para incrustar los atributos BIM basados en texto, ya que distintos algoritmos logran de manera consistente una mayor exactitud y puntuaciones F1 al usar incrustaciones de geometría. El desempeño relativamente menor de las incrustaciones basadas en geometría indica que se necesitan más mejoras."
+          }
+        },
+        {
+          "id": "s4-p21",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The classification performance of GRL is close but not beyond other machine learning methods. This may be caused by the simplicity of the current experimental task, which includes a limited dataset and only 15 object classes. We believe that the potential of graph representation learning is not yet fully realized, especially after considering topology and relationships.",
+            "es": "El desempeño de clasificación del GRL es cercano, pero no supera, al de otros métodos de aprendizaje automático. Esto puede deberse a la simplicidad de la tarea experimental actual, que incluye un conjunto de datos limitado y solo 15 clases de objetos. Creemos que el potencial del aprendizaje de representaciones de grafos aún no se ha aprovechado por completo, especialmente al considerar la topología y las relaciones."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "Conclusions",
+        "es": "Conclusiones"
+      },
+      "blocks": [
+        {
+          "id": "s5-h1",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "Strength and weakness",
+            "es": "Fortalezas y debilidades"
+          }
+        },
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "In this study, we propose a novel graph-based method for embedding multi-modal BIM data into a high-dimensional vector space that can enable various machine learning algorithms tasks. Our approach introduces a property graph-based data structure to reorganize and store IFC-based BIM data in a relatively straightforward manner, which facilitates the implementation of machine learning algorithms.",
+            "es": "En este estudio proponemos un método novedoso basado en grafos para incrustar datos BIM multimodales en un espacio vectorial de alta dimensión que puede habilitar diversas tareas de algoritmos de aprendizaje automático. Nuestro enfoque introduce una estructura de datos basada en grafos de propiedades (property graph) para reorganizar y almacenar los datos BIM basados en IFC de una manera relativamente directa, lo que facilita la implementación de algoritmos de aprendizaje automático."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Specifically, we define physical building objects and key spatial structure elements—including site, building, and story—as nodes in the property graph, with relevant attributes attached. These attributes are further categorized into two types: semantic properties and geometric data. Additionally, we define four topological relationships—belonging, host, touch, and intersect—as graph edges to capture spatial and structural connections between objects.",
+            "es": "Específicamente, definimos los objetos físicos de la edificación y los elementos clave de la estructura espacial —incluidos sitio, edificio y nivel— como nodos en el grafo de propiedades, con los atributos relevantes adjuntos. Estos atributos se categorizan además en dos tipos: propiedades semánticas y datos geométricos. Adicionalmente, definimos cuatro relaciones topológicas —pertenencia, alojamiento, contacto e intersección— como aristas del grafo para capturar las conexiones espaciales y estructurales entre objetos."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We employ modality-suitable techniques to embed the nodes and edges of the BIM property graph. Specifically, we utilize large text embedding models for semantic properties. We developed a point cloud-based method to embed geometry data, which has the feature of reserving shapes, dimensions, and location information. The embeddings from attributes and geometry are concatenated directly. Furthermore, we apply graph learning algorithms to refine BIM object node embeddings by incorporating edge relationships.",
+            "es": "Empleamos técnicas adecuadas a cada modalidad para incrustar los nodos y las aristas del grafo de propiedades BIM. En concreto, utilizamos modelos grandes de incrustación de texto para las propiedades semánticas. Desarrollamos un método basado en nubes de puntos (point cloud) para incrustar los datos de geometría, que tiene la característica de conservar la forma, las dimensiones y la información de ubicación. Las incrustaciones de atributos y de geometría se concatenan directamente. Además, aplicamos algoritmos de aprendizaje de grafos para refinar las incrustaciones de los nodos de objetos BIM incorporando las relaciones de aristas."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Regarding the research question, we evaluated the proposed graph-based BIM embedding method through a BIM object classification task. The experimental results validated the feasibility of using graphs to leverage multimodal BIM data (attributes, building topology) efficiently as embeddings for machine learning applications.",
+            "es": "Con respecto a la pregunta de investigación, evaluamos el método propuesto de incrustación BIM basado en grafos mediante una tarea de clasificación de objetos BIM. Los resultados experimentales validaron la viabilidad de usar grafos para aprovechar de manera eficiente los datos BIM multimodales (atributos, topología de la edificación) como incrustaciones para aplicaciones de aprendizaje automático."
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "However, our findings also indicate areas for improvement. While semantic properties are well embedded, the geometry embedding technique requires further refinement. Additionally, the study has several limitations: (1) the evaluation dataset is relatively small, compiled from only five BIM models; and (2) the classification task is simplistic, involving only a few object types with distinct characteristics. These factors may limit the validity of our results in assessing the effectiveness of individual embedding components and the overall graph node representation. Moreover, the potential advantages of the graph-based approach may be underestimated due to the simplicity of the evaluation task, where graph topology could not be fully leveraged.",
+            "es": "Sin embargo, nuestros hallazgos también indican áreas de mejora. Si bien las propiedades semánticas se incrustan bien, la técnica de incrustación de geometría requiere mayor refinamiento. Además, el estudio tiene varias limitaciones: (1) el conjunto de datos de evaluación es relativamente pequeño, compilado a partir de solo cinco modelos BIM; y (2) la tarea de clasificación es simplista, pues involucra solo unos pocos tipos de objetos con características distintivas. Estos factores pueden limitar la validez de nuestros resultados al evaluar la efectividad de los componentes de incrustación individuales y de la representación general de los nodos del grafo. Más aún, las posibles ventajas del enfoque basado en grafos pueden estar subestimadas debido a la simplicidad de la tarea de evaluación, en la que la topología del grafo no pudo aprovecharse por completo."
+          }
+        },
+        {
+          "id": "s5-h2",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "Future work",
+            "es": "Trabajo futuro"
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "To further improve the proposed graph-based BIM embedding method, our future work will focus on the following four key aspects:",
+            "es": "Para mejorar aún más el método propuesto de incrustación BIM basado en grafos, nuestro trabajo futuro se centrará en los siguientes cuatro aspectos clave:"
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Improving geometry embedding techniques. The current method largely relies on raw geometry data as input features, which has proven ineffective for machine learning tasks where geometric information is critical. Future work will explore learning-based methods, such as PointNet (Qi et al., 2017) and MeshNet (Feng et al., 2019), to generate learning-based geometric embeddings.",
+            "es": "Mejora de las técnicas de incrustación de geometría. El método actual depende en gran medida de datos de geometría sin procesar como características de entrada, lo cual ha resultado ineficaz para tareas de aprendizaje automático en las que la información geométrica es crítica. El trabajo futuro explorará métodos basados en aprendizaje, como PointNet (Qi et al., 2017) y MeshNet (Feng et al., 2019), para generar incrustaciones geométricas basadas en aprendizaje."
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Enhancing the fusion of semantic and geometric embeddings. Currently, semantic and geometric embeddings are combined through simple vector concatenation, assuming equal importance and perfect alignment across tasks—an assumption that may not always hold. To address this, we will investigate attention mechanisms (Vaswani et al., 2017) to enable dynamic and adaptive fusion of multimodal embeddings based on task-specific needs.",
+            "es": "Mejora de la fusión de incrustaciones semánticas y geométricas. Actualmente, las incrustaciones semánticas y geométricas se combinan mediante una simple concatenación de vectores, suponiendo igual importancia y alineación perfecta entre tareas, una suposición que no siempre se cumple. Para abordarlo, investigaremos mecanismos de atención (attention mechanisms) (Vaswani et al., 2017) que permitan una fusión dinámica y adaptativa de incrustaciones multimodales según las necesidades específicas de cada tarea."
+          }
+        },
+        {
+          "id": "s5-p9",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Exploring advanced graph representation learning methods. At present, we have only examined GraphSAGE, which focuses on graph topology while disregarding the semantic properties of edges. In addition, the algorithm works in a supervised learning mode, which makes the result embeddings often suitable to specific tasks designed for training and lacks generality. Future work will explore more advanced graph learning algorithms capable of incorporating edge attributes to generate edge-ware node embeddings in an unsupervised manner, thereby improving the quality and generality of the representation of BIM data.",
+            "es": "Exploración de métodos más avanzados de aprendizaje de representaciones de grafos. Por ahora solo hemos examinado GraphSAGE, que se centra en la topología del grafo y no considera las propiedades semánticas de las aristas. Además, el algoritmo funciona en modo de aprendizaje supervisado (supervised learning), lo que hace que las incrustaciones resultantes suelan ser adecuadas para tareas específicas diseñadas para el entrenamiento y carezcan de generalidad. El trabajo futuro explorará algoritmos de aprendizaje de grafos más avanzados capaces de incorporar atributos de aristas para generar incrustaciones de nodos conscientes de las aristas de manera no supervisada, mejorando así la calidad y la generalidad de la representación de los datos BIM."
+          }
+        },
+        {
+          "id": "s5-p10",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Establishing large-scale and comprehensive datasets. This experiment only compiles 5 real-world models, where the size of the overall dataset is still comparatively small. We believe that constructing a large dataset can support various meaningful tasks within the BIM domain to enable thorough and rigorous evaluation.",
+            "es": "Establecimiento de conjuntos de datos amplios y exhaustivos. Este experimento solo compila 5 modelos del mundo real, por lo que el tamaño del conjunto de datos general sigue siendo comparativamente pequeño. Creemos que construir un conjunto de datos grande puede respaldar diversas tareas significativas dentro del dominio BIM y permitir una evaluación exhaustiva y rigurosa."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "Acknowledgments",
+        "es": "Agradecimientos"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The author Zijian Wang received post-doc funding from TUM Georg Nemetschek Institute at the Technical University of Munich. These authors contributed equally to this work.",
+            "es": "El autor Zijian Wang recibió financiamiento posdoctoral del TUM Georg Nemetschek Institute de la Technical University of Munich. Estos autores contribuyeron por igual a este trabajo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Belsky, M., Sacks, R., & Brilakis, I. (2016). Semantic Enrichment for Building Information Modeling. Computer-Aided Civil and Infrastructure Engineering, 31(4), 261–274. https://doi.org/10.1111/mice.12128"
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Bengio, Y., Courville, A., & Vincent, P. (2013). Representation learning: A review and new perspectives. IEEE Transactions on Pattern Analysis and Machine Intelligence, 35(8), 1798–1828. https://doi.org/10.1109/TPAMI.2013.50"
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Collins, F. C., Braun, A., Ringsquandl, M., Hall, D. M., & Borrmann, A. (2021). Assessing IFC classes with means of geometric deep learning on different graph encodings. Proceedings of the 2021 European Conference on Computing in Construction, 2, 332–341. https://doi.org/10.35490/ec3.2021.168"
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Feng, Y., Feng, Y., You, H., Zhao, X. & Gao, Y. (2019). Meshnet: Mesh neural network for 3d shape representation. In Proceedings of the AAAI conference on artificial intelligence, 33(1), pp. 8279-8286. https://doi.org/10.1609/aaai.v33i01.33018279"
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Hamilton, W. L., Ying, R., & Leskovec, J. (2017). Inductive representation learning on large graphs. Advances in Neural Information Processing Systems, 2017-Decem, 1025–1035. http://arxiv.org/abs/1706.02216"
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "IfcOpenShell. (2024). IfcOpenShell. https://ifcopenshell.org/"
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Koo, B., Jung, R., Yu, Y., & Kim, I. (2021). A geometric deep learning approach for checking element-to-entity mappings in infrastructure building information models. Journal of Computational Design and Engineering, 8(1), 239–250. https://doi.org/10.1093/jcde/qwaa075"
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Koo, B., La, S., Cho, N. W., & Yu, Y. (2019). Using support vector machines to classify building elements for checking the semantic integrity of building information models. Automation in Construction, 98, 183–194. https://doi.org/10.1016/j.autcon.2018.11.015"
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Krizhevsky, A., Sutskever, I., & Hinton, G. E. (2017). ImageNet classification with deep convolutional neural networks. Communications of the ACM, 60(6), 84–90. https://doi.org/10.1145/3065386"
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "LeCun, Y., Bottou, L., Bengio, Y., & Haffner, P. (1998). Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11), 2278–2323. https://doi.org/10.1109/5.726791"
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Mikolov, T., Chen, K., Corrado, G., & Dean, J. (2013). Efficient estimation of word representations in vector space. 1st International Conference on Learning Representations, ICLR 2013 - Workshop Track Proceedings, 1–12. http://arxiv.org/abs/1301.3781"
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "OpenAI (2025). Vector embeddings. https://platform.openai.com/docs/guides/embeddings (Last accessed Jan. 30th, 2025)"
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Pauwels, P. & Terkaj, W. (2016). EXPRESS to OWL for construction industry: Towards a recommendable and usable ifcOWL ontology. Automation in construction, 63, 100-133. https://doi.org/10.1016/j.autcon.2015.12.003"
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Patil, R., Boit, S., Gudivada, V. & Nandigam, J. (2023). A survey of text representation and embedding techniques in nlp. IEEE Access, 11, 36120-36146. https://doi.org/10.1109/ACCESS.2023.3266377"
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Qi, C.R., Su, H., Mo, K.& Guibas, L.J. (2017). Pointnet: Deep learning on point sets for 3d classification and segmentation. Proceedings of the IEEE conference on computer vision and pattern recognition 2017, pp. 652-https://doi.org/660. 10.1109/CVPR.2017.16"
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Sacks, R., Eastman, C., Lee, G., & Teicholz, P. (2018). BIM Handbook. In John Wiley & Sons. John Wiley & Sons, Inc. https://doi.org/10.1002/9781119287568"
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Utkucu, D., Ying, H., Wang, Z. & Sacks, R. (2024). Classification of architectural and MEP BIM objects for building performance evaluation. Advanced Engineering Informatics, 61, p.102503. https://doi.org/10.1016/j.aei.2024.102503"
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A., Kaiser, Ł.& Polosukhin, I. (2017). Attention is All you Need. Advances in Neural Information Processing Systems. 30. https://arxiv.org/abs/1706.03762"
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Wang, M., Zheng, D., Ye, Z., Gan, Q., Li, M., Song, X., Zhou, J., Ma, C., Yu, L., Gai, Y., Xiao, T., He, T., Karypis, G., Li, J., & Zhang, Z. (2019). Deep Graph Library: A Graph-Centric, Highly-Performant Package for Graph Neural Networks. 1–18. http://arxiv.org/abs/1909.01315"
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Wang, Z., Sacks, R., & Yeung, T. (2022). Exploring graph neural networks for semantic enrichment: Room type classification. Automation in Construction, 134(June 2021), 104039. https://doi.org/10.1016/j.autcon.2021.104039"
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Wang, Z., Ying, H., & Sacks, R. (2024). Two Fundamental Questions Concerning Representation for Machine Learning BIM Data. The 41st International Conference of CIB W78. http://itc.scix.net/paper/w78-2024-25"
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Ying, H. & Sacks, R. (2024). From Automatic to Autonomous: a Large Language Model-driven Approach for Generic Building Compliance Checking. The 41st International Conference of CIB W78. https://easychair.org/publications/preprint/k2PJ"
+          }
+        }
+      ]
+    }
+  ]
+}

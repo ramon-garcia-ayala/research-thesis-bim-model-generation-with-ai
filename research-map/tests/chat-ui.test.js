@@ -311,6 +311,84 @@ describe('the chat', () => {
     expect(el.textContent).toContain(LABELS.es.saved)
   })
 
+  describe('Add to the map', () => {
+    const proposal = {
+      idea: { id: 'rules-need-a-reader', title: 'Rules need a reader', group: 'rules', note: 'Author: "x"' },
+      links: [
+        { from: 'rules-need-a-reader', to: 'sample-a', explanation: 'Read in this paper.' },
+        { from: 'rules-need-a-reader', to: 'hypothesis', explanation: 'Bears on it.' },
+      ],
+    }
+    const groups = [{ id: 'datasets', title: 'Datasets' }, { id: 'rules', title: 'Rule-based' }]
+    const drafted = async (problems = []) => {
+      client.draftMapEntry = vi.fn(async () => ({ proposal, problems, groups }))
+      client.saveMapEntry = vi.fn(async () => ({ ok: true, idea: 'rules-need-a-reader', links: 2 }))
+      await send('Las reglas necesitan un lector')
+      emit('done', { chatId: 'c1', text: 'Bien', cites: [], graphAdded: 0 })
+      finish()
+      await click('.chat__msg.user [data-map-add]')
+      await Promise.resolve()
+    }
+
+    it('drafts a proposal and shows every field editable, writing nothing yet', async () => {
+      await drafted()
+      expect(client.draftMapEntry).toHaveBeenCalledWith({ node: 'sample-a', text: 'Las reglas necesitan un lector', from: 'author' })
+      expect($('[data-f="title"]').value).toBe('Rules need a reader')
+      expect($('[data-f="group"]').value).toBe('rules')
+      expect($('[data-f="note"]').value).toBe('Author: "x"')
+      expect(el.querySelectorAll('.chat__link')).toHaveLength(2)
+      expect(el.querySelectorAll('.chat__link')[1].querySelector('[data-lf="to"]').value).toBe('hypothesis')
+      expect(client.saveMapEntry).not.toHaveBeenCalled()
+    })
+
+    it('writes what the author left in the form on Approve, without the links unticked', async () => {
+      await drafted()
+      type('[data-f="title"]', 'Rules need a human reader')
+      el.querySelectorAll('[data-link-on]')[1].checked = false
+      el.querySelectorAll('.chat__link')[0].querySelector('[data-lf="explanation"]').value = 'Edited.'
+      await click('[data-map-approve]')
+      await Promise.resolve()
+      expect(client.saveMapEntry).toHaveBeenCalledWith({
+        proposal: {
+          idea: { id: 'rules-need-a-reader', title: 'Rules need a human reader', group: 'rules', note: 'Author: "x"' },
+          links: [{ from: 'rules-need-a-reader', to: 'sample-a', explanation: 'Edited.' }],
+        },
+      })
+      expect(el.textContent).toContain(LABELS.es.mapSaved)
+      expect($('[data-reload]')).not.toBeNull()
+    })
+
+    it('sends links alone when the idea is unticked', async () => {
+      await drafted()
+      $('[data-idea-on]').checked = false
+      await click('[data-map-approve]')
+      await Promise.resolve()
+      expect(client.saveMapEntry.mock.calls[0][0].proposal.idea).toBeNull()
+    })
+
+    it('lists the problems of the draft and keeps the form when the server refuses', async () => {
+      await drafted(['link a→b: "b" is not a node, a group or the centre'])
+      expect(el.textContent).toContain(LABELS.es.mapProblems)
+      expect(el.textContent).toContain('"b" is not a node')
+      client.saveMapEntry = vi.fn(async () => { throw new Error('duplicate id "x"') })
+      await click('[data-map-approve]')
+      await Promise.resolve()
+      await Promise.resolve()
+      expect($('.chat__mapdraft .chat__error[data-save-error]').textContent).toContain('duplicate id')
+      expect($('[data-f="title"]')).not.toBeNull()
+    })
+
+    it('shows the error when the draft fails, and Discard drops the form', async () => {
+      client.draftMapEntry = vi.fn(async () => { throw new Error('Claude did not answer with a proposal') })
+      await send('x')
+      emit('done', { chatId: 'c1', text: 'Bien', cites: [], graphAdded: 0 })
+      await click('.chat__msg.assistant [data-map-add]')
+      await Promise.resolve()
+      await Promise.resolve()
+      expect($('.chat__mapdraft .chat__error').textContent).toContain('did not answer')
+    })
+  })
+
   it('Discard drops the draft', async () => {
     await send('x')
     emit('done', { chatId: 'c1', text: 'Bien', cites: [], graphAdded: 0 })

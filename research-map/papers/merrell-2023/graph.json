@@ -1,0 +1,668 @@
+{
+  "version": 1,
+  "node": "merrell-2023",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can the production rules of a procedural grammar be created automatically from an example shape, instead of being written by hand through trial and error?",
+      "es": "¿Se pueden crear automáticamente las reglas de producción de una gramática procedural a partir de una forma de ejemplo, en lugar de escribirlas a mano por ensayo y error?",
+      "blocks": [
+        "s0-p7",
+        "s0-p10"
+      ],
+      "key": "inverse-procedural-modeling",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Local similarity: every small region of the output must match a region of the input, while the large-scale structure can differ. The paper takes r-similarity to its extreme, so each neighborhood is just an edge, vertex or face and edges may be stretched but keep their angles.",
+      "es": "Similitud local: cada región pequeña de la salida debe coincidir con una región de la entrada, mientras que la estructura a gran escala puede ser distinta. El artículo lleva la r-similitud al extremo: cada vecindad es solo una arista, un vértice o una cara, y las aristas pueden alargarse pero conservan sus ángulos.",
+      "blocks": [
+        "s0-p10",
+        "s0-p23",
+        "s0-p24"
+      ],
+      "key": "local-similarity",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "A polygonal shape becomes a graph with labeled faces and edges. An edge label is (left face, right face, tangent angle), so edges with the same label are locally similar and the graph keeps the essential information of the shape.",
+      "es": "Una forma poligonal se convierte en un grafo con caras y aristas etiquetadas. La etiqueta de una arista es (cara izquierda, cara derecha, ángulo tangente), así que las aristas con la misma etiqueta son localmente similares y el grafo conserva la información esencial de la forma.",
+      "blocks": [
+        "s0-p32",
+        "s0-p33",
+        "s0-p41"
+      ],
+      "key": "labeled-shape-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "method",
+      "en": "Disassembly: the input graph is cut into as many pieces as possible. Every edge becomes two half-edges and each vertex, surrounded by half-edges, becomes a primitive. Any graph assembled from these primitives is locally similar to the input.",
+      "es": "Desensamblado: el grafo de entrada se corta en tantas piezas como sea posible. Cada arista se vuelve dos semiaristas y cada vértice, rodeado de semiaristas, se convierte en una primitiva. Cualquier grafo armado con estas primitivas es localmente similar a la entrada.",
+      "blocks": [
+        "s0-p41",
+        "fig-4",
+        "s0-p11"
+      ],
+      "key": "cut-into-primitives",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "Assembly: primitives are glued at their half-edges by branch gluing (the half-edges are on disconnected graphs) or loop gluing (they are on a connected graph, forming a loop). Cutting and gluing are exact opposites. Loop gluing is only possible when the path between the half-edges turns ±360°.",
+      "es": "Ensamblado: las primitivas se pegan por sus semiaristas mediante pegado de rama (las semiaristas están en grafos desconectados) o pegado de lazo (están en un grafo conectado y forman un lazo). Cortar y pegar son operaciones exactamente opuestas. El pegado de lazo solo es posible cuando el camino entre las semiaristas gira ±360°.",
+      "blocks": [
+        "s0-p35",
+        "s0-p43",
+        "s0-p45",
+        "s0-p46"
+      ],
+      "key": "glue-operations",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "concept",
+      "en": "Each graph has a boundary string listing every half-edge and every turn as one follows a path counter-clockwise around it. Gluing operations become string replacements on this string, and a complete graph has the boundary string ∧.",
+      "es": "Cada grafo tiene una cadena de frontera que lista todas las semiaristas y todos los giros al recorrer un camino en sentido antihorario a su alrededor. Las operaciones de pegado se vuelven reemplazos de cadenas sobre ella, y un grafo completo tiene la cadena de frontera ∧.",
+      "blocks": [
+        "s0-p39",
+        "s0-p43",
+        "s0-p44",
+        "s0-p55"
+      ],
+      "key": "boundary-string",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "All possible ways of gluing primitives are organized into a hierarchy of generations, where generation i holds every graph built with i gluing operations. The infinite abstract hierarchy would contain every locally similar graph. It is a model, not a data structure, and a finite concrete version is built instead.",
+      "es": "Todas las formas posibles de pegar primitivas se organizan en una jerarquía de generaciones, donde la generación i contiene todos los grafos construidos con i operaciones de pegado. La jerarquía abstracta infinita contendría todos los grafos localmente similares. Es un modelo, no una estructura de datos, y en su lugar se construye una versión concreta finita.",
+      "blocks": [
+        "s0-p50",
+        "fig-5",
+        "s0-p51",
+        "s0-p52"
+      ],
+      "key": "graph-hierarchy",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "concept",
+      "en": "A graph is complete when it has no half-edges left to glue. Randomly gluing primitives until a graph happens to be complete is error-prone and inefficient for inputs with cycles, because a partial graph can become hard or impossible to complete.",
+      "es": "Un grafo está completo cuando ya no le quedan semiaristas por pegar. Pegar primitivas al azar hasta que el grafo resulte completo es propenso a errores e ineficiente cuando la entrada tiene ciclos, porque un grafo parcial puede volverse difícil o imposible de completar.",
+      "blocks": [
+        "s0-p55",
+        "s0-p56",
+        "s0-p57",
+        "fig-6"
+      ],
+      "key": "complete-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "concept",
+      "en": "The grammar uses double-pushout (DPO) rules. A rule replaces a left graph L with a right graph R that has the same boundary string, so planarity is not broken. Applying a rule means matching L in the current graph, cutting it out and gluing R in its place.",
+      "es": "La gramática usa reglas de doble pushout (DPO). Una regla reemplaza un grafo izquierdo L por un grafo derecho R que tiene la misma cadena de frontera, de modo que no se rompe la planaridad. Aplicar una regla implica encontrar L en el grafo actual, recortarlo y pegar R en su lugar.",
+      "blocks": [
+        "s0-p59",
+        "s0-p61",
+        "s0-p62",
+        "s0-p69",
+        "fig-7"
+      ],
+      "key": "dpo-graph-grammar",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Rules are found by matching boundary strings. A graph L can be replaced by one graph R with the same boundary, or by a set of graphs whose spliced boundaries combine into L's boundary. A recursive divide-and-conquer algorithm searches the hierarchy for such matches.",
+      "es": "Las reglas se encuentran comparando cadenas de frontera. Un grafo L puede reemplazarse por un grafo R con la misma frontera, o por un conjunto de grafos cuyas fronteras empalmadas se combinan en la frontera de L. Un algoritmo recursivo de divide y vencerás busca esas coincidencias en la jerarquía.",
+      "blocks": [
+        "s0-p83",
+        "s0-p86",
+        "s0-p87",
+        "alg-2",
+        "s0-p89"
+      ],
+      "key": "rule-by-string-matching",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "concept",
+      "en": "DPO rules are invertible. Applied from L to R a rule is destructive and simplifies a graph. Applied from R to L it is constructive. If every complete graph can be reduced to the empty graph, the reverse holds, so the grammar can construct every complete, locally similar graph from the empty graph.",
+      "es": "Las reglas DPO son invertibles. Aplicada de L a R, una regla es destructiva y simplifica un grafo. Aplicada de R a L es constructiva. Si todo grafo completo se puede reducir al grafo vacío, también se cumple lo inverso, así que la gramática puede construir todo grafo completo y localmente similar a partir del grafo vacío.",
+      "blocks": [
+        "s0-p77",
+        "s0-p78",
+        "s0-p79",
+        "s0-p80"
+      ],
+      "key": "invertible-rules",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Algorithm 1 builds the hierarchy incrementally from the primitives. Before adding a graph it checks whether a rule can simplify it. A graph that can be simplified is reducible and is removed. Graphs are ordered from simple to complex by number of half-edges, and the right side of a rule is always simpler than the left.",
+      "es": "El Algoritmo 1 construye la jerarquía de forma incremental a partir de las primitivas. Antes de añadir un grafo comprueba si alguna regla puede simplificarlo. Un grafo que puede simplificarse es reducible y se elimina. Los grafos se ordenan de simple a complejo por número de semiaristas, y el lado derecho de una regla siempre es más simple que el izquierdo.",
+      "blocks": [
+        "s0-p72",
+        "alg-1",
+        "s0-p73",
+        "s0-p74",
+        "s0-p75"
+      ],
+      "key": "grammar-from-primitives",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "concept",
+      "en": "Stubs are graphs with one half-edge. If stubs a∧ and a̅∧ exist, every primitive and edge with label a can be deconstructed. They can even be found in the hierarchy when absent from the input. Starter rules delete a complete graph into the empty graph and are the only rules usable at first.",
+      "es": "Los muñones (stubs) son grafos con una sola semiarista. Si existen los muñones a∧ y a̅∧, toda primitiva y arista con etiqueta a puede deconstruirse. Incluso pueden hallarse en la jerarquía cuando no están en la entrada. Las reglas iniciales (starter rules) borran un grafo completo hasta el grafo vacío y son las únicas utilizables al comienzo.",
+      "blocks": [
+        "s0-p100",
+        "s0-p101",
+        "s0-p108",
+        "s0-p109",
+        "s0-p110"
+      ],
+      "key": "stubs-starter-rules",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "Graphs whose descendants are all reducible or incomplete are detected and removed with their descendants, otherwise one could not be certain that every complete graph is reducible. A graph cannot be completed if the total curvature stays above 360° along every path and no path ends in a stub.",
+      "es": "Se detectan y eliminan, junto con sus descendientes, los grafos cuyos descendientes son todos reducibles o incompletos; de lo contrario no se podría estar seguro de que todo grafo completo es reducible. Un grafo no puede completarse si la curvatura total se mantiene por encima de 360° en todo camino y ningún camino termina en un muñón.",
+      "blocks": [
+        "s0-p111",
+        "s0-p113",
+        "s0-p114",
+        "s0-p116",
+        "appc-p4"
+      ],
+      "key": "prune-uncompletable",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "limitation",
+      "en": "For some inputs the number of graphs per generation grows faster than they can be removed. The fix is to limit generations or half-edges, or to ignore graphs that turned more than 360°. Then there is no guarantee the grammar produces every locally similar shape, but in practice it still produces a rich variety.",
+      "es": "Para algunas entradas, el número de grafos por generación crece más rápido de lo que se pueden eliminar. La solución es limitar las generaciones o las semiaristas, o ignorar los grafos que giraron más de 360°. Entonces no hay garantía de que la gramática produzca toda forma localmente similar, pero en la práctica sigue produciendo una gran variedad.",
+      "blocks": [
+        "s0-p75",
+        "s0-p118",
+        "s0-p119",
+        "s0-p120"
+      ],
+      "key": "hierarchy-growth",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "To generate a shape, the grammar drives a random walk through the space of complete locally similar shapes. It starts from the empty graph and at each iteration proposes a change using a rule, applied in either direction with no preference. Matching planar graphs takes linear time.",
+      "es": "Para generar una forma, la gramática guía un recorrido aleatorio por el espacio de formas completas y localmente similares. Parte del grafo vacío y en cada iteración propone un cambio mediante una regla, aplicada en cualquiera de los dos sentidos sin preferencia. Encontrar coincidencias en grafos planares toma tiempo lineal.",
+      "blocks": [
+        "s0-p122",
+        "alg-3",
+        "s0-p134",
+        "s0-p135"
+      ],
+      "key": "generate-by-random-walk",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "Geometry comes after connectivity. Edge angles define a linear system Ax = b in vertex positions and edge lengths. Solutions are sampled from x̂ + K_AΛ and kept only if edge angles are right, lengths are positive and within a specified range, and edges do not intersect. If A is overconstrained, neighboring vertices are freed.",
+      "es": "La geometría viene después de la conectividad. Los ángulos de las aristas definen un sistema lineal Ax = b en las posiciones de los vértices y las longitudes de las aristas. Se muestrean soluciones de x̂ + K_AΛ y solo se conservan si los ángulos son correctos, las longitudes son positivas y están dentro de un rango especificado, y las aristas no se intersectan. Si A está sobredeterminada, se liberan vértices vecinos.",
+      "blocks": [
+        "s0-p140",
+        "s0-p141",
+        "s0-p142",
+        "s0-p144",
+        "s0-p145",
+        "s0-p146"
+      ],
+      "key": "geometry-by-rejection-sampling",
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "An optional Metropolis-Hastings step accepts or rejects a drawing by an arbitrary cost function, for example a desired density or how often an edge label appears. The paper notes this is slow and that writing the right cost function is difficult.",
+      "es": "Un paso opcional de Metropolis-Hastings acepta o rechaza un dibujo según una función de costo arbitraria, por ejemplo una densidad deseada o la frecuencia con que aparece una etiqueta de arista. El artículo señala que esto es lento y que formular la función de costo adecuada es difícil.",
+      "blocks": [
+        "s0-p147",
+        "s0-p171"
+      ],
+      "key": "metropolis-cost-guidance",
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "The method extends to 3D shapes with vertices, edges, faces and volumes. The boundary of a 3D graph is a 2D graph rather than a string, so rules are found by graph isomorphism instead of string matching, and splicing becomes swapping the connections between two edges.",
+      "es": "El método se extiende a formas 3D con vértices, aristas, caras y volúmenes. La frontera de un grafo 3D es un grafo 2D y no una cadena, así que las reglas se encuentran por isomorfismo de grafos en lugar de comparar cadenas, y el empalme pasa a ser un intercambio de conexiones entre dos aristas.",
+      "blocks": [
+        "s0-p149",
+        "s0-p150",
+        "s0-p151",
+        "s0-p152"
+      ],
+      "key": "extension-to-3d",
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "dataset",
+      "en": "The examples are single polygonal shapes (castles, caves, space stations, processing plants, islands, neighborhood streets, flowers, villages, trees, houses, city skylines). The user supplies the example, expected edge lengths and optional decorations. All results use I = 5 and J = 10, and the number of iterations N varies with output size. Table 1 reports time, primitives, hierarchy graphs and rules.",
+      "es": "Los ejemplos son formas poligonales individuales (castillos, cuevas, estaciones espaciales, plantas de procesamiento, islas, calles de barrio, flores, pueblos, árboles, casas, siluetas de ciudad). El usuario aporta el ejemplo, las longitudes de arista esperadas y decoraciones opcionales. Todos los resultados usan I = 5 y J = 10, y el número de iteraciones N varía con el tamaño de la salida. La Tabla 1 reporta tiempo, primitivas, grafos de la jerarquía y reglas.",
+      "blocks": [
+        "s0-p154",
+        "s0-p157",
+        "tab-1",
+        "fig-8",
+        "fig-9"
+      ],
+      "key": "merrell-example-shapes",
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "Only a few of the 2D results need the hierarchy size limited: Figures 1, 9e, 9g and 9h, and 9e and 9h only because of added restrictions. Most of the 3D shapes need the limit, which can impact the expressiveness of the grammar. The grammars for Figure 8 are simple, and those for Figure 9 are much more complicated.",
+      "es": "Solo unos pocos resultados 2D requieren limitar el tamaño de la jerarquía: las Figuras 1, 9e, 9g y 9h, y 9e y 9h solo por restricciones añadidas. La mayoría de las formas 3D sí requieren el límite, lo que puede afectar la expresividad de la gramática. Las gramáticas de la Figura 8 son simples y las de la Figura 9 son mucho más complicadas.",
+      "blocks": [
+        "s0-p158",
+        "s0-p155"
+      ],
+      "key": "hierarchy-limit-needed",
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "claim",
+      "en": "Handling cycles correctly is the paper's major contribution. Earlier methods avoid cycles by focusing on tree-like structures or copy the input with minor changes. This method works on arbitrary polygonal shapes and can synthesize any locally similar shape, giving a wide range of large-scale structures.",
+      "es": "Manejar correctamente los ciclos es la contribución principal del artículo. Los métodos anteriores evitan los ciclos centrándose en estructuras con forma de árbol o copian la entrada con cambios menores. Este método funciona con formas poligonales arbitrarias y puede sintetizar cualquier forma localmente similar, lo que da una amplia gama de estructuras a gran escala.",
+      "blocks": [
+        "s0-p11",
+        "s0-p13",
+        "s0-p162"
+      ],
+      "key": "handles-cycles",
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "claim",
+      "en": "Compared with Bokeloh et al. 2010, Gatys et al. 2015 and Wu and Zheng 2022, prior work either does not close loops or only makes minor variations (for example a changed aspect ratio). Bokeloh et al. cut only at docking sites, so their pieces are larger than these primitives and cannot give every locally similar shape.",
+      "es": "Frente a Bokeloh et al. 2010, Gatys et al. 2015 y Wu y Zheng 2022, los trabajos previos no cierran los lazos o solo producen variaciones menores (por ejemplo, un cambio de relación de aspecto). Bokeloh et al. cortan solo en sitios de acoplamiento, así que sus piezas son más grandes que estas primitivas y no pueden dar toda forma localmente similar.",
+      "blocks": [
+        "s0-p163",
+        "s0-p164",
+        "s0-p165",
+        "fig-10",
+        "fig-11",
+        "s0-p17"
+      ],
+      "key": "beats-prior-on-loops",
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "The method needs only a small amount of training data. It can generalize from a limited data set and create novel variations not found in it. It suits randomized game levels and decorative designs.",
+      "es": "El método solo requiere una pequeña cantidad de datos de entrenamiento. Puede generalizar a partir de un conjunto limitado y crear variaciones nuevas que no están en él. Es adecuado para niveles aleatorios de videojuegos y diseños decorativos.",
+      "blocks": [
+        "s0-p167"
+      ],
+      "key": "small-training-data",
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "limitation",
+      "en": "The input must contain repeated elements, otherwise the output is the same as the input. A model of a dog would not give new dogs. The method assumes edges repeat exactly and does not handle noisy input. Bending and deforming can be applied afterwards as post-processing.",
+      "es": "La entrada debe contener elementos repetidos; de lo contrario la salida es igual a la entrada. Un modelo de un perro no produciría perros nuevos. El método supone que algunas aristas se repiten exactamente y no maneja datos de entrada con ruido. Se puede doblar y deformar la forma después como posprocesamiento.",
+      "blocks": [
+        "s0-p10",
+        "s0-p168",
+        "s0-p177",
+        "s0-p164"
+      ],
+      "key": "needs-exact-repetition",
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "limitation",
+      "en": "The method enforces only local constraints and generates shapes at random. Large-scale constraints are not the focus, and learning them from examples would be challenging and would need a larger training set.",
+      "es": "El método solo impone restricciones locales y genera formas al azar. Las restricciones a gran escala no son el enfoque, y aprenderlas de ejemplos sería un reto y requeriría un conjunto de entrenamiento mayor.",
+      "blocks": [
+        "s0-p10",
+        "s0-p170"
+      ],
+      "key": "no-large-scale-control",
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "Closed loops turning ±360° is necessary but not sufficient for a planar drawing, and deciding whether one exists is NP-hard. Rejection sampling works for most rules, but in some cases finding planar drawings is very difficult and better tools are needed. The author has not seen this in the experiments.",
+      "es": "Que los lazos cerrados giren ±360° es necesario pero no suficiente para que exista un dibujo planar, y decidir si existe es NP-difícil. El muestreo por rechazo funciona para la mayoría de las reglas, pero en algunos casos es muy difícil encontrar dibujos planares y se necesitan mejores herramientas. El autor no ha visto esto en sus experimentos.",
+      "blocks": [
+        "s0-p137",
+        "s0-p138",
+        "s0-p175"
+      ],
+      "key": "planar-drawing-hard",
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "The method assumes edges can stretch enough that forming 360° loops without self-intersection is easy. This breaks down under tight edge-length limits, such as sets of connectable tiles, which tile-based techniques handle well.",
+      "es": "El método supone que las aristas se pueden estirar lo suficiente como para que formar lazos de 360° sin autointersección sea fácil. Esto falla con límites estrictos de longitud de arista, como en conjuntos de teselas conectables, que las técnicas basadas en teselas manejan bien.",
+      "blocks": [
+        "s0-p176"
+      ],
+      "key": "tight-length-limits",
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "future",
+      "en": "Future work: better handling of the many gluing combinations in 3D, tools that narrow the search to the parts of the hierarchy where rules can be found, better planar graph drawing, combining with tile-based techniques, and combining with methods for large-scale constraints.",
+      "es": "Trabajo futuro: manejar mejor las muchas combinaciones de pegado en 3D, herramientas que acoten la búsqueda a las partes de la jerarquía donde puede haber reglas, mejor dibujo de grafos planares, combinarlo con técnicas basadas en teselas y con métodos de restricciones a gran escala.",
+      "blocks": [
+        "s0-p174",
+        "s0-p175",
+        "s0-p176",
+        "s0-p172"
+      ],
+      "key": "merrell-future-work",
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "concept",
+      "en": "Procedural modeling usually relies on shape grammars, L-systems and growth engines whose rules are hand-crafted by experts. This resembles programming more than artistic design, and it is unclear what rules produce a given set of shapes.",
+      "es": "El modelado procedural suele apoyarse en gramáticas de formas, sistemas L y motores de crecimiento cuyas reglas son hechas a mano por expertos. Esto se parece más a programar que a diseñar de forma artística, y no es claro qué reglas producen un conjunto dado de formas.",
+      "blocks": [
+        "s0-p7",
+        "s0-p15",
+        "s0-p160"
+      ],
+      "key": "hand-crafted-grammars",
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "concept",
+      "en": "Existing inverse procedural modeling learns grammars for particular types of models, such as building facades, trees or vector art, road networks or scene graphs, where tree-like structures are easy to handle. Its outputs stay close to the input unless the grammar is edited by hand.",
+      "es": "El modelado procedural inverso existente aprende gramáticas para tipos particulares de modelos, como fachadas de edificios, árboles o arte vectorial, redes viales o grafos de escena, donde las estructuras con forma de árbol son fáciles de manejar. Sus salidas se mantienen cercanas a la entrada salvo que se edite la gramática a mano.",
+      "blocks": [
+        "s0-p16",
+        "s0-p18",
+        "s0-p161"
+      ],
+      "key": "inverse-procedural-prior-work",
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "concept",
+      "en": "Grid-based techniques (constraint solving on tiles, wave function style overlapping tiles) generate locally similar 3D shapes from an example and are used in games, but they depend on a grid that limits the shapes they can produce. Overcoming this has been a long-standing problem.",
+      "es": "Las técnicas basadas en rejilla (resolución de restricciones sobre teselas, teselas traslapadas) generan formas 3D localmente similares a partir de un ejemplo y se usan en videojuegos, pero dependen de una rejilla que limita las formas que pueden producir. Superar esto ha sido un problema de larga data.",
+      "blocks": [
+        "s0-p21",
+        "s0-p20"
+      ],
+      "key": "grid-based-synthesis",
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i30",
+      "type": "contradicts",
+      "why": "The question exists because hand-crafted grammar rules are hard to write."
+    },
+    {
+      "from": "i31",
+      "to": "i1",
+      "type": "example-of",
+      "why": "Earlier inverse procedural modeling are attempts at the same question, limited to particular shape types."
+    },
+    {
+      "from": "i3",
+      "to": "i4",
+      "type": "part-of",
+      "why": "The labeled graph is what gets cut into primitives."
+    },
+    {
+      "from": "i4",
+      "to": "i5",
+      "type": "supports",
+      "why": "Primitives are the pieces that gluing reassembles."
+    },
+    {
+      "from": "i5",
+      "to": "i6",
+      "type": "uses",
+      "why": "Gluing is defined as string replacement on boundary strings."
+    },
+    {
+      "from": "i2",
+      "to": "i4",
+      "type": "supports",
+      "why": "Cutting into the smallest primitives guarantees that any reassembly is locally similar to the input."
+    },
+    {
+      "from": "i5",
+      "to": "i7",
+      "type": "part-of",
+      "why": "The hierarchy enumerates every sequence of gluing operations."
+    },
+    {
+      "from": "i8",
+      "to": "i9",
+      "type": "supports",
+      "why": "Random gluing gets stuck, which motivates a grammar with rules."
+    },
+    {
+      "from": "i6",
+      "to": "i10",
+      "type": "uses",
+      "why": "Rule finding matches boundary strings."
+    },
+    {
+      "from": "i7",
+      "to": "i10",
+      "type": "uses",
+      "why": "Matches are looked for among graphs in the hierarchy."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Each match yields a DPO production rule."
+    },
+    {
+      "from": "i11",
+      "to": "i12",
+      "type": "supports",
+      "why": "Reducing all complete graphs to the empty graph is the stopping condition."
+    },
+    {
+      "from": "i12",
+      "to": "i10",
+      "type": "uses",
+      "why": "Algorithm 1 calls the string matching of Algorithm 2."
+    },
+    {
+      "from": "i13",
+      "to": "i12",
+      "type": "part-of",
+      "why": "Stubs and starter rules are found as part of the same hierarchy search."
+    },
+    {
+      "from": "i14",
+      "to": "i12",
+      "type": "part-of",
+      "why": "Pruning uncompletable graphs is a step of Algorithm 1."
+    },
+    {
+      "from": "i15",
+      "to": "i14",
+      "type": "contradicts",
+      "why": "When pruning cannot keep up with growth, the guarantee is dropped."
+    },
+    {
+      "from": "i16",
+      "to": "i9",
+      "type": "uses",
+      "why": "Generation applies the grammar's rules in both directions."
+    },
+    {
+      "from": "i17",
+      "to": "i16",
+      "type": "part-of",
+      "why": "Each proposed angle graph needs vertex positions to become a drawing."
+    },
+    {
+      "from": "i18",
+      "to": "i17",
+      "type": "supports",
+      "why": "The cost function can reject drawings after sampling."
+    },
+    {
+      "from": "i19",
+      "to": "i15",
+      "type": "supports",
+      "why": "3D gives more ways to glue, so the hierarchy limit is needed more often."
+    },
+    {
+      "from": "i21",
+      "to": "i15",
+      "type": "example-of",
+      "why": "The cases needing a limited hierarchy are examples of the growth problem."
+    },
+    {
+      "from": "i20",
+      "to": "i21",
+      "type": "measures",
+      "why": "The result statements are about these example shapes."
+    },
+    {
+      "from": "i22",
+      "to": "i8",
+      "type": "supports",
+      "why": "Closing loops is solved by the grammar instead of a random walk."
+    },
+    {
+      "from": "i23",
+      "to": "i22",
+      "type": "supports",
+      "why": "The comparisons show prior methods failing on loops."
+    },
+    {
+      "from": "i24",
+      "to": "i25",
+      "type": "contradicts",
+      "why": "Small data suffices only if the example repeats elements exactly."
+    },
+    {
+      "from": "i26",
+      "to": "i18",
+      "type": "supports",
+      "why": "Cost functions are one way to add global control but with difficulty."
+    },
+    {
+      "from": "i28",
+      "to": "i32",
+      "type": "supports",
+      "why": "Tile-based methods handle the tight-length case the paper does not."
+    },
+    {
+      "from": "i29",
+      "to": "i26",
+      "type": "supports",
+      "why": "Combining with large-scale constraint methods is the proposed remedy."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i4",
+      "to": "deconstruct-for-training",
+      "why": "Cutting a labeled graph into the smallest pieces, then reassembling them, is a concrete way to turn one model into reusable building examples."
+    },
+    {
+      "idea": "i5",
+      "to": "assemble-node-by-node",
+      "why": "Gluing primitives step by step, with rules that guarantee a complete result, offers a way to build a model piece by piece, though with random choice rather than a learned predictor."
+    },
+    {
+      "idea": "i1",
+      "to": "explicit-vs-learned",
+      "why": "Rules are derived automatically from an example instead of being hand-written, but they are explicit and inspectable, a middle ground between hand rules and learned judgment."
+    },
+    {
+      "idea": "i3",
+      "to": "ifc-to-graph-recipe",
+      "why": "Encoding a shape as a graph with typed edge labels, then synthesizing in connectivity before geometry, parallels elements-as-nodes and relations-as-edges."
+    },
+    {
+      "idea": "i11",
+      "to": "correct-by-construction",
+      "why": "Every rule application yields a valid graph with no open paths, so what is generated is complete by construction, though this concerns geometric closure and not BIM information."
+    },
+    {
+      "idea": "i24",
+      "to": "real-or-synthetic-data",
+      "why": "It shows new variations coming from a single example, a case where the dataset's size comes from the generator and not from collecting many real models."
+    },
+    {
+      "idea": "i25",
+      "to": "clean-real-models",
+      "why": "The method needs exact self-similarity and cannot handle noisy input, so real models would need cleaning before a method like this could learn from them."
+    },
+    {
+      "idea": "i26",
+      "to": "question",
+      "why": "Local similarity does not give whole-model validity, so a BIM generator built this way would need other constraints for building-scale rules."
+    },
+    {
+      "idea": "i1",
+      "to": "hypothesis",
+      "why": "It supports the idea that decomposing a model into pieces and relations lets patterns be found automatically, but only for 2D/3D polygonal shapes with repeated parts, not BIM."
+    },
+    {
+      "idea": "i22",
+      "to": "merrell-2023",
+      "why": "This is the paper's central claim, that cycles are handled so arbitrary polygonal shapes can be generated from one example."
+    }
+  ]
+}

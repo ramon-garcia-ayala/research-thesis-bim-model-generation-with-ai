@@ -1,0 +1,579 @@
+{
+  "version": 1,
+  "node": "ifcnet-2021",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can deep learning models classify IFC elements into their IFC classes using only the geometry of each object?",
+      "es": "¿Pueden los modelos de aprendizaje profundo clasificar elementos IFC en sus clases IFC usando solo la geometría de cada objeto?",
+      "blocks": [
+        "s0-p2",
+        "s1-p4"
+      ],
+      "key": "ifc-entity-classification",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "IFC exchanges between software products lose information through reduction, simplification or interpretation, and elements can be mismapped to the wrong IFC entity through manual error or default templates.",
+      "es": "Los intercambios IFC entre programas pierden información por reducción, simplificación o interpretación, y los elementos pueden asignarse a la entidad IFC equivocada por error manual o por plantillas predeterminadas.",
+      "blocks": [
+        "s1-p2",
+        "s1-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "claim",
+      "en": "Labelled datasets for BIM and IFC are scarce, which makes developing and verifying machine learning models difficult.",
+      "es": "Los conjuntos de datos etiquetados para BIM e IFC son escasos, lo que dificulta desarrollar y verificar modelos de aprendizaje automático.",
+      "blocks": [
+        "s1-p4",
+        "s0-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "claim",
+      "en": "Earlier works assemble their own datasets and do not release them, which duplicates effort and makes comparison between methods impossible; IFCNet is meant as a common benchmark.",
+      "es": "Los trabajos previos arman sus propios conjuntos de datos y no los publican, lo que duplica esfuerzo e impide comparar métodos; IFCNet busca ser un punto de comparación común.",
+      "blocks": [
+        "s2-p3",
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "concept",
+      "en": "Existing classification approaches are either rule-based (RANSAC, region growing, object and spatial rules, knowledge bases) or machine-learning-based (PointNet, MVCNN, 2D CNNs on images); Bloch & Sacks argue rule-based workflows do not apply to all problems.",
+      "es": "Los enfoques existentes son basados en reglas (RANSAC, crecimiento de regiones, reglas de objetos y espaciales, bases de conocimiento) o de aprendizaje automático (PointNet, MVCNN, CNN 2D sobre imágenes); Bloch y Sacks argumentan que los flujos basados en reglas no sirven para todos los problemas.",
+      "blocks": [
+        "s2-p1",
+        "s2-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "dataset",
+      "en": "IFCNet is a benchmark of single-entity IFC files that carry geometry and semantic information; it currently has 19,613 confirmed objects in 65 classes, mostly highly imbalanced.",
+      "es": "IFCNet es un benchmark de archivos IFC de una sola entidad con geometría e información semántica; actualmente tiene 19,613 objetos confirmados en 65 clases, en su mayoría muy desbalanceadas.",
+      "blocks": [
+        "s0-p2",
+        "s2-p7",
+        "tab-1"
+      ],
+      "key": "ifcnet",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "dataset",
+      "en": "IFCNetCore is the first sub-dataset of 20 classes selected for the experiments; it contains 7,930 objects with a training and test split.",
+      "es": "IFCNetCore es el primer subconjunto de 20 clases elegido para los experimentos; contiene 7,930 objetos con una división de entrenamiento y prueba.",
+      "blocks": [
+        "s2-p7",
+        "fig-1",
+        "tab-1"
+      ],
+      "key": "ifcnet-core",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Around 1000 IFC models were collected from real-world projects, student works and online sources such as the University of Auckland repository, mostly authored in Autodesk Revit and ArchiCAD.",
+      "es": "Se reunieron alrededor de 1000 modelos IFC de proyectos reales, trabajos de estudiantes y fuentes en línea como el repositorio de la Universidad de Auckland, creados sobre todo en Autodesk Revit y ArchiCAD.",
+      "blocks": [
+        "s2-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "The models were decomposed by extracting every object into its own file, together with its attached IfcPropertySets, focusing on subtypes of IfcDistributionElement, IfcBuildingElement and IfcFurnishingElement; this gave roughly 1.2M entities from 82 IFC classes in several representation types.",
+      "es": "Los modelos se descompusieron extrayendo cada objeto a su propio archivo, junto con sus IfcPropertySets, enfocándose en subtipos de IfcDistributionElement, IfcBuildingElement e IfcFurnishingElement; esto dio aproximadamente 1.2M de entidades de 82 clases IFC en varios tipos de representación.",
+      "blocks": [
+        "s2-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Deduplication normalizes each object's vertices to the unit sphere and uses them as a hash-map key, so identical geometry within a class is removed in linear time and the process can be parallelized.",
+      "es": "La deduplicación normaliza los vértices de cada objeto a la esfera unitaria y los usa como llave de un mapa hash, de modo que la geometría idéntica dentro de una clase se elimina en tiempo lineal y el proceso se puede paralelizar.",
+      "blocks": [
+        "s2-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "result",
+      "en": "Naive deduplication reduced the roughly 1.2M extracted entities to around 290k.",
+      "es": "La deduplicación ingenua redujo las aproximadamente 1.2M de entidades extraídas a alrededor de 290k.",
+      "blocks": [
+        "s2-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Entities were reviewed manually with a web-based tool that shows geometry and metadata and lets reviewers confirm or change the class; the labelling was carried out and supervised by domain experts.",
+      "es": "Las entidades se revisaron manualmente con una herramienta web que muestra la geometría y los metadatos y permite confirmar o cambiar la clase; el etiquetado lo realizaron y supervisaron expertos del dominio.",
+      "blocks": [
+        "s2-p6",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "concept",
+      "en": "Classes differ in difficulty: IfcFurniture has very large intra-class variance, while IfcWall and IfcPlate have small inter-class variance as both are plain rectangular shapes of varying thickness.",
+      "es": "Las clases difieren en dificultad: IfcFurniture tiene una varianza intraclase muy grande, mientras que IfcWall e IfcPlate tienen poca varianza interclase porque ambas son formas rectangulares simples de espesor variable.",
+      "blocks": [
+        "s2-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "concept",
+      "en": "Models and elements of different Level of Information Need (LOIN) are included, which covers placeholder objects such as generic cubes that are likely classifiable only through their metadata.",
+      "es": "Se incluyen modelos y elementos de distinto Nivel de Información Necesario (LOIN), lo que abarca objetos marcadores como cubos genéricos que probablemente solo se pueden clasificar por sus metadatos.",
+      "blocks": [
+        "s2-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "concept",
+      "en": "Most objects carry IfcProperties grouped in IfcPropertySets, mainly user-defined key-value pairs, often in different languages such as German, English, Dutch and French.",
+      "es": "La mayoría de los objetos tienen IfcProperties agrupadas en IfcPropertySets, sobre todo pares llave-valor definidos por el usuario, a menudo en varios idiomas como alemán, inglés, neerlandés y francés.",
+      "blocks": [
+        "s2-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "All three experiments share one protocol: split train and test, hold out 30% of training data for validation to pick hyperparameters by balanced accuracy, retrain on the whole training set, and evaluate on the test set once.",
+      "es": "Los tres experimentos comparten un protocolo: dividir en entrenamiento y prueba, apartar 30% del entrenamiento para validar y elegir hiperparámetros por exactitud balanceada, reentrenar con todo el entrenamiento y evaluar una sola vez en prueba.",
+      "blocks": [
+        "s4-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "MVCNN classifies each object from 12 rendered views taken by a camera rotating around the up-axis in 30° increments, and benefits from image networks pre-trained on large datasets like ImageNet.",
+      "es": "MVCNN clasifica cada objeto a partir de 12 vistas renderizadas con una cámara que gira alrededor del eje vertical en incrementos de 30°, y aprovecha redes de imágenes preentrenadas en conjuntos grandes como ImageNet.",
+      "blocks": [
+        "s4-p3",
+        "s4-p4",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "DGCNN works on point clouds of 2048 points sampled uniformly at random per object and normalized to the unit sphere, using convolutions over point neighborhoods to exploit local geometry.",
+      "es": "DGCNN trabaja con nubes de 2048 puntos muestreados uniformemente al azar por objeto y normalizados a la esfera unitaria, usando convoluciones sobre vecindades de puntos para aprovechar la geometría local.",
+      "blocks": [
+        "s4-p6",
+        "s4-p7",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "MeshNet uses the mesh directly, taking faces as the unit; meshes are simplified to a maximum of 2048 faces with Quadric Edge Collapse Decimation and turned into lists of faces with center, corners, normal and neighbors.",
+      "es": "MeshNet usa la malla directamente, tomando las caras como unidad; las mallas se simplifican a un máximo de 2048 caras con Quadric Edge Collapse Decimation y se convierten en listas de caras con centro, esquinas, normal y vecinas.",
+      "blocks": [
+        "s4-p8",
+        "s4-p9",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "MVCNN achieves the best overall results in balanced accuracy and F1 score among the three models, and it also beats DGCNN and MeshNet on low-count classes.",
+      "es": "MVCNN logra los mejores resultados generales en exactitud balanceada y F1 entre los tres modelos, y también supera a DGCNN y MeshNet en clases con pocos objetos.",
+      "blocks": [
+        "s4-p10",
+        "s4-p11",
+        "tab-2",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "Classes with very few objects, such as IfcOutlet, show worse performance.",
+      "es": "Las clases con muy pocos objetos, como IfcOutlet, muestran peor desempeño.",
+      "blocks": [
+        "s4-p10",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "The three models make similar mistakes: plates, slabs and walls are among the most confused classes, and duct segments and pipe segments are also commonly confused.",
+      "es": "Los tres modelos cometen errores parecidos: placas, losas y muros están entre las clases más confundidas, y los segmentos de ducto y de tubería también se confunden con frecuencia.",
+      "blocks": [
+        "s4-p11",
+        "fig-4",
+        "fig-5",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "claim",
+      "en": "Using only geometry, all three models show reasonable performance and prove that they can learn from the dataset.",
+      "es": "Usando solo geometría, los tres modelos muestran un desempeño razonable y demuestran que pueden aprender del conjunto de datos.",
+      "blocks": [
+        "s4-p11",
+        "s6-p2",
+        "s0-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "limitation",
+      "en": "All three methods only use geometric information; combining geometry and semantic information in training was left out of scope.",
+      "es": "Los tres métodos solo usan información geométrica; combinar geometría e información semántica durante el entrenamiento quedó fuera del alcance.",
+      "blocks": [
+        "s4-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "limitation",
+      "en": "Normalizing the data before training discards absolute object size, and objects with few details can be very hard to classify out of the context of the full BIM model.",
+      "es": "Normalizar los datos antes de entrenar descarta el tamaño absoluto de los objetos, y los objetos con pocos detalles pueden ser muy difíciles de clasificar fuera del contexto del modelo BIM completo.",
+      "blocks": [
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "limitation",
+      "en": "Deduplication catches only identical geometry; objects that look alike but differ by vertex permutations or non-uniform scaling remain, and an exhaustive near-duplicate search is not feasible.",
+      "es": "La deduplicación solo detecta geometría idéntica; los objetos parecidos que difieren por permutaciones de vértices o escalado no uniforme permanecen, y una búsqueda exhaustiva de casi duplicados no es factible.",
+      "blocks": [
+        "s5-p2",
+        "s2-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "Metadata mixes languages, has missing values, abbreviations and acronyms, and is sometimes inaccurate or wrong, so semantic properties need thorough pre-processing before use.",
+      "es": "Los metadatos mezclan idiomas, tienen valores faltantes, abreviaturas y siglas, y a veces son inexactos o erróneos, por lo que las propiedades semánticas requieren un preprocesamiento minucioso antes de usarse.",
+      "blocks": [
+        "s5-p3",
+        "s2-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "Not all objects listed after deduplication have been reviewed and confirmed yet, and labelling needs domain knowledge, making the dataset more resource intensive than other machine learning datasets.",
+      "es": "No todos los objetos listados tras la deduplicación se han revisado y confirmado, y el etiquetado exige conocimiento del dominio, lo que hace al conjunto más costoso que otros de aprendizaje automático.",
+      "blocks": [
+        "tab-1",
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "future",
+      "en": "Future work: expand IFCNet with more objects, classes and semantic information toward a large-scale dataset for BIM and IFC, and develop models that use properties and semantic information.",
+      "es": "Trabajo futuro: ampliar IFCNet con más objetos, clases e información semántica hacia un conjunto a gran escala para BIM e IFC, y desarrollar modelos que usen propiedades e información semántica.",
+      "blocks": [
+        "s6-p1",
+        "s6-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "future",
+      "en": "With sufficient size, IFCNet could be used for pre-training on 3D data, as large image datasets are used in 2D; transfer learning for 3D data is an active research area.",
+      "es": "Con el tamaño suficiente, IFCNet podría servir para preentrenar con datos 3D, como los grandes conjuntos de imágenes se usan en 2D; el aprendizaje por transferencia en 3D es un área de investigación activa.",
+      "blocks": [
+        "s6-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "future",
+      "en": "The classifier could be integrated into the BIM workflow like SEEBIM: on importing an IFC file the network infers element classes, and the author sees the potential misclassifications and accepts or rejects each proposal.",
+      "es": "El clasificador podría integrarse al flujo BIM como SEEBIM: al importar un archivo IFC la red infiere las clases de los elementos, y el autor ve las posibles clasificaciones erróneas y acepta o rechaza cada propuesta.",
+      "blocks": [
+        "s6-p3"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i3",
+      "to": "i6",
+      "type": "supports",
+      "why": "The scarcity of labelled BIM data is the reason IFCNet was built."
+    },
+    {
+      "from": "i4",
+      "to": "i6",
+      "type": "supports",
+      "why": "The lack of shared public datasets motivates a common benchmark."
+    },
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "Mismapped or inconsistent classes are the interoperability problem that classification is meant to address."
+    },
+    {
+      "from": "i5",
+      "to": "i1",
+      "type": "supports",
+      "why": "Rule-based methods do not fit all cases, which motivates trying deep learning."
+    },
+    {
+      "from": "i8",
+      "to": "i6",
+      "type": "part-of",
+      "why": "The collected models are the raw source of the dataset."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "uses",
+      "why": "Decomposition is applied to the collected models."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "uses",
+      "why": "Deduplication runs on the extracted entities."
+    },
+    {
+      "from": "i11",
+      "to": "i10",
+      "type": "measures",
+      "why": "The reduction from 1.2M to around 290k shows what deduplication removed."
+    },
+    {
+      "from": "i12",
+      "to": "i10",
+      "type": "uses",
+      "why": "Manual review follows deduplication."
+    },
+    {
+      "from": "i7",
+      "to": "i6",
+      "type": "part-of",
+      "why": "IFCNetCore is the 20-class subset of the full dataset."
+    },
+    {
+      "from": "i13",
+      "to": "i7",
+      "type": "supports",
+      "why": "Class difficulty and imbalance are why a balanced 20-class subset is used and what it still contains."
+    },
+    {
+      "from": "i14",
+      "to": "i13",
+      "type": "part-of",
+      "why": "Placeholder objects of varying LOIN add to the difficulty of the classes."
+    },
+    {
+      "from": "i15",
+      "to": "i6",
+      "type": "part-of",
+      "why": "Property sets are extracted and attached to each entity."
+    },
+    {
+      "from": "i16",
+      "to": "i7",
+      "type": "uses",
+      "why": "The protocol splits and trains on IFCNetCore."
+    },
+    {
+      "from": "i17",
+      "to": "i16",
+      "type": "uses",
+      "why": "MVCNN follows the shared protocol."
+    },
+    {
+      "from": "i18",
+      "to": "i16",
+      "type": "uses",
+      "why": "DGCNN follows the shared protocol."
+    },
+    {
+      "from": "i19",
+      "to": "i16",
+      "type": "uses",
+      "why": "MeshNet follows the shared protocol."
+    },
+    {
+      "from": "i20",
+      "to": "i17",
+      "type": "measures",
+      "why": "MVCNN gets the best overall results."
+    },
+    {
+      "from": "i22",
+      "to": "i13",
+      "type": "supports",
+      "why": "The confused pairs match the small inter-class variance described."
+    },
+    {
+      "from": "i21",
+      "to": "i6",
+      "type": "supports",
+      "why": "Poor results on rare classes follow from the class imbalance."
+    },
+    {
+      "from": "i23",
+      "to": "i1",
+      "type": "supports",
+      "why": "Reasonable performance from geometry alone answers the question affirmatively."
+    },
+    {
+      "from": "i25",
+      "to": "i22",
+      "type": "supports",
+      "why": "Lost size and lost context help explain why similar-looking classes are confused."
+    },
+    {
+      "from": "i24",
+      "to": "i29",
+      "type": "supports",
+      "why": "The geometry-only scope leads to the call for models that use semantics."
+    },
+    {
+      "from": "i27",
+      "to": "i24",
+      "type": "supports",
+      "why": "Noisy metadata is a reason semantics were not used."
+    },
+    {
+      "from": "i30",
+      "to": "i17",
+      "type": "supports",
+      "why": "MVCNN already benefits from pre-training on image datasets, which suggests the 3D analogue."
+    },
+    {
+      "from": "i26",
+      "to": "i10",
+      "type": "contradicts",
+      "why": "Near-duplicates survive the exact-vertex deduplication."
+    },
+    {
+      "from": "i31",
+      "to": "i23",
+      "type": "supports",
+      "why": "Useful but imperfect predictions suit a workflow where the author accepts or rejects."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i9",
+      "to": "deconstruct-for-training",
+      "why": "Takes whole IFC models apart into individual entity files with their property sets to get training examples, but drops relations between elements."
+    },
+    {
+      "idea": "i9",
+      "to": "hypothesis",
+      "why": "Decomposes models into elements only; the relations half of the hypothesis is lost since each file holds a single entity, a gap to fill."
+    },
+    {
+      "idea": "i10",
+      "to": "clean-real-models",
+      "why": "Shows a concrete cleaning step for real models: hash-based deduplication that cut 1.2M to around 290k."
+    },
+    {
+      "idea": "i12",
+      "to": "clean-real-models",
+      "why": "Adds expert manual review with a dedicated tool, since automatic steps and authoring defaults leave misclassified elements."
+    },
+    {
+      "idea": "i26",
+      "to": "clean-real-models",
+      "why": "Shows the limit of exact deduplication: near-duplicates remain and cannot be found exhaustively."
+    },
+    {
+      "idea": "i6",
+      "to": "dataset-purposes",
+      "why": "A dataset built as a benchmark for classification and semantic enrichment, not for generation."
+    },
+    {
+      "idea": "i14",
+      "to": "iso-19650-loin",
+      "why": "Includes elements of different Level of Information Need on purpose, so placeholders are classifiable only by metadata."
+    },
+    {
+      "idea": "i8",
+      "to": "real-or-synthetic-data",
+      "why": "Draws its size from real projects, student works and online repositories, and its quality from heavy filtering and labelling."
+    },
+    {
+      "idea": "i31",
+      "to": "proposed-vs-kept",
+      "why": "Proposes a workflow where the network proposes classes and the author accepts or rejects each, a signal that could be logged."
+    },
+    {
+      "idea": "i5",
+      "to": "explicit-vs-learned",
+      "why": "Contrasts rule-based classification with learned classification and cites arguments that rules do not cover all cases."
+    },
+    {
+      "idea": "i2",
+      "to": "ifc",
+      "why": "Documents how IFC exchange loses information and mismaps elements, which affects any pipeline that reads real IFC files."
+    },
+    {
+      "idea": "i27",
+      "to": "clean-real-models",
+      "why": "Real metadata is multilingual, incomplete and sometimes wrong, so it needs pre-processing before a model can learn from it."
+    }
+  ]
+}

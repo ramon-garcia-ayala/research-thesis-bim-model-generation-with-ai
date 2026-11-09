@@ -1,0 +1,776 @@
+{
+  "version": 1,
+  "node": "ifcnet-2021",
+  "title": "IFCNet: A Benchmark Dataset for IFC Entity Classification",
+  "source": "files/IFCNet  A Benchmark Dataset for IFC Entity Classification.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Información preliminar"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "IFCNet: A Benchmark Dataset for IFC Entity Classification",
+            "es": "IFCNet: un conjunto de datos de referencia (benchmark) para la clasificación de entidades IFC"
+          }
+        },
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Christoph Emunds, Nicolas Pauen, Veronika Richter, Jérôme Frisch, Christoph van Treeck",
+            "es": "Christoph Emunds, Nicolas Pauen, Veronika Richter, Jérôme Frisch, Christoph van Treeck"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Institute of Energy Efficiency and Sustainable Building E3D, RWTH Aachen University, Germany",
+            "es": "Instituto de Eficiencia Energética y Construcción Sostenible E3D, RWTH Aachen University, Alemania"
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "emunds@e3d.rwth-aachen.de",
+            "es": "emunds@e3d.rwth-aachen.de"
+          }
+        }
+      ]
+    },
+    {
+      "id": "abs",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Enhancing interoperability and information exchange between domain-specific software products for BIM is an important aspect in the Architecture, Engineering, Construction and Operations industry. Recent research started investigating methods from the areas of machine and deep learning for semantic enrichment of BIM models. However, training and evaluation of these machine learning algorithms requires sufficiently large and comprehensive datasets. This work presents IFCNet, a dataset of single-entity IFC files spanning a broad range of IFC classes containing both geometric and semantic information. Using only the geometric information of objects, the experiments show that three different deep learning models are able to achieve good classification performance.",
+            "es": "Mejorar la interoperabilidad (interoperability) y el intercambio de información entre los productos de software específicos de cada dominio para BIM es un aspecto importante en la industria de la Arquitectura, Ingeniería, Construcción y Operaciones (Architecture, Engineering, Construction and Operations, AECO). Investigaciones recientes han comenzado a explorar métodos de las áreas de aprendizaje automático (machine learning) y aprendizaje profundo (deep learning) para el enriquecimiento semántico (semantic enrichment) de modelos BIM. Sin embargo, el entrenamiento y la evaluación de estos algoritmos de aprendizaje automático requieren conjuntos de datos (datasets) suficientemente grandes y completos. Este trabajo presenta IFCNet, un conjunto de datos de archivos IFC de una sola entidad que abarca una amplia gama de clases IFC y contiene tanto información geométrica como semántica. Utilizando únicamente la información geométrica de los objetos, los experimentos muestran que tres modelos distintos de aprendizaje profundo son capaces de lograr un buen desempeño de clasificación."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1. Introduction",
+        "es": "1. Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Enhancing interoperability between domain-specific information modeling processes and, thus, software products for Building Information Modeling (BIM) is an important aspect to improve the lifecycle support of buildings and to facilitate the collaboration of the different disciplines across Architecture, Engineering, Construction and Operations (AECO). The Industry Foundation Classes (IFC) provide an open data exchange format for sharing information between these stakeholders.",
+            "es": "Mejorar la interoperabilidad entre los procesos de modelado de información específicos de cada dominio y, por lo tanto, entre los productos de software para el Modelado de Información de Construcción (Building Information Modeling, BIM) es un aspecto importante para mejorar el soporte del ciclo de vida de los edificios y facilitar la colaboración de las distintas disciplinas de la Arquitectura, Ingeniería, Construcción y Operaciones (AECO). Las Industry Foundation Classes (IFC) proporcionan un formato abierto de intercambio de datos para compartir información entre estos actores."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "However, since the IFC standard has to cover a broad spectrum of concepts, it contains a large number of entities and is highly complex. Past studies have shown that IFC-based exchanges of models are prone to an information loss due to reduction, simplification or interpretation when sharing data between multiple specialized software products (Bazjanac & Kiviniemi, 2007). One major issue is a potential mismapping between native BIM elements and IFC entities, which can arise through e.g. manual error during model creation or the reliance on default templates (Belsky, et al., 2016). Furthermore, CAD software products interpret specifications differently when processing in- and output data.",
+            "es": "Sin embargo, dado que el estándar IFC debe cubrir un amplio espectro de conceptos, contiene un gran número de entidades y es altamente complejo. Estudios previos han demostrado que los intercambios de modelos basados en IFC son propensos a la pérdida de información debido a la reducción, simplificación o interpretación cuando se comparten datos entre varios productos de software especializados (Bazjanac & Kiviniemi, 2007). Un problema importante es el posible mapeo erróneo entre los elementos BIM nativos y las entidades IFC, que puede surgir, por ejemplo, por errores manuales durante la creación del modelo o por la dependencia de plantillas predeterminadas (Belsky, et al., 2016). Además, los productos de software CAD interpretan las especificaciones de manera diferente al procesar los datos de entrada y salida."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "When sharing BIM models with other teams, semantic integrity is a prerequisite for a seamless workflow and effective collaboration. Many specialized applications rely on accurate semantic information to perform their tasks, e.g. energy efficiency modelling (Schlueter & Thesseling, 2009; Ham & Golparvar-Fard, 2015) or code compliance checking (Eastman, et al., 2009). Inconsistent object classification has been identified to be a common interoperability issue between different BIM authoring software suites (Belsky et al., 2016; Lai & Deng, 2018).",
+            "es": "Al compartir modelos BIM con otros equipos, la integridad semántica es un requisito previo para un flujo de trabajo fluido y una colaboración eficaz. Muchas aplicaciones especializadas dependen de información semántica precisa para realizar sus tareas, por ejemplo, el modelado de eficiencia energética (Schlueter & Thesseling, 2009; Ham & Golparvar-Fard, 2015) o la verificación del cumplimiento normativo (Eastman, et al., 2009). Se ha identificado que la clasificación inconsistente de objetos es un problema de interoperabilidad común entre distintas suites de software de autoría BIM (Belsky et al., 2016; Lai & Deng, 2018)."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Researchers have started approaching this issue with methods from the area of machine and deep learning (Bloch & Sacks, 2018). These algorithms typically need labelled datasets to learn from. However, comprehensive and rich datasets in the domain of BIM and IFC are scarce, which makes the development and verification of such models difficult. In this work, the authors introduce a benchmark dataset of single-entity IFC files covering a broad range of IFC classes. This dataset, named IFCNet, should contribute to the standardization of performance evaluations of future work in this domain. To evaluate the usefulness of IFCNet, three deep learning methods are trained to classify the entities and their performance is reviewed.",
+            "es": "Los investigadores han comenzado a abordar este problema con métodos del área de aprendizaje automático y aprendizaje profundo (Bloch & Sacks, 2018). Estos algoritmos suelen necesitar conjuntos de datos etiquetados para aprender. Sin embargo, los conjuntos de datos completos y ricos en el dominio de BIM e IFC son escasos, lo que dificulta el desarrollo y la verificación de dichos modelos. En este trabajo, los autores presentan un conjunto de datos de referencia de archivos IFC de una sola entidad que cubre una amplia gama de clases IFC. Este conjunto de datos, llamado IFCNet, debería contribuir a la estandarización de las evaluaciones de desempeño de trabajos futuros en este dominio. Para evaluar la utilidad de IFCNet, se entrenan tres métodos de aprendizaje profundo para clasificar las entidades y se revisa su desempeño."
+          }
+        },
+        {
+          "id": "s1-fn1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "1 https://ifcnet.e3d.rwth-aachen.de",
+            "es": "1 https://ifcnet.e3d.rwth-aachen.de"
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The key contributions of this research paper can be summarized as follows:",
+            "es": "Las contribuciones clave de este artículo de investigación se pueden resumir de la siguiente manera:"
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• A benchmark dataset for IFC entity classification, named IFCNet, is released.",
+            "es": "• Se publica un conjunto de datos de referencia para la clasificación de entidades IFC, llamado IFCNet."
+          }
+        },
+        {
+          "id": "s1-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• The application of recent advances in the area of geometric deep learning to the classification of IFC elements is shown using three different approaches.",
+            "es": "• Se muestra la aplicación de avances recientes en el área del aprendizaje profundo geométrico (geometric deep learning) a la clasificación de elementos IFC mediante tres enfoques distintos."
+          }
+        },
+        {
+          "id": "s1-p9",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• An evaluation of these deep learning methods is conducted to demonstrate the opportunities and challenges posed by IFCNet.",
+            "es": "• Se realiza una evaluación de estos métodos de aprendizaje profundo para demostrar las oportunidades y los desafíos que plantea IFCNet."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2. Related Work",
+        "es": "2. Trabajos relacionados"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Existing approaches for the classification of BIM and IFC elements can be categorized into rule-based and machine-learning-based methods. Thomson and Boehm (2015) use RANSAC to identify dominant planes and reconstruct IFC geometry from 3D point clouds, followed by an optional step of geometric reasoning. Others have used region growing (Dimitrov & Golparvar-Fard, 2015) or surface normal approaches (Barnea & Filin, 2013). Sacks et al. (2017) derived rules for object classification using object features and spatial relationships between object pairs. Ma et al. (2017) devise a semantic enrichment process by establishing a knowledge base that associates objects via their geometric and spatial features.",
+            "es": "Los enfoques existentes para la clasificación de elementos BIM e IFC pueden dividirse en métodos basados en reglas (rule-based) y métodos basados en aprendizaje automático. Thomson y Boehm (2015) utilizan RANSAC para identificar planos dominantes y reconstruir la geometría IFC a partir de nubes de puntos (point clouds) 3D, seguido de un paso opcional de razonamiento geométrico (geometric reasoning). Otros han utilizado el crecimiento de regiones (region growing) (Dimitrov & Golparvar-Fard, 2015) o enfoques de normales de superficie (surface normal) (Barnea & Filin, 2013). Sacks et al. (2017) derivaron reglas para la clasificación de objetos utilizando características de los objetos y relaciones espaciales entre pares de objetos. Ma et al. (2017) diseñan un proceso de enriquecimiento semántico mediante el establecimiento de una base de conocimiento que asocia objetos a través de sus características geométricas y espaciales."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "While these methods proof to work well on specific cases, Bloch & Sacks (2018) argue that rule-based workflows are not applicable to all problems. In recent work, researchers started exploring algorithms from the areas of machine and deep learning. Koo et al. (2020) apply PointNet (Qi, et al., 2017) and a Multi-view Convolutional Neural Network (MVCNN) (Su, et al., 2015) to classify elements of road infrastructure. Kim et al. (2019) use images of objects to train a 2D CNN to recognize furniture elements. Leonhardt et al. (2020) also employ PointNet for classification of IFC objects and for semantic segmentation of rooms.",
+            "es": "Si bien estos métodos funcionan bien en casos específicos, Bloch & Sacks (2018) sostienen que los flujos de trabajo basados en reglas no son aplicables a todos los problemas. En trabajos recientes, los investigadores comenzaron a explorar algoritmos de las áreas de aprendizaje automático y aprendizaje profundo. Koo et al. (2020) aplican PointNet (Qi, et al., 2017) y una red neuronal convolucional de vistas múltiples (Multi-view Convolutional Neural Network, MVCNN) (Su, et al., 2015) para clasificar elementos de infraestructura vial. Kim et al. (2019) usan imágenes de objetos para entrenar una CNN 2D que reconozca elementos de mobiliario. Leonhardt et al. (2020) también emplean PointNet para la clasificación de objetos IFC y para la segmentación semántica de habitaciones."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Many of these works assemble their own datasets, but do not release them publicly. On one hand, this is inefficient, since these datasets cannot be used by the research community and thus work is done repeatedly. On the other hand, it makes comparisons between different methods impossible. IFCNet’s goal is to serve as a benchmark to be used by other researchers to develop, train, and test their methods and algorithms on and offer a common ground for comparing them.",
+            "es": "Muchos de estos trabajos reúnen sus propios conjuntos de datos, pero no los publican. Por un lado, esto es ineficiente, ya que la comunidad investigadora no puede usar esos conjuntos de datos y, por lo tanto, el trabajo se repite. Por otro lado, hace imposible comparar diferentes métodos. El objetivo de IFCNet es servir como referencia (benchmark) para que otros investigadores desarrollen, entrenen y prueben sus métodos y algoritmos, y ofrecer una base común para compararlos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3. The IFCNet Dataset",
+        "es": "3. El conjunto de datos IFCNet"
+      },
+      "blocks": [
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To assemble IFCNet, around 1000 IFC models were collected from real-world projects, student works and online sources, such as the open IFC model repository of the university of Auckland (Dimyadi, et al., 2010). The models were created with different authoring software products, most notably Autodesk Revit and ArchiCAD. Afterwards, the models were decomposed into individual entities by extracting all objects into separate files. For the first version of IFCNet, the focus has been put on the subtypes of IfcDistributionElement, IfcBuildingElement and IfcFurnishingElement. Additionally, the attached IfcPropertySets have been extracted as well. The extraction results in roughly 1.2M entities from 82 different IFC classes. The data contain several different representation types, including Brep, AdvancedBrep, MappedRepresentation, SweptSolid, Tesselation and CSG.",
+            "es": "Para construir IFCNet, se recopilaron alrededor de 1000 modelos IFC de proyectos reales, trabajos de estudiantes y fuentes en línea, como el repositorio abierto de modelos IFC de la universidad de Auckland (Dimyadi, et al., 2010). Los modelos se crearon con diferentes productos de software de autoría, principalmente Autodesk Revit y ArchiCAD. Posteriormente, los modelos se descompusieron en entidades individuales extrayendo todos los objetos en archivos separados. Para la primera versión de IFCNet, el enfoque se puso en los subtipos de IfcDistributionElement, IfcBuildingElement e IfcFurnishingElement. Además, también se extrajeron los IfcPropertySets asociados. La extracción da como resultado aproximadamente 1.2M entidades de 82 clases IFC diferentes. Los datos contienen varios tipos de representación distintos, incluidos Brep, AdvancedBrep, MappedRepresentation, SweptSolid, Tesselation y CSG."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The resulting IFC files are deduplicated to eliminate objects with identical geometry. To be able to perform this deduplication in linear time, the vertices of every object are normalized to the unit sphere and used as the key in a hash map. Objects with identical sets of vertices are then mapped onto the same key and can thus be eliminated. This, of course, assumes that the vertices match exactly, meaning that the vertices of two different objects which are in fact duplicates need to be in the same order. However, this was found to be true for the majority of objects, judging by the fact that this naïve way of deduplicating geometries reduces the aforementioned 1.2M to around 290k entities. Since objects are only deduplicated within their respective class, this process can easily be parallelized.",
+            "es": "Los archivos IFC resultantes se deduplican (deduplication) para eliminar objetos con geometría idéntica. Para poder realizar esta deduplicación en tiempo lineal, los vértices de cada objeto se normalizan a la esfera unitaria (unit sphere) y se usan como clave en un mapa hash (hash map). Los objetos con conjuntos de vértices idénticos se asignan entonces a la misma clave y, por lo tanto, pueden eliminarse. Esto, por supuesto, supone que los vértices coinciden exactamente, es decir, que los vértices de dos objetos distintos que en realidad son duplicados deben estar en el mismo orden. Sin embargo, se encontró que esto se cumple para la mayoría de los objetos, a juzgar por el hecho de que esta forma ingenua de deduplicar geometrías reduce los 1.2M mencionados a alrededor de 290k entidades. Dado que los objetos solo se deduplican dentro de su respectiva clase, este proceso puede paralelizarse fácilmente."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In the next step, the entities are reviewed manually and misclassifications are corrected. To support this process, a web-based tool was developed, which allows users to review an entity’s geometric representation and attached metadata before confirming or changing its class and enables quick switching between the different IFC classes and their objects. Furthermore, the tool supports exploring the already labelled data to document the current progress of the dataset. The labelling process has been carried out and supervised by domain experts to ensure the quality of the dataset. A view of this tool is shown in Figure 2, displaying an IfcValve.",
+            "es": "En el siguiente paso, las entidades se revisan manualmente y se corrigen las clasificaciones erróneas. Para apoyar este proceso, se desarrolló una herramienta web que permite a los usuarios revisar la representación geométrica de una entidad y los metadatos asociados antes de confirmar o cambiar su clase, y que permite cambiar rápidamente entre las diferentes clases IFC y sus objetos. Además, la herramienta permite explorar los datos ya etiquetados para documentar el progreso actual del conjunto de datos. El proceso de etiquetado (labelling) fue llevado a cabo y supervisado por expertos del dominio para garantizar la calidad del conjunto de datos. En la Figura 2 se muestra una vista de esta herramienta, que muestra una IfcValve."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: View of the tool used during the labelling process. The menu on the left allows switching between IFC classes. The menu on the right displays the current object's properties. The central canvas shows objects of the selected class in 3D.",
+            "es": "Figura 2: Vista de la herramienta utilizada durante el proceso de etiquetado. El menú de la izquierda permite cambiar entre clases IFC. El menú de la derecha muestra las propiedades del objeto actual. El lienzo central muestra en 3D los objetos de la clase seleccionada."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The full IFCNet dataset currently consists of 19,613 confirmed objects distributed over 65 classes, most of which are highly imbalanced with respect to the number of objects they contain. Therefore, a subset of 20 classes is selected for the experiments in Section 4. The first version of this sub-dataset, called IFCNetCore, contains a total of 7,930 objects (Figure 1). Table 1 shows the number of objects per class before and after deduplication of the full dataset, as well as the training and test split for IFCNetCore.",
+            "es": "El conjunto de datos IFCNet completo consta actualmente de 19,613 objetos confirmados distribuidos en 65 clases, la mayoría de las cuales están muy desbalanceadas con respecto al número de objetos que contienen. Por lo tanto, se selecciona un subconjunto de 20 clases para los experimentos de la Sección 4. La primera versión de este subconjunto de datos, llamada IFCNetCore, contiene un total de 7,930 objetos (Figura 1). La Tabla 1 muestra el número de objetos por clase antes y después de la deduplicación del conjunto de datos completo, así como la división de entrenamiento y prueba para IFCNetCore."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: Example objects for each of the 20 classes of IFCNetCore.",
+            "es": "Figura 1: Objetos de ejemplo de cada una de las 20 clases de IFCNetCore."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 4,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: Number of objects per class in IFCNet and IFCNetCore. A class in IFCNetCore can have more objects than there were after deduplication, since e.g. IfcBuildingElementProxy objects could have moved into that class during the labelling process. Note that not all of the objects listed under after deduplication have been reviewed and confirmed, yet.",
+            "es": "Tabla 1: Número de objetos por clase en IFCNet e IFCNetCore. Una clase en IFCNetCore puede tener más objetos de los que había después de la deduplicación, ya que, por ejemplo, objetos IfcBuildingElementProxy pueden haberse movido a esa clase durante el proceso de etiquetado. Cabe señalar que no todos los objetos listados bajo después de la deduplicación han sido revisados y confirmados todavía."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Some classes, like IfcWall, have little intra-class variance, while others have very large intra-class variance. IfcFurniture for example contains vastly different types of furniture, from chairs and tables to wardrobes. An additional challenge is posed by a small inter-class variance between certain classes like IfcWall and IfcPlate, both of which are rectangular shapes with varying thickness and little to no details with respect to their geometry. To better reflect the reality of people working with IFC, models and elements of different Level of Information Need (LOIN) have been included, which also covers objects that have a placeholder appearance (e.g. generic-looking cubes) and are thus likely to only be classifiable through their metadata.",
+            "es": "Algunas clases, como IfcWall, tienen poca varianza intraclase (intra-class variance), mientras que otras tienen una varianza intraclase muy grande. IfcFurniture, por ejemplo, contiene tipos de mobiliario muy diferentes, desde sillas y mesas hasta armarios. Un desafío adicional lo plantea la pequeña varianza interclase (inter-class variance) entre ciertas clases como IfcWall e IfcPlate, ambas formas rectangulares de espesor variable y con poco o ningún detalle en cuanto a su geometría. Para reflejar mejor la realidad de las personas que trabajan con IFC, se han incluido modelos y elementos de distinto Nivel de Necesidad de Información (Level of Information Need, LOIN), lo que también abarca objetos con apariencia de marcador de posición (por ejemplo, cubos de aspecto genérico) y que, por lo tanto, probablemente solo puedan clasificarse a través de sus metadatos."
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Most IFC objects have additional metadata in the form of IfcProperties, which are grouped together via IfcPropertySets. The simplest and most frequently used kind of properties are user-defined key-value pairs, which often come in different languages. For instance, German, English, Dutch and French have been observed throughout the labelling process.",
+            "es": "La mayoría de los objetos IFC tienen metadatos adicionales en forma de IfcProperties, que se agrupan mediante IfcPropertySets. El tipo de propiedad más simple y más utilizado son los pares clave-valor definidos por el usuario, que a menudo están en distintos idiomas. Por ejemplo, durante el proceso de etiquetado se observaron alemán, inglés, neerlandés y francés."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4. Experiments",
+        "es": "4. Experimentos"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The following experiments apply three neural network approaches to the IFCNetCore dataset. These architectures were chosen because they are among the current state-of-the-art and cover a broad range of intuitive representations for 3D data, i.e. 2D projections, point clouds and triangulated meshes. However, all of these methods only consider the objects’ geometric information. Investigating ways to combine geometric and semantic information during training is beyond the scope of this paper. The code for the neural network models is based on the PyTorch implementations of the original publications.",
+            "es": "Los siguientes experimentos aplican tres enfoques de redes neuronales al conjunto de datos IFCNetCore. Estas arquitecturas se eligieron porque se encuentran entre las de última generación (state-of-the-art) actuales y cubren una amplia gama de representaciones intuitivas de datos 3D, es decir, proyecciones 2D, nubes de puntos y mallas trianguladas (triangulated meshes). Sin embargo, todos estos métodos solo consideran la información geométrica de los objetos. Investigar formas de combinar información geométrica y semántica durante el entrenamiento queda fuera del alcance de este artículo. El código de los modelos de redes neuronales se basa en las implementaciones en PyTorch de las publicaciones originales."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "All experiments follow the same training protocol: The IFCNetCore dataset is split into a training and a test set. Afterwards, the data is transformed into the format expected by the different architectures. To determine the best set of hyperparameters, 30% of the training data is split off into a validation set. The models are then trained on the remaining 70% of the training data and evaluated on the validation set after each epoch. The balanced accuracy metric is used to decide for the best performing configuration of hyperparameters. Finally, the models are trained once more on the whole training set with fixed hyperparameters. Evaluation on the test set only occurs once at the end of this procedure. The code used to conduct these experiments will be released along with this work.",
+            "es": "Todos los experimentos siguen el mismo protocolo de entrenamiento: el conjunto de datos IFCNetCore se divide en un conjunto de entrenamiento y uno de prueba. Después, los datos se transforman al formato esperado por las diferentes arquitecturas. Para determinar el mejor conjunto de hiperparámetros (hyperparameters), el 30% de los datos de entrenamiento se separa en un conjunto de validación (validation set). Luego, los modelos se entrenan con el 70% restante de los datos de entrenamiento y se evalúan en el conjunto de validación después de cada época (epoch). La métrica de exactitud balanceada (balanced accuracy) se utiliza para decidir la configuración de hiperparámetros con mejor desempeño. Finalmente, los modelos se entrenan una vez más con todo el conjunto de entrenamiento con hiperparámetros fijos. La evaluación en el conjunto de prueba ocurre solo una vez al final de este procedimiento. El código utilizado para realizar estos experimentos se publicará junto con este trabajo."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "2 https://github.com/cemunds/ifcnet-models",
+            "es": "2 https://github.com/cemunds/ifcnet-models"
+          }
+        },
+        {
+          "id": "s4-h0",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "4.1 MVCNN",
+            "es": "4.1 MVCNN"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The Multi-View Convolutional Neural Network (MVCNN) combines information from multiple views of a 3D shape to learn a shape descriptor (Su, et al., 2015). Since MVCNN uses rendered 2D views of an object from several perspectives, it has two advantages over the other methods presented here. First, neural networks for image classification have received much more attention in Deep Learning research over the last years. Neural network building blocks like 2D convolutions have been specifically designed to work well on image data. Second, MVCNN benefits from the existence of other large-scale image datasets like ImageNet (Deng, et al., 2009). CNN architectures are commonly pre-trained on these massive datasets and can later be fine-tuned on much smaller datasets while still performing well.",
+            "es": "La red neuronal convolucional de vistas múltiples (MVCNN) combina información de múltiples vistas de una forma 3D para aprender un descriptor de forma (Su, et al., 2015). Dado que MVCNN utiliza vistas 2D renderizadas de un objeto desde varias perspectivas, tiene dos ventajas sobre los otros métodos presentados aquí. Primero, las redes neuronales para clasificación de imágenes han recibido mucha más atención en la investigación de aprendizaje profundo durante los últimos años. Los bloques constructivos de redes neuronales, como las convoluciones 2D, han sido diseñados específicamente para funcionar bien con datos de imagen. Segundo, MVCNN se beneficia de la existencia de otros conjuntos de datos de imágenes a gran escala como ImageNet (Deng, et al., 2009). Las arquitecturas CNN suelen preentrenarse (pre-trained) en estos conjuntos de datos masivos y luego pueden ajustarse (fine-tuned) en conjuntos de datos mucho más pequeños sin dejar de tener buen desempeño."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To prepare the IFCNetCore dataset to be consumed by MVCNN, 12 views are rendered for each object by a camera rotating around the object’s up-axis in 30° increments (Figure 3). Similar to Su et al. (2015), the Phong reflection model (Phong, 1975) is used to generate the rendered views. Figure 4 shows the results of the evaluation on the test set.",
+            "es": "Para preparar el conjunto de datos IFCNetCore para que sea consumido por MVCNN, se renderizan 12 vistas de cada objeto mediante una cámara que rota alrededor del eje vertical del objeto en incrementos de 30° (Figura 3). De manera similar a Su et al. (2015), se utiliza el modelo de reflexión de Phong (Phong reflection model) (Phong, 1975) para generar las vistas renderizadas. La Figura 4 muestra los resultados de la evaluación en el conjunto de prueba."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: Example of a set of 12 views to be consumed by the MVCNN",
+            "es": "Figura 3: Ejemplo de un conjunto de 12 vistas para ser consumidas por MVCNN"
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4 Left: Confusion matrix of the MVCNN model. Right: Precision-recall curves for selected IFC classes with corresponding values for Area Under the Curve (AUC).",
+            "es": "Figura 4: Izquierda: matriz de confusión (confusion matrix) del modelo MVCNN. Derecha: curvas de precisión-exhaustividad (precision-recall curves) para clases IFC seleccionadas, con los valores correspondientes del Área Bajo la Curva (Area Under the Curve, AUC)."
+          }
+        },
+        {
+          "id": "s4-h1",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "4.2 DGCNN",
+            "es": "4.2 DGCNN"
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The Dynamic Graph Convolutional Neural Network (DGCNN) (Wang, et al., 2019) is inspired by PointNet (Qi, et al., 2017), but operates on neighborhoods of points by using convolution operations. This allows DGCNN to exploit local geometric structures.",
+            "es": "La red neuronal convolucional de grafos dinámicos (Dynamic Graph Convolutional Neural Network, DGCNN) (Wang, et al., 2019) está inspirada en PointNet (Qi, et al., 2017), pero opera sobre vecindarios de puntos mediante operaciones de convolución. Esto permite a DGCNN aprovechar las estructuras geométricas locales."
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "During pre-processing, 2048 points are sampled uniformly at random from each object in IFCNetCore. The point clouds are normalized to the unit sphere before they are fed through the model. The results of the evaluation on the test set are shown in Figure 5.",
+            "es": "Durante el preprocesamiento, se muestrean 2048 puntos de manera uniforme y aleatoria de cada objeto en IFCNetCore. Las nubes de puntos se normalizan a la esfera unitaria antes de pasarlas por el modelo. Los resultados de la evaluación en el conjunto de prueba se muestran en la Figura 5."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5 Left: Confusion matrix of the DGCNN model. Right: Precision-recall curves for selected IFC entities with corresponding values for Area Under the Curve (AUC).",
+            "es": "Figura 5: Izquierda: matriz de confusión del modelo DGCNN. Derecha: curvas de precisión-exhaustividad para entidades IFC seleccionadas, con los valores correspondientes del Área Bajo la Curva (AUC)."
+          }
+        },
+        {
+          "id": "s4-h2",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "4.3 MeshNet",
+            "es": "4.3 MeshNet"
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "In contrast to the previous two methods, MeshNet (Feng, et al., 2018) uses the geometric information of the mesh directly to learn a classifier. It solves the complexity and irregularity problem of mesh data by regarding the faces as the unit and using per-face processes and a symmetry function. Moreover, it splits faces into spatial and structural features by using a spatial and structural descriptor and a mesh convolution block.",
+            "es": "A diferencia de los dos métodos anteriores, MeshNet (Feng, et al., 2018) utiliza directamente la información geométrica de la malla para aprender un clasificador. Resuelve el problema de complejidad e irregularidad de los datos de malla al considerar las caras como la unidad y al usar procesos por cara y una función de simetría. Además, divide las caras en características espaciales y estructurales mediante un descriptor espacial y estructural y un bloque de convolución de malla."
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Before training, the meshes are simplified to a maximum of 2048 faces using MeshLab’s (Cignoni, et al., 2008) implementation of Quadric Edge Collapse Decimation. Afterwards, the meshes are converted into lists of faces containing information about their center, corners and normal as well as their immediate neighboring faces. The results on the test set are shown in Figure 6.",
+            "es": "Antes del entrenamiento, las mallas se simplifican a un máximo de 2048 caras utilizando la implementación de Quadric Edge Collapse Decimation de MeshLab (Cignoni, et al., 2008). Posteriormente, las mallas se convierten en listas de caras que contienen información sobre su centro, esquinas y normal, así como sobre sus caras vecinas inmediatas. Los resultados en el conjunto de prueba se muestran en la Figura 6."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6 Left: Confusion matrix of the MeshNet model. Right: Precision-recall curves for selected IFC entities with corresponding values for Area Under the Curve (AUC).",
+            "es": "Figura 6: Izquierda: matriz de confusión del modelo MeshNet. Derecha: curvas de precisión-exhaustividad para entidades IFC seleccionadas, con los valores correspondientes del Área Bajo la Curva (AUC)."
+          }
+        },
+        {
+          "id": "s4-h3",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "4.4 Comparison",
+            "es": "4.4 Comparación"
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "A comparison of precision-recall curves for selected classes can be seen in Figure 7. Not surprisingly, classes for which there are very few objects like IfcOutlet show a worse performance. However, MVCNN still achieves better results than DGCNN and MeshNet.",
+            "es": "En la Figura 7 se puede ver una comparación de las curvas de precisión-exhaustividad para clases seleccionadas. Como era de esperarse, las clases con muy pocos objetos, como IfcOutlet, muestran un peor desempeño. Sin embargo, MVCNN aún logra mejores resultados que DGCNN y MeshNet."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7: Comparison of precision-recall curves for selected classes. The top-left plot shows the micro-averaged precision-recall curve over all classes.",
+            "es": "Figura 7: Comparación de las curvas de precisión-exhaustividad para clases seleccionadas. El gráfico superior izquierdo muestra la curva de precisión-exhaustividad con promedio micro (micro-averaged) sobre todas las clases."
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Table 2 shows the balanced accuracy and F1 score for the three models. MVCNN achieves the best overall results. The confusion matrices show that each of the three models has its own strengths and weaknesses, but that they also make similar mistakes. For instance, plates, slabs and walls are among the most confused classes. Another example of commonly confused classes are duct segments and pipe segments. However, all three models show a reasonable performance and proof that they are able to learn from the dataset.",
+            "es": "La Tabla 2 muestra la exactitud balanceada y la puntuación F1 de los tres modelos. MVCNN logra los mejores resultados generales. Las matrices de confusión muestran que cada uno de los tres modelos tiene sus propias fortalezas y debilidades, pero que también cometen errores similares. Por ejemplo, las placas, las losas y los muros están entre las clases que más se confunden. Otro ejemplo de clases que se confunden con frecuencia son los segmentos de ducto y los segmentos de tubería. Sin embargo, los tres modelos muestran un desempeño razonable y prueban que son capaces de aprender del conjunto de datos."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2: Results of the evaluation on the test set for the three models.",
+            "es": "Tabla 2: Resultados de la evaluación en el conjunto de prueba para los tres modelos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5. Limitations",
+        "es": "5. Limitaciones"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Notably, the absolute sizes of objects are lost due to normalization of the data before training. Incorporating this information into the classification process is likely to improve results for objects that might look similar, but differ greatly in size. Moreover, some objects, especially those with few geometric details, might be very hard to classify when taken out of the context of the full BIM model or without regarding their semantic information. However, most current neural network architectures are trained end-to-end from raw data and were not designed to consume such explicit features.",
+            "es": "En particular, los tamaños absolutos de los objetos se pierden debido a la normalización (normalization) de los datos antes del entrenamiento. Es probable que incorporar esta información al proceso de clasificación mejore los resultados para objetos que pueden parecer similares, pero que difieren mucho en tamaño. Además, algunos objetos, especialmente aquellos con pocos detalles geométricos, pueden ser muy difíciles de clasificar cuando se toman fuera del contexto del modelo BIM completo o sin considerar su información semántica. Sin embargo, la mayoría de las arquitecturas de redes neuronales actuales se entrenan de extremo a extremo (end-to-end) a partir de datos sin procesar y no fueron diseñadas para consumir características explícitas como estas."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "With such a large quantity of objects, it is difficult to ensure uniqueness. The deduplication process is able to eliminate objects with identical geometry. However, there are many objects that look alike to a human observer, but are not identical on the mesh level. Such cases include permutations of a mesh’s vertices or non-uniform scaling along axes. To conduct an exhaustive search and also detect objects that are almost identical is not feasible. Further research will have to investigate more efficient methods to eliminate near-duplicate objects.",
+            "es": "Con una cantidad tan grande de objetos, es difícil garantizar la unicidad. El proceso de deduplicación (deduplication) es capaz de eliminar objetos con geometría idéntica. Sin embargo, hay muchos objetos que se ven iguales para un observador humano, pero que no son idénticos a nivel de malla (mesh). Tales casos incluyen permutaciones de los vértices de una malla o el escalado no uniforme a lo largo de los ejes. Realizar una búsqueda exhaustiva y detectar también objetos casi idénticos no es factible. Las investigaciones futuras tendrán que estudiar métodos más eficientes para eliminar objetos casi duplicados."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Many objects use a mix of languages in their metadata. Sometimes the value of a key-value pair might be missing if a field in the authoring software was left unset. Moreover, it is common to encounter abbreviations and acronyms, which require a certain amount of domain knowledge to make use of. In some cases, properties might also be inaccurate or simply wrong. These issues make it difficult to incorporate the semantic properties into the classification process without thorough pre-processing.",
+            "es": "Muchos objetos usan una mezcla de idiomas en sus metadatos (metadata). A veces el valor de un par clave-valor (key-value pair) puede faltar si un campo en el software de autoría se dejó sin establecer. Además, es común encontrar abreviaturas y acrónimos, que requieren cierto conocimiento del dominio para poder aprovecharse. En algunos casos, las propiedades también pueden ser inexactas o simplemente incorrectas. Estos problemas dificultan incorporar las propiedades semánticas al proceso de clasificación sin un preprocesamiento exhaustivo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6. Conclusion and Future Work",
+        "es": "6. Conclusión y trabajo futuro"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The first version of IFCNetCore offers a common benchmark for model training and evaluation. Expanding IFCNet with more objects, classes, and semantic information is an ongoing effort to create a large-scale dataset for the BIM and IFC domain. Since the labelling process requires specific domain knowledge, creating this dataset is even more resource intensive than other datasets used in machine and deep learning. The goal for IFCNet is to become a useful resource for other researchers working on semantic enrichment of BIM models.",
+            "es": "La primera versión de IFCNetCore ofrece un punto de referencia (benchmark) común para el entrenamiento y la evaluación de modelos. Ampliar IFCNet con más objetos, clases e información semántica es un esfuerzo continuo para crear un conjunto de datos a gran escala para el dominio BIM e IFC. Dado que el proceso de etiquetado requiere conocimiento específico del dominio, crear este conjunto de datos demanda aún más recursos que otros conjuntos de datos utilizados en el aprendizaje automático y el aprendizaje profundo. El objetivo de IFCNet es convertirse en un recurso útil para otros investigadores que trabajan en el enriquecimiento semántico de modelos BIM."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The results of the experiments conducted on IFCNetCore show a good classification performance, despite only using the geometric information of objects. Further research could investigate models that can take the properties and semantic information into account to improve on these results. Moreover, in the domain of 2D images, models used for segmentation or detection are commonly pre-trained on large-scale image datasets. How to effectively use such transfer learning approaches for 3D data is an area of active research. One could imagine that, with sufficient size of IFCNet, it should be possible to use the dataset for similar pre-training purposes.",
+            "es": "Los resultados de los experimentos realizados en IFCNetCore muestran un buen rendimiento de clasificación, a pesar de utilizar únicamente la información geométrica de los objetos. Investigaciones futuras podrían estudiar modelos que puedan tener en cuenta las propiedades y la información semántica para mejorar estos resultados. Además, en el dominio de las imágenes 2D, los modelos utilizados para segmentación o detección suelen preentrenarse en conjuntos de datos de imágenes a gran escala. Cómo utilizar eficazmente estos enfoques de aprendizaje por transferencia (transfer learning) para datos 3D es un área de investigación activa. Se podría imaginar que, con un tamaño suficiente de IFCNet, debería ser posible utilizar el conjunto de datos para fines de preentrenamiento similares."
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The classification process presented in this work can be integrated into the BIM workflow similarly to the SEEBIM method of Belsky et al. (2016). Upon import of an IFC file into a BIM tool, the trained network is used to infer the classes of the individual elements of the model. Afterwards, the author is prompted with a screen showing the potential misclassifications and can then decide to accept or reject the propositions of the network.",
+            "es": "El proceso de clasificación presentado en este trabajo puede integrarse en el flujo de trabajo BIM de manera similar al método SEEBIM de Belsky et al. (2016). Al importar un archivo IFC en una herramienta BIM, se utiliza la red entrenada para inferir las clases de los elementos individuales del modelo. Posteriormente, se muestra al autor una pantalla con las posibles clasificaciones erróneas, y este puede decidir si acepta o rechaza las propuestas de la red."
+          }
+        },
+        {
+          "id": "s6-h1",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "Acknowledgements",
+            "es": "Agradecimientos"
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The research within the project EnergyTWIN leading to these results has received funding from the German Ministry for Industry and Energy under grant agreement no. 03EN1026A. The authors would like to thank the Geodetic Institute and Chair for Computing in Civil Engineering & Geo Information Systems at RWTH Aachen, aedifion GmbH, DiConneX GmbH, TEMA Technologie Marketing AG, Internet Marketing Services GmbH and Aachener Grundvermögen Kapitalverwaltungsgesellschaft mbH for their contribution to the project.",
+            "es": "La investigación dentro del proyecto EnergyTWIN que condujo a estos resultados recibió financiamiento del Ministerio Federal de Industria y Energía de Alemania (German Ministry for Industry and Energy) en virtud del acuerdo de subvención núm. 03EN1026A. Los autores agradecen al Geodetic Institute and Chair for Computing in Civil Engineering & Geo Information Systems de la RWTH Aachen, a aedifion GmbH, DiConneX GmbH, TEMA Technologie Marketing AG, Internet Marketing Services GmbH y Aachener Grundvermögen Kapitalverwaltungsgesellschaft mbH por su contribución al proyecto."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Barnea, S. & Filin, S., 2013. Segmentation of terrestrial laser scanning data using geometry and image information. ISPRS Journal of Photogrammetry and Remote Sensing Volume 76, pp. 33-48."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Bazjanac, V. & Kiviniemi, A., 2007. Reduction, simplification, translation and interpretation in the exchange of model data. Proceedings of the 24th W78 Conference Maribor, pp. 163-168."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Belsky, M., Sacks, R. & Brilakis, I., 2016. Semantic Enrichment for Building Information Modeling. Computer-Aided Civil and Infrastructure Engineering."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Bloch, T. & Sacks, R., 2018. Comparing machine learning and rule-based inferencing for semantic enrichment of BIM models. Automation in Construction Volume 91, pp. 256-272."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Cignoni, P. et al., 2008. MeshLab: an Open-Source Mesh Processing Tool. In: Eurographics Italian Chapter Conference. s.l.:The Eurographics Association, pp. 129-136."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Deng, J. et al., 2009. ImageNet: A large-scale hierarchical image database. IEEE Conference on Computer Vision and Pattern Recognition, pp. 248-255."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Dimitrov, A. & Golparvar-Fard, M., 2015. Segmentation of building point cloud models including detailed architectural/structural features and MEP systems. Automation in Construction Volume 51, pp. 32-45."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Dimyadi, J., Henderson, S. & Dimalen, D., 2010. Open IFC Model Repository. [Online] Available at: http://openifcmodel.cs.auckland.ac.nz/ [Accessed 17th December 2020]."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Eastman, C. M., Lee, J.-m., Jeong, Y.-s. & Lee, J.-k., 2009. Automatic rule-based checking of building designs. Automation in Construction, December, pp. 1011-1033."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Feng, Y. et al., 2018. MeshNet: Mesh Neural Network for 3D Shape Representation. AAAI 2019."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Ham, Y. & Golparvar-Fard, M., 2015. Three-Dimensional Thermography-Based Method for Cost-Benefit Analysis of Energy Efficiency Building Envelope Retrofits. Journal of Computing in Civil Engineering, July."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Kim, J., Song, J. & Lee, J.-K., 2019. Recognizing and Classifying Unknown Object in BIM Using 2D CNN. Computer-Aided Architectural Design."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Koo, B., Jung, R., Yu, Y. & Kim, I., 2020. A geometric deep learning approach for checking element-to-entity mappings in infrastructure building information models. Journal of Computational Design and Engineering, 11."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Lai, H. & Deng, X., 2018. Interoperability analysis of IFC-based data exchange between heterogeneous BIM software. Journal of Civil Engineering and Management, pp. 537-555."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Leonhardt, M. et al., 2020. Implementierung von KI-basierten Referenzprozessen für die computergestützte Objekterkennung im Gebäude. BauSIM, September, pp. 599-606."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Ma, L., Sacks, R. & Kattel, U., 2017. Building Model Object Classification for Semantic Enrichment Using Geometric Features and Pairwise Spatial Relationships. Lean and Computing in Construction Congress - Joint Conference on Computing in Construction."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Phong, B. T., 1975. Illumination for Computer Generated Pictures. Communications of the ACM, June, p. 311–317."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Qi, C. R., Su, H., Mo, K. & Guibas, L. J., 2017. PointNet: Deep Learning on Point Sets for 3D Classification and Segmentation. Conference on Computer Vision and Pattern Recognition (CVPR)."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Sacks, R. et al., 2017. Semantic Enrichment for Building Information Modeling: Procedure for Compiling Inference Rules and Operators for Complex Geometry. Journal of Computing in Civil Engineering, November."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Schlueter, A. & Thesseling, F., 2009. Building information model based energy/exergy performance assessment in early design stages. Automation in Construction, March, pp. 153-163."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Su, H., Maji, S., Kalogerakis, E. & Learned-Miller, E., 2015. Multi-view Convolutional Neural Networks for 3D Shape Recognition. Proceedings of ICCV."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Thomson, C. & Boehm, J., 2015. Automatic Geometry Generation from Point Clouds for BIM. Remote Sensing, pp. 11753-11775."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Wang, Y. et al., 2019. Dynamic Graph CNN for Learning on Point Clouds. ACM Transactions on Graphics (TOG)."
+          }
+        }
+      ]
+    }
+  ]
+}

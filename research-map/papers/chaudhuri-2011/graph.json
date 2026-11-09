@@ -1,0 +1,557 @@
+{
+  "version": 1,
+  "node": "chaudhuri-2011",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "The key challenge in assembly-based 3D modeling is identifying which components to present to the user at each stage, since the component database must be large and varied unless the task is fixed in advance.",
+      "es": "El reto central del modelado 3D basado en ensamblaje es identificar qué componentes mostrar al usuario en cada etapa, porque la base de componentes debe ser grande y variada a menos que la tarea esté fijada de antemano.",
+      "blocks": [
+        "s1-p5",
+        "abs-p1"
+      ],
+      "key": "relevant-component-retrieval",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "In assembly-based modeling, new models are assembled from preexisting components, so users do not specify new geometry from scratch and modeling reduces to selecting and placing components.",
+      "es": "En el modelado basado en ensamblaje, los modelos nuevos se arman a partir de componentes preexistentes, de modo que el usuario no especifica geometría nueva desde cero y modelar se reduce a seleccionar y colocar componentes.",
+      "blocks": [
+        "s1-p4",
+        "abs-p1"
+      ],
+      "key": "assembly-based-modeling",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "claim",
+      "en": "Earlier retrieval by text search or geometric matching ignores the semantic and stylistic relationships between the current model and the database components, and requires the user to search for each specific component.",
+      "es": "La recuperación previa por búsqueda de texto o por coincidencia geométrica ignora las relaciones semánticas y estilísticas entre el modelo actual y los componentes de la base, y obliga al usuario a buscar cada componente específico.",
+      "blocks": [
+        "s1-p5",
+        "s2-p1",
+        "s2-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "method",
+      "en": "The approach has two stages: an offline stage that trains a probabilistic model on a segmented, labeled shape database, and an interactive stage in which inference in that model ranks components during a modeling session.",
+      "es": "El enfoque tiene dos etapas: una etapa offline que entrena un modelo probabilístico sobre una base de formas segmentadas y etiquetadas, y una etapa interactiva donde la inferencia en ese modelo ordena los componentes durante la sesión de modelado.",
+      "blocks": [
+        "s3-p1",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "Shapes are segmented and labeled hierarchically (for example, torso into lower and upper torso) by a modified Kalogerakis et al. conditional random field method that propagates labels from a small manually labeled training set to the rest of the repository.",
+      "es": "Las formas se segmentan y etiquetan de forma jerárquica (por ejemplo, torso en torso inferior y superior) con una versión modificada del método de campos aleatorios condicionales de Kalogerakis et al., que propaga las etiquetas de un conjunto pequeño etiquetado a mano al resto del repositorio.",
+      "blocks": [
+        "s3-p2",
+        "s5-p1",
+        "s5-p2"
+      ],
+      "key": "kalogerakis-segmentation",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Within each part category, components are clustered by geometric style using a Gaussian mixture model fitted with EM and k-means initialization, with the number of Gaussians chosen by penalizing complexity with the Bayesian Information Criterion.",
+      "es": "Dentro de cada categoría de partes, los componentes se agrupan por estilo geométrico con un modelo de mezcla de gaussianas ajustado con EM e inicializado con k-means, y el número de gaussianas se elige penalizando la complejidad con el Criterio de Información Bayesiano.",
+      "blocks": [
+        "s3-p3",
+        "s5-p4",
+        "s5-p8",
+        "s5-p9"
+      ],
+      "key": "style-clustering-gmm",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "Each shape is represented by random variables for existence, cardinality, adjacency, geometric style and symmetry of components per category, and is treated as a sample from a joint probability distribution over them.",
+      "es": "Cada forma se representa con variables aleatorias de existencia, cardinalidad, adyacencia, estilo geométrico y simetría de los componentes por categoría, y se trata como una muestra de una distribución de probabilidad conjunta sobre ellas.",
+      "blocks": [
+        "s4-p1",
+        "s4-p2",
+        "s4-p3",
+        "s4-p5",
+        "s4-p6",
+        "s4-p7"
+      ],
+      "key": "shape-as-random-variables",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "concept",
+      "en": "Cardinality is limited to {0, 1, 2, 3, 4, 5+} for tractable inference, and existence variables serve as an intermediate representation because the final number of components cannot be observed in the user's incomplete shape.",
+      "es": "La cardinalidad se limita a {0, 1, 2, 3, 4, 5+} para que la inferencia sea tratable, y las variables de existencia sirven como representación intermedia porque el número final de componentes no se puede observar en la forma incompleta del usuario.",
+      "blocks": [
+        "s4-p3",
+        "s4-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "The joint distribution is factorized as a Bayesian network whose structure and conditional probability tables are learned by maximizing the BIC score with a local search that adds, removes and flips edges, with obvious dependencies such as existence-to-cardinality enforced.",
+      "es": "La distribución conjunta se factoriza como una red bayesiana cuya estructura y tablas de probabilidad condicional se aprenden maximizando el puntaje BIC con una búsqueda local que agrega, quita e invierte aristas, y se imponen dependencias obvias como existencia a cardinalidad.",
+      "blocks": [
+        "s4-p19",
+        "s5-p10",
+        "s5-p11",
+        "s5-p12",
+        "s5-p13"
+      ],
+      "key": "bayesian-network",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "The compatibility of a candidate component is the conditional probability that its category is adjacent to categories already in the shape, that the shape will include more parts of that category, and that the shape will include components of its style, given the observed variables.",
+      "es": "La compatibilidad de un componente candidato es la probabilidad condicional de que su categoría sea adyacente a categorías ya presentes en la forma, de que la forma incluya más partes de esa categoría y de que incluya componentes de su estilo, dadas las variables observadas.",
+      "blocks": [
+        "s4-p10",
+        "s4-e1",
+        "s4-p12",
+        "s4-e2",
+        "s4-p13"
+      ],
+      "key": "compatibility-score",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "Because exact inference is NP-hard, the model uses likelihood-weighted sampling; loopy belief propagation had been tried with limited success because it often returned poor approximations.",
+      "es": "Como la inferencia exacta es NP-difícil, el modelo usa muestreo ponderado por verosimilitud; se había probado propagación de creencias con ciclos con éxito limitado porque a menudo daba malas aproximaciones.",
+      "blocks": [
+        "s4-p20",
+        "s4-p18"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Categories are ranked with the same score minus the style term, and when the assembled shape is empty both categories and parts are ranked by prior frequency in the repository, so the most common categories (torsos, legs, heads for creatures) come first.",
+      "es": "Las categorías se ordenan con el mismo puntaje sin el término de estilo, y cuando la forma ensamblada está vacía tanto categorías como partes se ordenan por su frecuencia previa en el repositorio, así que las categorías más comunes (torsos, piernas, cabezas en criaturas) aparecen primero.",
+      "blocks": [
+        "s4-p21",
+        "s4-p25"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "The model also predicts whether a chosen component should have a symmetric counterpart: if the maximal symmetry probability over observed categories exceeds 0.5, the interface generates the mirrored part about the symmetry plane.",
+      "es": "El modelo también predice si un componente elegido debe tener contraparte simétrica: si la probabilidad máxima de simetría entre las categorías observadas supera 0.5, la interfaz genera la parte reflejada respecto al plano de simetría.",
+      "blocks": [
+        "s4-p26"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "The modeling interface, inspired by the Spore creature creator, lists part categories and parts, lets the user drag them onto the model where they snap and glue, and re-ranks categories and parts after each added component.",
+      "es": "La interfaz de modelado, inspirada en el creador de criaturas de Spore, lista categorías de partes y partes, deja arrastrarlas al modelo donde se ajustan y pegan, y reordena categorías y partes tras cada componente añadido.",
+      "blocks": [
+        "s3-p35",
+        "s6-p1",
+        "s2-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "dataset",
+      "en": "The Toy task used a library of 491 models from the Digimation ModelBank and Archive collections (creatures, aircraft, watercraft, furniture); the Creature task used a smaller library of 173 creature models.",
+      "es": "La tarea Toy usó una biblioteca de 491 modelos de las colecciones Digimation ModelBank y Archive (criaturas, aeronaves, embarcaciones, mobiliario); la tarea Creature usó una biblioteca menor de 173 modelos de criaturas.",
+      "blocks": [
+        "s7-p6",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "The probabilistic model was compared with a static ordering by prior frequency (as in Spore) and with the geometric approach of Chaudhuri and Koltun; 42 volunteers did Toy and Creature tasks in randomly chosen conditions, for 141 completed tasks, and relevance was read from application logs as the rank of the category and part chosen.",
+      "es": "El modelo probabilístico se comparó con un orden estático por frecuencia previa (como en Spore) y con el enfoque geométrico de Chaudhuri y Koltun; 42 voluntarios hicieron tareas Toy y Creature en condiciones elegidas al azar, para 141 tareas completadas, y la relevancia se leyó de las bitácoras de la aplicación como el rango de la categoría y la parte elegidas.",
+      "blocks": [
+        "s7-p2",
+        "s7-p3",
+        "s7-p7",
+        "s7-p10"
+      ],
+      "key": "rank-at-selection-evaluation",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "For the Toy task, 64.6% of chosen components came from the first 2 categories in the probabilistic model condition, compared to 23.5% in the static condition and 21.3% in the geometric condition.",
+      "es": "En la tarea Toy, 64.6% de los componentes elegidos vinieron de las primeras 2 categorías en la condición del modelo probabilístico, frente a 23.5% en la condición estática y 21.3% en la geométrica.",
+      "blocks": [
+        "s7-p10",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "For the Creature task, 75.05% of components were chosen from the first 2 categories presented by the probabilistic model, compared to 43.9% in the static condition and 46.4% in the geometric condition.",
+      "es": "En la tarea Creature, 75.05% de los componentes se eligieron de las primeras 2 categorías presentadas por el modelo probabilístico, frente a 43.9% en la condición estática y 46.4% en la geométrica.",
+      "blocks": [
+        "s7-p10",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "Ranking of components within their category also favored the probabilistic model: for both tasks it outperformed the static ordering and the geometric approach.",
+      "es": "El orden de los componentes dentro de su categoría también favoreció al modelo probabilístico: en ambas tareas superó al orden estático y al enfoque geométrico.",
+      "blocks": [
+        "s7-p10",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Inference in the Bayesian network used a single core and completed in 2.8 seconds on average, while the approach of Chaudhuri and Koltun used all available cores and required roughly 90 seconds to generate suggestions.",
+      "es": "La inferencia en la red bayesiana usó un solo núcleo y terminó en 2.8 segundos en promedio, mientras que el enfoque de Chaudhuri y Koltun usó todos los núcleos disponibles y requirió unos 90 segundos para generar sugerencias.",
+      "blocks": [
+        "s7-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "The average modeling time per session was 21.4 minutes with the probabilistic model, 25.4 minutes with the static ordering and 34.3 minutes with the approach of Chaudhuri and Koltun.",
+      "es": "El tiempo promedio de modelado por sesión fue de 21.4 minutos con el modelo probabilístico, 25.4 minutos con el orden estático y 34.3 minutos con el enfoque de Chaudhuri y Koltun.",
+      "blocks": [
+        "s7-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "On average, participants used 9.9 components per model with the probabilistic model, and those components came from 5.7 library models; both averages were similar across the three conditions.",
+      "es": "En promedio, los participantes usaron 9.9 componentes por modelo con el modelo probabilístico, y esos componentes provinieron de 5.7 modelos de la biblioteca; ambos promedios fueron similares en las tres condiciones.",
+      "blocks": [
+        "s7-p11",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "New users became proficient with the tool after 5 minutes of demonstration and 5 additional minutes of hands-on exploration, and participants almost never used the text search box, preferring visual exploration of categories.",
+      "es": "Los usuarios nuevos se volvieron competentes con la herramienta tras 5 minutos de demostración y 5 minutos adicionales de exploración práctica, y los participantes casi nunca usaron el cuadro de búsqueda de texto, prefiriendo explorar visualmente las categorías.",
+      "blocks": [
+        "s6-p4",
+        "s6-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "Instead of specifying by hand which variables depend on which, the dependencies are learned from data, because assuming all variables independent is incorrect: a quadruped torso makes quadruped legs, head and tail likely.",
+      "es": "En lugar de especificar a mano qué variables dependen de cuáles, las dependencias se aprenden de los datos, porque suponer que todas las variables son independientes es incorrecto: un torso cuadrúpedo hace probables patas, cabeza y cola cuadrúpedas.",
+      "blocks": [
+        "s4-p18",
+        "s4-p19"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "claim",
+      "en": "Compared with Merrell et al., who used a Bayesian network trained on architectural programs to generate residential layouts, this model targets general 3D shapes, represents categories and a variable number of components, and adds symmetry and geometric style to existence and adjacency.",
+      "es": "En comparación con Merrell et al., que usaron una red bayesiana entrenada con programas arquitectónicos para generar distribuciones residenciales, este modelo apunta a formas 3D generales, representa categorías y un número variable de componentes, y añade simetría y estilo geométrico a la existencia y adyacencia.",
+      "blocks": [
+        "s2-p5",
+        "s5-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "limitation",
+      "en": "The directed graph cannot naturally express mutual constraints (a commercial jet fuselage is unlikely to co-exist with missiles), the discrete variables describe geometric style only coarsely, and only planar reflective symmetry is supported.",
+      "es": "El grafo dirigido no expresa de forma natural restricciones mutuas (es improbable que un fuselaje de avión comercial coexista con misiles), las variables discretas describen el estilo geométrico solo de forma gruesa, y solo se admite simetría reflectiva planar.",
+      "blocks": [
+        "s8-p2",
+        "s4-p26"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "The implementation produces static shapes with no material properties: no texturing, rigging or animation setup.",
+      "es": "La implementación produce formas estáticas sin propiedades de material: sin texturizado, rigging ni preparación para animación.",
+      "blocks": [
+        "s8-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "future",
+      "en": "Future work could use undirected models such as Markov random fields or factor graphs, continuous variables for geometric style, a greater variety of symmetries, and spatial and functional relationships between components.",
+      "es": "Trabajo futuro podría usar modelos no dirigidos como campos aleatorios de Markov o grafos de factores, variables continuas para el estilo geométrico, mayor variedad de simetrías y relaciones espaciales y funcionales entre componentes.",
+      "blocks": [
+        "s8-p2"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "Assembly-based modeling is the setting in which choosing relevant components becomes the key problem."
+    },
+    {
+      "from": "i3",
+      "to": "i1",
+      "type": "supports",
+      "why": "Search and geometric matching leave the relevance problem unsolved, which motivates a model of semantic and stylistic relations."
+    },
+    {
+      "from": "i5",
+      "to": "i4",
+      "type": "part-of",
+      "why": "Segmenting and labeling the repository is the first step of the offline stage."
+    },
+    {
+      "from": "i6",
+      "to": "i4",
+      "type": "part-of",
+      "why": "Style clustering is part of the offline preprocessing."
+    },
+    {
+      "from": "i9",
+      "to": "i4",
+      "type": "part-of",
+      "why": "Learning the network is the final offline step."
+    },
+    {
+      "from": "i11",
+      "to": "i4",
+      "type": "part-of",
+      "why": "Approximate inference is what runs in the interactive stage."
+    },
+    {
+      "from": "i9",
+      "to": "i7",
+      "type": "uses",
+      "why": "The network is built over the existence, cardinality, adjacency, style and symmetry variables."
+    },
+    {
+      "from": "i7",
+      "to": "i5",
+      "type": "uses",
+      "why": "The variables are read off shapes that have already been segmented and labeled."
+    },
+    {
+      "from": "i7",
+      "to": "i6",
+      "type": "uses",
+      "why": "Style variables correspond to the geometric style clusters of each category."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "part-of",
+      "why": "Existence and cardinality handling is a detail of the variable design."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "uses",
+      "why": "The score is computed from conditional probabilities in the learned network."
+    },
+    {
+      "from": "i10",
+      "to": "i11",
+      "type": "uses",
+      "why": "The conditional probabilities are estimated by likelihood-weighted sampling."
+    },
+    {
+      "from": "i12",
+      "to": "i10",
+      "type": "example-of",
+      "why": "Category ranking is the same score without the style term, plus a prior-based fallback."
+    },
+    {
+      "from": "i13",
+      "to": "i9",
+      "type": "uses",
+      "why": "The symmetry probability is a query on the learned network."
+    },
+    {
+      "from": "i14",
+      "to": "i10",
+      "type": "uses",
+      "why": "The interface re-ranks categories and parts with the compatibility score."
+    },
+    {
+      "from": "i24",
+      "to": "i9",
+      "type": "supports",
+      "why": "Dependencies between parts are real, so the factorization is learned instead of assumed independent."
+    },
+    {
+      "from": "i25",
+      "to": "i9",
+      "type": "example-of",
+      "why": "The structure search follows Merrell et al., generalized from layouts to arbitrary shapes."
+    },
+    {
+      "from": "i16",
+      "to": "i15",
+      "type": "uses",
+      "why": "The study draws components from the Toy and Creature libraries."
+    },
+    {
+      "from": "i16",
+      "to": "i14",
+      "type": "uses",
+      "why": "All conditions share the same interface, so only the ordering differs."
+    },
+    {
+      "from": "i17",
+      "to": "i10",
+      "type": "measures",
+      "why": "The share of choices from the top 2 categories reflects how relevant the ranking was."
+    },
+    {
+      "from": "i18",
+      "to": "i10",
+      "type": "measures",
+      "why": "Same measure on the Creature task."
+    },
+    {
+      "from": "i19",
+      "to": "i10",
+      "type": "measures",
+      "why": "Rank of the chosen part within its category measures part-level relevance."
+    },
+    {
+      "from": "i17",
+      "to": "i3",
+      "type": "supports",
+      "why": "The probabilistic model beats a geometric-only baseline that ignores semantics."
+    },
+    {
+      "from": "i18",
+      "to": "i3",
+      "type": "supports",
+      "why": "Same comparison on the Creature task."
+    },
+    {
+      "from": "i20",
+      "to": "i11",
+      "type": "measures",
+      "why": "Reported time is the cost of the sampling-based inference."
+    },
+    {
+      "from": "i21",
+      "to": "i16",
+      "type": "measures",
+      "why": "Session time was logged per condition."
+    },
+    {
+      "from": "i22",
+      "to": "i16",
+      "type": "measures",
+      "why": "Component counts and source models were logged per condition."
+    },
+    {
+      "from": "i26",
+      "to": "i7",
+      "type": "contradicts",
+      "why": "The limits of the directed, discrete variable design are acknowledged by the authors."
+    },
+    {
+      "from": "i28",
+      "to": "i26",
+      "type": "supports",
+      "why": "The proposed future work answers the stated modeling limits."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i7",
+      "to": "hypothesis",
+      "why": "Supports the hypothesis in spirit: decomposing shapes into labeled parts and relations (existence, adjacency, number, style, symmetry) gives a learner patterns about what goes with what, on 3D meshes rather than BIM."
+    },
+    {
+      "idea": "i19",
+      "to": "question",
+      "why": "Partly answers the question: learned part relations make suggestions more relevant, but the system ranks parts for a human to place and does not generate whole valid models."
+    },
+    {
+      "idea": "i10",
+      "to": "assemble-node-by-node",
+      "why": "A method to borrow: score each candidate next component by how well it fits the parts already placed, updating after every addition."
+    },
+    {
+      "idea": "i5",
+      "to": "deconstruct-for-training",
+      "why": "Shows one way to take shapes apart into labeled hierarchical components, using a small hand-labeled set to label the rest."
+    },
+    {
+      "idea": "i24",
+      "to": "explicit-vs-learned",
+      "why": "Argues for learning dependencies between parts from data rather than writing them as explicit rules."
+    },
+    {
+      "idea": "i16",
+      "to": "proposed-vs-kept",
+      "why": "Measures value by what the person actually chose, as the rank of the picked category and part, which is the same idea as judging suggestions by what is kept."
+    },
+    {
+      "idea": "i9",
+      "to": "renner-2025",
+      "why": "An earlier probabilistic version of proposing the next element given the current assembly, comparable to a trained co-pilot."
+    },
+    {
+      "idea": "i26",
+      "to": "question",
+      "why": "A gap: the model has no continuous geometry, spatial or functional relations, which a valid BIM model would need beyond adjacency and symmetry."
+    }
+  ]
+}

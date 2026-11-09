@@ -4,6 +4,7 @@
  * uses. It only reads: Claude writes map.json and notes/.
  */
 import { boxOf, layout, linkPath } from './layout.js'
+import { mountLibrary } from './library-ui.js'
 import { isNew, linkKey, validate } from './model.js'
 import { parseNote, renderMarkdown } from './notes.js'
 import { loadIndex, slidesUsing } from './presentations.js'
@@ -46,14 +47,17 @@ export async function start(root, { load = fetchText, dir = '', index, client } 
   )
   const presentations = index ?? (dir === '' ? await loadIndex(load).catch(() => null) : null)
   let papers = []
+  let keywords = []
   try {
-    papers = JSON.parse((await read('papers/index.json')) ?? '{}').papers ?? []
+    const prepared = JSON.parse((await read('papers/index.json')) ?? '{}')
+    papers = prepared.papers ?? []
+    keywords = prepared.keywords ?? []
   } catch {
     papers = []
   }
   const onSaveError = (message) => root.dispatchEvent(new CustomEvent('reader-save-error', { detail: message }))
   const server = client === undefined ? (dir === '' ? createClient({ onSaveError }) : null) : client
-  return createView(root, map, notes, { index: presentations, papers, read, base: dir, client: server })
+  return createView(root, map, notes, { index: presentations, papers, keywords, read, base: dir, client: server })
 }
 
 /**
@@ -61,7 +65,7 @@ export async function start(root, { load = fetchText, dir = '', index, client } 
  * `index` (from `loadIndex`) it also mounts the menu and the viewer; with prepared `papers` (papers/index.json), the
  * reader, which loads them through `read` (`base` prefixes their images).
  */
-export function createView(root, map, notes, { index = null, papers = [], read = fetchText, base = '', client = null } = {}) {
+export function createView(root, map, notes, { index = null, papers = [], keywords = [], read = fetchText, base = '', client = null } = {}) {
   const problems = validate(map)
   const fresh = isNew(map, notes)
   // `lit`: the ids the slide shown uses (null = none). `manual`: the author moved the view since the last fit.
@@ -88,13 +92,7 @@ export function createView(root, map, notes, { index = null, papers = [], read =
       <svg class="canvas" xmlns="${SVG}"><g class="world"><g class="links"></g><g class="cards"></g></g></svg>
     </div>
     <aside class="panel" hidden></aside>
-    ${
-      papers.length
-        ? `<nav class="papers-menu" hidden aria-label="Papers">${papers
-            .map((p) => `<button type="button" data-read="${esc(p.node)}"><span>${esc(p.title)}</span><i>${p.es ? 'EN · ES' : 'EN'}</i></button>`)
-            .join('')}</nav>`
-        : ''
-    }
+    ${papers.length ? '<nav class="papers-menu" hidden aria-label="Papers"></nav>' : ''}
     <section class="problems" ${problems.length ? '' : 'hidden'}>
       <h2>map.json has ${problems.length} problem(s)</h2>
       <ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
@@ -302,7 +300,7 @@ export function createView(root, map, notes, { index = null, papers = [], read =
       <p class="kind">${esc(n.kind)} · ${esc(group?.title)} · ${esc(n.date)}</p>
       <h2>${esc(n.title)}</h2>
       ${n.cite ? `<p class="cite">${esc(n.cite)}</p>` : ''}
-      ${prepared.has(n.id) ? `<p class="read"><button type="button" data-read="${esc(n.id)}">Read</button></p>` : ''}
+      ${prepared.has(n.id) ? `<p class="read"><button type="button" data-read="${esc(n.id)}">Read</button><button type="button" class="read__mark" data-mark="${esc(n.id)}" data-mark-label hidden></button></p>` : ''}
       ${source}
       ${entries || '<p class="empty">No note yet.</p>'}
       ${links ? `<h3 class="section">Links</h3><ul class="related">${links}</ul>` : ''}
@@ -341,6 +339,7 @@ export function createView(root, map, notes, { index = null, papers = [], read =
     else if (link) panel.innerHTML = linkPanel(link)
     else if (groupById[id]) return toggleGroup(id)
     if (id !== null) panel.hidden = false
+    library?.sync()
     paint()
     // The panel (and the viewer beside it) changes the free space: keep the lit cards clear of both.
     if (state.lit && !state.manual) fit([...state.lit])
@@ -524,6 +523,7 @@ export function createView(root, map, notes, { index = null, papers = [], read =
     papersMenu.hidden = !show
     papersButton.setAttribute('aria-pressed', String(Boolean(show)))
   }
+  const library = papersMenu ? mountLibrary(papersMenu, { root, papers, keywords, load: read, client }) : null
   const reader = papers.length
     ? mountReader(root, {
         papers,
@@ -531,6 +531,7 @@ export function createView(root, map, notes, { index = null, papers = [], read =
         load: read,
         base,
         client,
+        onPaper: () => library?.sync(),
         onShow: () => {
           select(null)
           ui?.close()
@@ -558,5 +559,6 @@ export function createView(root, map, notes, { index = null, papers = [], read =
     setLit,
     fit,
     reader,
+    library,
   }
 }

@@ -1,0 +1,906 @@
+{
+  "version": 1,
+  "node": "sydora-2025",
+  "title": "Learning Interior Design Rules from User-created Layout Examples",
+  "source": "files/Learning Interior Design Rules from User-created Layout Examples.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "Learning Interior Design Rules from User-created Layout Examples",
+            "es": "Aprendizaje de reglas de diseño de interiores a partir de ejemplos de distribuciones (layouts) creados por usuarios"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Christoph Sydora and Eleni Stroulia",
+            "es": "Christoph Sydora y Eleni Stroulia"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Department of Computing Science, University of Alberta, Canada. {csydora, stroulia}@ualberta.ca",
+            "es": "Departamento de Ciencias de la Computación, University of Alberta, Canadá. {csydora, stroulia}@ualberta.ca"
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "2025 European Conference on Computing in Construction, CIB W78 Conference on IT in Construction, Porto, Portugal, July 14-17, 2025",
+            "es": "2025 European Conference on Computing in Construction, CIB W78 Conference on IT in Construction, Porto, Portugal, 14-17 de julio de 2025"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "When creating layouts using 3D interior design tools, users are typically guided by implicit design rules that aim to improve function and comfort. This tacit knowledge is extremely valuable for automated layout generation tools, such that automatically generated layouts exhibit similar function and comfort characteristics as user-designed ones. This paper evaluates a novel rule-learning method that, given user-designed layouts, learns rules that characterize the input layouts. Our comparison of the perceived quality of user- and computer-generated layouts indicates that the method works well in some room scenarios and better with fewer, more consistent-looking input layouts.",
+            "es": "Al crear distribuciones con herramientas de diseño de interiores en 3D, los usuarios suelen guiarse por reglas de diseño implícitas cuyo objetivo es mejorar la función y la comodidad. Este conocimiento tácito es sumamente valioso para las herramientas de generación automática de distribuciones, de modo que las distribuciones generadas automáticamente exhiban características de función y comodidad similares a las diseñadas por usuarios. Este artículo evalúa un método novedoso de aprendizaje de reglas que, a partir de distribuciones diseñadas por usuarios, aprende reglas que caracterizan las distribuciones de entrada. Nuestra comparación de la calidad percibida de las distribuciones generadas por usuarios y por computadora indica que el método funciona bien en algunos escenarios de habitaciones y mejor con menos distribuciones de entrada, de apariencia más consistente."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "Introduction",
+        "es": "Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Interior layout design is a difficult task. Large spaces with many furnishing objects can be laid out in a wide variety of ways, which can vary in their aesthetics and comfort. Rules, often developed through a deep understanding of factors such as human behaviour, ergonomics, aesthetics, and safety, are a way of evaluating the quality of a layout. Simply put, a layout that more closely aligns with a set of expert design rules should perform its function better than a layout that does not.",
+            "es": "El diseño de la distribución interior es una tarea difícil. Los espacios grandes con muchos objetos de mobiliario pueden distribuirse de una gran variedad de maneras, que pueden variar en su estética y comodidad. Las reglas, a menudo desarrolladas a partir de una comprensión profunda de factores como el comportamiento humano, la ergonomía, la estética y la seguridad, son una forma de evaluar la calidad de una distribución. En pocas palabras, una distribución que se ajuste más estrechamente a un conjunto de reglas de diseño de expertos debería cumplir mejor su función que una distribución que no lo haga."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Computer-Aided Design (CAD) tools help designers create 3D renderings of layouts to plan and visualize design options, such that they can be manually or automatically evaluated against rules. Modern CAD tools have begun to support generative design tools that automatically design and optimize layouts based on rules. Thus, CAD tools provide designers with a means to (a) evaluate the rule-compliance of their layout design prior to implementation, and (b) optimize these layouts towards higher rule compliance and quality.",
+            "es": "Las herramientas de diseño asistido por computadora (CAD, Computer-Aided Design) ayudan a los diseñadores a crear representaciones 3D de distribuciones para planificar y visualizar opciones de diseño, de modo que puedan evaluarse manual o automáticamente con respecto a reglas. Las herramientas CAD modernas han comenzado a admitir herramientas de diseño generativo (generative design) que diseñan y optimizan distribuciones automáticamente con base en reglas. Así, las herramientas CAD ofrecen a los diseñadores un medio para (a) evaluar el cumplimiento de reglas de su diseño de distribución antes de su implementación, y (b) optimizar estas distribuciones hacia un mayor cumplimiento de reglas y una mayor calidad."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "To perform these automated rule-compliance-based tasks, rules must be well defined and explicitly represented in a computer-processable format. Early approaches proposed the manual encoding of rules in general programming languages (Merrell et al. (2011); Yu et al. (2011)), with more recent approaches encoding them in Domain Specific Languages (DSLs) (Sydora and Stroulia (2020)). These rely on users to be familiar with the programming language of choice which requires training time, especially for general programming languages.",
+            "es": "Para realizar estas tareas automatizadas basadas en el cumplimiento de reglas, las reglas deben estar bien definidas y representarse de forma explícita en un formato procesable por computadora. Los primeros enfoques propusieron la codificación manual de las reglas en lenguajes de programación de propósito general (Merrell et al. (2011); Yu et al. (2011)), y enfoques más recientes las codifican en lenguajes específicos de dominio (DSL, Domain Specific Languages) (Sydora and Stroulia (2020)). Estos dependen de que los usuarios conozcan el lenguaje de programación elegido, lo cual requiere tiempo de capacitación, especialmente en el caso de los lenguajes de programación de propósito general."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "As large layout datasets have emerged, data-driven approaches have mitigated the challenge of programming design knowledge and patterns. The majority of these methods, however, are created solely for automatic layout generation and have not been designed to explicitly support rule explainability and rule modification.",
+            "es": "A medida que han surgido grandes conjuntos de datos de distribuciones, los enfoques basados en datos (data-driven) han mitigado el desafío de programar el conocimiento y los patrones de diseño. Sin embargo, la mayoría de estos métodos se crean únicamente para la generación automática de distribuciones y no han sido diseñados para apoyar explícitamente la explicabilidad ni la modificación de las reglas."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "One proposed data-driven method that addresses these shortcomings is rule code learning in Sydora and Stroulia (2024). Our approach learns a programmable rule code, specifically for geometric rules relating to furnishing layout and arrangement, represented in RuleDSL, an interior rule DSL. RuleDSL is human-readable and machine-executable at the same time, thus providing a more explainable rule representation. Furthermore, special-purpose RuleDSL editors allow for code review and modification. We evaluated our rule-learning method on a synthetic layout dataset, automatically generated based on expert rules defined in RuleDSL. The findings of this first evaluation study demonstrated that the rule-learning method was effective in learning the expert rules that guided the generation of the method’s input layouts.",
+            "es": "Un método basado en datos que se ha propuesto para abordar estas deficiencias es el aprendizaje de código de reglas (rule code learning) en Sydora and Stroulia (2024). Nuestro enfoque aprende un código de reglas programable, específicamente para reglas geométricas relacionadas con la distribución y la disposición del mobiliario, representado en RuleDSL, un DSL de reglas de interiores. RuleDSL es legible para las personas y ejecutable por máquinas al mismo tiempo, lo que proporciona una representación de reglas más explicable. Además, los editores de RuleDSL de propósito especial permiten la revisión y la modificación del código. Evaluamos nuestro método de aprendizaje de reglas en un conjunto de datos sintético de distribuciones, generado automáticamente con base en reglas de expertos definidas en RuleDSL. Los hallazgos de este primer estudio de evaluación demostraron que el método de aprendizaje de reglas fue eficaz para aprender las reglas de expertos que guiaron la generación de las distribuciones de entrada del método."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "In this work, we describe a follow-up study to Sydora and Stroulia (2024), designed to evaluate this method’s effectiveness in capturing the implicit knowledge embedded in our collected user-created layouts. Implicit knowledge is often relied upon to identify and create perceived quality layout configurations and is the basis for evaluating the output layout quality of data-driven approaches. Our evaluation assumes that our layout creators follow implicit knowledge-guided geometric design patterns. We hypothesize that our rule-learning method can capture these implicit patterns and formatted rules in the machine-readable RuleDSL. Therefore, this work is motivated by the following research hypothesis:",
+            "es": "En este trabajo describimos un estudio de seguimiento de Sydora and Stroulia (2024), diseñado para evaluar la eficacia de este método para capturar el conocimiento implícito incorporado en las distribuciones creadas por usuarios que recopilamos. A menudo se recurre al conocimiento implícito para identificar y crear configuraciones de distribución de calidad percibida, y es la base para evaluar la calidad de las distribuciones de salida de los enfoques basados en datos. Nuestra evaluación supone que quienes crean las distribuciones siguen patrones de diseño geométrico guiados por conocimiento implícito. Planteamos la hipótesis de que nuestro método de aprendizaje de reglas puede capturar estos patrones implícitos y formatearlos como reglas en RuleDSL, legible por máquinas. Por lo tanto, este trabajo está motivado por la siguiente hipótesis de investigación:"
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Implicit interior design knowledge can be learnt and expressed in the RuleDSL format",
+            "es": "El conocimiento implícito de diseño de interiores puede aprenderse y expresarse en el formato RuleDSL"
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The hypothesis is tested by comparing two sets of layout datasets: (i) a human-created layout set and (ii) a computer-generated layout set, automatically produced by the rules learnt from the human-created layout set. The comparison is based on the perceived quality of the layouts, collected through evaluation scores from a user survey. If the evaluation scores of the user- and computer-generated layouts for the same room scenarios are not significantly different, then the hypothesis holds and the method can capture the implicit rules in the RuleDSL.",
+            "es": "La hipótesis se prueba comparando dos conjuntos de datos de distribuciones: (i) un conjunto de distribuciones creadas por personas y (ii) un conjunto de distribuciones generadas por computadora, producidas automáticamente mediante las reglas aprendidas a partir del conjunto de distribuciones creadas por personas. La comparación se basa en la calidad percibida de las distribuciones, recopilada mediante puntuaciones de evaluación de una encuesta a usuarios. Si las puntuaciones de evaluación de las distribuciones generadas por usuarios y por computadora para los mismos escenarios de habitaciones no son significativamente distintas, entonces la hipótesis se sostiene y el método puede capturar las reglas implícitas en RuleDSL."
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "This paper first outlines related work on design knowledge extraction and why the rule-language approach has its advantages. Next, a description of RuleDSL and the evaluated rule learning method is given at a high level. The method for user layout data collection is described, followed by the process of creating the computer-generated layout dataset from the user-created layouts. The user study used to collect layout evaluation scores is then detailed. Finally, we report and discuss the results of the evaluation survey and conclude with our contributions and potential future directions.",
+            "es": "Este artículo primero resume el trabajo relacionado sobre la extracción de conocimiento de diseño y las ventajas del enfoque de lenguaje de reglas. A continuación, se ofrece una descripción general de RuleDSL y del método de aprendizaje de reglas evaluado. Se describe el método de recopilación de datos de distribuciones de usuarios, seguido del proceso de creación del conjunto de datos de distribuciones generadas por computadora a partir de las distribuciones creadas por usuarios. Después se detalla el estudio con usuarios empleado para recopilar las puntuaciones de evaluación de las distribuciones. Por último, presentamos y discutimos los resultados de la encuesta de evaluación y concluimos con nuestras contribuciones y posibles direcciones futuras."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "Interior Design Knowledge Extraction",
+        "es": "Extracción de conocimiento de diseño de interiores"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Some of the earliest work on automatically generating (or synthesizing) layouts began in 2011. In the work of Merrell et al. (2011), layouts were generated by creating a layout evaluation (or cost) function. These functions were created programmatically by manually interpreting rules from interior design text into mathematical formulas which in turn were written into general-purpose programming languages. This challenge here is that the layout evaluation functions first had to be interpreted from text, which is often ambiguous and not described with computer formulation at its core. This requires design expertise in understanding the true intent of the described rule and also the implications of that rule should it conflict with other rules. The approach also requires expertise in computer programming as the rules have to then be written in machine-readable format which, using general-purpose code, can take years to master.",
+            "es": "Parte del trabajo más temprano sobre la generación automática (o síntesis) de distribuciones comenzó en 2011. En el trabajo de Merrell et al. (2011), las distribuciones se generaban creando una función de evaluación de distribuciones (o función de costo, cost function). Estas funciones se creaban programáticamente al interpretar manualmente reglas de textos de diseño de interiores como fórmulas matemáticas, que a su vez se escribían en lenguajes de programación de propósito general. El desafío aquí es que las funciones de evaluación de distribuciones primero debían interpretarse a partir de texto, que a menudo es ambiguo y no está descrito con una formulación computacional como base. Esto requiere experiencia en diseño para comprender la verdadera intención de la regla descrita y también las implicaciones de esa regla en caso de que entre en conflicto con otras reglas. El enfoque también requiere experiencia en programación, ya que las reglas deben escribirse después en un formato legible por máquinas que, usando código de propósito general, puede tomar años en dominarse."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Using a few examples, Yu et al. (2011) included priors into their cost function to include statistical likelihood object relationships into their generation. An example of an early data-driven approach for object arrangement is Fisher et al. (2012). In this work, they use a probabilistic model trained based on Bayesian networks and Gaussian mixtures together with user-created scenes.",
+            "es": "Usando unos pocos ejemplos, Yu et al. (2011) incluyeron distribuciones a priori (priors) en su función de costo para incorporar en su generación relaciones estadísticamente probables entre objetos. Un ejemplo de un enfoque temprano basado en datos para la disposición de objetos es Fisher et al. (2012). En ese trabajo, utilizan un modelo probabilístico entrenado con base en redes bayesianas (Bayesian networks) y mezclas gaussianas (Gaussian mixtures), junto con escenas creadas por usuarios."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Over time, larger datasets emerged including SUNCG (Song et al. (2017)) and more recently 3D-FRONT (Fu et al. (2021)). This paved the way for deeper learning methods that could identify patterns automatically between furnishing objects. Thus, design knowledge (or priors) could be learnt from the examples and used to directly create layouts that appear or share similar qualities to the layouts in the dataset. Approaches in this realm include Wang et al. (2018); Ritchie et al. (2019); Wang et al. (2019) who utilize Convolutional Neural Networks on image representations of a layout, Zhang et al. (2020) who use a Neural Network of scene objects and their features, and Wei et al. (2023) which is a diffusion model inspired transformer-based iterative method for rearranging “messy” rooms.",
+            "es": "Con el tiempo surgieron conjuntos de datos más grandes, entre ellos SUNCG (Song et al. (2017)) y, más recientemente, 3D-FRONT (Fu et al. (2021)). Esto allanó el camino para métodos de aprendizaje profundo (deep learning) que podían identificar automáticamente patrones entre objetos de mobiliario. Así, el conocimiento de diseño (o priors) podía aprenderse de los ejemplos y usarse para crear directamente distribuciones que se parecen a las del conjunto de datos o comparten cualidades similares con ellas. Los enfoques en este ámbito incluyen a Wang et al. (2018); Ritchie et al. (2019); Wang et al. (2019), quienes utilizan redes neuronales convolucionales (Convolutional Neural Networks) sobre representaciones en imagen de una distribución; a Zhang et al. (2020), quienes usan una red neuronal de objetos de la escena y sus características; y a Wei et al. (2023), que es un método iterativo basado en transformers e inspirado en modelos de difusión (diffusion models) para reordenar habitaciones “desordenadas”."
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Most recently, image generators have been able to create highly detailed images of buildings and interiors. These generators are either completely text-driven, such as the most well-known generator DALL-E 3 (Betker et al. (2023)), or can have some control using edges or input “skeletons” of the desired image, as in Zhang et al. (2023).",
+            "es": "Más recientemente, los generadores de imágenes han podido crear imágenes muy detalladas de edificios e interiores. Estos generadores son completamente guiados por texto, como el generador más conocido, DALL-E 3 (Betker et al. (2023)), o pueden tener cierto control mediante bordes o “esqueletos” de entrada de la imagen deseada, como en Zhang et al. (2023)."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In general, while producing impressive visuals of layouts, these image generation methods do not appear to be able to enforce desired geometrical relations within the layout. Each of these methods falls short of achieving our goal, which is to learn geometric arrangement rules from the examples provided in the dataset. This is because we differentiate priors, which are based on likelihood approximation functions, and rules, which are comprised of ranges of allowable values. Why we care about rules as opposed to priors is because rules allow us to more strictly enforce what is acceptable in a scene; priors, on the other hand, are plausibility estimations meant to mimic the dataset used to create them. It is theoretically possible for rules to be created based on priors by encapsulating the bounds of the priors; however, to our knowledge, this has not been investigated in previous research.",
+            "es": "En general, aunque producen imágenes impresionantes de distribuciones, estos métodos de generación de imágenes no parecen ser capaces de imponer las relaciones geométricas deseadas dentro de la distribución. Ninguno de estos métodos logra nuestro objetivo, que es aprender reglas de disposición geométrica a partir de los ejemplos proporcionados en el conjunto de datos. Esto se debe a que diferenciamos entre los priors, que se basan en funciones de aproximación de verosimilitud, y las reglas, que se componen de rangos de valores permitidos. Nos interesan las reglas, y no los priors, porque las reglas nos permiten imponer de manera más estricta lo que es aceptable en una escena; los priors, en cambio, son estimaciones de plausibilidad destinadas a imitar el conjunto de datos usado para crearlos. Es teóricamente posible crear reglas con base en priors al encapsular los límites de los priors; sin embargo, hasta donde sabemos, esto no se ha investigado en investigaciones previas."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "Background",
+        "es": "Antecedentes"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The research in this paper is a practical evaluation of an existing rule Domain Specific Language (DSL) approach to rule extraction described in Sydora and Stroulia (2024). The data-driven approach at a high level extracts observations of interesting geometric relationships (Distance, Facing, Alignment) between pairs of object types (Walls, Tables, Chairs, etc.) from a set of layout examples and formulates them into machine-readable rule code. The motivation is that the generated machine-readable rule code can be read, understood, and modified; should the values being checked against need to be changed for example. This provides a starting point for creating rule code that can be used to check and evaluate a new design idea.",
+            "es": "La investigación de este artículo es una evaluación práctica de un enfoque existente de extracción de reglas basado en un lenguaje específico de dominio (DSL) de reglas, descrito en Sydora and Stroulia (2024). A grandes rasgos, el enfoque basado en datos extrae observaciones (observations) de relaciones geométricas de interés (Distance, Facing, Alignment) entre pares de tipos de objetos (Walls, Tables, Chairs, etc.) a partir de un conjunto de ejemplos de distribuciones y las formula como código de reglas legible por máquinas. La motivación es que el código de reglas legible por máquinas generado pueda leerse, comprenderse y modificarse; por ejemplo, en caso de que sea necesario cambiar los valores contra los que se verifica. Esto proporciona un punto de partida para crear código de reglas que pueda usarse para verificar y evaluar una nueva idea de diseño."
+          }
+        },
+        {
+          "id": "s4-h2",
+          "type": "heading",
+          "page": 2,
+          "text": {
+            "en": "RuleDSL",
+            "es": "RuleDSL"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To enhance readability, the generated code is described at a high-level, task-specific DSL; in our case RuleDSL. RuleDSL (Sydora and Stroulia (2020)) is a programming language for describing geometrical interior design rules between building elements (Wall, Floor, Door, etc.) and furnishings (Couch, Table, Shelf, etc.). The structure of a rule in RuleDSL breaks down into three components: (i) Object type filters (Existential Clauses) which define the types relevant to the rules and the existence relationships (one-to-one, one-to-many, etc.). For instance, a rule between one table and many chairs would say: ANY t ∈Tables; All c ∈Chairs. (ii) Property and Relationship Checks which define the checks on particular property and relationship functions. For instance, if specifying the distance between the tables and chairs, the relation check could state: Distance(t,c)<0.5m. (iii) Finally, the Logical Expression combines the property and relation checks and nested logical expressions using logical operands AND and OR. For instance: Distance(t,c)<0.5m AND Facing(c,t)<0DEG.",
+            "es": "Para mejorar la legibilidad, el código generado se describe en un DSL de alto nivel y específico para la tarea; en nuestro caso, RuleDSL. RuleDSL (Sydora and Stroulia (2020)) es un lenguaje de programación para describir reglas geométricas de diseño de interiores entre elementos del edificio (Wall, Floor, Door, etc.) y mobiliario (Couch, Table, Shelf, etc.). La estructura de una regla en RuleDSL se descompone en tres componentes: (i) Filtros de tipo de objeto (cláusulas existenciales, Existential Clauses), que definen los tipos relevantes para las reglas y las relaciones de existencia (uno a uno, uno a muchos, etc.). Por ejemplo, una regla entre una mesa y muchas sillas diría: ANY t ∈Tables; All c ∈Chairs. (ii) Verificaciones de propiedades y relaciones (Property and Relationship Checks), que definen las verificaciones sobre funciones particulares de propiedades y relaciones. Por ejemplo, al especificar la distancia entre las mesas y las sillas, la verificación de relación podría indicar: Distance(t,c)<0.5m. (iii) Finalmente, la expresión lógica (Logical Expression) combina las verificaciones de propiedades y relaciones y las expresiones lógicas anidadas mediante los operandos lógicos AND y OR. Por ejemplo: Distance(t,c)<0.5m AND Facing(c,t)<0DEG."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Together, this simple example looks like:",
+            "es": "En conjunto, este sencillo ejemplo se ve así:"
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "equation",
+          "page": 2,
+          "text": {
+            "en": "ANY t ∈Table; ALL c ∈Chair; Distance(t,c)<0.5m AND Facing(c,t)<0DEG"
+          }
+        },
+        {
+          "id": "s4-h6",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "Rule-Learning Method",
+            "es": "Método de aprendizaje de reglas"
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The rule-learning method Sydora and Stroulia (2024) takes a rule template in a similar structure and adjusts the relation check values (the 0.5m and 0DEG in the example) of the rules such that they are the tightest bounds of check values that encapsulate all the observed geometric relation values in the input examples.",
+            "es": "El método de aprendizaje de reglas de Sydora and Stroulia (2024) toma una plantilla de reglas (rule template) con una estructura similar y ajusta los valores de las verificaciones de relación (el 0.5m y el 0DEG del ejemplo) de las reglas de modo que sean los límites más ajustados de valores de verificación que engloben todos los valores de relación geométrica observados en los ejemplos de entrada."
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "First, the rule template is determined. This involves selecting the types (Chair, Table, etc.), the clauses (ALL, ANY), and the relations of interest (Distance, Facing, etc.). The method iterates over all possible pairs of types and clause combinations observed in the examples, to create all possible candidate rules. The selected relations are based on geometric relationships, typically mentioned in the literature as influencing layout quality. The selection of these relations dictates the expressiveness of the output rules, as information that cannot be encompassed by these functions is unlikely to be covered by the examples. The goal is that the selected relations cover much of the users’ design information and thus will increase the likelihood that the learnt rules capture user design information. In this study, the relations selected are Distance: using the length of the shortest line between the two meshes; Facing: the angle between the forward direction vector of the first object and the vector pointing to the center of the second object (We include both Facing(A,B) and Facing(B,A) as order matters here); Alignment: the angle between the forward direction vectors of two objects.",
+            "es": "Primero se determina la plantilla de reglas. Esto implica seleccionar los tipos (Chair, Table, etc.), las cláusulas (ALL, ANY) y las relaciones de interés (Distance, Facing, etc.). El método itera sobre todos los pares posibles de tipos y combinaciones de cláusulas observados en los ejemplos para crear todas las reglas candidatas (candidate rules) posibles. Las relaciones seleccionadas se basan en relaciones geométricas que, por lo general, la literatura menciona como influyentes en la calidad de la distribución. La selección de estas relaciones dicta la expresividad de las reglas de salida, ya que es poco probable que los ejemplos cubran la información que estas funciones no pueden abarcar. El objetivo es que las relaciones seleccionadas cubran gran parte de la información de diseño de los usuarios y, por lo tanto, aumenten la probabilidad de que las reglas aprendidas capturen dicha información. En este estudio, las relaciones seleccionadas son Distance: la longitud de la línea más corta entre las dos mallas (meshes); Facing: el ángulo entre el vector de dirección frontal del primer objeto y el vector que apunta al centro del segundo objeto (incluimos tanto Facing(A,B) como Facing(B,A), ya que aquí el orden importa); Alignment: el ángulo entre los vectores de dirección frontal de dos objetos."
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The following steps outline the rule-learning process, which is diagrammatically depicted in Figure 1:",
+            "es": "Los siguientes pasos describen el proceso de aprendizaje de reglas, que se representa de forma diagramática en la Figura 1:"
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: The rule learning method pipeline. (Step 1) Extract observations from the examples. (Step 2) Create candidate rules from the observations based on the types and clauses. (Step 3) Combine candidate rules over multiple examples. (Step 4) Convert candidate rules to RuleDSL.",
+            "es": "Figura 1: El flujo del método de aprendizaje de reglas. (Paso 1) Extraer observaciones de los ejemplos. (Paso 2) Crear reglas candidatas a partir de las observaciones con base en los tipos y las cláusulas. (Paso 3) Combinar las reglas candidatas de múltiples ejemplos. (Paso 4) Convertir las reglas candidatas a RuleDSL."
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "(Step 1) First, examining one example at a time, observations are collected in an observation table. Observations are instances of type pairs (i.e. chair c1 with table t1) and the four relation values between them. For example, an specific observation may be c1, t1, Distance(c1,t1)=0.5m, Facing(c1,t1)=0DEG, Facing(t1,c1)=90DEG, Alignment(c1,t1)=90DEG.",
+            "es": "(Paso 1) Primero, examinando un ejemplo a la vez, las observaciones se recopilan en una tabla de observaciones. Las observaciones son instancias de pares de tipos (es decir, la silla c1 con la mesa t1) y los cuatro valores de relación entre ellos. Por ejemplo, una observación específica puede ser c1, t1, Distance(c1,t1)=0.5m, Facing(c1,t1)=0DEG, Facing(t1,c1)=90DEG, Alignment(c1,t1)=90DEG."
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "(Step 2) To create candidate rules from one example, the observations are combined based on the clauses (ALL and ANY) of the rule. The general rule of thumb is that ALL case combines the relation values of all the objects of the same type, while the ANY case produces a new candidate rule. “Combining” in this case refers to creating a value range where the upper bound is the maximum of the two values and the lower bound is the minimum of the values. For example, given the observations Distance(c1,t1)=0.5m and Distance(c2,t1)=0.2m, the candidate rule range for ANY t ∈Tables; All c ∈Chairs would contain Distance(c,t) ∈[0.2m,0.5m]. Each example can produce many candidate rules, even for the same type and clause.",
+            "es": "(Paso 2) Para crear reglas candidatas a partir de un ejemplo, las observaciones se combinan con base en las cláusulas (ALL y ANY) de la regla. La regla general es que el caso ALL combina los valores de relación de todos los objetos del mismo tipo, mientras que el caso ANY produce una nueva regla candidata. “Combinar” en este caso se refiere a crear un rango de valores cuyo límite superior es el máximo de los dos valores y cuyo límite inferior es el mínimo de los valores. Por ejemplo, dadas las observaciones Distance(c1,t1)=0.5m y Distance(c2,t1)=0.2m, el rango de la regla candidata para ANY t ∈Tables; All c ∈Chairs contendría Distance(c,t) ∈[0.2m,0.5m]. Cada ejemplo puede producir muchas reglas candidatas, incluso para el mismo tipo y la misma cláusula."
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "(Step 3) The next step involves combining the candidate rules from multiple examples. Because there can be multiple candidate rules, all candidate rules must be combined with each other to create a comprehensive set of candidate rules over all examples. This is done iteratively, starting with an empty set of combined rules and combining the candidate rules of each new example to the current set of combined rules. Two candidate rules are combined by going over each property range, taking the minimum and the maximum values of the ranges, and creating a new rule with a broader range that covers both constituent ranges. There are two distinct ways to significantly reduce the number of candidate rules. First, many candidate rules can be either duplicates or supersets of other rules, i.e., the ranges of one rule fully cover all the ranges of another. In this case, the smaller ranged candidate rule should be kept, as passing this rule will always pass the broader rule. In addition, once all candidate rules are constructed, keeping only the N rules with the most tightly bound ranges (sum of all range values) can reduce the number of rules and was shown to also improve rule quality (Sydora and Stroulia (2024)).",
+            "es": "(Paso 3) El siguiente paso consiste en combinar las reglas candidatas de múltiples ejemplos. Dado que puede haber múltiples reglas candidatas, todas deben combinarse entre sí para crear un conjunto integral de reglas candidatas sobre todos los ejemplos. Esto se hace de forma iterativa, comenzando con un conjunto vacío de reglas combinadas y combinando las reglas candidatas de cada nuevo ejemplo con el conjunto actual de reglas combinadas. Dos reglas candidatas se combinan recorriendo cada rango de propiedad, tomando los valores mínimo y máximo de los rangos y creando una nueva regla con un rango más amplio que cubre ambos rangos constituyentes. Hay dos maneras distintas de reducir significativamente el número de reglas candidatas. Primero, muchas reglas candidatas pueden ser duplicados o superconjuntos de otras reglas; es decir, los rangos de una regla cubren por completo todos los rangos de otra. En este caso, debe conservarse la regla candidata de rangos más pequeños, ya que cumplir esta regla siempre implicará cumplir la regla más amplia. Además, una vez construidas todas las reglas candidatas, conservar solo las N reglas con los rangos más estrechamente acotados (suma de todos los valores de rango) puede reducir el número de reglas y, como se demostró, también mejora la calidad de las reglas (Sydora and Stroulia (2024))."
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "(Step 4) The final step of the process is to convert each of the candidate rules to a RuleDSL-formatted rule. This takes the candidate rule ranges and formats them into the code as seen on the right side of Figure 1. This allows utilizing the RuleDSL editors, model checker, and generative design tools.",
+            "es": "(Paso 4) El paso final del proceso es convertir cada una de las reglas candidatas en una regla con formato RuleDSL. Esto toma los rangos de las reglas candidatas y los da formato como código, como se ve en el lado derecho de la Figura 1. Esto permite utilizar los editores de RuleDSL, el verificador de modelos (model checker) y las herramientas de diseño generativo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "User Created Layout Collection",
+        "es": "Recolección de distribuciones creadas por usuarios"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "To test and evaluate the rule learner’s ability to learn and recreate perceived quality, a dataset of user-created layouts was collected.1 Using the university-wide weekly email postings, we recruited participants, 18 years old and above, to design layouts and evaluate their quality. Participants were invited for one one hour in-person session and received a $15 gift card for participating.",
+            "es": "Para probar y evaluar la capacidad del aprendiz de reglas (rule learner) de aprender y recrear la calidad percibida (perceived quality), se recolectó un conjunto de datos de distribuciones (layouts) creadas por usuarios.1 Mediante los correos semanales de toda la universidad, reclutamos a participantes de 18 años o más para diseñar distribuciones y evaluar su calidad. Se invitó a los participantes a una sesión presencial de una hora y recibieron una tarjeta de regalo de $15 por participar."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "1 This research received research ethics approval from the University of Alberta Research Ethics Board, Project Name “Interior Design Layout Data Collection and Evaluation”, No. Pro00124859, February 28, 2024.",
+            "es": "1 Esta investigación recibió la aprobación de ética en investigación de la University of Alberta Research Ethics Board, nombre del proyecto “Interior Design Layout Data Collection and Evaluation”, No. Pro00124859, 28 de febrero de 2024."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In the layout editor, participants were shown an initial empty room and various furnishing objects on the right side of the room in random order as seen in Figure 2. Their task was to place all furnishing objects in the room to complete the layout; the layout could not be submitted until all objects were placed. Each move action was recorded, including the action timestamp, the Unique Identifier (ID) of the object moved, its type, its new location, and its new orientation.",
+            "es": "En el editor de distribuciones (layout editor), a los participantes se les mostró una habitación inicial vacía y varios objetos de mobiliario en orden aleatorio en el lado derecho de la habitación, como se ve en la Figura 2. Su tarea era colocar todos los objetos de mobiliario en la habitación para completar la distribución; la distribución no podía enviarse hasta que todos los objetos estuvieran colocados. Se registró cada acción de movimiento, incluyendo la marca de tiempo de la acción, el identificador único (Unique Identifier, ID) del objeto movido, su tipo, su nueva ubicación y su nueva orientación."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: Layout collection User Interfaces (UIs). Top left: Initial Skill Level Question. Top Right: Room Scenario selection in random order; their ranges of difficulty can be seen in Figure 3. Bottom Left: Starting furnishing locations. Bottom Right: Example of layout placement.",
+            "es": "Figura 2: Interfaces de usuario (User Interfaces, UIs) de la recolección de distribuciones. Arriba a la izquierda: pregunta inicial sobre el nivel de habilidad. Arriba a la derecha: selección del escenario de habitación en orden aleatorio; sus rangos de dificultad pueden verse en la Figura 3. Abajo a la izquierda: ubicaciones iniciales del mobiliario. Abajo a la derecha: ejemplo de colocación de una distribución."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Participants were given the nine room scenarios in Table 1 to complete in random order. They did one test scenario to understand the user interface, i.e. open one scenario, and test out the controls without submitting this test scenario. During the session, they were asked to create as many layouts as they could in the session time.",
+            "es": "A los participantes se les dieron los nueve escenarios de habitación de la Tabla 1 para completarlos en orden aleatorio. Hicieron un escenario de prueba para comprender la interfaz de usuario, es decir, abrir un escenario y probar los controles sin enviar ese escenario de prueba. Durante la sesión, se les pidió crear tantas distribuciones como pudieran en el tiempo de la sesión."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 4,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: Room Scenarios",
+            "es": "Tabla 1: Escenarios de habitación"
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Each layout in the dataset contained two files: (1) The 3D layout file containing the geometry of each object as well as the object specifications such as unique ID and type; and (2) A metadata file with a designer score which was a self-evaluation of the expertise of the participant who created the layout, an action sequence list, and brief design notes transcribed from the verbal layout descriptions.",
+            "es": "Cada distribución del conjunto de datos contenía dos archivos: (1) el archivo de la distribución 3D, que contenía la geometría de cada objeto así como las especificaciones del objeto, como su ID único y su tipo; y (2) un archivo de metadatos con una calificación del diseñador, que era una autoevaluación de la experiencia del participante que creó la distribución, una lista de la secuencia de acciones y breves notas de diseño transcritas de las descripciones verbales de la distribución."
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "20 participants were recruited for the layout collection. Data from two participants who were unable to complete all nine layouts in the allotted session time were excluded. The remaining 18 participants created one layout for each of the nine room scenarios for a total of 162 layouts.",
+            "es": "Se reclutó a 20 participantes para la recolección de distribuciones. Se excluyeron los datos de dos participantes que no pudieron completar las nueve distribuciones en el tiempo asignado de la sesión. Los 18 participantes restantes crearon una distribución para cada uno de los nueve escenarios de habitación, para un total de 162 distribuciones."
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Our study system records the complete sequence of participant actions: each time an object is moved or rotated, its new location and orientation are added to the participant’s session log. This provided insights into the degree of difficulty each room scenario presented for each individual participant. By examining the session logs, we observed that some participants did many moves in short periods, i.e. many minor edits, while others did fewer but longer, more well-thought-out moves. Therefore, action times were considered more meaningful than the number of moves.",
+            "es": "Nuestro sistema de estudio registra la secuencia completa de acciones de los participantes: cada vez que se mueve o gira un objeto, su nueva ubicación y orientación se agregan al registro de sesión (session log) del participante. Esto permitió conocer el grado de dificultad que cada escenario de habitación representó para cada participante. Al examinar los registros de sesión, observamos que algunos participantes hacían muchos movimientos en periodos cortos, es decir, muchas ediciones menores, mientras que otros hacían menos movimientos, pero más largos y más meditados. Por lo tanto, se consideró que los tiempos de las acciones eran más significativos que el número de movimientos."
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "To develop a metric corresponding to the scenario difficulty, we normalized the total time each scenario took for each participant: A time of 0 was given to the layout that took that participant the fastest to create, and a time of 1 was given to the layout that took them the longest, with all other layout times being normalized based on these two.",
+            "es": "Para desarrollar una métrica correspondiente a la dificultad del escenario, normalizamos el tiempo total que tomó cada escenario para cada participante: se asignó un tiempo de 0 a la distribución que a ese participante le tomó menos tiempo crear, y un tiempo de 1 a la que le tomó más tiempo, y todos los demás tiempos de distribución se normalizaron con base en estos dos."
+          }
+        },
+        {
+          "id": "s5-p9",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Then all normalized creation times were averaged over all participants, the results of which can be seen in Figure 3. Evidently, the bedroom scenarios were the fastest to create, followed by the bathroom, kitchens and the “easy” living room, followed by the “challenging” living rooms. The challenging living rooms were living rooms that had either more objects (higher density), were L-shaped, or both (Living Room 2). As anticipated, difficulty was very closely correlated to the number of objects. We should note here that not all objects were equally easy to identify. This was particularly evident with the shower object in the bathroom scenario, as some participants were unclear about where the access side of the shower was. This had the side effect of making some room scenarios more difficult to understand and thus creating slight hesitations.",
+            "es": "Después, todos los tiempos de creación normalizados se promediaron entre todos los participantes; los resultados pueden verse en la Figura 3. Evidentemente, los escenarios de recámara fueron los más rápidos de crear, seguidos por el baño, las cocinas y la sala “fácil”, y luego por las salas “difíciles”. Las salas difíciles eran salas que tenían más objetos (mayor densidad), forma de L, o ambas cosas (Living Room 2). Como se anticipaba, la dificultad estuvo muy estrechamente correlacionada con el número de objetos. Cabe señalar aquí que no todos los objetos eran igualmente fáciles de identificar. Esto fue particularmente evidente con el objeto de la regadera en el escenario del baño, ya que algunos participantes no tenían claro cuál era el lado de acceso de la regadera. Esto tuvo el efecto secundario de hacer que algunos escenarios de habitación fueran más difíciles de entender y, por tanto, de generar ligeras vacilaciones."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: Room design difficulty approximation based on average comparison of design durations normalized by each participant.",
+            "es": "Figura 3: Aproximación de la dificultad del diseño de la habitación con base en la comparación promedio de las duraciones de diseño normalizadas por cada participante."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "Rule Learning Perceived Quality Evaluation",
+        "es": "Evaluación de la calidad percibida del aprendizaje de reglas"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To evaluate the rule learning method’s ability to learn and express implicit design patterns in RuleDSL, the quality of our user-created layouts is compared against the quality of computer-generated layouts. The computer-generated layouts are guided by the rules output from the rule learning method. The intuition is that if the perceived qualities of the user-created layouts are the same as those of the computer-generated layouts, then the method was able to capture design knowledge relevant to high perceived quality. Furthermore, as the knowledge is represented in rules, this would also suggest that perceived quality can be evaluated through a rule-compliance evaluation.",
+            "es": "Para evaluar la capacidad del método de aprendizaje de reglas (rule learning) de aprender y expresar patrones de diseño implícitos en RuleDSL, se compara la calidad de nuestras distribuciones creadas por usuarios con la calidad de distribuciones generadas por computadora. Las distribuciones generadas por computadora son guiadas por las reglas que produce el método de aprendizaje de reglas. La intuición es que, si las calidades percibidas de las distribuciones creadas por usuarios son iguales a las de las distribuciones generadas por computadora, entonces el método fue capaz de capturar conocimiento de diseño relevante para una alta calidad percibida. Además, como el conocimiento está representado en reglas, esto también sugeriría que la calidad percibida puede evaluarse mediante una evaluación de cumplimiento de reglas."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The rule learning method evaluation process involves two stages: (i) creating the learnt layouts based on the learnt rules produced by the rule-learning method described above; and (ii) conducting a user survey to evaluate the original layouts and the automatically generated new ones.",
+            "es": "El proceso de evaluación del método de aprendizaje de reglas involucra dos etapas: (i) crear las distribuciones aprendidas a partir de las reglas aprendidas producidas por el método de aprendizaje de reglas descrito arriba; y (ii) realizar una encuesta a usuarios para evaluar las distribuciones originales y las nuevas generadas automáticamente."
+          }
+        },
+        {
+          "id": "s6-h3",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "Learnt Layout Generation",
+            "es": "Generación de distribuciones aprendidas"
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The process of creating the learnt layouts consists of two steps. First, rules are learnt by passing the user-created layouts into the rule learning method. In our experiments, learnt rules could have either 2, 5, or all of the 18 user-created layouts used as input. This enabled investigation of the effect of the number of input layouts on the ability of rule learning to capture perceived quality, particularly with fewer input layout counts, where, based on our initial tests, the changes in quality appeared more noticeable. For the case of the 2 and 5 learnt layouts, the input layouts were randomly selected from the 18 available. In our experiments, we performed this random selection five times to produce five learn layout inputs for each input layout count and each room scenario.",
+            "es": "El proceso de crear las distribuciones aprendidas consta de dos pasos. Primero, las reglas se aprenden al pasar las distribuciones creadas por usuarios al método de aprendizaje de reglas. En nuestros experimentos, las reglas aprendidas podían tener como entrada 2, 5 o las 18 distribuciones creadas por usuarios. Esto permitió investigar el efecto del número de distribuciones de entrada en la capacidad del aprendizaje de reglas de capturar la calidad percibida, particularmente con menos distribuciones de entrada, donde, según nuestras pruebas iniciales, los cambios en la calidad parecían más notables. Para los casos de 2 y 5 distribuciones aprendidas, las distribuciones de entrada se seleccionaron al azar de entre las 18 disponibles. En nuestros experimentos, realizamos esta selección aleatoria cinco veces para producir cinco entradas de distribuciones de aprendizaje para cada cantidad de distribuciones de entrada y cada escenario de habitación."
+          }
+        },
+        {
+          "id": "s6-p5",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Next, layouts were generated using the Jump Search (JS) layout generation methodSydora and Stroulia (2023). using as input (i) the learnt rules, (ii) no rules (random placements), or (iii) expert rules. The authors created the expert rules by translating rules from various sources (websites, design books, related publications) into RuleDSL code. These expert-rule-generated layout evaluations were included to benchmark the capability of RuleDSL and JS to generate layouts, although they are limited by the quality of the rules they attempt to replicate. Five layouts were generated for expert and random layouts in the experiments as well. All generated layouts were given a high search iteration budget such that layouts in terms of their input rule quality were maximal.",
+            "es": "Luego, se generaron distribuciones con el método de generación de distribuciones Jump Search (JS)Sydora and Stroulia (2023). usando como entrada (i) las reglas aprendidas, (ii) ninguna regla (colocaciones aleatorias), o (iii) reglas de experto. Los autores crearon las reglas de experto traduciendo reglas de diversas fuentes (sitios web, libros de diseño, publicaciones relacionadas) a código RuleDSL. Estas evaluaciones de distribuciones generadas con reglas de experto se incluyeron para comparar la capacidad de RuleDSL y JS para generar distribuciones, aunque están limitadas por la calidad de las reglas que intentan replicar. En los experimentos también se generaron cinco distribuciones para las distribuciones de experto y las aleatorias. A todas las distribuciones generadas se les dio un presupuesto de iteraciones de búsqueda (search iteration budget) alto, de modo que las distribuciones fueran máximas en términos de la calidad de las reglas de entrada."
+          }
+        },
+        {
+          "id": "s6-p6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "This process was repeated for each of the nine room scenarios, however, to manage the number of designs shown to the participants, the survey contained only five room scenarios of varying design difficulty: Bedroom 1, Bathroom, Kitchen 2, Living Room 2 (Hard), and Living Room 3 (Easy). In total, 215 layouts were selected for review; 5 room scenarios, each with 18 user-created, 5 random, 5 expert-rule, and 5 learnt of each 2-, 5- and 18-learnt-rule layouts.",
+            "es": "Este proceso se repitió para cada uno de los nueve escenarios de habitación; sin embargo, para controlar el número de diseños mostrados a los participantes, la encuesta contenía solo cinco escenarios de habitación con distintos niveles de dificultad de diseño: Bedroom 1, Bathroom, Kitchen 2, Living Room 2 (Hard) y Living Room 3 (Easy). En total, se seleccionaron 215 distribuciones para su revisión; 5 escenarios de habitación, cada uno con 18 distribuciones creadas por usuarios, 5 aleatorias, 5 de reglas de experto y 5 aprendidas de cada una de las distribuciones con 2, 5 y 18 reglas aprendidas."
+          }
+        },
+        {
+          "id": "s6-h7",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "Layout Evaluation Survey",
+            "es": "Encuesta de evaluación de distribuciones"
+          }
+        },
+        {
+          "id": "s6-p8",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Different people perceive the quality of a layout differently. Someone with extensive knowledge of interior design might be able to identify a layout that functions better than another, while others may not be able to explain exactly why a particular layout is good or bad. It is also possible that a design error can be deemed more significant by one person than another, who may consider it only a minor flaw. To get an approximate numerical representation of how good a layout is, i.e. to evaluate its perceived quality, a survey was created where participants evaluate a layout’s quality on a scale from 1 (a poor design) to 5 (an excellent design).",
+            "es": "Distintas personas perciben la calidad de una distribución de manera diferente. Alguien con amplio conocimiento de diseño de interiores podría identificar una distribución que funciona mejor que otra, mientras que otras personas quizá no puedan explicar exactamente por qué una distribución en particular es buena o mala. También es posible que una persona considere un error de diseño más significativo que otra, que quizá lo considere solo una falla menor. Para obtener una representación numérica aproximada de qué tan buena es una distribución, es decir, para evaluar su calidad percibida, se creó una encuesta en la que los participantes evalúan la calidad de una distribución en una escala de 1 (un diseño deficiente) a 5 (un diseño excelente)."
+          }
+        },
+        {
+          "id": "s6-p9",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Survey participants were recruited using the University of Alberta university-wide weekly email postings and the Department of Computing Science Graduate Student Slack channel. A complete survey was expected to take no longer than 30 minutes, assuming they spend 10 to 15 seconds per layout. Potential participants were asked to recuse themselves if they had participated in the earlier layout collection phase of the study. As an incentive to improve participant recruitment, we offered the option to enter a draw for one of three $50 gift cards. The survey required participants to review and score 100 layouts of the possible 215 layouts to fully participate. Survey participants were each asked to score layouts one at a time based on perceived quality on a scale from 1 (a poor design) to 5 (an excellent design); the survey UI can be seen in Figure 4.",
+            "es": "Se reclutó a los participantes de la encuesta mediante los correos semanales de toda la University of Alberta y el canal de Slack de estudiantes de posgrado del Department of Computing Science. Se esperaba que una encuesta completa no tomara más de 30 minutos, suponiendo que dedicaran de 10 a 15 segundos por distribución. Se pidió a los posibles participantes que se excusaran si habían participado en la fase anterior de recolección de distribuciones del estudio. Como incentivo para mejorar el reclutamiento, ofrecimos la opción de participar en un sorteo de una de tres tarjetas de regalo de $50. Para participar plenamente, la encuesta requería que los participantes revisaran y calificaran 100 distribuciones de las 215 posibles. A cada participante de la encuesta se le pidió calificar las distribuciones una por una con base en la calidad percibida, en una escala de 1 (un diseño deficiente) a 5 (un diseño excelente); la interfaz de usuario de la encuesta puede verse en la Figura 4."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4: Survey website screenshot.",
+            "es": "Figura 4: Captura de pantalla del sitio web de la encuesta."
+          }
+        },
+        {
+          "id": "s6-p10",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Participants would not see the same layout twice. To ensure that all layouts received a roughly equal number of evaluations, the number of times a layout was evaluated was recorded. Then, of the layouts not yet evaluated by a user, the ones with fewer total evaluations were given a very high probability of being shown next. The probabilities were given a soft minimum or:",
+            "es": "Los participantes no verían la misma distribución dos veces. Para asegurar que todas las distribuciones recibieran un número aproximadamente igual de evaluaciones, se registró el número de veces que se evaluó una distribución. Luego, de las distribuciones que un usuario aún no había evaluado, a las que tenían menos evaluaciones totales se les dio una probabilidad muy alta de mostrarse a continuación. A las probabilidades se les dio un mínimo suave (soft minimum), o:"
+          }
+        },
+        {
+          "id": "s6-eq1",
+          "type": "equation",
+          "page": 6,
+          "text": {
+            "en": "p(Layout) = e^(−l) / ∑_{i=1..k} e^(−l_i)"
+          }
+        },
+        {
+          "id": "s6-p11",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "where l is the number of times the layout was reviewed and evaluated, and k is the number of layouts not evaluated by the participant.",
+            "es": "donde l es el número de veces que la distribución fue revisada y evaluada, y k es el número de distribuciones no evaluadas por el participante."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "title": {
+        "en": "Survey Results and Discussion",
+        "es": "Resultados de la encuesta y discusión"
+      },
+      "blocks": [
+        {
+          "id": "s7-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "A total of 153 participants registered for the survey, and 130 of them completed the survey. Of the minimum range of scores assigned by any user (their maximum entered score minus minimum entered score), only one participant had a range of 2, eight had a range of 3, with the remaining 121 all used the full range of 4. The minimum variance of any user was 0.29; only four participants had a variance under 0.8, with the maximum variance being 1.7. These numbers demonstrate that the majority of participants generally gave varying scores to the layouts, i.e., not one single evaluation score to all layouts.",
+            "es": "Un total de 153 participantes se registraron para la encuesta y 130 de ellos la completaron. Del rango mínimo de calificaciones asignadas por cualquier usuario (su calificación máxima ingresada menos su calificación mínima ingresada), solo un participante tuvo un rango de 2, ocho tuvieron un rango de 3 y los 121 restantes usaron todo el rango de 4. La varianza mínima de cualquier usuario fue de 0.29; solo cuatro participantes tuvieron una varianza menor a 0.8, y la varianza máxima fue de 1.7. Estas cifras demuestran que la mayoría de los participantes generalmente dieron calificaciones variadas a las distribuciones, es decir, no una sola calificación de evaluación para todas las distribuciones."
+          }
+        },
+        {
+          "id": "s7-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The minimum total number of participant scores received by a layout was 56. Figure 5 shows the average scores for each room scenario’s layout. User layouts scored the highest (> 3.27) on average, while unsurprisingly, random layouts scored low (< 1.37). Expert-rule-created layouts scored moderately high (> 2.62) for bathrooms, bedrooms, and easy living rooms, while hard living rooms and kitchens scored low (< 2.12). Layouts learnt from two input layouts performed moderately high (> 2.74) for all scenarios except the kitchen scenario (1.88). Learning from 5 layouts had moderate performance (> 2.48) for bathrooms, bedrooms, and easy living rooms with a slight dip for 18 learning from layouts (> 2.08). For learning from 5 and 18 for hard living rooms and kitchens again scored low (< 1.62), close to random.",
+            "es": "El número total mínimo de calificaciones de participantes que recibió una distribución fue de 56. La Figura 5 muestra las calificaciones promedio de las distribuciones de cada escenario de habitación. Las distribuciones de usuarios obtuvieron en promedio las calificaciones más altas (> 3.27), mientras que, como era de esperarse, las distribuciones aleatorias obtuvieron calificaciones bajas (< 1.37). Las distribuciones creadas con reglas de experto obtuvieron calificaciones moderadamente altas (> 2.62) para baños, recámaras y salas fáciles, mientras que las salas difíciles y las cocinas obtuvieron calificaciones bajas (< 2.12). Las distribuciones aprendidas a partir de dos distribuciones de entrada tuvieron un desempeño moderadamente alto (> 2.74) en todos los escenarios, excepto en el escenario de la cocina (1.88). El aprendizaje a partir de 5 distribuciones tuvo un desempeño moderado (> 2.48) para baños, recámaras y salas fáciles, con una ligera caída para el aprendizaje a partir de 18 distribuciones (> 2.08). Para el aprendizaje a partir de 5 y de 18 distribuciones, las salas difíciles y las cocinas de nuevo obtuvieron calificaciones bajas (< 1.62), cercanas a las aleatorias."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5: Results of the layout evaluation survey.",
+            "es": "Figura 5: Resultados de la encuesta de evaluación de distribuciones."
+          }
+        },
+        {
+          "id": "s7-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Our hypothesis is that if perceived layout quality evaluations are not significantly different from user-created layout evaluations, then the rule learner must have been able to capture quality design knowledge about the input layouts. Therefore, we observe the 95% confidence intervals of our layout evaluations to determine for which room scenario and number of input rules our rule learner can capture perceived quality design knowledge.",
+            "es": "Nuestra hipótesis es que, si las evaluaciones de la calidad percibida de las distribuciones no son significativamente diferentes de las evaluaciones de las distribuciones creadas por usuarios, entonces el aprendiz de reglas debe haber sido capaz de capturar conocimiento de diseño de calidad sobre las distribuciones de entrada. Por lo tanto, observamos los intervalos de confianza (confidence intervals) del 95% de nuestras evaluaciones de distribuciones para determinar en qué escenario de habitación y con qué número de reglas de entrada nuestro aprendiz de reglas puede capturar conocimiento de diseño de calidad percibida."
+          }
+        },
+        {
+          "id": "s7-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The confidence intervals for the evaluation in Figure 5 can be seen in Table 2. Based on the confidence intervals, there is no significant difference between the user-created layout evaluations (Human) and the evaluations for Bathroom and Living Room 3 expert rules; Bedroom 1, Living Room 2, and Living Room 3 learnt from 2 input layouts; and Bathroom learnt from 5 layouts.",
+            "es": "Los intervalos de confianza de la evaluación de la Figura 5 pueden verse en la Tabla 2. Con base en los intervalos de confianza, no hay diferencia significativa entre las evaluaciones de las distribuciones creadas por usuarios (Human) y las evaluaciones de las reglas de experto de Bathroom y Living Room 3; de Bedroom 1, Living Room 2 y Living Room 3 aprendidas a partir de 2 distribuciones de entrada; y de Bathroom aprendida a partir de 5 distribuciones."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2: Survey Evaluation Score 95% Confidence Intervals for each Room Scenario. * Bold cells indicate confidence interval overlap with user-created layout evaluations (Human).",
+            "es": "Tabla 2: Intervalos de confianza del 95% de la calificación de evaluación de la encuesta para cada escenario de habitación. * Las celdas en negritas indican que el intervalo de confianza se traslapa con las evaluaciones de las distribuciones creadas por usuarios (Human)."
+          }
+        },
+        {
+          "id": "s7-p5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The findings suggest that it is indeed possible to capture the design knowledge using the intermediate DSL, however, this is only evident when learning from 2 in some room scenarios and learning from 5 in the bathroom scenario. Furthermore, as more input layouts are introduced, the rule learning suffers and produces decreasing quality learnt layouts.",
+            "es": "Los hallazgos sugieren que, en efecto, es posible capturar el conocimiento de diseño usando el lenguaje específico de dominio (domain-specific language, DSL) intermedio; sin embargo, esto solo es evidente al aprender a partir de 2 distribuciones en algunos escenarios de habitación y al aprender a partir de 5 en el escenario del baño. Además, a medida que se introducen más distribuciones de entrada, el aprendizaje de reglas se ve afectado y produce distribuciones aprendidas de calidad decreciente."
+          }
+        },
+        {
+          "id": "s7-h6",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "Increasing Design Variability",
+            "es": "Aumento de la variabilidad del diseño"
+          }
+        },
+        {
+          "id": "s7-p7",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "An interpretation of the results, which suggests the method works best with fewer input rooms, is that as more layouts are introduced, more variability is introduced, resulting in a higher likelihood of outlier designs or designs that contain some decision that does not align with the majority of participant designs. As the proposed method expands the ranges of relation values when combining candidate rules, all outlier design relation values are included, resulting in broader relation value ranges. From a rule learning approach, this is not a negative effect; by being included in the inputs, the outliers are assumed valid rule-compliant examples. However, it becomes clear that they become problematic for layout generation when the rules are not restrictive enough to create cohesive, plausible-looking designs.",
+            "es": "Una interpretación de los resultados, que sugiere que el método funciona mejor con menos habitaciones de entrada, es que, a medida que se introducen más distribuciones, se introduce más variabilidad, lo que resulta en una mayor probabilidad de diseños atípicos (outliers) o de diseños que contienen alguna decisión que no concuerda con la mayoría de los diseños de los participantes. Como el método propuesto amplía los rangos de los valores de relación al combinar reglas candidatas (candidate rules), todos los valores de relación de los diseños atípicos se incluyen, lo que resulta en rangos de valores de relación más amplios. Desde el enfoque del aprendizaje de reglas, este no es un efecto negativo; al estar incluidos en las entradas, se asume que los diseños atípicos son ejemplos válidos que cumplen las reglas. Sin embargo, resulta claro que se vuelven problemáticos para la generación de distribuciones cuando las reglas no son lo bastante restrictivas para crear diseños cohesivos y de apariencia plausible."
+          }
+        },
+        {
+          "id": "s7-h8",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "Input Layout Quality",
+            "es": "Calidad de las distribuciones de entrada"
+          }
+        },
+        {
+          "id": "s7-p9",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The participants who created the layouts did not self-identify as experts; they all rated their expertise in interior design at a score of 3 or lower out of 5. The quality of the user-generated layouts may have been higher had we recruited interior designers, as it is possible that experts would have followed more similar guidelines, and thus we could have potentially gotten higher quality learnt layouts as well. The quality of the layouts was also not known when they were input into the rule learner, as the quality survey was only conducted once all layouts, both user- and computer-generated, were collected. A better approach may have been to first collect the layouts, score the layouts through the survey, then use the top-scored layouts only and eliminate layouts with lower perceived quality. Having only the higher perceived quality layouts as input may have also resulted in higher perceived quality layouts being learnt.",
+            "es": "Los participantes que crearon las distribuciones no se identificaron a sí mismos como expertos; todos calificaron su experiencia en diseño de interiores con una puntuación de 3 o menos de 5. La calidad de las distribuciones generadas por usuarios podría haber sido mayor si hubiéramos reclutado a diseñadores de interiores, ya que es posible que los expertos hubieran seguido lineamientos más similares y, por lo tanto, potencialmente habríamos obtenido también distribuciones aprendidas de mayor calidad. La calidad de las distribuciones tampoco se conocía cuando se ingresaron al aprendiz de reglas, ya que la encuesta de calidad solo se realizó una vez que se recolectaron todas las distribuciones, tanto las generadas por usuarios como las generadas por computadora. Un mejor enfoque pudo haber sido recolectar primero las distribuciones, calificarlas mediante la encuesta, y luego usar solo las distribuciones mejor calificadas y eliminar las de menor calidad percibida. Tener como entrada solo las distribuciones de mayor calidad percibida también pudo haber resultado en que se aprendieran distribuciones de mayor calidad percibida."
+          }
+        },
+        {
+          "id": "s7-h10",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "Rule Template",
+            "es": "Plantilla de reglas (Rule Template)"
+          }
+        },
+        {
+          "id": "s7-p11",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "A natural follow-up question is how good the template selection was. Evidently, the template did not capture the design knowledge very well in all scenarios. Therefore, analyzing templates with different relations and more complexity (not simply AND-ing the relation ranges) will be required. RuleDSL does support more complex relationships, however, the approach will require a significantly more elaborate rule construction. In general, this experiment emphasizes that the perception of quality is complex and that capturing and recreating perceived quality is challenging, as it is quite subjective, as evident by the large ranges in many of the layout evaluation scores.",
+            "es": "Una pregunta de seguimiento natural es qué tan buena fue la selección de la plantilla. Evidentemente, la plantilla no capturó muy bien el conocimiento de diseño en todos los escenarios. Por lo tanto, será necesario analizar plantillas con diferentes relaciones y mayor complejidad (no simplemente combinar con AND los rangos de las relaciones). RuleDSL sí admite relaciones más complejas; sin embargo, el enfoque requerirá una construcción de reglas significativamente más elaborada. En general, este experimento enfatiza que la percepción de la calidad es compleja y que capturar y recrear la calidad percibida es un reto, ya que es bastante subjetiva, como lo evidencian los amplios rangos en muchas de las calificaciones de evaluación de las distribuciones."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s8",
+      "title": {
+        "en": "Conclusion",
+        "es": "Conclusión"
+      },
+      "blocks": [
+        {
+          "id": "s8-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "In this paper, we perform an evaluation of a rule programmable-code learning method that utilizes an interior rule Domain Specific Language, RuleDSL. The evaluation is based on a new user-created dataset that contains nine room scenarios, each with eighteen layouts per scenario. The research question being addressed is the ability of the rule learning method to capture interior design knowledge relevant to computationally evaluating perceived quality. We evaluate the method’s ability through a user survey, comparing the perceived quality scores of the input user layouts and layouts generated automatically following the rule learning methods’ output RuleDSL rules. Our findings suggest that the method can capture perceived quality for some room scenarios when fewer user layouts are input.",
+            "es": "En este artículo realizamos una evaluación de un método de aprendizaje de reglas en código programable (rule programmable-code learning method) que utiliza un lenguaje específico de dominio (Domain Specific Language) para interiores, RuleDSL. La evaluación se basa en un nuevo conjunto de datos creado por usuarios que contiene nueve escenarios de habitación, cada uno con dieciocho distribuciones por escenario. La pregunta de investigación que se aborda es la capacidad del método de aprendizaje de reglas para capturar el conocimiento de diseño de interiores relevante para evaluar computacionalmente la calidad percibida. Evaluamos la capacidad del método mediante una encuesta a usuarios, comparando las puntuaciones de calidad percibida de las distribuciones de entrada creadas por los usuarios y de las distribuciones generadas automáticamente siguiendo las reglas RuleDSL producidas por el método de aprendizaje de reglas. Nuestros hallazgos sugieren que el método puede capturar la calidad percibida en algunos escenarios de habitación cuando se ingresan menos distribuciones de usuario."
+          }
+        },
+        {
+          "id": "s8-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "With the increase in digitized design and interior datasets, the automatic generation of layouts that match the quality of input layouts has gained much attention. To date, no existing methods are concerned with learning strictly enforced rules, but rather focus on the visual quality produced. Our previous work (Sydora and Stroulia (2024)) was aimed at learning strict geometric rules, however, the ability of our method to create layouts of high perceived quality was not yet investigated. The evaluation and results of this paper address this question.",
+            "es": "Con el aumento de los conjuntos de datos de diseño digitalizado y de interiores, la generación automática de distribuciones que igualen la calidad de las distribuciones de entrada ha ganado mucha atención. Hasta la fecha, ningún método existente se ocupa de aprender reglas que se apliquen de forma estricta, sino que se centran en la calidad visual producida. Nuestro trabajo previo (Sydora and Stroulia (2024)) estaba orientado a aprender reglas geométricas estrictas; sin embargo, aún no se había investigado la capacidad de nuestro método para crear distribuciones de alta calidad percibida. La evaluación y los resultados de este artículo abordan esta cuestión."
+          }
+        },
+        {
+          "id": "s8-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Future research will be dedicated to improving the method such that learnt rules will afford the same complexity and expressiveness as RuleDSL, with the goal being to produce rules that enforce strict geometric relationships while also capturing perceived visual quality.",
+            "es": "La investigación futura se dedicará a mejorar el método de modo que las reglas aprendidas ofrezcan la misma complejidad y expresividad que RuleDSL, con el objetivo de producir reglas que impongan relaciones geométricas estrictas y que, al mismo tiempo, capturen la calidad visual percibida."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s9",
+      "title": {
+        "en": "Acknowledgements",
+        "es": "Agradecimientos"
+      },
+      "blocks": [
+        {
+          "id": "s9-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "This research was supported by the Natural Sciences and Engineering Research Council of Canada (NSERC) and Mitacs Canada. Ethics was approved from the University of Alberta Research Ethics Board (REB), Project Name “Interior Design Layout Data Collection and Evaluation”, Ethics ID: Pro00124859, February 28, 2024.",
+            "es": "Esta investigación contó con el apoyo del Natural Sciences and Engineering Research Council of Canada (NSERC) y de Mitacs Canada. La ética fue aprobada por el University of Alberta Research Ethics Board (REB), nombre del proyecto “Interior Design Layout Data Collection and Evaluation”, ID de ética: Pro00124859, 28 de febrero de 2024."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Betker, J., Goh, G., Jing, L., Brooks, T., Wang, J., Li, L., Ouyang, L., Zhuang, J., Lee, J., Guo, Y., et al. (2023). Improving image generation with better captions. Technical report, OpenAI."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Fisher, M., Ritchie, D., Savva, M., Funkhouser, T., and Hanrahan, P. (2012). Example-based synthesis of 3d object arrangements. ACM Transactions on Graphics (TOG), 31(6):1–11."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Fu, H., Cai, B., Gao, L., Zhang, L.-X., Wang, J., Li, C., Zeng, Q., Sun, C., Jia, R., Zhao, B., et al. (2021). 3d-front: 3d furnished rooms with layouts and semantics. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 10933–10942."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Merrell, P., Schkufza, E., Li, Z., Agrawala, M., and Koltun, V. (2011). Interactive furniture layout using interior design guidelines. ACM Transactions on Graphics (TOG), 30(4):87:1–10."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Ritchie, D., Wang, K., and Lin, Y.-a. (2019). Fast and flexible indoor scene synthesis via deep convolutional generative models. In IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6182–6190."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Song, S., Yu, F., Zeng, A., Chang, A. X., Savva, M., and Funkhouser, T. (2017). Semantic scene completion from a single depth image. Proceedings of 30th IEEE Conference on Computer Vision and Pattern Recognition."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Sydora, C. and Stroulia, E. (2020). Rule-based compliance checking and generative design for building interiors using bim. Automation in Construction, 120:103368."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Sydora, C. and Stroulia, E. (2023). Comparative analysis of room generation methods using rule language-based evaluation in bim. In European Conference on Computing in Construction (EC3), volume 4. European Council on Computing in Construction."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Sydora, C. and Stroulia, E. (2024). Learning interior design rules from synthetic rule-compliant example bim layouts. SSRN 5080076 Preprint."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Wang, K., Lin, Y.-A., Weissmann, B., Savva, M., Chang, A. X., and Ritchie, D. (2019). Planit: Planning and instantiating indoor scenes with relation graph and spatial prior networks. ACM Transactions on Graphics (TOG), 38(4):1–15."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Wang, K., Savva, M., Chang, A. X., and Ritchie, D. (2018). Deep convolutional priors for indoor scene synthesis. ACM Transactions on Graphics (TOG), 37(4):1–14."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Wei, Q. A., Ding, S., Park, J. J., Sajnani, R., Poulenard, A., Sridhar, S., and Guibas, L. (2023). Lego-net: Learning regular rearrangements of objects in rooms. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 19037–19047."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Yu, L.-F., Yeung, S. K., Tang, C.-K., Terzopoulos, D., Chan, T. F., and Osher, S. (2011). Make it home: automatic optimization of furniture arrangement. ACM Transactions on Graphics (TOG)-Proceedings of ACM SIGGRAPH, 30(4):86:1–12."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Zhang, L., Rao, A., and Agrawala, M. (2023). Adding conditional control to text-to-image diffusion models. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 3836–3847."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Zhang, Z., Yang, Z., Ma, C., Luo, L., Huth, A., Vouga, E., and Huang, Q. (2020). Deep generative modeling for scene synthesis via hybrid representations. ACM Transactions on Graphics (TOG), 39(2):1–21."
+          }
+        }
+      ]
+    }
+  ]
+}

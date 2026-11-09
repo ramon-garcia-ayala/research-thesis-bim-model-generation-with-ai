@@ -1,0 +1,618 @@
+{
+  "version": 1,
+  "node": "zhu-2023",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "How can building information stored in IFC be accessed and queried easily by applications outside AEC? Parsers are few, IFC is complex, and they are inconvenient when a query involves several objects.",
+      "es": "¿Cómo se puede acceder y consultar fácilmente la información de edificios guardada en IFC desde aplicaciones fuera de AEC? Hay pocos parsers, IFC es complejo y los parsers son incómodos cuando la consulta involucra varios objetos.",
+      "blocks": [
+        "s1-p3",
+        "s1-p4",
+        "s1-p7",
+        "s1-p11"
+      ],
+      "key": "ifc-access-and-query",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "IFC data can be thought of as an implicit graph: each line is an instance that other instances reference by id, forming a huge and complex network.",
+      "es": "Los datos IFC pueden verse como un grafo implícito: cada línea es una instancia que otras instancias referencian por su id, y juntas forman una red enorme y compleja.",
+      "blocks": [
+        "s1-p16",
+        "s3-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "A labeled property graph (LPG) has nodes with labels and key-value properties, and directed relationships with a type and their own properties. It is the graph model commonly used by graph databases such as neo4j.",
+      "es": "Un grafo de propiedades etiquetado (LPG) tiene nodos con etiquetas y propiedades clave-valor, y relaciones dirigidas con un tipo y sus propias propiedades. Es el modelo de grafo usado comúnmente en bases de datos de grafos como neo4j.",
+      "blocks": [
+        "s2-p18",
+        "s3-p6",
+        "fig-4"
+      ],
+      "key": "labeled-property-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "RDF describes data as subject-predicate-object triples and is machine-oriented, aimed at linking heterogeneous data and inference. Its graph is mainly a way of visualizing the triples.",
+      "es": "RDF describe los datos como tripletas sujeto-predicado-objeto y está orientado a las máquinas, para vincular datos heterogéneos e inferir. Su grafo es principalmente una forma de visualizar las tripletas.",
+      "blocks": [
+        "s2-p8",
+        "s2-p13",
+        "s2-p23",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "claim",
+      "en": "LPG is chosen over RDF because the goal is access and query, not cross-domain linking, and efficient querying needs the graph to keep the original IFC data model. RDF breaks objects into minimum units.",
+      "es": "Se elige LPG en lugar de RDF porque el objetivo es el acceso y la consulta, no vincular dominios, y una consulta eficiente requiere que el grafo conserve el modelo de datos original de IFC. RDF descompone los objetos en unidades mínimas.",
+      "blocks": [
+        "s2-p24",
+        "s2-p25",
+        "s2-p26"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "limitation",
+      "en": "No earlier work fully converted IFC into LPG. Previous conversions were user-driven: users selected the entities, only part of IFC was converted, and the process was not fully automatic.",
+      "es": "Ningún trabajo previo convirtió IFC completo a LPG. Las conversiones anteriores eran dirigidas por el usuario: se seleccionaban las entidades, solo se convertía una parte de IFC y el proceso no era totalmente automático.",
+      "blocks": [
+        "s2-p19",
+        "s2-p20",
+        "fig-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "The model-driven approach converts every instance of an IFC-SPF into an LPG called IFC-Graph, with the file, not the user, determining what is converted. IfcOpenShell extracts all instances and attributes, then nodes are created, subgraphs built and merged.",
+      "es": "El enfoque dirigido por el modelo convierte todas las instancias de un IFC-SPF en un LPG llamado IFC-Graph, donde el archivo, no el usuario, determina qué se convierte. IfcOpenShell extrae todas las instancias y atributos, luego se crean nodos, se construyen subgrafos y se fusionan.",
+      "blocks": [
+        "s3-p2",
+        "s3-p17",
+        "fig-9"
+      ],
+      "key": "ifc-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "concept",
+      "en": "IFC attributes are reclassified by the type of their value into literal attributes, entity attributes (pointing to other instances) and relationship attributes (the original inverse attributes).",
+      "es": "Los atributos de IFC se reclasifican según el tipo de su valor en atributos literales, atributos de entidad (que apuntan a otras instancias) y atributos de relación (los atributos inversos originales).",
+      "blocks": [
+        "s3-p8",
+        "s3-p8a",
+        "s3-p8b",
+        "s3-p8c",
+        "s3-p8d"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "concept",
+      "en": "IFC entities are grouped into resource entities (literal attributes only, no GlobalId), bridging entities (the IfcRelationship types) and full entities (objects and properties, with all three attribute types). The groups only help the conversion and do not exist in the final graph.",
+      "es": "Las entidades de IFC se agrupan en entidades de recurso (solo atributos literales, sin GlobalId), entidades puente (los tipos de IfcRelationship) y entidades completas (objetos y propiedades, con los tres tipos de atributos). Los grupos solo ayudan a la conversión y no existen en el grafo final.",
+      "blocks": [
+        "s3-p9",
+        "s3-p44",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Mapping rules: literal attributes become node properties to keep the graph small, entity attributes become relationships from the primary node to the sub nodes, and relationship attributes become relationships named after the attribute.",
+      "es": "Reglas de mapeo: los atributos literales se vuelven propiedades del nodo para reducir el tamaño del grafo, los atributos de entidad se vuelven relaciones del nodo primario a los subnodos, y los atributos de relación se vuelven relaciones con el nombre del atributo.",
+      "blocks": [
+        "s3-p12",
+        "s3-p13",
+        "s3-p14",
+        "s3-p15"
+      ],
+      "key": "ifc-to-lpg-mapping",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "The IFC class hierarchy is kept by giving each node the labels of its class and all its parent classes. A query for the abstract IfcBuildingElement can then return walls, doors and windows.",
+      "es": "La jerarquía de clases de IFC se conserva dándole a cada nodo las etiquetas de su clase y de todas sus clases padre. Así, una consulta por la clase abstracta IfcBuildingElement puede devolver muros, puertas y ventanas.",
+      "blocks": [
+        "s3-p18",
+        "s3-p19"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Resource entities have no unique id, so an arbitrary text-based identifier is assigned to avoid duplicate nodes and to tell them apart from normal instances with a numeric id.",
+      "es": "Las entidades de recurso no tienen id único, así que se les asigna un identificador de texto arbitrario para evitar nodos duplicados y distinguirlas de las instancias normales con id numérico.",
+      "blocks": [
+        "s3-p21",
+        "s3-p22"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "A subgraph is built for each bridging or full instance (a primary node plus its referenced sub nodes) and subgraphs are merged gradually into the final graph. IfcOwnerHistory is linked only to IfcProject, although IFC references it from every IfcRoot instance.",
+      "es": "Se construye un subgrafo por cada instancia puente o completa (un nodo primario más sus subnodos referenciados) y los subgrafos se fusionan gradualmente en el grafo final. IfcOwnerHistory se vincula solo a IfcProject, aunque IFC lo referencia desde cada instancia de IfcRoot.",
+      "blocks": [
+        "s3-p24",
+        "s3-p26",
+        "s3-p27",
+        "fig-10",
+        "fig-11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "dataset",
+      "en": "Eight quality IFC models from KIT, the Open IFC Model Repository and Autodesk Revit were used to develop and validate the method. The tools were IfcOpenShell, py2neo, neo4j and Cypher.",
+      "es": "Se usaron ocho modelos IFC de calidad del KIT, del Open IFC Model Repository y de Autodesk Revit para desarrollar y validar el método. Las herramientas fueron IfcOpenShell, py2neo, neo4j y Cypher.",
+      "blocks": [
+        "s3-p46",
+        "tab-2",
+        "fig-12",
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "Validation has two parts: an instance-based check of labels, properties and relationships on randomly selected instances, and a completeness check that the number of IFC instances equals the number of nodes with numeric id and the number of classes equals the number of labels.",
+      "es": "La validación tiene dos partes: una revisión basada en instancias de etiquetas, propiedades y relaciones en instancias elegidas al azar, y una revisión de completitud donde el número de instancias IFC iguala al de nodos con id numérico y el número de clases iguala al de etiquetas.",
+      "blocks": [
+        "s4-p1",
+        "s4-p3",
+        "s4-p16",
+        "tab-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "All instances and classes of the IFC-SPF files were preserved in the IFC-Graph. Literal attributes and class hierarchy were preserved in the five checked house instances. Outgoing relationships were one fewer than the attribute sum for non-project instances because OwnerHistory was deliberately omitted.",
+      "es": "Todas las instancias y clases de los archivos IFC-SPF se conservaron en el IFC-Graph. Los atributos literales y la jerarquía de clases se conservaron en las cinco instancias revisadas de la casa. Las relaciones salientes fueron una menos que la suma de atributos en las instancias que no son proyecto porque se omitió OwnerHistory deliberadamente.",
+      "blocks": [
+        "s4-p5",
+        "s4-p6",
+        "s4-p16",
+        "tab-5",
+        "tab-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "The smallest graph, the bridge 1 model, has 1014 nodes and 2549 relationships. The house model graph has 48,786 nodes and 79,137 relationships.",
+      "es": "El grafo más pequeño, el del modelo bridge 1, tiene 1014 nodos y 2549 relaciones. El grafo del modelo de la casa tiene 48,786 nodos y 79,137 relaciones.",
+      "blocks": [
+        "s4-p19",
+        "fig-16",
+        "fig-17",
+        "tab-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "On average, in data compactness, IFC-SPF > IFC-Graph > ifcOWL > ifcXML. The KIT bridge (IFC4.2) could not be processed by Revit and IFCtoRDF.",
+      "es": "En promedio, en compacidad de datos, IFC-SPF > IFC-Graph > ifcOWL > ifcXML. El puente del KIT (IFC4.2) no pudo procesarse con Revit ni con IFCtoRDF.",
+      "blocks": [
+        "s4-p28",
+        "s4-p29",
+        "tab-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "Linking IfcOwnerHistory from every IfcRoot instance changes the graph a lot. The query for nodes connected to it returned 1304 records from the full graph and 1 record from the proposed graph, and shortest-path results also differ.",
+      "es": "Vincular IfcOwnerHistory desde cada instancia de IfcRoot cambia mucho el grafo. La consulta de nodos conectados a él devolvió 1304 registros en el grafo completo y 1 registro en el grafo propuesto, y los resultados de ruta más corta también difieren.",
+      "blocks": [
+        "s4-p31",
+        "s4-p32",
+        "s4-p33",
+        "fig-19",
+        "fig-20",
+        "tab-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "IFC-Graphs combine tree and network structures. A single instance gives a tree, but adding relationship instances creates cycles and networks, so earlier studies describing IFC as a simple tree over-simplified it.",
+      "es": "Los IFC-Graphs combinan estructuras de árbol y de red. Una sola instancia da un árbol, pero al agregar las instancias de relación aparecen ciclos y redes, así que los estudios que describían IFC como un árbol simple lo simplificaron de más.",
+      "blocks": [
+        "s4-p30",
+        "fig-18"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "Converting IFC to RDF broke an IfcSite instance into 16 RDF triples and changed the data model. Querying a property takes three steps in RDF-LPG against two in IFC-Graph, and IFC knowledge such as n.GlobalId carries over only to IFC-Graph.",
+      "es": "Convertir IFC a RDF descompuso una instancia de IfcSite en 16 tripletas RDF y cambió el modelo de datos. Consultar una propiedad toma tres pasos en RDF-LPG contra dos en IFC-Graph, y el conocimiento de IFC, como n.GlobalId, solo se aplica en IFC-Graph.",
+      "blocks": [
+        "s4-p36",
+        "s4-p47",
+        "s4-p48",
+        "fig-21",
+        "tab-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "Two previous LPG representations of IFC link relationship instances to objects in one direction only, because they ignored inverse attributes. IFC-Graph keeps the bidirectional link.",
+      "es": "Dos representaciones LPG previas de IFC vinculan las instancias de relación con los objetos en un solo sentido, porque ignoraron los atributos inversos. IFC-Graph conserva el vínculo bidireccional.",
+      "blocks": [
+        "s4-p51",
+        "fig-22"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "Element adjacency, space accessibility and wall materials can be retrieved from IFC-Graph with short Cypher queries. With a parser such as IfcOpenShell, adjacency takes four manual steps that require reading the IFC standard.",
+      "es": "La adyacencia de elementos, la accesibilidad de espacios y los materiales de un muro se pueden obtener del IFC-Graph con consultas cortas de Cypher. Con un parser como IfcOpenShell, la adyacencia requiere cuatro pasos manuales que exigen leer el estándar IFC.",
+      "blocks": [
+        "s5-p4",
+        "s5-p5",
+        "s5-p6",
+        "tab-12",
+        "tab-13",
+        "tab-14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "Querying and drawing the graph shows the semantic structure of an IFC model, such as the spatial structure and the relative placement hierarchy, which helps users understand the standard. The bridge 1 (IFC2x3) and KIT bridge (IFC4.2) models have different spatial structures.",
+      "es": "Consultar y dibujar el grafo muestra la estructura semántica de un modelo IFC, como la estructura espacial y la jerarquía de ubicación relativa, lo que ayuda a entender el estándar. Los modelos bridge 1 (IFC2x3) y puente del KIT (IFC4.2) tienen estructuras espaciales distintas.",
+      "blocks": [
+        "s5-p8",
+        "s5-p9",
+        "s5-p10",
+        "fig-25",
+        "fig-26",
+        "fig-27"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "claim",
+      "en": "IFC-Graph could help BIM/GIS integration by removing class mapping and replacing the relational database in GIS. The authors say this idea still has to be examined in practice.",
+      "es": "IFC-Graph podría ayudar a integrar BIM y GIS al eliminar el mapeo de clases y reemplazar la base de datos relacional de GIS. Los autores dicen que esta idea todavía debe examinarse en la práctica.",
+      "blocks": [
+        "s5-p12",
+        "s5-p13"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "limitation",
+      "en": "Graph generation uses a conservative algorithm that checks for duplicates by traversing the existing graph, so processing time grows quickly with the number of nodes. IFC-Graph therefore suits stable situations such as building operation and maintenance.",
+      "es": "La generación del grafo usa un algoritmo conservador que busca duplicados recorriendo el grafo existente, por lo que el tiempo de procesamiento crece rápido con el número de nodos. IFC-Graph conviene entonces en situaciones estables como la operación y el mantenimiento del edificio.",
+      "blocks": [
+        "s5-p17",
+        "fig-28"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "future",
+      "en": "To speed up generation, use Cypher's create function (with a separate way to avoid duplicates) or parallel computing.",
+      "es": "Para acelerar la generación se puede usar la función create de Cypher (con otro mecanismo para evitar duplicados) o cómputo en paralelo.",
+      "blocks": [
+        "s5-p18"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "Converting all geometry is probably not a good idea: explicit B-rep points greatly increase graph size, and a graph without extra labels cannot hold the order of lists such as the points of an IfcPolyLoop.",
+      "es": "Convertir toda la geometría probablemente no es buena idea: los puntos explícitos de B-rep aumentan mucho el tamaño del grafo, y un grafo sin etiquetas adicionales no puede guardar el orden de listas como los puntos de un IfcPolyLoop.",
+      "blocks": [
+        "s5-p20",
+        "s5-p13"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "future",
+      "en": "Future work on geometry: decide how to handle it in the graph, possibly excluding it. Pauwels reports that releasing geometry and representation data can reduce triples by 31.9%.",
+      "es": "Trabajo futuro sobre geometría: decidir cómo manejarla en el grafo, incluso excluyéndola. Pauwels reporta que liberar los datos de geometría y representación puede reducir las tripletas en 31.9%.",
+      "blocks": [
+        "s5-p22c"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "future",
+      "en": "Other future work: store multiple IFC models in one graph database (needed for smart city and digital twins) and tailor Cypher for building information queries, since the given commands have limited coverage and are not tuned for performance.",
+      "es": "Otro trabajo futuro: guardar varios modelos IFC en una sola base de datos de grafos (necesario para ciudades inteligentes y gemelos digitales) y adaptar Cypher a consultas de información de edificios, pues los comandos dados tienen cobertura limitada y no están afinados para rendimiento.",
+      "blocks": [
+        "s5-p22",
+        "s5-p22b"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "limitation",
+      "en": "There is a gap between practitioners who create models and the tools for LPG. Export to RDF from Tekla or Revit was expected but never happened, and the same could happen to LPG.",
+      "es": "Hay una brecha entre quienes crean los modelos y las herramientas para LPG. Se esperaba una exportación a RDF desde Tekla o Revit, pero nunca ocurrió, y lo mismo podría pasar con LPG.",
+      "blocks": [
+        "s5-p24"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "claim",
+      "en": "A full conversion from IFC to LPG is possible and the approach is feasible and accurate, but the full graph may not be the best option and needs amendments such as reducing its size.",
+      "es": "Es posible convertir IFC completo a LPG y el enfoque es factible y preciso, pero el grafo completo puede no ser la mejor opción y requiere ajustes, como reducir su tamaño.",
+      "blocks": [
+        "s6-p1",
+        "s6-p2"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i23",
+      "to": "i1",
+      "type": "supports",
+      "why": "Short Cypher queries replace the multi-step parser work that made access and query hard."
+    },
+    {
+      "from": "i2",
+      "to": "i5",
+      "type": "supports",
+      "why": "IFC is already an implicit graph of interconnected objects, so a graph database fits."
+    },
+    {
+      "from": "i21",
+      "to": "i5",
+      "type": "supports",
+      "why": "The RDF-LPG comparison shows the cost of breaking IFC instances into triples."
+    },
+    {
+      "from": "i4",
+      "to": "i5",
+      "type": "contradicts",
+      "why": "RDF's atomic decomposition changes the IFC data model, which is why the authors do not choose it."
+    },
+    {
+      "from": "i6",
+      "to": "i7",
+      "type": "supports",
+      "why": "The absence of a full, automatic conversion is what motivates the model-driven approach."
+    },
+    {
+      "from": "i22",
+      "to": "i6",
+      "type": "supports",
+      "why": "Earlier LPGs lost the inverse links, an example of incomplete user-driven conversion."
+    },
+    {
+      "from": "i7",
+      "to": "i3",
+      "type": "uses",
+      "why": "The output of the conversion is a labeled property graph."
+    },
+    {
+      "from": "i7",
+      "to": "i8",
+      "type": "uses",
+      "why": "The attribute reclassification defines how each attribute maps into the graph."
+    },
+    {
+      "from": "i7",
+      "to": "i9",
+      "type": "uses",
+      "why": "Entity types determine which mapping and which subgraph shape applies."
+    },
+    {
+      "from": "i10",
+      "to": "i7",
+      "type": "part-of",
+      "why": "The mapping rules are the core of the conversion."
+    },
+    {
+      "from": "i11",
+      "to": "i7",
+      "type": "part-of",
+      "why": "Class labels are added when each basic node is created."
+    },
+    {
+      "from": "i12",
+      "to": "i7",
+      "type": "part-of",
+      "why": "Handling id-less resource entities is a step of node creation."
+    },
+    {
+      "from": "i13",
+      "to": "i7",
+      "type": "part-of",
+      "why": "Subgraph creation and merging produce the final IFC-Graph."
+    },
+    {
+      "from": "i8",
+      "to": "i10",
+      "type": "supports",
+      "why": "The three attribute groups map one-to-one onto properties and relationships."
+    },
+    {
+      "from": "i14",
+      "to": "i15",
+      "type": "supports",
+      "why": "The eight models are the material the validation runs on."
+    },
+    {
+      "from": "i15",
+      "to": "i16",
+      "type": "measures",
+      "why": "The instance and count checks produce the completeness result."
+    },
+    {
+      "from": "i16",
+      "to": "i7",
+      "type": "supports",
+      "why": "Complete, correct conversion confirms the method works as intended."
+    },
+    {
+      "from": "i18",
+      "to": "i32",
+      "type": "supports",
+      "why": "Compactness against ifcOWL and ifcXML backs the claim that the graph is a workable representation."
+    },
+    {
+      "from": "i19",
+      "to": "i13",
+      "type": "supports",
+      "why": "The 1304 against 1 records show why OwnerHistory is linked only to the project."
+    },
+    {
+      "from": "i20",
+      "to": "i2",
+      "type": "example-of",
+      "why": "The cycles and networks show the real structure of the implicit IFC graph."
+    },
+    {
+      "from": "i17",
+      "to": "i7",
+      "type": "example-of",
+      "why": "The two graph sizes show what the conversion produces for a small and a larger model."
+    },
+    {
+      "from": "i24",
+      "to": "i23",
+      "type": "supports",
+      "why": "Both come from querying the same graph."
+    },
+    {
+      "from": "i25",
+      "to": "i23",
+      "type": "supports",
+      "why": "The BIM/GIS idea relies on easier access and query."
+    },
+    {
+      "from": "i26",
+      "to": "i7",
+      "type": "contradicts",
+      "why": "Generation time grows quickly with nodes, which limits where the method fits."
+    },
+    {
+      "from": "i27",
+      "to": "i26",
+      "type": "supports",
+      "why": "Both proposed changes address the slow generation."
+    },
+    {
+      "from": "i28",
+      "to": "i7",
+      "type": "contradicts",
+      "why": "Converting all geometry inflates the graph and loses list order."
+    },
+    {
+      "from": "i29",
+      "to": "i28",
+      "type": "supports",
+      "why": "The proposed work on geometry responds to the size and ordered-list problems."
+    },
+    {
+      "from": "i32",
+      "to": "i28",
+      "type": "supports",
+      "why": "The conclusion that the full graph may need reducing follows from the geometry problem."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i10",
+      "to": "ifc-to-graph-recipe",
+      "why": "Gives the lossless mapping rules for turning an IFC file into nodes and edges, with literal attributes as properties and references as relationships."
+    },
+    {
+      "idea": "i2",
+      "to": "hypothesis",
+      "why": "Supports the premise that a model is already a set of elements and relations, so decomposing it is natural."
+    },
+    {
+      "idea": "i13",
+      "to": "deconstruct-for-training",
+      "why": "The per-instance subgraph (a primary node with its referenced nodes) is a ready-made unit that could be taken apart into examples."
+    },
+    {
+      "idea": "i28",
+      "to": "clean-real-models",
+      "why": "Shows that a full conversion needs pruning, since geometry points and the OwnerHistory links swamp the structure that matters."
+    },
+    {
+      "idea": "i19",
+      "to": "clean-real-models",
+      "why": "One omitted link changes the graph from 1304 to 1 connected records, an example of how cleaning choices change the structure a learner would see."
+    },
+    {
+      "idea": "i6",
+      "to": "question",
+      "why": "The graph is built for access and query, not for learning or generation, so the step from graph to new valid models is a gap the thesis has to fill."
+    },
+    {
+      "idea": "i7",
+      "to": "ifc",
+      "why": "Shows how IFC's instance and reference structure can be traversed completely and automatically with IfcOpenShell."
+    },
+    {
+      "idea": "i14",
+      "to": "real-or-synthetic-data",
+      "why": "Only eight models were used, for validation rather than for learning, so it says nothing on how to get a dataset large enough for training."
+    }
+  ]
+}

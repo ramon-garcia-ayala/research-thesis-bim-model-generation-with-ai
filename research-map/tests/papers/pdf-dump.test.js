@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -43,4 +43,17 @@ describe.skipIf(!hasPyMuPDF)('pdf_dump.py', () => {
   })
 
   it('crops a region to a PNG', () => expect(readFileSync(join(figs, 'fig-1.png')).subarray(1, 4).toString()).toBe('PNG'))
+
+  it('skips a region outside its page, naming it, and still crops the others', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'pdf-crop-'))
+    const pdf = join(dir, 'sample.pdf')
+    python('-c', MAKE_PDF, pdf)
+    const crops = [{ id: 'fig-off', page: 1, bbox: [700, 900, 800, 1000] }, { id: 'fig-on', page: 1, bbox: [100, 200, 300, 350] }]
+    writeFileSync(join(dir, 'crops.json'), JSON.stringify(crops))
+    const r = python(SCRIPT, 'crop', pdf, join(dir, 'crops.json'), join(dir, 'fig'), '--dpi', '72')
+    expect(r.status).toBe(0)
+    expect(r.stderr).toContain('fig-off')
+    expect(existsSync(join(dir, 'fig', 'fig-off.png'))).toBe(false)
+    expect(existsSync(join(dir, 'fig', 'fig-on.png'))).toBe(true)
+  })
 })

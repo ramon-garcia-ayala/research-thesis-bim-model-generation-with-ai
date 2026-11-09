@@ -1,0 +1,854 @@
+{
+  "version": 1,
+  "node": "ifcvoxnet-2024",
+  "title": "IfcVoxNet: 3D segmentation and classification of voxelized IFC building models with Deep Learning",
+  "source": "files/IfcVoxNet  3D segmentation and classification of voxelized IFC building models with Deep L.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "IfcVoxNet: 3D segmentation and classification of voxelized IFC building models with Deep Learning",
+            "es": "IfcVoxNet: segmentación 3D y clasificación de modelos de edificios IFC voxelizados con aprendizaje profundo (Deep Learning)"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Johan Luttun, johan@aecgeeks.com. Thomas Krijnen, thomas@aecgeeks.com.",
+            "es": "Johan Luttun, johan@aecgeeks.com. Thomas Krijnen, thomas@aecgeeks.com."
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "AECgeeks",
+            "es": "AECgeeks"
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Proc. of the CIB W78 Conference 2024, October 1st-3rd 2024, Marrakesh, Morocco",
+            "es": "Proc. of the CIB W78 Conference 2024, 1 al 3 de octubre de 2024, Marrakech, Marruecos"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "We propose a deep learning framework to segment and classify a voxel-based representation of IFC models.",
+            "es": "Proponemos un marco de aprendizaje profundo para segmentar (segment) y clasificar una representación basada en vóxeles (voxels) de modelos IFC."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "While BIM-based building element classification has set promising avenues of research, most do not take into account the context of elements and they only learn on normalized shaped examples. We believe that element representations should be learned by providing neighboring information to the network. Some classes such as walls, columns and slabs could be very similar in a normalized input as they all can be boxes, but they are different classes that can be discriminated against from their surroundings, as a wall bounds spaces while a column only carries loads.",
+            "es": "Si bien la clasificación de elementos de edificios basada en BIM ha abierto vías de investigación prometedoras, la mayoría no toma en cuenta el contexto de los elementos y solo aprende a partir de ejemplos de forma normalizada. Creemos que las representaciones de los elementos deben aprenderse proporcionando a la red información de los elementos vecinos. Algunas clases, como los muros, las columnas y las losas, podrían ser muy similares en una entrada normalizada, ya que todas pueden ser cajas, pero son clases distintas que pueden discriminarse a partir de su entorno: un muro delimita espacios, mientras que una columna solo soporta cargas."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "However, there is no idiomatic, standardized, nor universal way to decompose the physical building into a set of elements. It depends on preferences of the modeler, functionality of the tool, construction method and phase of the development. The later the phase, the more detailed and the more akin to how the building will be constructed as opposed to how it conceptually functions. Therefore, we present an approach to classify building elements based on a classification of individual voxels (cubic elements of mass on a regular grid obtained from the building element geometries) within the full building context. That means that the method is independent of individual modeler choices on ways of subdivision and can learn even features that are not an individual element, such as e.g typically a doorknob.",
+            "es": "Sin embargo, no existe una manera idiomática, estandarizada ni universal de descomponer el edificio físico en un conjunto de elementos. Depende de las preferencias de quien modela, de la funcionalidad de la herramienta, del método constructivo y de la fase del desarrollo. Cuanto más avanzada es la fase, más detallada es la descomposición y más se parece a cómo se construirá el edificio, en contraposición a cómo funciona conceptualmente. Por ello, presentamos un enfoque para clasificar elementos de edificios basado en una clasificación de vóxeles individuales (elementos cúbicos de masa en una cuadrícula regular, obtenidos a partir de las geometrías de los elementos del edificio) dentro del contexto completo del edificio. Esto significa que el método es independiente de las decisiones individuales de quien modela sobre cómo subdividir, y que puede aprender incluso características que no son un elemento individual, como, p. ej., típicamente una perilla de puerta."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "In this study we put a particular emphasis on the usability of the method in inference for use in applications. We argue that the voxelization step completely eliminates modeler choices as it is able to utilize the full building context and that a patch-based training approach benefits from advances in regularized 2D grid convolutional approaches.",
+            "es": "En este estudio ponemos un énfasis particular en la usabilidad del método en la inferencia (inference) para su uso en aplicaciones. Sostenemos que el paso de voxelización (voxelization) elimina por completo las decisiones de quien modela, ya que puede aprovechar el contexto completo del edificio, y que un enfoque de entrenamiento basado en parches (patches) se beneficia de los avances en los enfoques convolucionales sobre cuadrículas 2D regularizadas."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Keywords: 3D segmentation, 3D deep learning, BIM, IFC, voxels",
+            "es": "Palabras clave: segmentación 3D, aprendizaje profundo 3D, BIM, IFC, vóxeles"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "1 Introduction",
+        "es": "1 Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s2-h1",
+          "type": "heading",
+          "page": 2,
+          "text": {
+            "en": "1.1.1 Motivation",
+            "es": "1.1.1 Motivación"
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Building Information Modelling (BIM) is a relatively new paradigm in construction where information is exchanged in information models as opposed to traditional drawings. In such a model, the building is decomposed into a set of typed elements with geometric representations and various forms of data. The Industry Foundation Classes (IFC) are the predominant open standard to exchange such models.",
+            "es": "El Modelado de Información de Construcción (Building Information Modelling, BIM) es un paradigma relativamente nuevo en la construcción en el que la información se intercambia en modelos de información, en contraposición a los dibujos tradicionales. En un modelo así, el edificio se descompone en un conjunto de elementos tipificados con representaciones geométricas y diversas formas de datos. Las Industry Foundation Classes (IFC) son el estándar abierto predominante para intercambiar dichos modelos."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The IFC schema does not impose a strict coupling between the type of a building element and its geometric form or nature or use in the building. Also the textual semantic definitions of building elements in the specification are relatively vague. As shown in Figure 2, a wall could be considered a column if its footprint is relatively short, or a railing if it does not run up to the ceiling and intends to prevent injury from falling, or a beam if it’s the part above an opening.",
+            "es": "El esquema IFC no impone un acoplamiento estricto entre el tipo de un elemento de edificio y su forma geométrica, ni su naturaleza o uso en el edificio. Además, las definiciones semánticas textuales de los elementos de edificio en la especificación son relativamente vagas. Como se muestra en la Figura 2, un muro podría considerarse una columna si su huella es relativamente corta, o un barandal si no llega hasta el techo y tiene la intención de evitar lesiones por caídas, o una viga si es la parte que está sobre una abertura."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2. A wall and various elements typically drawn as walls that could also be characterized differently, as Beam, Column and Railing",
+            "es": "Figura 2: Un muro y diversos elementos que típicamente se dibujan como muros pero que también podrían caracterizarse de otra manera, como Beam, Column y Railing"
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "As such, IFC models often contain inconsistently classified instances. While this problem can be rather subtle and still allows visualization and coordination use cases, it prevents automated flows to run smoothly by requiring manual corrections and compromises interoperability. To name a few examples, building permit evaluation requires consistent and reliable building element class labels (Noardo et al 2022) and automated computed aided manufacturing on discipline models.",
+            "es": "Por ello, los modelos IFC a menudo contienen instancias clasificadas de manera inconsistente. Aunque este problema puede ser bastante sutil y aún permite casos de uso de visualización y coordinación, impide que los flujos automatizados se ejecuten sin contratiempos al requerir correcciones manuales, y compromete la interoperabilidad. Por mencionar algunos ejemplos, la evaluación de permisos de construcción requiere etiquetas de clase de elementos de edificio consistentes y confiables (Noardo et al 2022), y lo mismo ocurre con la manufactura asistida por computadora automatizada sobre modelos por disciplina."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To the best of our knowledge there exists no easy nor mainstream automated solution to solve this problem as an automated step in a validation process. In addition, we believe that given the difficulty of the task and the availability of data, it is a good candidate for a learning-based approach. Therefore, we want to take advantage of deep learning methods to learn how to use the information embedded in IFC models to participate in the solution to the problem, towards more reliable IFC models.",
+            "es": "Hasta donde sabemos, no existe una solución automatizada sencilla ni de uso generalizado para resolver este problema como un paso automatizado dentro de un proceso de validación. Además, creemos que, dada la dificultad de la tarea y la disponibilidad de datos, es una buena candidata para un enfoque basado en aprendizaje. Por lo tanto, queremos aprovechar los métodos de aprendizaje profundo para aprender a utilizar la información contenida en los modelos IFC y así participar en la solución del problema, hacia modelos IFC más confiables."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "IFC models represent rich datasets, often under-exploited, where information about the building functional parts, its elements, and the relationships between each other can be modeled or derived. As a data schema, IFC allows to model building elements using the IfcBuildingElement abstract class which derives into instantiable classes such as IfcWall, IfcBeam, or IfcWindow. An IFC class models attributes and relationships as well as a physical representation of the element containing the description of its geometry. Although the IFC schema enables to incorporate several classification methods into an IFC instance, the IFC class already provides the classification of a particular instance. In the context of Machine Learning and deep learning, this represents a dataset of labeled data from which supervised methods can be developed.",
+            "es": "Los modelos IFC representan conjuntos de datos ricos, a menudo subexplotados, en los que se puede modelar o derivar información sobre las partes funcionales del edificio, sus elementos y las relaciones entre ellos. Como esquema de datos, IFC permite modelar elementos de edificio mediante la clase abstracta IfcBuildingElement, de la que derivan clases instanciables como IfcWall, IfcBeam o IfcWindow. Una clase IFC modela atributos y relaciones, así como una representación física del elemento que contiene la descripción de su geometría. Aunque el esquema IFC permite incorporar varios métodos de clasificación en una instancia IFC, la clase IFC ya proporciona la clasificación de una instancia particular. En el contexto del aprendizaje automático (Machine Learning) y del aprendizaje profundo, esto representa un conjunto de datos (dataset) de datos etiquetados a partir del cual pueden desarrollarse métodos supervisados (supervised methods)."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Machine Learning methods and in particular deep learning ones have proven remarkably effective for a broad range of tasks (Goodfellow et al 2016). Learning from 3D representations is no exception with works such as Choy et al (2016), Qi et al (2017), Zhou & Tuzel (2017) and Honocka et al (2019). However, 3D elements can have multiple data representations, which are the entry point of deep neural networks. When designing such a network, one needs to choose the appropriate representation given its problem. The volumetric representation is particularly interesting in the context of a building segmentation task, as it provides information about connectivity and fulfillment of a discretized space.",
+            "es": "Los métodos de aprendizaje automático y, en particular, los de aprendizaje profundo han demostrado ser notablemente eficaces para una amplia gama de tareas (Goodfellow et al 2016). El aprendizaje a partir de representaciones 3D no es la excepción, con trabajos como Choy et al (2016), Qi et al (2017), Zhou & Tuzel (2017) y Honocka et al (2019). Sin embargo, los elementos 3D pueden tener múltiples representaciones de datos, que son el punto de entrada de las redes neuronales profundas (deep neural networks). Al diseñar una red así, es necesario elegir la representación adecuada para el problema. La representación volumétrica (volumetric representation) resulta particularmente interesante en el contexto de una tarea de segmentación de edificios, ya que proporciona información sobre la conectividad y el llenado de un espacio discretizado."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "There is a high variability in ‘idioms’ of IFC usage based on – among others – the following factors: authoring tool and version; modeler choices; level of development, phase and intended use of the model; type of construction project (steel or concrete, residential or commercial, etc.), as shown in Figure 3. This has massive implications on the model as exchanged as a graph and mesh (decomposition versus singular representations, tremendous detail in geometric features that add detail such as fillets and chamfers) but are all in the end just ways of representing the same physical structure. The application of voxelization in this case is so interesting because it is agnostic to the amount of decomposition, modeler choices on where to break up elements as well as geometric detail.",
+            "es": "Existe una gran variabilidad en los ‘modismos’ de uso de IFC según –entre otros– los siguientes factores: la herramienta de autoría y su versión; las decisiones de quien modela; el nivel de desarrollo, la fase y el uso previsto del modelo; el tipo de proyecto de construcción (acero o concreto, residencial o comercial, etc.), como se muestra en la Figura 3. Esto tiene enormes implicaciones en el modelo tal como se intercambia, como un grafo (graph) y una malla (mesh) (descomposición frente a representaciones singulares, enorme detalle en características geométricas que añaden detalle, como filetes y chaflanes), pero al final todas son simplemente formas de representar la misma estructura física. La aplicación de la voxelización en este caso es tan interesante porque es agnóstica a la cantidad de descomposición, a las decisiones de quien modela sobre dónde dividir los elementos, así como al detalle geométrico."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3. various realizations of the same wall configuration, resulting in different geometric forms and/or different topology",
+            "es": "Figura 3: varias realizaciones de la misma configuración de muro, que dan lugar a formas geométricas distintas y/o a una topología distinta"
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Voxel grids are one of the most rudimentary geometric forms to encode information. It can be derived from Boundary Representation (BRep), triangle meshes as well as point clouds. This means our approach can be used on projects with heterogeneous data or acquisition methods such as scan to BIM.",
+            "es": "Las cuadrículas de vóxeles son una de las formas geométricas más rudimentarias para codificar información. Pueden derivarse de la representación de frontera (Boundary Representation, BRep), de mallas triangulares (triangle meshes), así como de nubes de puntos (point clouds). Esto significa que nuestro enfoque puede utilizarse en proyectos con datos o métodos de adquisición heterogéneos, como scan to BIM."
+          }
+        },
+        {
+          "id": "s2-h10",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "1.1.2 Related work",
+            "es": "1.1.2 Trabajos relacionados"
+          }
+        },
+        {
+          "id": "s2-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Krijnen & Tamke (2015) introduced element classification and anomaly detection by means of derived geometric quantities as an input signal using a simplistic neural network. This was later enhanced in Koo et al (2017) using Support Vector Machines, but still suffers from the same pitfalls that the geometric features the model operate on (surface area, volume, gyradius, etc.) are rather simplistic, not very descriptive of the element and susceptible to the different outcomes under different ‘idioms’ or level of development.",
+            "es": "Krijnen & Tamke (2015) introdujeron la clasificación de elementos y la detección de anomalías (anomaly detection) mediante cantidades geométricas derivadas como señal de entrada, utilizando una red neuronal simplista. Esto se mejoró posteriormente en Koo et al (2017) usando máquinas de vectores de soporte (Support Vector Machines), pero aún adolece de las mismas deficiencias: las características geométricas sobre las que opera el modelo (área de superficie, volumen, radio de giro, etc.) son bastante simplistas, poco descriptivas del elemento y susceptibles a resultados distintos bajo diferentes ‘modismos’ o niveles de desarrollo."
+          }
+        },
+        {
+          "id": "s2-p12",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In Collins et al (2021), a graph representation of individual building elements is used for a classification task. It uses a graph neural network and obtains promising scores on classification of single elements.",
+            "es": "En Collins et al (2021) se utiliza una representación en grafo de elementos de edificio individuales para una tarea de clasificación. Emplea una red neuronal de grafos (graph neural network) y obtiene puntuaciones prometedoras en la clasificación de elementos individuales."
+          }
+        },
+        {
+          "id": "s2-p13",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Another example of deep learning applied to BIM models is Lomio et al (2018) where the method consists in classifying a building from screenshots of different angles using a pretrained ResNet (He et al 2015).",
+            "es": "Otro ejemplo de aprendizaje profundo aplicado a modelos BIM es Lomio et al (2018), donde el método consiste en clasificar un edificio a partir de capturas de pantalla desde distintos ángulos utilizando una ResNet preentrenada (pretrained) (He et al 2015)."
+          }
+        },
+        {
+          "id": "s2-p14",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "IFCNet (Emunds et al 2021) provides a valuable contribution by presenting a dataset of IFC elements extracted from IFC models and reviewed by domain experts. Providing such a benchmark constitutes an important step in the classification of BIM elements. The authors acknowledge the limitations of their contribution, especially the loss of information occurring when normalizing the elements.",
+            "es": "IFCNet (Emunds et al 2021) hace una contribución valiosa al presentar un conjunto de datos de elementos IFC extraídos de modelos IFC y revisados por expertos del dominio. Proporcionar un punto de referencia (benchmark) de este tipo constituye un paso importante en la clasificación de elementos BIM. Los autores reconocen las limitaciones de su contribución, especialmente la pérdida de información que ocurre al normalizar los elementos."
+          }
+        },
+        {
+          "id": "s2-p15",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In Emunds et al (2022), the authors use a point cloud representation of elements obtained from sampling points from a mesh representation. They present a tentative framework for the integration of a neural network in a tool, and work from the learned representation for elements classification and retrieval tasks.",
+            "es": "En Emunds et al (2022), los autores utilizan una representación de nube de puntos de los elementos, obtenida al muestrear puntos de una representación en malla. Presentan un marco tentativo para la integración de una red neuronal en una herramienta y trabajan a partir de la representación aprendida para tareas de clasificación y recuperación de elementos."
+          }
+        },
+        {
+          "id": "s2-p16",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Luo et al (2023), follows-up on IFCNet, with an augmented IFCNet dataset called IFCNet++, which also includes IFC relationships as a feature vector concatenated to the embeddings of an element obtained from its multi-view representation.",
+            "es": "Luo et al (2023) da seguimiento a IFCNet con un conjunto de datos IFCNet aumentado llamado IFCNet++, que también incluye las relaciones IFC como un vector de características (feature vector) concatenado a las incrustaciones (embeddings) de un elemento obtenidas a partir de su representación multivista."
+          }
+        },
+        {
+          "id": "s2-p17",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Although the cited contributions offer promising opportunities for solving the misclassification problem, using different input signal representations, they only learn based on isolated elements. While they achieved excellent results on classification tasks, we believe such methods would lack robustness when presented with ambiguous cases. Moreover, the networks presented would only learn based on the intrinsic geometric properties of a class and its visual appearance, whereas a building element is also defined and distinguishable by its function within the building. This kind of learning makes the system very dependent on the dataset, as it will learn only from the shapes present in it.",
+            "es": "Aunque las contribuciones citadas ofrecen oportunidades prometedoras para resolver el problema de la clasificación errónea, utilizando diferentes representaciones de la señal de entrada, solo aprenden a partir de elementos aislados. Si bien lograron excelentes resultados en tareas de clasificación, creemos que dichos métodos carecerían de robustez ante casos ambiguos. Además, las redes presentadas solo aprenderían a partir de las propiedades geométricas intrínsecas de una clase y de su apariencia visual, mientras que un elemento de edificio también se define y se distingue por su función dentro del edificio. Este tipo de aprendizaje hace que el sistema dependa mucho del conjunto de datos, ya que solo aprenderá de las formas presentes en él."
+          }
+        },
+        {
+          "id": "s2-p18",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Luo et al (2023) started to incorporate relationships information in their input data, which gives information about the number of connections an element has but does not provide information about how several instances can be related. In addition, the future interest stated in several of those works is to integrate the semantics of the IFC into the learning process, which limits the method to CAD generated models.",
+            "es": "Luo et al (2023) comenzó a incorporar información de relaciones en sus datos de entrada, lo cual da información sobre el número de conexiones que tiene un elemento pero no proporciona información sobre cómo se pueden relacionar varias instancias entre sí. Además, el interés a futuro expresado en varios de esos trabajos es integrar la semántica de IFC en el proceso de aprendizaje, lo que limita el método a modelos generados por CAD."
+          }
+        },
+        {
+          "id": "s2-h19",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "1.1.3 Contribution",
+            "es": "1.1.3 Contribución"
+          }
+        },
+        {
+          "id": "s2-p20",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In this paper, we wish to present a method for learning an efficient representation of building elements in their context for a segmentation task. The goal is to extract a volumetric representation of a part of a building model (patch) and feed it to a neural network whose output will be a 3D grid where each voxel would be assigned an IFC class among a set of predefined classes. On a practical level, this method gives the possibility to semantically check or enrich IFC models. From a research perspective point of view, we prove that it is possible to learn from occupancy grids, meaning that a volumetric representation offers a powerful starting representation for building elements. Our contributions are the following:",
+            "es": "En este artículo deseamos presentar un método para aprender una representación eficiente de los elementos de edificio en su contexto para una tarea de segmentación. El objetivo es extraer una representación volumétrica de una parte de un modelo de edificio (parche) y alimentarla a una red neuronal cuya salida será una cuadrícula 3D en la que a cada vóxel se le asignaría una clase IFC de entre un conjunto de clases predefinidas. A nivel práctico, este método da la posibilidad de verificar o enriquecer semánticamente los modelos IFC. Desde la perspectiva de la investigación, demostramos que es posible aprender a partir de cuadrículas de ocupación (occupancy grids), lo que significa que una representación volumétrica ofrece una representación de partida poderosa para los elementos de edificio. Nuestras contribuciones son las siguientes:"
+          }
+        },
+        {
+          "id": "s2-p21",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "- Provide a method to voxelize IFC models and produce a segmented volumetric representation of building elements",
+            "es": "- Proporcionar un método para voxelizar modelos IFC y producir una representación volumétrica segmentada de los elementos de edificio"
+          }
+        },
+        {
+          "id": "s2-p22",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "- Train a neural network to segment a voxel grid derived from IFC elements",
+            "es": "- Entrenar una red neuronal para segmentar una cuadrícula de vóxeles derivada de elementos IFC"
+          }
+        },
+        {
+          "id": "s2-p23",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "- Use the trained neural network in inference on unseen data",
+            "es": "- Usar la red neuronal entrenada en inferencia sobre datos no vistos"
+          }
+        },
+        {
+          "id": "s2-p24",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The starting representation for learning (3D patch) as well as an example of our trained model prediction on a large patch with its associated ground-truth are presented in Figure 1.",
+            "es": "La representación de partida para el aprendizaje (parche 3D), así como un ejemplo de la predicción de nuestro modelo entrenado sobre un parche grande junto con su verdad de referencia (ground truth) asociada, se presentan en la Figura 1."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 1,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1. Left: 3D 64 × 64 × 64 patch used for training. Right: ground-truth vs. model prediction on a bigger (never seen) 3D patch",
+            "es": "Figura 1: Izquierda: parche 3D de 64 × 64 × 64 utilizado para el entrenamiento. Derecha: verdad de referencia vs. predicción del modelo sobre un parche 3D más grande (nunca visto)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "2 Method",
+        "es": "2 Método"
+      },
+      "blocks": [
+        {
+          "id": "s3-h1",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "2.1 Voxelization",
+            "es": "2.1 Voxelización"
+          }
+        },
+        {
+          "id": "s3-h2",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "2.1.1 Voxelization algorithm",
+            "es": "2.1.1 Algoritmo de voxelización"
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "A voxel grid is a 3D volumetric grid where regular discretized elements of mass as a field of values. In our research we start from the IFC geometry to first build a binary grid of zeros and ones for the respective building element classes under investigation. These are composed into a labelled occupancy grid where every voxel value corresponds to a single building element class. There is a global priority - roughly in line with the prevalence and expected physical dimensions of elements - that governs the final assignment of a cell in case of multiple classes occupying the same cell, which is fairly common due to the fact that a box-overlap algorithm is used for voxelizing the geometry.",
+            "es": "Una cuadrícula de vóxeles es una cuadrícula volumétrica 3D en la que elementos de masa discretizados regulares se representan como un campo de valores. En nuestra investigación partimos de la geometría IFC para construir primero una cuadrícula binaria de ceros y unos para las respectivas clases de elementos de edificio bajo estudio. Estas se componen en una cuadrícula de ocupación etiquetada en la que cada valor de vóxel corresponde a una única clase de elemento de edificio. Existe una prioridad global –aproximadamente acorde con la prevalencia y las dimensiones físicas esperadas de los elementos– que rige la asignación final de una celda en caso de que varias clases ocupen la misma celda, lo cual es bastante común debido a que se utiliza un algoritmo de traslape de cajas para voxelizar la geometría."
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We voxelize entire IFC models and retain specific classes. This provides us occupancy grids where each voxel has a class assigned. We obtain this discrete representation by using a voxelizer algorithm.",
+            "es": "Voxelizamos modelos IFC completos y conservamos clases específicas. Esto nos proporciona cuadrículas de ocupación en las que a cada vóxel se le ha asignado una clase. Obtenemos esta representación discreta mediante un algoritmo voxelizador."
+          }
+        },
+        {
+          "id": "s3-h5",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "2.2 Representation choice for learning",
+            "es": "2.2 Elección de la representación para el aprendizaje"
+          }
+        },
+        {
+          "id": "s3-h6",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "2.2.1 Volumetric representation",
+            "es": "2.2.1 Representación volumétrica"
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The representation has a huge impact on the model performance and on solving the targeted task. We believe that a volumetric representation in the form of occupancy grids provides the benefits of connectivity as well as a clear visualization of classes. Even though it is computationally intensive (Zhou & Tuzel 2017), it keeps the essence of how building elements look like relative to each other: how they connect, how they are placed in the model, and how much relative space they take. In addition, it enables to extract the patches at specific locations giving flexibility on the examples that can be shown to the network.",
+            "es": "La representación tiene un enorme impacto en el desempeño del modelo y en la resolución de la tarea planteada. Creemos que una representación volumétrica en forma de cuadrículas de ocupación aporta los beneficios de la conectividad, así como una visualización clara de las clases. Aunque es computacionalmente intensiva (Zhou & Tuzel 2017), conserva la esencia de cómo se ven los elementos de edificio en relación unos con otros: cómo se conectan, cómo están colocados en el modelo y cuánto espacio relativo ocupan. Además, permite extraer los parches en ubicaciones específicas, lo que da flexibilidad respecto de los ejemplos que se pueden mostrar a la red."
+          }
+        },
+        {
+          "id": "s3-h8",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "2.2.2 Patch extraction and data augmentation",
+            "es": "2.2.2 Extracción de parches y aumento de datos (data augmentation)"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To train the model, we provide 64 × 64 × 64 3D patches extracted from the voxelized IFC files. The patching strategy enables to reduce the computational cost of training but also serves as a data augmentation step, because we can provide those patches “on-fly” during training. We keep for each voxelized building element its bounding box center and extract patches from this coordinate, at the desired patch size. We empirically found that 64 × 64 × 64 was a convenient size to balance between computational cost and providing enough contextualization, that is enough different classes instances belonging to the patch. We also randomly apply transformations on the extracted patches such as flips or rotations.",
+            "es": "Para entrenar el modelo, proporcionamos parches 3D de 64 × 64 × 64 extraídos de los archivos IFC voxelizados. La estrategia de parches permite reducir el costo computacional del entrenamiento, pero también sirve como paso de aumento de datos, porque podemos proporcionar esos parches “al vuelo” durante el entrenamiento. Conservamos, para cada elemento de edificio voxelizado, el centro de su caja delimitadora (bounding box) y extraemos los parches a partir de esa coordenada, con el tamaño de parche deseado. Encontramos empíricamente que 64 × 64 × 64 era un tamaño conveniente para equilibrar el costo computacional y proporcionar suficiente contextualización, es decir, suficientes instancias de distintas clases pertenecientes al parche. También aplicamos aleatoriamente transformaciones a los parches extraídos, como volteos o rotaciones."
+          }
+        },
+        {
+          "id": "s3-h10",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "2.2.3 Network architecture",
+            "es": "2.2.3 Arquitectura de la red"
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "We use a fully convolutional 3D UNet (Çiçek et al 2016)¹. This network architecture can ingest patches of different sizes (typically multiple of 16), which provides flexibility for both the training and inference stages. Indeed, we can train on 64 × 64 × 64 patches but infer on bigger or smaller patches depending on the use case. The 3D UNet is an extension of the well-known UNet (Ronneberger et al 2015) which has encountered many successes for image segmentation and more recently in generative tasks with diffusion models. The UNet is made of an encoder and decoder part, to which skip connections are added between high level features and lower-level ones to preserve details.",
+            "es": "Utilizamos una UNet 3D totalmente convolucional (Çiçek et al 2016)¹. Esta arquitectura de red puede recibir parches de diferentes tamaños (típicamente múltiplos de 16), lo que proporciona flexibilidad tanto en la etapa de entrenamiento como en la de inferencia. En efecto, podemos entrenar con parches de 64 × 64 × 64 pero inferir sobre parches más grandes o más pequeños según el caso de uso. La UNet 3D es una extensión de la conocida UNet (Ronneberger et al 2015), que ha tenido muchos éxitos en la segmentación de imágenes y, más recientemente, en tareas generativas con modelos de difusión (diffusion models). La UNet se compone de una parte codificadora (encoder) y una decodificadora (decoder), a las que se añaden conexiones de salto (skip connections) entre las características de alto nivel y las de nivel más bajo para preservar los detalles."
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "¹ Implementation taken from: 3D-UNet-pytorch. [Online]. Available from: https://github.com/hanskrupakar/3D-UNet-pytorch.",
+            "es": "¹ Implementación tomada de: 3D-UNet-pytorch. [En línea]. Disponible en: https://github.com/hanskrupakar/3D-UNet-pytorch."
+          }
+        },
+        {
+          "id": "s3-h13",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "2.2.4 Training details",
+            "es": "2.2.4 Detalles del entrenamiento"
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "We trained the model for 47 epochs, with patches extracted from the 8 voxelized IFC files with batch size of 8 and the Adam Optimizer. We use the Cross-entropy loss as the cost function.",
+            "es": "Entrenamos el modelo durante 47 épocas (epochs), con parches extraídos de los 8 archivos IFC voxelizados, con un tamaño de lote (batch size) de 8 y el optimizador Adam. Utilizamos la pérdida de entropía cruzada (cross-entropy loss) como función de costo."
+          }
+        },
+        {
+          "id": "s3-h15",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "2.2.5 Dataset",
+            "es": "2.2.5 Conjunto de datos"
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The model has been trained on 8 publicly available models (Figure 4). Evaluation happens on 2 models not seen during training.",
+            "es": "El modelo se ha entrenado con 8 modelos disponibles públicamente (Figura 4). La evaluación se realiza con 2 modelos no vistos durante el entrenamiento."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4. Wireframe view of the open-source IFC models used for training and testing",
+            "es": "Figura 4: Vista de estructura alámbrica de los modelos IFC de código abierto utilizados para el entrenamiento y la prueba"
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 6,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1. Open-source IFC models used for training and testing with no. of occurrences per IFC class",
+            "es": "Tabla 1: Modelos IFC de código abierto utilizados para el entrenamiento y la prueba, con el núm. de ocurrencias por clase IFC"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "3 Evaluation",
+        "es": "3 Evaluación"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "To evaluate the performance of our method, we first proceed with a manual inspection of evaluating the trained network on patches from unseen IFC models. This highlights the kind of knowledge encapsulated in the network. Note that the examples highlighted in Figures 5, 6 and 7 were noteworthy with discrepancies between predicted and the original labels. These are not representative for the overall performance of the network.",
+            "es": "Para evaluar el desempeño de nuestro método, primero realizamos una inspección manual evaluando la red entrenada (trained network) sobre parches (patches) de modelos IFC no vistos. Esto pone de relieve el tipo de conocimiento encapsulado en la red. Cabe señalar que los ejemplos destacados en las Figuras 5, 6 y 7 son notables por las discrepancias entre las etiquetas predichas y las originales. No son representativos del desempeño general de la red."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Moreover, we apply the model on specific elements, by means of taking the patch at element center and taking the predominant predication for the component of voxels. This results in an element-wise confusion matrix useful for comparing our outcomes to the state of the art.",
+            "es": "Además, aplicamos el modelo a elementos específicos, tomando el parche en el centro del elemento y tomando la predicción predominante para el componente de vóxeles. Esto da como resultado una matriz de confusión (confusion matrix) por elemento, útil para comparar nuestros resultados con el estado del arte."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Finally, we use a sliding window over the full domain of unseen IFC models to gather overall statistics on performance and confusion. In the view of the authors this is least useful, because it blindly aggregates over useful observations of the model as well as predication errors. We should also note that we do not have a curated ground truth as IFC models are so diverse. Also, on an individual voxel basis, a window frame is thin, but the surrounding wall is much thicker, so a wider decision boundary in favor of the window results in quite low IoU scores, particularly because a small radius of wall inclusion results in a large number of false window positives, regardless of the discussion whether the model is correct and that there maybe is a missing windowsill.",
+            "es": "Por último, usamos una ventana deslizante (sliding window) sobre todo el dominio de modelos IFC no vistos para reunir estadísticas generales de desempeño y confusión. A juicio de los autores, esto es lo menos útil, porque agrega a ciegas tanto las observaciones útiles del modelo como los errores de predicción. También debemos señalar que no contamos con una verdad de referencia (ground truth) curada, ya que los modelos IFC son muy diversos. Además, a nivel de vóxel individual, el marco de una ventana es delgado, pero el muro que lo rodea es mucho más grueso, por lo que un límite de decisión más amplio a favor de la ventana produce puntajes de IoU bastante bajos, en particular porque un radio pequeño de inclusión del muro genera una gran cantidad de falsos positivos de ventana, independientemente de la discusión sobre si el modelo es correcto y de que quizá falta un alféizar."
+          }
+        },
+        {
+          "id": "s4-h4",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "3.1 Results",
+            "es": "3.1 Resultados"
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5. Window frame patch. Left: ground-truth. Right: model prediction. Left: error plot.",
+            "es": "Figura 5. Parche de marco de ventana. Izquierda: verdad de referencia. Derecha: predicción del modelo. Izquierda: gráfica de error."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6. ‘Podium staircase' patch. Left: ground-truth. Right: model prediction. Left: error plot.",
+            "es": "Figura 6. Parche de la 'escalera del podio'. Izquierda: verdad de referencia. Derecha: predicción del modelo. Izquierda: gráfica de error."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7. Stair/Slab connection patch. Left: ground-truth. Right: model prediction. Left: error plot.",
+            "es": "Figura 7. Parche de conexión entre escalera y losa. Izquierda: verdad de referencia. Derecha: predicción del modelo. Izquierda: gráfica de error."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2. Element-based confusion matrix Molio",
+            "es": "Tabla 2. Matriz de confusión por elemento de Molio"
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3. Element-based confusion matrix FZK Haus",
+            "es": "Tabla 3. Matriz de confusión por elemento de FZK Haus"
+          }
+        },
+        {
+          "id": "tab-4",
+          "type": "table",
+          "page": 9,
+          "image": "fig/tab-4.png",
+          "text": {
+            "en": "Table 4. Per-voxel accuracy confusion matrix Molio",
+            "es": "Tabla 4. Matriz de confusión de exactitud por vóxel de Molio"
+          }
+        },
+        {
+          "id": "s4-h5",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "3.2 Discussion",
+            "es": "3.2 Discusión"
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "From the confusion matrices (Tables 2, 3, 4), we observe that the network has learned a useful representation of building elements from different IFC models, except for some underrepresented or high intra-class variance classes. We do not report on Intersection over Union scores as they could be fairly low for those classes, to some extent inherent to inconsistent modeling. We observe for example for the windows that the model can predict frames to be larger, and also with the windowsill as part of the wall (Figure 5). In Figure 6, the podium staircaise is wrongly segmented as a wall. In Figure 7, we see that the model can confuse stairs landing as part of the slab. This is exemplified in element counts on Molio model. The high number of railings and stair flights comes from the fact that every bar and riser is modelled individually. This demonstrates the ability of the approach to consider the context as it is - not surprisingly -very successful to assign the dominant class in these cases.",
+            "es": "A partir de las matrices de confusión (Tablas 2, 3, 4), observamos que la red ha aprendido una representación útil de los elementos de construcción a partir de diferentes modelos IFC, salvo en algunas clases subrepresentadas o con alta varianza intraclase. No reportamos los puntajes de Intersección sobre Unión (Intersection over Union), ya que podrían ser bastante bajos para esas clases, en cierta medida por inconsistencias inherentes al modelado. Observamos, por ejemplo, en el caso de las ventanas, que el modelo puede predecir marcos más grandes, y también el alféizar como parte del muro (Figura 5). En la Figura 6, la escalera del podio se segmenta erróneamente como un muro. En la Figura 7, vemos que el modelo puede confundir el descanso de una escalera con parte de la losa. Esto se ejemplifica en los conteos de elementos del modelo Molio. La gran cantidad de barandales y tramos de escalera se debe a que cada barra y cada contrahuella se modelan individualmente. Esto demuestra la capacidad del enfoque para considerar el contexto, ya que, como era de esperarse, tiene mucho éxito al asignar la clase dominante en estos casos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "4 Conclusion and future work",
+        "es": "4 Conclusión y trabajo futuro"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "We presented a method to learn from a voxelized representation of building elements belonging to open-source IFC files. We managed to obtain interesting insights about how the network learns and predicts classes when presented a voxel grid of zeros and ones.",
+            "es": "Presentamos un método para aprender a partir de una representación voxelizada de elementos de construcción pertenecientes a archivos IFC de código abierto. Logramos obtener perspectivas interesantes sobre cómo la red aprende y predice clases cuando se le presenta una cuadrícula de vóxeles de ceros y unos."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "We believe that learning a more granular decomposition of building elements (door knobs/drangers) with instance segmentation could be of interest to go further into the semantic/geometric enrichment of IFC models. This is related to the next step we would like to study, that is assessing the ideal voxel size and patch size.",
+            "es": "Creemos que aprender una descomposición más granular de los elementos de construcción (perillas y manijas de puertas) mediante segmentación de instancias (instance segmentation) podría ser de interés para avanzar en el enriquecimiento semántico y geométrico de los modelos IFC. Esto se relaciona con el siguiente paso que nos gustaría estudiar, que es evaluar el tamaño ideal del vóxel y del parche."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Also we would find it relevant to consider something like material characteristics so that elements can be delineated by non-homogeneous materials. Currently it's impossible to learn something about coverings or an air gap. Finally, different tasks (e.g anonomaly detection on geometry) could be explored based on our trained model.",
+            "es": "Asimismo, consideramos relevante tomar en cuenta algo como las características de los materiales, de modo que los elementos puedan delimitarse por materiales no homogéneos. Actualmente es imposible aprender algo sobre los recubrimientos o una cámara de aire. Por último, podrían explorarse otras tareas (p. ej., detección de anomalías en la geometría) a partir de nuestro modelo entrenado."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Choy, C.B., Xu, D., Gwak, J., Chen, K., et al. (2016) 3D-R2N2: A Unified Approach for Single and Multi-view 3D Object Reconstruction. [Online]. Available from: doi:10.48550/arXiv.1604.00449."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Çiçek, Ö., Abdulkadir, A., Lienkamp, S.S., Brox, T., et al. (2016) 3D U-Net: Learning Dense Volumetric Segmentation from Sparse Annotation. [Online]. Available from: doi:10.48550/arXiv.1606.06650."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Collins, F.C., Braun, A., Ringsquandl, M., Hall, D.M., et al. (2021) Assessing IFC classes with means of geometric deep learning on different graph encodings. In: Computing in Construction. [Online]. 2021 European Council on Computing in Construction. pp. 332–341. Available from: doi:10.35490/EC3.2021.168."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Emunds, C., Pauen, N., Richter, V., Frisch, J., et al. (2021) IFCNet: A Benchmark Dataset for IFC Entity Classification. [Online]. Available from: doi:10.48550/arXiv.2106.09712."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Emunds, C., Pauen, N., Richter, V., Frisch, J., et al. (2022) SpaRSE-BIM: Classification of IFC-based geometry via sparse convolutional neural networks. Advanced Engineering Informatics. [Online] 53101641. Available from: doi:10.1016/j.aei.2022.101641."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Goodfellow, I., Bengio, Y. & Courville, A. (2016) Deep Learning. MIT Press."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Hanocka, R., Hertz, A., Fish, N., Giryes, R., et al. (2019) MeshCNN: a network with an edge. ACM Transactions on Graphics. [Online] 38 (4), 90:1-90:12. Available from: doi:10.1145/3306346.3322959."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "He, K., Zhang, X., Ren, S. & Sun, J. (2015) Deep Residual Learning for Image Recognition. [Online]. Available from: doi:10.48550/arXiv.1512.03385."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Koo, B., Shin, B., & Krijnen, T. F. (2017). Employing outlier and novelty detection for checking the integrity of BIM to IFC entity associations. In ISARC. Proceedings of the International Symposium on Automation and Robotics in Construction (Vol. 34, p. 1). IAARC Publications."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Krijnen, T., El-Diraby, T., Konomi, T., & Attalla, A. (2021). Thermal analysis of IFC building models using voxelized geometries. In 38th International Conference of CIB W78 (pp. 437-446)."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Krijnen, T., & Tamke, M. (2015). Assessing implicit knowledge in BIM models with machine learning. In Modelling Behaviour: Design Modelling Symposium 2015 (pp. 397-406). Springer International Publishing."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Lomio, F., Farinha, R., Laasonen, M. & Huttunen, H. (2018) Classification of Building Information Model (BIM) Structures with Deep Learning. In: 2018 7th European Workshop on Visual Information Processing (EUVIP). [Online]. November 2018 Tampere, IEEE. pp. 1–6. Available from: doi:10.1109/EUVIP.2018.8611701."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Luo, H., Gao, G., Huang, H., Ke, Z., et al. (2023) A Geometric-Relational Deep Learning Framework for BIM Object Classification. In: Leonid Karlinsky, Tomer Michaeli, & Ko Nishino (eds.). Computer Vision – ECCV 2022 Workshops. [Online]. 2023 Cham, Springer Nature Switzerland. pp. 349–365. Available from: doi:10.1007/978-3-031-25082-8_23."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Luttun, J., & Krijnen, T. (2021). An approach for data extraction, validation and correction using geometrical algorithms and model view definitions on building models. In Proceedings of the 18th International Conference on Computing in Civil and Building Engineering: ICCCBE 2020 (pp. 529-543). Springer International Publishing."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Noardo, F., Wu, T., Ohori, K. A., Krijnen, T., & Stoter, J. (2022). IFC models for semi-automating common planning checks for building permits. Automation in Construction, 134, 104097."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Qi, C.R., Su, H., Mo, K. & Guibas, L.J. (2017) PointNet: Deep Learning on Point Sets for 3D Classification and Segmentation. [Online]. Available from: doi:10.48550/arXiv.1612.00593."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Rogage, K. & Doukari, O. (2024) 3D object recognition using deep learning for automatically generating semantic BIM data. Automation in Construction. [Online] 162105366. Available from: doi:10.1016/j.autcon.2024.105366."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Ronneberger, O., Fischer, P. & Brox, T. (2015) U-Net: Convolutional Networks for Biomedical Image Segmentation. [Online]. Available from: doi:10.48550/arXiv.1505.04597."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Zhou, Y. & Tuzel, O. (2017) VoxelNet: End-to-End Learning for Point Cloud Based 3D Object Detection. [Online]. Available from: doi:10.48550/arXiv.1711.06396."
+          }
+        }
+      ]
+    }
+  ]
+}

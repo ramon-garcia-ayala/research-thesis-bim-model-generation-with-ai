@@ -6,6 +6,7 @@ a paper (scripts/papers/prepare.mjs): `python -I scripts/papers/pdf_dump.py dump
 import argparse
 import json
 import os
+import sys
 
 import pymupdf
 
@@ -82,6 +83,10 @@ def crop(pdf, crops_json, outdir, dpi):
         for c in crops:
             page = doc[c['page'] - 1]
             clip = pymupdf.Rect(c['bbox']) & page.rect
+            if clip.is_empty or clip.width < 1 or clip.height < 1:
+                # One bad region must not lose the paper: the check names the image that is missing.
+                print(f"{c['id']}: its region is outside page {c['page']}, skipped", file=sys.stderr)
+                continue
             page.get_pixmap(clip=clip, dpi=dpi).save(os.path.join(outdir, c['id'] + '.png'))
 
 

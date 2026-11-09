@@ -1,7 +1,8 @@
 /*
  * The study companion inside the reader: a chat with one paper or across several, the passages the author attached as
  * chips, the shortcuts (What did they mean here? · Research this · Quiz me, only when asked), answers that cite
- * paragraphs as links, and "Save this", which proposes a note entry the author edits and approves.
+ * paragraphs as links, "Save this", which proposes a note entry the author edits and approves, and "Add to the map",
+ * which proposes an idea and links for map.json the same way.
  */
 import { blocksOf, paraLabel } from './paper.js'
 import { answerParts, answerQueue } from './speech.js'
@@ -83,7 +84,7 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
     return `<div class="chat__msg ${m.role}" data-i="${i}">
       ${chipsHtml}
       <div class="chat__text">${m.role === 'assistant' ? answerHtml(m.text, i) : esc(m.text)}</div>
-      <div class="chat__foot">${voice}<button type="button" class="chat__save" data-save="${i}">${esc(L().save)}</button></div>
+      <div class="chat__foot">${voice}<button type="button" class="chat__save" data-save="${i}">${esc(L().save)}</button><button type="button" class="chat__save" data-map-add="${i}">${esc(L().addToMap)}</button></div>
     </div>`
   }
 
@@ -302,8 +303,79 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
     }
   }
 
+  /** Add to the map: a proposed idea and links, every field editable, written to map.json only on Approve. */
+  async function draftMap(i) {
+    const m = thread?.messages?.[i]
+    if (!m) return
+    const node = conv === '_across' ? ticked[0] : conv
+    const box = document.createElement('div')
+    box.className = 'chat__draft chat__mapdraft'
+    box.innerHTML = `<p class="chat__status">${esc(L().mapDrafting)}</p>`
+    log.querySelector(`[data-i="${i}"]`)?.after(box)
+    let draft
+    try {
+      draft = await client.draftMapEntry({ node, text: m.text, from: m.role === 'user' ? 'author' : 'claude' })
+    } catch (e) {
+      box.innerHTML = `<p class="chat__error">${esc(e.message)}</p>`
+      return
+    }
+    const { idea, links = [] } = draft.proposal ?? {}
+    const groups = draft.groups ?? []
+    const problems = (draft.problems ?? []).length
+      ? `<p class="chat__error">${esc(L().mapProblems)}</p><ul>${draft.problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>`
+      : ''
+    const groupOptions = [...(groups.some((g) => g.id === idea?.group) ? [] : [{ id: idea?.group ?? '', title: idea?.group ?? '' }]), ...groups]
+      .map((g) => `<option value="${esc(g.id)}">${esc(g.title)}</option>`)
+      .join('')
+    const ideaHtml = `<fieldset class="chat__idea">
+        <label><input type="checkbox" data-idea-on ${idea ? 'checked' : ''} /> ${esc(L().mapIdea)}</label>
+        <label>${esc(L().mapTitle)} <input type="text" data-f="title" /></label>
+        <label>${esc(L().mapId)} <input type="text" data-f="id" /></label>
+        <label>${esc(L().mapGroup)} <select data-f="group">${groupOptions}</select></label>
+        <label>${esc(L().mapNote)} <textarea rows="4" data-f="note"></textarea></label>
+      </fieldset>`
+    const linkHtml = links
+      .map(
+        () => `<div class="chat__link"><label><input type="checkbox" data-link-on checked /></label>
+          <input type="text" data-lf="from" /> → <input type="text" data-lf="to" />
+          <input type="text" data-lf="explanation" placeholder="${esc(L().mapLinkWhy)}" /></div>`,
+      )
+      .join('')
+    box.innerHTML = `${problems}${ideaHtml}<p>${esc(L().mapLinks)}</p>${linkHtml}
+      <div><button type="button" data-map-approve>${esc(L().approve)}</button><button type="button" data-discard>${esc(L().discard)}</button></div>`
+    const put = (sel, v) => (box.querySelector(sel).value = v ?? '')
+    put('[data-f="title"]', idea?.title)
+    put('[data-f="id"]', idea?.id)
+    put('[data-f="group"]', idea?.group)
+    put('[data-f="note"]', idea?.note)
+    box.querySelectorAll('.chat__link').forEach((row, k) => {
+      for (const f of ['from', 'to', 'explanation']) row.querySelector(`[data-lf="${f}"]`).value = links[k][f] ?? ''
+    })
+  }
+
+  /** The proposal as the author left it in the form: the idea only when ticked, the links that are ticked. */
+  function proposalOf(box) {
+    const field = (f) => box.querySelector(`[data-f="${f}"]`).value
+    const idea = box.querySelector('[data-idea-on]').checked ? { id: field('id'), title: field('title'), group: field('group'), note: field('note') } : null
+    const links = [...box.querySelectorAll('.chat__link')]
+      .filter((row) => row.querySelector('[data-link-on]').checked)
+      .map((row) => Object.fromEntries(['from', 'to', 'explanation'].map((f) => [f, row.querySelector(`[data-lf="${f}"]`).value])))
+    return { idea, links }
+  }
+
+  async function approveMap(box) {
+    box.querySelector('.chat__error[data-save-error]')?.remove()
+    try {
+      await client.saveMapEntry({ proposal: proposalOf(box) })
+      box.innerHTML = `<p class="chat__saved">${esc(L().mapSaved)} <button type="button" data-reload>${esc(L().mapReload)}</button></p>`
+    } catch (e) {
+      box.insertAdjacentHTML('beforeend', `<p class="chat__error" data-save-error>${esc(e.message)}</p>`)
+    }
+  }
+
   el.addEventListener('click', async (e) => {
     const t = e.target
+    if (t.closest('[data-reload]')) return globalThis.location?.reload()
     const cite = t.closest('[data-cite]')
     if (cite) return onCite(cite.dataset.cite)
     if (voiceClick(t)) return
@@ -353,6 +425,9 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
     }
     const save = t.closest('[data-save]')
     if (save) return draft(Number(save.dataset.save))
+    const mapAdd = t.closest('[data-map-add]')
+    if (mapAdd) return draftMap(Number(mapAdd.dataset.mapAdd))
+    if (t.closest('[data-map-approve]')) return approveMap(t.closest('.chat__draft'))
     if (t.closest('[data-approve]')) return approve(t.closest('.chat__draft'))
     if (t.closest('[data-discard]')) return t.closest('.chat__draft').remove()
   })

@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { untranslated, validatePaper } from '../../assets/paper.js'
-import { indexPapers } from '../check.mjs'
+import { writeIndexes } from '../check.mjs'
 import { runClaude } from '../lib/claude.mjs'
 import { extractJson } from '../lib/json.mjs'
 import { sameNumbers } from './numbers.mjs'
@@ -93,7 +93,7 @@ export async function translate(nodeId, { root = process.cwd(), claude = runClau
     const problems = validatePaper(paper, nodeId)
     if (problems.length) throw new Error(`the translated paper is not valid:\n${problems.join('\n')}`)
     writeJson(file, paper)
-    writeJson(join(root, 'papers', 'index.json'), indexPapers(root))
+    writeIndexes(root)
   }
 
   let translated = 0

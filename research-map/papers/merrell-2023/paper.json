@@ -1,0 +1,2210 @@
+{
+  "version": 1,
+  "node": "merrell-2023",
+  "title": "Example-Based Procedural Modeling Using Graph Grammars",
+  "source": "files/Example-Based Procedural Modeling Using Graph Grammars.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Datos preliminares"
+      },
+      "blocks": [
+        {
+          "id": "s0-title",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "Example-Based Procedural Modeling Using Graph Grammars",
+            "es": "Modelado procedural basado en ejemplos mediante gramáticas de grafos"
+          }
+        },
+        {
+          "id": "s0-authors",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "PAUL MERRELL, -, USA",
+            "es": "PAUL MERRELL, -, USA"
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 1,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Fig. 1. From an example shape (a), our method automatically generates a graph grammar (b) that produces shapes (c) that are locally similar to the example. The graph grammar consists of rules that transform graphs. The graphs are converted into a planar graph drawing to produce the final shape.",
+            "es": "Figura 1: A partir de una forma de ejemplo (a), nuestro método genera automáticamente una gramática de grafos (graph grammar) (b) que produce formas (c) localmente similares al ejemplo. La gramática de grafos consta de reglas que transforman grafos. Los grafos se convierten en un dibujo de grafo plano (planar graph drawing) para producir la forma final."
+          }
+        },
+        {
+          "id": "s0-pub",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "ACM Trans. Graph., Vol. 42, No. 4, Article 1. Publication date: August 2023.",
+            "es": "ACM Trans. Graph., Vol. 42, No. 4, Article 1. Fecha de publicación: agosto de 2023."
+          }
+        },
+        {
+          "id": "s0-p8",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Author’s address: Paul Merrell, paul@merrells.org, - , Redwood City, CA, USA.",
+            "es": "Dirección del autor: Paul Merrell, paul@merrells.org, - , Redwood City, CA, USA."
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "ACM Reference Format: Paul Merrell. 2023. Example-Based Procedural Modeling Using Graph Grammars. ACM Trans. Graph. 42, 4, Article 1 (August 2023), 15 pages. https://doi.org/10.1145/3592119",
+            "es": "Formato de referencia ACM: Paul Merrell. 2023. Example-Based Procedural Modeling Using Graph Grammars. ACM Trans. Graph. 42, 4, Article 1 (August 2023), 15 pages. https://doi.org/10.1145/3592119"
+          }
+        },
+        {
+          "id": "s0-copy",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "© 2023 Copyright held by the owner/author(s). Publication rights licensed to ACM. 0730-0301/2023/8-ART1 $15.00 https://doi.org/10.1145/3592119",
+            "es": "© 2023 Derechos de autor en poder del propietario/autor(es). Derechos de publicación licenciados a ACM. 0730-0301/2023/8-ART1 $15.00 https://doi.org/10.1145/3592119"
+          }
+        }
+      ]
+    },
+    {
+      "id": "abs",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "We present a method for automatically generating polygonal shapes from an example using a graph grammar. Most procedural modeling techniques use grammars with manually created rules, but our method can create them automatically from an example. Our graph grammars generate graphs that are locally similar to a given example. We disassemble the input into small pieces called primitives and then reassemble the primitives into new graphs. We organize all possible locally similar graphs into a hierarchy and find matching graphs within the hierarchy. These matches are used to create a graph grammar that can construct every locally similar graph. Our method generates graphs using the grammar and then converts them into a planar graph drawing to produce the final shape.",
+            "es": "Presentamos un método para generar automáticamente formas poligonales a partir de un ejemplo mediante una gramática de grafos. La mayoría de las técnicas de modelado procedural (procedural modeling) usan gramáticas con reglas creadas manualmente, pero nuestro método puede crearlas automáticamente a partir de un ejemplo. Nuestras gramáticas de grafos generan grafos que son localmente similares (locally similar) a un ejemplo dado. Desensamblamos la entrada en piezas pequeñas llamadas primitivas (primitives) y luego reensamblamos las primitivas en nuevos grafos. Organizamos todos los grafos localmente similares posibles en una jerarquía y encontramos grafos coincidentes dentro de la jerarquía. Estas coincidencias se usan para crear una gramática de grafos que puede construir cada grafo localmente similar. Nuestro método genera grafos usando la gramática y luego los convierte en un dibujo de grafo plano para producir la forma final."
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "CCS Concepts: • Computing methodologies →Mesh geometry models.",
+            "es": "Conceptos CCS: • Metodologías computacionales →Modelos de geometría de malla."
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Additional Key Words and Phrases: inverse procedural modeling, graph grammar, local similarity",
+            "es": "Palabras y frases clave adicionales: modelado procedural inverso (inverse procedural modeling), gramática de grafos, similitud local (local similarity)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 INTRODUCTION",
+        "es": "1 INTRODUCCIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s0-p6",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Large detailed geometric shapes are needed in many different games, animated movies, virtual worlds, and other applications. Creating these complex shapes is a challenging labor-intensive task. This remains one of the most important challenges in computer graphics.",
+            "es": "Se necesitan formas geométricas grandes y detalladas en muchos juegos, películas animadas, mundos virtuales y otras aplicaciones. Crear estas formas complejas es una tarea difícil que requiere mucho trabajo. Esto sigue siendo uno de los desafíos más importantes de los gráficos por computadora."
+          }
+        },
+        {
+          "id": "s0-p7",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Such shapes can be generated automatically using various grammars. Grammars are very effective in generating complex variations. But the grammar itself can be difficult to create. A grammar is made of production rules. It is often unclear what rules are needed to produce a given set of shapes. Finding the rules is a difficult process often requiring some trial and error. This process is technically challenging and resembles computer programming more than artistic design. A simpler approach would be to create grammars automatically from a set of desired shapes.",
+            "es": "Estas formas pueden generarse automáticamente mediante diversas gramáticas. Las gramáticas son muy eficaces para generar variaciones complejas. Pero la gramática en sí puede ser difícil de crear. Una gramática se compone de reglas de producción (production rules). Con frecuencia no está claro qué reglas se necesitan para producir un conjunto dado de formas. Encontrar las reglas es un proceso difícil que a menudo requiere cierto ensayo y error. Este proceso es técnicamente desafiante y se parece más a la programación de computadoras que al diseño artístico. Un enfoque más sencillo sería crear gramáticas automáticamente a partir de un conjunto de formas deseadas."
+          }
+        },
+        {
+          "id": "s0-p10",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Our method begins with a set of polygonal example shapes and automatically constructs a grammar that generates similar shapes. The examples act as a guide for the new grammar, but not a strict guide. The grammar should not merely reproduce the examples. It should generalize the examples, developing novel variations from them. Our approach is to require that the output be locally similar. On a small local scale, each part of the output must match part of the example. But at the same time, its large-scale structure can be very different. Local similarity is used in many texture synthesis and procedural modeling techniques. In these techniques, we expect the examples to be self-similar and contain repeated parts. Otherwise, the output will be the same as the input. Our method is focused on local constraints. Large-scale constraints are also important for controlling the output, but are not the focus of this work.",
+            "es": "Nuestro método parte de un conjunto de formas poligonales de ejemplo y construye automáticamente una gramática que genera formas similares. Los ejemplos actúan como una guía para la nueva gramática, pero no como una guía estricta. La gramática no debe limitarse a reproducir los ejemplos. Debe generalizarlos, desarrollando a partir de ellos variaciones novedosas. Nuestro enfoque consiste en exigir que la salida sea localmente similar. A pequeña escala local, cada parte de la salida debe coincidir con alguna parte del ejemplo. Pero, al mismo tiempo, su estructura a gran escala puede ser muy diferente. La similitud local se usa en muchas técnicas de síntesis de texturas (texture synthesis) y de modelado procedural. En estas técnicas, esperamos que los ejemplos sean autosimilares y contengan partes repetidas. De lo contrario, la salida será igual a la entrada. Nuestro método se centra en restricciones locales. Las restricciones a gran escala también son importantes para controlar la salida, pero no son el enfoque de este trabajo."
+          }
+        },
+        {
+          "id": "s0-p11",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "In our approach, we generate a shape by first determining its connectivity and later determine its geometry. The shape’s connectivity is represented by a graph with labeled edges and vertices. We first synthesize a graph and later determine its precise geometry i.e. the positions of its edges and vertices. The input shape is converted into a graph and the graph is cut into small pieces called primitives. Intuitively, our method synthesizes new graphs by gluing these pieces together until the pieces are fully connected. Completing the graph is relatively easy if the input graph is a tree with leaf nodes. But if the graph does not have leaves, every path must be part of a closed cycle. Closing every path can be exceptionally difficult. Existing techniques do not handle these cycles properly. They either avoid them by focusing on tree-like structures or they directly copy the input with only minor changes. Handling cycles correctly is a major contribution of our algorithm and allows it to handle arbitrary polygonal input shapes.",
+            "es": "En nuestro enfoque, generamos una forma determinando primero su conectividad y después su geometría. La conectividad de la forma se representa mediante un grafo con aristas y vértices etiquetados. Primero sintetizamos un grafo y después determinamos su geometría precisa, es decir, las posiciones de sus aristas y vértices. La forma de entrada se convierte en un grafo, y el grafo se corta en piezas pequeñas llamadas primitivas. Intuitivamente, nuestro método sintetiza nuevos grafos pegando estas piezas hasta que las piezas queden totalmente conectadas. Completar el grafo es relativamente fácil si el grafo de entrada es un árbol con nodos hoja. Pero si el grafo no tiene hojas, cada camino debe formar parte de un ciclo cerrado. Cerrar cada camino puede ser excepcionalmente difícil. Las técnicas existentes no manejan estos ciclos de forma adecuada. O bien los evitan centrándose en estructuras similares a árboles, o bien copian directamente la entrada con solo cambios menores. Manejar correctamente los ciclos es una contribución importante de nuestro algoritmo y le permite manejar formas poligonales de entrada arbitrarias."
+          }
+        },
+        {
+          "id": "s0-p12",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In approaching this problem, we first explain a way of reasoning over the abstract space of locally similar graphs. We are the first to fully describe this space. We use this reasoning to automatically construct a graph grammar that can generate all locally similar graphs. The grammar consists of rules that can modify a graph. The rules can add or remove closed loops. Each rule produces a new graph that is valid meaning that it has no paths left to be closed. This graph grammar is then integrated into a method for generating geometric shapes. The rules are applied incrementally and positions are assigned to the edges and vertices.",
+            "es": "Al abordar este problema, primero explicamos una manera de razonar sobre el espacio abstracto de los grafos localmente similares. Somos los primeros en describir plenamente este espacio. Usamos este razonamiento para construir automáticamente una gramática de grafos que puede generar todos los grafos localmente similares. La gramática consta de reglas que pueden modificar un grafo. Las reglas pueden agregar o eliminar bucles cerrados. Cada regla produce un nuevo grafo que es válido, lo que significa que no le quedan caminos por cerrar. Esta gramática de grafos se integra luego en un método para generar formas geométricas. Las reglas se aplican de manera incremental y se asignan posiciones a las aristas y los vértices."
+          }
+        },
+        {
+          "id": "s0-p13",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our approach has several advantages over existing inverse procedural modeling techniques. It is not limited to specific shapes like trees or buildings. It can handle arbitrary polygonal shapes. Our outputs are not minor variations on the input. Our graph grammars can synthesize any locally similar shape, producing a wide range of possible large-scale structures.",
+            "es": "Nuestro enfoque tiene varias ventajas sobre las técnicas existentes de modelado procedural inverso. No se limita a formas específicas como árboles o edificios. Puede manejar formas poligonales arbitrarias. Nuestras salidas no son variaciones menores de la entrada. Nuestras gramáticas de grafos pueden sintetizar cualquier forma localmente similar, produciendo una amplia gama de posibles estructuras a gran escala."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 RELATED WORK",
+        "es": "2 TRABAJO RELACIONADO"
+      },
+      "blocks": [
+        {
+          "id": "s0-p15",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "A common approach to procedural modeling is to use some kind of shape grammar [Müller et al. 2006; Smelik et al. 2014; Wonka et al. 2003]. In their original formulation [Stiny 1975], shape grammars were complicated and were often manually applied with a human deciding which rules to use. Shape grammars can be simplified to set grammars [Stiny 1982; Wonka et al. 2003]. This simplification is used in most recent work on shape grammars. Another approach is to use an L-system [Lindenmayer 1968; Parish and Müller 2001; Prusinkiewicz 1986]. L-systems are a string replacement grammar. The string is turned into a model by interpreting it with a Logo-style turtle. The rules of a shape grammar or L-system or growth engine [Wong et al. 1998] are usually hand crafted by experts. Our rules are generated automatically.",
+            "es": "Un enfoque común del modelado procedural es usar algún tipo de gramática de formas (shape grammar) [Müller et al. 2006; Smelik et al. 2014; Wonka et al. 2003]. En su formulación original [Stiny 1975], las gramáticas de formas eran complicadas y a menudo se aplicaban manualmente, con una persona decidiendo qué reglas usar. Las gramáticas de formas pueden simplificarse a gramáticas de conjuntos (set grammars) [Stiny 1982; Wonka et al. 2003]. Esta simplificación se usa en la mayor parte del trabajo reciente sobre gramáticas de formas. Otro enfoque es usar un sistema L (L-system) [Lindenmayer 1968; Parish and Müller 2001; Prusinkiewicz 1986]. Los sistemas L son una gramática de reemplazo de cadenas. La cadena se convierte en un modelo interpretándola con una tortuga al estilo Logo. Las reglas de una gramática de formas, de un sistema L o de un motor de crecimiento (growth engine) [Wong et al. 1998] suelen ser elaboradas a mano por expertos. Nuestras reglas se generan automáticamente."
+          }
+        },
+        {
+          "id": "s0-p16",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "A few methods do generate rules automatically from an example. This is known as inverse procedural modeling. Some techniques learn a split shape grammar to model building facades [Aliaga et al. 2007; Demir et al. 2016; Martinovic and Van Gool 2013; Wu et al. 2014]. Talton et al. [2012] learn a grammar from 3D models with scene graphs or web pages. Other methods learn L-systems from trees or vector art [Guo et al. 2020; Stava et al. 2010, 2014]. These techniques are only targeted to particular types of models and treelike structures are relatively easy to handle.",
+            "es": "Unos pocos métodos sí generan reglas automáticamente a partir de un ejemplo. Esto se conoce como modelado procedural inverso. Algunas técnicas aprenden una gramática de formas de división (split shape grammar) para modelar fachadas de edificios [Aliaga et al. 2007; Demir et al. 2016; Martinovic and Van Gool 2013; Wu et al. 2014]. Talton et al. [2012] aprenden una gramática a partir de modelos 3D con grafos de escena (scene graphs) o páginas web. Otros métodos aprenden sistemas L a partir de árboles o de arte vectorial [Guo et al. 2020; Stava et al. 2010, 2014]. Estas técnicas están dirigidas únicamente a tipos particulares de modelos, y las estructuras similares a árboles son relativamente fáciles de manejar."
+          }
+        },
+        {
+          "id": "s0-p17",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In terms of goals, our work is most similar to the work of Bokeloh et al. [2010] and Liu et al. [2015]. Their methods generate a shape grammar from an input shape. They search for partial symmetries and use them to create a grammar that produces locally similar shapes. These methods work well for some, but not all, input shapes. They have trouble with cycles and cannot generate every locally similar shape for even simple shapes like rectangles (Sec. 9.1).",
+            "es": "En cuanto a los objetivos, nuestro trabajo es más similar al de Bokeloh et al. [2010] y Liu et al. [2015]. Sus métodos generan una gramática de formas a partir de una forma de entrada. Buscan simetrías parciales y las usan para crear una gramática que produce formas localmente similares. Estos métodos funcionan bien para algunas formas de entrada, pero no para todas. Tienen problemas con los ciclos y no pueden generar todas las formas localmente similares ni siquiera para formas simples como los rectángulos (Sec. 9.1)."
+          }
+        },
+        {
+          "id": "s0-p18",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our method uses a different type of grammar called a graph grammar. Graph grammars are a powerful framework introduced decades ago [Ehrig et al. 1973; Pfaltz and Rosenfeld 1969]. They are used in many applications [Rozenberg 1997] ranging from compiler design, pattern recognition, concurrent systems, database design, mesh subdivision [Smith et al. 2004; Velho 2003], and robot design [Zhao et al. 2020]. But they are only rarely used for procedural modeling [Christiansen and Bærentzen 2012; Pogrzebacz and Ilčík 2019]. Again these methods use hand crafted rules that are not generated automatically. Fiser et al. [2016] learn a graph grammar from a road network. They use this for data compression with the output graph matching the input unless the grammar is edited.",
+            "es": "Nuestro método usa un tipo diferente de gramática llamada gramática de grafos. Las gramáticas de grafos son un marco de trabajo potente introducido hace décadas [Ehrig et al. 1973; Pfaltz and Rosenfeld 1969]. Se usan en muchas aplicaciones [Rozenberg 1997] que van desde el diseño de compiladores, el reconocimiento de patrones, los sistemas concurrentes y el diseño de bases de datos, hasta la subdivisión de mallas (mesh subdivision) [Smith et al. 2004; Velho 2003] y el diseño de robots [Zhao et al. 2020]. Pero solo rara vez se usan para el modelado procedural [Christiansen and Bærentzen 2012; Pogrzebacz and Ilčík 2019]. Una vez más, estos métodos usan reglas elaboradas a mano que no se generan automáticamente. Fiser et al. [2016] aprenden una gramática de grafos a partir de una red de carreteras. La usan para la compresión de datos, de modo que el grafo de salida coincide con la entrada a menos que se edite la gramática."
+          }
+        },
+        {
+          "id": "s0-p19",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Several methods take an existing shape grammar and direct it towards a particular goal. Given a grammar, Talton et al. [2011] use an MCMC method to optimize for a set of desired properties. Dang et al. [2015] invited users to rate which generated shapes they prefer and then their method directs a grammar towards these preferences. Lipp et al. [2008] provide a framework for interactively editing shape grammars.",
+            "es": "Varios métodos toman una gramática de formas existente y la dirigen hacia un objetivo particular. Dada una gramática, Talton et al. [2011] usan un método MCMC para optimizar un conjunto de propiedades deseadas. Dang et al. [2015] invitaron a los usuarios a calificar qué formas generadas prefieren, y luego su método dirige una gramática hacia esas preferencias. Lipp et al. [2008] proporcionan un marco de trabajo para editar de forma interactiva gramáticas de formas."
+          }
+        },
+        {
+          "id": "s0-p20",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "There is a long tradition of requiring local similarity when doing texture synthesis [Barnes et al. 2009; Cross and Jain 1983; Efros and Leung 1999]. Similar approaches are used to generate locally similar element arrangements [Ijiri et al. 2008], element textures [Ma et al. 2013, 2011], solid textures [Kopf et al. 2007], and curved shapes [Hertzmann et al. 2002; Merrell and Manocha 2010; Tu et al. 2020]. Kalojanov et al. [2012] provide insights in the space of locally similar shapes. These methods are very effective in their particular domain, but geometric shapes used in procedural modeling are structured quite differently. Wu and Zheng [2022] generate 3D shapes from a single example using a GAN. Their method can robustly handle noisy input data, but it tends to overfit to the training data.",
+            "es": "Existe una larga tradición de exigir similitud local al hacer síntesis de texturas [Barnes et al. 2009; Cross and Jain 1983; Efros and Leung 1999]. Se usan enfoques similares para generar disposiciones de elementos localmente similares [Ijiri et al. 2008], texturas de elementos [Ma et al. 2013, 2011], texturas sólidas [Kopf et al. 2007] y formas curvas [Hertzmann et al. 2002; Merrell and Manocha 2010; Tu et al. 2020]. Kalojanov et al. [2012] aportan conocimientos sobre el espacio de las formas localmente similares. Estos métodos son muy eficaces en su dominio particular, pero las formas geométricas usadas en el modelado procedural están estructuradas de manera bastante distinta. Wu and Zheng [2022] generan formas 3D a partir de un único ejemplo usando una GAN. Su método puede manejar de forma robusta datos de entrada con ruido, pero tiende a sobreajustarse a los datos de entrenamiento."
+          }
+        },
+        {
+          "id": "s0-p21",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Grid-based techniques can generate locally similar 3D shapes from an example [Gumin 2016; Merrell 2007; Merrell and Manocha 2008; Yeh et al. 2013]. These techniques have been used in video games like Bad North and Townscaper. Early work [Merrell 2007] used constraint solving on a set of regular tiles. This was expanded upon to operate on a set of parallel planes [Merrell and Manocha 2008, 2011], to use factor graphs [Yeh et al. 2013] and overlapping tiles [Gumin 2016]. However these methods rely on a grid as an integral part of their technique. The grid limits the shapes they can produce. Overcoming this has been a long-standing problem.",
+            "es": "Las técnicas basadas en cuadrículas pueden generar formas 3D localmente similares a partir de un ejemplo [Gumin 2016; Merrell 2007; Merrell and Manocha 2008; Yeh et al. 2013]. Estas técnicas se han usado en videojuegos como Bad North y Townscaper. El trabajo inicial [Merrell 2007] usó resolución de restricciones sobre un conjunto de teselas regulares. Esto se amplió para operar sobre un conjunto de planos paralelos [Merrell and Manocha 2008, 2011], para usar grafos de factores [Yeh et al. 2013] y teselas superpuestas [Gumin 2016]. Sin embargo, estos métodos dependen de una cuadrícula como parte integral de su técnica. La cuadrícula limita las formas que pueden producir. Superar esto ha sido un problema de larga data."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 METHOD",
+        "es": "3 MÉTODO"
+      },
+      "blocks": [
+        {
+          "id": "s0-p22",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "3.1 Goal: Local Similarity",
+            "es": "3.1 Objetivo: similitud local (local similarity)"
+          }
+        },
+        {
+          "id": "s0-p23",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Our goal is to generate an output shape that resembles an input shape. The input and output must be locally similar. This means that every small region within the output must match a small region in the input. This idea can be described more formally using r-similarity [Bokeloh et al. 2010]. Two shapes are r-similar if for every neighborhood of radius 𝑟 in one shape, a translated copy of the neighborhood appears in the other shape:",
+            "es": "Nuestro objetivo es generar una forma de salida (output shape) que se parezca a una forma de entrada (input shape). La entrada y la salida deben ser localmente similares (locally similar). Esto significa que cada región pequeña dentro de la salida debe coincidir con una región pequeña de la entrada. Esta idea puede describirse de manera más formal mediante la r-similitud (r-similarity) [Bokeloh et al. 2010]. Dos formas son r-similares si, para cada vecindad (neighborhood) de radio 𝑟 en una forma, una copia trasladada de esa vecindad aparece en la otra forma:"
+          }
+        },
+        {
+          "id": "s0-p24",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "We take r-similarity to its logical extreme and make each neighborhood as small as possible. The radius 𝑟 can be infinitesimally small, so that each neighborhood contains an edge, vertex, or face. A shape remains r-similar if its edges are shortened or extended to any length, but the edge angles must remain the same.",
+            "es": "Llevamos la r-similitud a su extremo lógico y hacemos cada vecindad lo más pequeña posible. El radio 𝑟 puede ser infinitesimalmente pequeño, de modo que cada vecindad contenga una arista (edge), un vértice (vertex) o una cara (face). Una forma sigue siendo r-similar si sus aristas se acortan o se alargan a cualquier longitud, pero los ángulos de las aristas deben permanecer iguales."
+          }
+        },
+        {
+          "id": "s0-p25",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "3.2 Overview",
+            "es": "3.2 Visión general"
+          }
+        },
+        {
+          "id": "s0-p26",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Figure 2 gives an overview of our method, which consists of three main parts. First, our method finds the set of locally similar graphs and organizes them into a hierarchy (Fig 2a-c). Second, it constructs a graph grammar from the hierarchy (Fig 2d). And third, it uses the graph grammar to generate locally similar shapes (Fig 2e-g).",
+            "es": "La Figura 2 ofrece una visión general de nuestro método, que consta de tres partes principales. Primero, nuestro método encuentra el conjunto de grafos localmente similares y los organiza en una jerarquía (hierarchy) (Fig 2a-c). Segundo, construye una gramática de grafos (graph grammar) a partir de la jerarquía (Fig 2d). Y tercero, usa la gramática de grafos para generar formas localmente similares (Fig 2e-g)."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Fig. 2. Overview. The input shape (a) is cut into primitives (b). Primitives are glued into new graphs which are organized into a hierarchy (c). From this, a graph grammar (d) is constructed that generates angle graphs (e). Vertex positions are added to create a graph drawing (f) and decorations can be added (g, optional).",
+            "es": "Figura 2: Visión general. La forma de entrada (a) se corta en primitivas (primitives) (b). Las primitivas se pegan para formar nuevos grafos que se organizan en una jerarquía de grafos (graph hierarchy) (c). A partir de ella se construye una gramática de grafos (d) que genera grafos de ángulos (angle graphs) (e). Se agregan posiciones de vértices para crear un dibujo de grafo (graph drawing) (f) y pueden añadirse decoraciones (decorations) (g, opcional)."
+          }
+        },
+        {
+          "id": "s0-p27",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "(I) Section 4. Our method begins with a polygonal input shape (Fig. 2a) that is represented by a graph. This graph is disassembled and cut into small pieces called primitives (Fig. 2b). The primitives can be reassembled and glued into new graphs and the graphs are organized into a graph hierarchy (Fig. 2c).",
+            "es": "(I) Sección 4. Nuestro método comienza con una forma de entrada poligonal (Fig. 2a) que se representa mediante un grafo. Este grafo se desensambla y se corta en piezas pequeñas llamadas primitivas (Fig. 2b). Las primitivas pueden reensamblarse y pegarse para formar nuevos grafos, y los grafos se organizan en una jerarquía de grafos (Fig. 2c)."
+          }
+        },
+        {
+          "id": "s0-p28",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "(II) Section 5. The graph hierarchy is used as a tool to construct a graph grammar (Fig. 2d). Our method incrementally constructs the hierarchy and finds matching graphs within it. Each match provides a new production rule for our graph grammar and allows us to remove parts of the graph hierarchy. Our method continues finding matches ideally until the graph grammar has enough rules to produce every locally similar graph.",
+            "es": "(II) Sección 5. La jerarquía de grafos se usa como herramienta para construir una gramática de grafos (Fig. 2d). Nuestro método construye la jerarquía de forma incremental y encuentra en ella grafos que coinciden. Cada coincidencia aporta una nueva regla de producción (production rule) a nuestra gramática de grafos y nos permite eliminar partes de la jerarquía de grafos. Nuestro método sigue encontrando coincidencias, idealmente hasta que la gramática de grafos tenga suficientes reglas para producir cada grafo localmente similar."
+          }
+        },
+        {
+          "id": "s0-p29",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "(III) Section 6. The first two parts focus on generating graphs. We hold off on determining the shape’s geometry until the last part. Our graph grammars generate labeled graphs with straight edges at known angles (Fig. 2e). Graphs with this property are called angle graphs [Garg 1998]. Our angle graphs are missing vertex positions and edge lengths. The next step is to fill in this information through rejection sampling. An angle graph with vertex positions is called a graph drawing (Fig. 2f). Finally, our method can add decorations to the geometry in an optional post-processing step (Fig. 2g).",
+            "es": "(III) Sección 6. Las dos primeras partes se centran en generar grafos. Posponemos la determinación de la geometría de la forma hasta la última parte. Nuestras gramáticas de grafos generan grafos etiquetados (labeled graphs) con aristas rectas en ángulos conocidos (Fig. 2e). Los grafos con esta propiedad se llaman grafos de ángulos [Garg 1998]. A nuestros grafos de ángulos les faltan las posiciones de los vértices y las longitudes de las aristas. El siguiente paso es completar esta información mediante muestreo por rechazo (rejection sampling). Un grafo de ángulos con posiciones de vértices se llama dibujo de grafo (Fig. 2f). Finalmente, nuestro método puede añadir decoraciones a la geometría en un paso opcional de posprocesamiento (post-processing) (Fig. 2g)."
+          }
+        },
+        {
+          "id": "s0-p30",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "3.3 Notation & Representation",
+            "es": "3.3 Notación y representación"
+          }
+        },
+        {
+          "id": "s0-p31",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The input and output shape consists of vertices, edges, and faces.",
+            "es": "La forma de entrada y la de salida constan de vértices, aristas y caras."
+          }
+        },
+        {
+          "id": "s0-p32",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Face Labels. The faces are labeled in the input and output. Different labels are shown in different colors. Figure 3a shows two face labels.",
+            "es": "Etiquetas de cara (face labels). Las caras están etiquetadas tanto en la entrada como en la salida. Las diferentes etiquetas se muestran en diferentes colores. La Figura 3a muestra dos etiquetas de cara."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Fig. 3. (a) Face and edge labels. (b) Positive ∧ and negative ∨ turns for paths. (c,d) Graphs are assembled by gluing half-edges together. The opposite of gluing is cutting. Each graph 𝐺 has a boundary string 𝜕𝐺.",
+            "es": "Figura 3: (a) Etiquetas de cara y de arista (face and edge labels). (b) Giros (turns) positivos ∧ y negativos ∨ para los caminos. (c,d) Los grafos se ensamblan pegando (gluing) semiaristas (half-edges). Lo opuesto al pegado es el corte (cutting). Cada grafo 𝐺 tiene una cadena de frontera (boundary string) 𝜕𝐺."
+          }
+        },
+        {
+          "id": "s0-p33",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Edge Labels. The edge labels depend on the face labels. An edge has a face on its left side and on its right. If these two faces are labeled 𝑙 and 𝑟, then the edge is labeled ˜𝑎= (𝑙,𝑟,𝜃) where 𝜃 is its tangent angle. According to this definition, edges with the same label are locally similar.",
+            "es": "Etiquetas de arista (edge labels). Las etiquetas de arista dependen de las etiquetas de cara. Una arista tiene una cara a su izquierda y otra a su derecha. Si estas dos caras están etiquetadas 𝑙 y 𝑟, entonces la arista se etiqueta ˜𝑎= (𝑙,𝑟,𝜃), donde 𝜃 es su ángulo tangente (tangent angle). Según esta definición, las aristas con la misma etiqueta son localmente similares."
+          }
+        },
+        {
+          "id": "s0-p34",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The Cut Operation. A cut splits an edge ˜𝑎 into two half-edges labeled 𝑎 and 𝑎̅. Figure 3c,d shows a cut in reverse. Half-edges are illustrated as lines that end in an empty circle. While full edges are undirected, half-edges are directed. The half-edge 𝑎̅ points in a negative direction 𝜃̅∈[−180◦, 0◦). While the opposite half-edge 𝑎 points in the opposite direction 𝜃= 𝜃̅+ 180◦∈[0◦, 180◦).",
+            "es": "La operación de corte (cut operation). Un corte divide una arista ˜𝑎 en dos semiaristas etiquetadas 𝑎 y 𝑎̅. La Figura 3c,d muestra un corte en sentido inverso. Las semiaristas se ilustran como líneas que terminan en un círculo vacío. Mientras que las aristas completas no tienen dirección, las semiaristas sí la tienen. La semiarista 𝑎̅ apunta en una dirección negativa 𝜃̅∈[−180◦, 0◦). Mientras que la semiarista opuesta 𝑎 apunta en la dirección contraria 𝜃= 𝜃̅+ 180◦∈[0◦, 180◦)."
+          }
+        },
+        {
+          "id": "s0-p35",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The Glue Operation. Two half-edges 𝑎 and 𝑎̅ can be glued together to form one full edge. Figure 3c,d shows two examples. Cutting and gluing are exact opposites.",
+            "es": "La operación de pegado (glue operation). Dos semiaristas 𝑎 y 𝑎̅ pueden pegarse para formar una arista completa. La Figura 3c,d muestra dos ejemplos. El corte y el pegado son exactamente opuestos."
+          }
+        },
+        {
+          "id": "s0-p36",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Planarity. A drawing of a graph is planar if its edges do not intersect. Planarity depends on how the tangent angle changes as we follow a path around the graph. We can determine the tangent angle of each half-edge from its label 𝑎 or 𝑎̅. But the angles wrap, so that the labels alone do not tell us if the path has turned 𝜃 or 𝜃+ 360◦ or 𝜃+ 720◦ or more. To keep track of the angles wrapping, we define positive and negative turns:",
+            "es": "Planaridad (planarity). El dibujo de un grafo es plano si sus aristas no se intersecan. La planaridad depende de cómo cambia el ángulo tangente a medida que seguimos un camino alrededor del grafo. Podemos determinar el ángulo tangente de cada semiarista a partir de su etiqueta 𝑎 o 𝑎̅. Pero los ángulos se envuelven (wrap), de modo que las etiquetas por sí solas no nos dicen si el camino ha girado 𝜃 o 𝜃+ 360◦ o 𝜃+ 720◦ o más. Para llevar la cuenta de la envoltura de los ángulos, definimos giros positivos y negativos:"
+          }
+        },
+        {
+          "id": "s0-p37",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Positive Turn ∧. If a path is turning counter-clockwise, its tangent angle 𝜃 is increasing until it reaches 180◦. At that point it wraps to −180◦. We call this wrapping a positive turn ∧. We use the symbol ∧ since the path makes a ∧ shape (See Fig. 3b).",
+            "es": "Giro positivo ∧. Si un camino gira en sentido antihorario, su ángulo tangente 𝜃 aumenta hasta llegar a 180◦. En ese punto se envuelve a −180◦. Llamamos a esta envoltura un giro positivo ∧. Usamos el símbolo ∧ porque el camino forma una figura con forma de ∧ (véase la Fig. 3b)."
+          }
+        },
+        {
+          "id": "s0-p38",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Negative Turn ∨. If a path is turning clockwise, its tangent angle 𝜃 wraps in the opposite direction from −180◦ to 180◦. We call this a negative turn ∨. The path makes a ∨ shape. We sometimes use exponents to describe repeated turns: ∧2 = ∧∧ and ∧−2 = ∨∨.",
+            "es": "Giro negativo ∨. Si un camino gira en sentido horario, su ángulo tangente 𝜃 se envuelve en la dirección opuesta, de −180◦ a 180◦. Llamamos a esto un giro negativo ∨. El camino forma una figura con forma de ∨. A veces usamos exponentes para describir giros repetidos: ∧2 = ∧∧ y ∧−2 = ∨∨."
+          }
+        },
+        {
+          "id": "s0-p39",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The Graph Boundary String. We introduce a new compact notation that fully describes the possible gluing operations assuming planarity. Each graph 𝐺 has a boundary string 𝜕𝐺. The string 𝜕𝐺 contains every half-edge and every turn in 𝐺. For example, 𝜕𝐺1 = 𝑦∧𝑏̅𝑎̅ means the graph 𝐺1 has three half-edges: 𝑦𝑏̅𝑎̅ and one turn: ∧ and they appear in the order 𝑦∧𝑏̅𝑎̅ as we follow a path counter-clockwise around 𝐺1 (Fig. 3cd). This path forms a circular loop around the graph. It is unclear where the path should start. The loop is the same no matter where it started. We treat different starting points as being equivalent by defining shifted strings to be equal: 𝑦∧𝑏̅𝑎̅= ∧𝑏̅𝑎̅𝑦= 𝑏̅𝑎̅𝑦∧. Consecutive positive and negative turns cancel: 𝑎∧𝑥∧∨= 𝑎∧𝑥. Let 𝑃𝐺 and 𝑁𝐺 be the number of positive and negatives turns for any graph 𝐺. Then 𝑃𝐺−𝑁𝐺= 1 since the path loops once counter-clockwise.",
+            "es": "La cadena de frontera del grafo. Introducimos una nueva notación compacta que describe por completo las posibles operaciones de pegado suponiendo planaridad. Cada grafo 𝐺 tiene una cadena de frontera 𝜕𝐺. La cadena 𝜕𝐺 contiene cada semiarista y cada giro de 𝐺. Por ejemplo, 𝜕𝐺1 = 𝑦∧𝑏̅𝑎̅ significa que el grafo 𝐺1 tiene tres semiaristas: 𝑦𝑏̅𝑎̅ y un giro: ∧, y aparecen en el orden 𝑦∧𝑏̅𝑎̅ cuando seguimos un camino en sentido antihorario alrededor de 𝐺1 (Fig. 3cd). Este camino forma un lazo circular alrededor del grafo. No está claro dónde debería comenzar el camino. El lazo es el mismo sin importar dónde haya comenzado. Tratamos los distintos puntos de partida como equivalentes definiendo como iguales las cadenas desplazadas: 𝑦∧𝑏̅𝑎̅= ∧𝑏̅𝑎̅𝑦= 𝑏̅𝑎̅𝑦∧. Los giros positivos y negativos consecutivos se cancelan: 𝑎∧𝑥∧∨= 𝑎∧𝑥. Sean 𝑃𝐺 y 𝑁𝐺 el número de giros positivos y negativos de cualquier grafo 𝐺. Entonces 𝑃𝐺−𝑁𝐺= 1, ya que el camino da una vuelta en sentido antihorario."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 FINDING LOCALLY SIMILAR GRAPHS",
+        "es": "4 ENCONTRAR GRAFOS LOCALMENTE SIMILARES"
+      },
+      "blocks": [
+        {
+          "id": "s0-p40",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "4.1 Disassembly: Cutting Into Primitives",
+            "es": "4.1 Desensamblaje: corte en primitivas"
+          }
+        },
+        {
+          "id": "s0-p41",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Our method begins by cutting the input shape into small pieces. The input shape consists of vertices, edges, and faces (Fig. 2a). We can convert the input shape 𝑆 into a graph 𝐺𝑆 without losing any essential information because it is contained in the edge labels. Our method then disassembles the input graph 𝐺𝑆 by cutting it into as many pieces as possible (Fig. 2b & 4). Every edge is cut into two half-edges. Afterwards, the vertices of 𝐺𝑆 are each disconnected from the other vertices and are surrounded by half-edges. Each disconnected piece is a new graph. We call these graphs primitives since they are the most basic building blocks of our method. Any graph 𝐻 that is assembled from these primitives will be locally similar to 𝐺𝑆.",
+            "es": "Nuestro método comienza cortando la forma de entrada en piezas pequeñas. La forma de entrada consta de vértices, aristas y caras (Fig. 2a). Podemos convertir la forma de entrada 𝑆 en un grafo 𝐺𝑆 sin perder ninguna información esencial, porque esta está contenida en las etiquetas de las aristas. Nuestro método luego desensambla el grafo de entrada 𝐺𝑆 cortándolo en tantas piezas como sea posible (Fig. 2b y 4). Cada arista se corta en dos semiaristas. Después, los vértices de 𝐺𝑆 quedan desconectados unos de otros y rodeados de semiaristas. Cada pieza desconectada es un nuevo grafo. Llamamos a estos grafos primitivas porque son los bloques de construcción más básicos de nuestro método. Cualquier grafo 𝐻 que se ensamble a partir de estas primitivas será localmente similar a 𝐺𝑆."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Fig. 4. (a) A diagonal box and (b) a platform shape are cut into primitives.",
+            "es": "Figura 4: (a) Una caja diagonal y (b) una forma de plataforma se cortan en primitivas."
+          }
+        },
+        {
+          "id": "s0-p42",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "4.2 Assembly: Gluing Primitives Together",
+            "es": "4.2 Ensamblaje: pegado de primitivas"
+          }
+        },
+        {
+          "id": "s0-p43",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Primitives are glued together at their half-edges. Half-edges can be glued in two different ways which we call branch gluing and loop gluing. Branch gluing means the two half-edges are on disconnected graphs with no path between them (Fig. 3c). Loop gluing means the half-edges are on a connected graph (Fig. 3d). If such half-edges are glued together, they form a loop. Loop gluing and branch gluing change the boundary string according to a simple string replacement. This is explained more below, but can be summarized as:",
+            "es": "Las primitivas se pegan por sus semiaristas. Las semiaristas pueden pegarse de dos maneras diferentes, que llamamos pegado de ramas (branch gluing) y pegado de bucles (loop gluing). El pegado de ramas significa que las dos semiaristas están en grafos desconectados, sin ningún camino entre ellos (Fig. 3c). El pegado de bucles significa que las semiaristas están en un grafo conexo (Fig. 3d). Si tales semiaristas se pegan, forman un bucle. El pegado de bucles y el pegado de ramas cambian la cadena de frontera según un simple reemplazo de cadenas. Esto se explica más adelante, pero puede resumirse así:"
+          }
+        },
+        {
+          "id": "s0-eq-glue",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "Loop Glue: 𝑎𝑎̅→𝜖 𝑎̅∨𝑎∧→𝜖 Branch Glue 𝑎̅𝐵 to 𝑎: 𝑎→𝐵∨ 𝑎𝐵 to 𝑎̅: 𝑎̅→∨𝐵"
+          }
+        },
+        {
+          "id": "s0-p44",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "where 𝜖 is the empty string and uppercase letters like 𝐵 represent arbitrary strings. The gluing operations define a context-sensitive grammar that acts on the boundary string. The loop gluing rules are context-sensitive, while the branch gluing rules are context-free.",
+            "es": "donde 𝜖 es la cadena vacía y las letras mayúsculas como 𝐵 representan cadenas arbitrarias. Las operaciones de pegado definen una gramática sensible al contexto (context-sensitive grammar) que actúa sobre la cadena de frontera. Las reglas de pegado de bucles son sensibles al contexto, mientras que las reglas de pegado de ramas son libres de contexto (context-free)."
+          }
+        },
+        {
+          "id": "s0-p45",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Loop gluing creates closed loops. In a planar graph, closed loops must turn 360◦. So the half-edges 𝑎̅ and 𝑎 can only be loop glued if the path between them turns ±360◦. When the path turns +360◦, the boundary string contains the substring 𝑎𝑎̅ for some label 𝑎. When the path turns −360◦, it contains the substring 𝑎̅∨𝑎∧. Gluing the half-edges removes these substrings: 𝑎𝑎̅→𝜖 and 𝑎̅∨𝑎∧→𝜖.",
+            "es": "El pegado de bucles crea bucles cerrados. En un grafo plano, los bucles cerrados deben girar 360◦. Por lo tanto, las semiaristas 𝑎̅ y 𝑎 solo pueden pegarse en bucle si el camino entre ellas gira ±360◦. Cuando el camino gira +360◦, la cadena de frontera contiene la subcadena 𝑎𝑎̅ para alguna etiqueta 𝑎. Cuando el camino gira −360◦, contiene la subcadena 𝑎̅∨𝑎∧. Pegar las semiaristas elimina estas subcadenas: 𝑎𝑎̅→𝜖 y 𝑎̅∨𝑎∧→𝜖."
+          }
+        },
+        {
+          "id": "s0-p46",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In branch gluing, two graphs 𝐺1 and 𝐺2 are glued together. If we glue the graphs at the half-edges 𝑎̅ and 𝑎, then the two graph boundaries 𝐵1𝑎̅ and 𝑎𝐵2 are combined into 𝐵1∨𝐵2. For example, in Figure 3c, the boundaries 𝜕𝐺1 = 𝑦∧𝑏̅𝑎̅ and 𝜕𝐺2 = 𝑎∧𝑥𝑦 are glued together to form 𝜕𝐺3 = 𝑦∧𝑏̅𝑥𝑦. This can be described as a string replacement in two different ways that are equivalent. If we glue the graph 𝑎̅𝐵 to the half-edge 𝑎, this replaces 𝑎→𝐵∨. If we glue the graph 𝑎𝐵 to the half-edge 𝑎̅, this replaces 𝑎̅→∨𝐵.",
+            "es": "En el pegado de ramas, se pegan dos grafos 𝐺1 y 𝐺2. Si pegamos los grafos en las semiaristas 𝑎̅ y 𝑎, entonces las dos fronteras de los grafos 𝐵1𝑎̅ y 𝑎𝐵2 se combinan en 𝐵1∨𝐵2. Por ejemplo, en la Figura 3c, las fronteras 𝜕𝐺1 = 𝑦∧𝑏̅𝑎̅ y 𝜕𝐺2 = 𝑎∧𝑥𝑦 se pegan para formar 𝜕𝐺3 = 𝑦∧𝑏̅𝑥𝑦. Esto puede describirse como un reemplazo de cadenas de dos maneras diferentes que son equivalentes. Si pegamos el grafo 𝑎̅𝐵 a la semiarista 𝑎, esto reemplaza 𝑎→𝐵∨. Si pegamos el grafo 𝑎𝐵 a la semiarista 𝑎̅, esto reemplaza 𝑎̅→∨𝐵."
+          }
+        },
+        {
+          "id": "s0-p47",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Branch gluing could alternatively be described as looping gluing combined with a splice operation. We use the symbol | for splicing. The boundary strings 𝐴 and 𝐵 represent closed paths. 𝐴|𝐵| means that the end of path 𝐴 is attached to the start of 𝐵 and the end of 𝐵 is attached to the start of 𝐴. The result of a splice is 𝐴|𝐵| →𝐴∨𝐵. The strings are concatenated with a turn ∨ added in between:",
+            "es": "El pegado de ramas podría describirse alternativamente como un pegado de bucles combinado con una operación de empalme (splice). Usamos el símbolo | para el empalme. Las cadenas de frontera 𝐴 y 𝐵 representan caminos cerrados. 𝐴|𝐵| significa que el final del camino 𝐴 se une al inicio de 𝐵 y el final de 𝐵 se une al inicio de 𝐴. El resultado de un empalme es 𝐴|𝐵| →𝐴∨𝐵. Las cadenas se concatenan con un giro ∨ añadido entre ellas:"
+          }
+        },
+        {
+          "id": "s0-p48",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The extra turn ∨ is necessary for the boundary to turn once counterclockwise: 𝑃𝐴∨𝐵−𝑁𝐴∨𝐵= 𝑃𝐴−𝑁𝐴+ (−1) + 𝑃𝐵−𝑁𝐵= 1. Branch gluing 𝐵𝑎̅ and 𝑎𝐶 is equivalent to a splice 𝐵𝑎̅|𝑎𝐶| →𝐵𝑎̅∨𝑎𝐶 followed by loop gluing 𝐵𝑎̅∨𝑎∧∨𝐶→𝐵∨𝐶.",
+            "es": "El giro adicional ∨ es necesario para que la frontera gire una vez en sentido antihorario: 𝑃𝐴∨𝐵−𝑁𝐴∨𝐵= 𝑃𝐴−𝑁𝐴+ (−1) + 𝑃𝐵−𝑁𝐵= 1. El pegado de ramas de 𝐵𝑎̅ y 𝑎𝐶 es equivalente a un empalme 𝐵𝑎̅|𝑎𝐶| →𝐵𝑎̅∨𝑎𝐶 seguido de un pegado de bucles 𝐵𝑎̅∨𝑎∧∨𝐶→𝐵∨𝐶."
+          }
+        },
+        {
+          "id": "s0-p49",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "4.3 The Graph Hierarchy",
+            "es": "4.3 La jerarquía de grafos"
+          }
+        },
+        {
+          "id": "s0-p50",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We now explain how to enumerate every possible way of gluing primitives into graphs. Properly defining this space is an important contribution of our work. Each possible graph is placed inside of a hierarchy (Fig. 5). The hierarchy is divided into generations. Generation 𝑖 consists of every graph that can be constructed using 𝑖 gluing operations. If the hierarchy were continued forever to infinitely many generations, it would contain every possible way of gluing the primitives together. It would contain every locally similar graph. Such a hierarchy cannot be implemented since it would be infinitely large. Thus this hierarchy should not be thought of as a concrete data structure, but rather as an abstract model. We call this the abstract graph hierarchy. In Section 5, we will implement a concrete version of this hierarchy as a data structure. But we will limit that concrete hierarchy to be a finite subset of the full abstract hierarchy.",
+            "es": "Ahora explicamos cómo enumerar todas las formas posibles de pegar primitivas para formar grafos. Definir adecuadamente este espacio es una contribución importante de nuestro trabajo. Cada grafo posible se coloca dentro de una jerarquía (Fig. 5). La jerarquía se divide en generaciones (generations). La generación 𝑖 consta de todos los grafos que pueden construirse usando 𝑖 operaciones de pegado. Si la jerarquía se continuara indefinidamente, con infinitas generaciones, contendría todas las formas posibles de pegar las primitivas. Contendría cada grafo localmente similar. Una jerarquía así no puede implementarse, ya que sería infinitamente grande. Por lo tanto, esta jerarquía no debe concebirse como una estructura de datos concreta, sino como un modelo abstracto. La llamamos jerarquía abstracta de grafos (abstract graph hierarchy). En la Sección 5 implementaremos una versión concreta de esta jerarquía como una estructura de datos. Pero limitaremos esa jerarquía concreta a un subconjunto finito de la jerarquía abstracta completa."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Fig. 5. A graph hierarchy starts simple and grows more complex as primitives and loops are glued. From the hierarchy, a graph grammar with five rules is found by matching boundary strings.",
+            "es": "Figura 5: Una jerarquía de grafos comienza simple y se vuelve más compleja a medida que se pegan primitivas y bucles. A partir de la jerarquía, se encuentra una gramática de grafos con cinco reglas mediante la coincidencia de cadenas de frontera."
+          }
+        },
+        {
+          "id": "s0-p51",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Figure 5 shows a graph hierarchy. It will be used as a guiding example through this section. The hierarchy is similar to a tree. Each graph has parents, children, and descendants. But the hierarchy is actually not a tree since two siblings can share a child.",
+            "es": "La Figura 5 muestra una jerarquía de grafos. Se usará como ejemplo guía a lo largo de esta sección. La jerarquía es similar a un árbol. Cada grafo tiene padres, hijos y descendientes. Pero en realidad la jerarquía no es un árbol, ya que dos hermanos pueden compartir un hijo."
+          }
+        },
+        {
+          "id": "s0-p52",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The simplest graphs are at the top of the hierarchy. As we descend, the graphs grow more complex. Generation 0 contains the edge graphs. Generation 1 contains the primitives. Each graph has a set of children. To find a graph’s children, perform all possible loop gluing operations and branch gluing operations with the primitives:",
+            "es": "Los grafos más simples están en la parte superior de la jerarquía. A medida que descendemos, los grafos se vuelven más complejos. La generación 0 contiene los grafos de aristas (edge graphs). La generación 1 contiene las primitivas. Cada grafo tiene un conjunto de hijos. Para encontrar los hijos de un grafo, se realizan todas las operaciones posibles de pegado de bucles y de pegado de ramas con las primitivas:"
+          }
+        },
+        {
+          "id": "s0-p53",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "A child can have multiple parents. Each of its parents is a copy of the child with one primitive cut out or one loop cut:",
+            "es": "Un hijo puede tener varios padres. Cada uno de sus padres es una copia del hijo con una primitiva recortada o un bucle cortado:"
+          }
+        },
+        {
+          "id": "s0-p54",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "4.4 Complete Graphs",
+            "es": "4.4 Grafos completos (complete graphs)"
+          }
+        },
+        {
+          "id": "s0-p55",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "A graph is complete if it has no remaining half-edges left to glue. A complete graph 𝐺 always has the boundary string 𝜕𝐺= ∧. Otherwise, the graph is incomplete.",
+            "es": "Un grafo es completo si no le quedan semiaristas por pegar. Un grafo completo 𝐺 siempre tiene la cadena de frontera 𝜕𝐺= ∧. De lo contrario, el grafo es incompleto."
+          }
+        },
+        {
+          "id": "s0-p56",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Our goal is to generate complete graphs. One possible approach is to do a random walk through the graph hierarchy. Basically, we would randomly glue primitives together until reaching a complete graph by chance. Figure 6a illustrates the idea. This simple approach works fine for some input graphs including graphs without cycles. But for many other inputs, this is an error-prone and inefficient way to construct graphs. We might start constructing a graph and then be unable to complete it. Consider the two incomplete graphs below. The left graph is assembled from the diagonal primitives (Fig. 4a). The right graph is assembled from the platform primitives (Fig. 4b):",
+            "es": "Nuestro objetivo es generar grafos completos. Un enfoque posible es hacer una caminata aleatoria (random walk) por la jerarquía de grafos. Básicamente, pegaríamos primitivas al azar hasta llegar por casualidad a un grafo completo. La Figura 6a ilustra la idea. Este enfoque simple funciona bien para algunos grafos de entrada, incluidos los grafos sin ciclos. Pero para muchas otras entradas, es una manera propensa a errores e ineficiente de construir grafos. Podríamos empezar a construir un grafo y luego no poder completarlo. Consideremos los dos grafos incompletos siguientes. El grafo de la izquierda se ensambla a partir de las primitivas diagonales (Fig. 4a). El grafo de la derecha se ensambla a partir de las primitivas de la plataforma (Fig. 4b):"
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Fig. 6. One way of constructing graphs (a) is to randomly glue primitives together until the graph is complete. A better way is to use a graph grammar (b). Fig. 5 shows how this graph grammar is automatically generated.",
+            "es": "Figura 6: Una manera de construir grafos (a) es pegar primitivas al azar hasta que el grafo esté completo. Una mejor manera es usar una gramática de grafos (b). La Fig. 5 muestra cómo se genera automáticamente esta gramática de grafos."
+          }
+        },
+        {
+          "id": "s0-p57",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The left graph is difficult to complete. The right graph is impossible to complete. We consider a different strategy in Section 5 that can generate every complete graph, but without the wrong turns and dead ends that might be encountered along a random walk.",
+            "es": "El grafo de la izquierda es difícil de completar. El grafo de la derecha es imposible de completar. En la Sección 5 consideramos una estrategia diferente que puede generar cada grafo completo, pero sin los giros equivocados y los callejones sin salida que podrían encontrarse en una caminata aleatoria."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 GRAPH GRAMMARS",
+        "es": "5 GRAMÁTICAS DE GRAFOS"
+      },
+      "blocks": [
+        {
+          "id": "s0-p59",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In this section, we explain how to use the graph hierarchy to construct a graph grammar that can produce all complete, locally similar graphs. First, we give some background on graph grammars. Graph grammars generalize the concept of a formal grammar based on strings into graphs [Rozenberg 1997]. There are many different approaches to graph grammars. We use the gluing approach, also known as the algebraic approach [Ehrig et al. 1973]. Within that approach, we use double-pushout graph grammars (DPO). The term pushout is borrowed from category theory. Graph grammars are often described using category theory. But we prefer to center our discussion around graph gluing, following König et al. [2018].",
+            "es": "En esta sección explicamos cómo usar la jerarquía de grafos (graph hierarchy) para construir una gramática de grafos (graph grammar) capaz de producir todos los grafos completos (complete) y localmente similares (locally similar). Primero damos algunos antecedentes sobre las gramáticas de grafos. Las gramáticas de grafos generalizan el concepto de gramática formal (formal grammar) basada en cadenas de texto a los grafos [Rozenberg 1997]. Existen muchos enfoques distintos para las gramáticas de grafos. Nosotros usamos el enfoque de pegado (gluing approach), también conocido como enfoque algebraico (algebraic approach) [Ehrig et al. 1973]. Dentro de ese enfoque, usamos gramáticas de grafos de doble pushout (double-pushout, DPO). El término pushout está tomado de la teoría de categorías. Las gramáticas de grafos suelen describirse mediante la teoría de categorías, pero nosotros preferimos centrar la discusión en el pegado de grafos, siguiendo a König et al. [2018]."
+          }
+        },
+        {
+          "id": "s0-p60",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Morphism: A graph homomorphism (or morphism for short) maps between two graphs 𝐺→𝐻. It consists of two mappings. One from 𝐺’s vertices to 𝐻’s vertices. And one from 𝐺’s edges to 𝐻’s edges. The mappings should respect edge and vertex labels.",
+            "es": "Morfismo (Morphism): Un homomorfismo de grafos (graph homomorphism), o morfismo para abreviar, establece una correspondencia entre dos grafos 𝐺→𝐻. Consta de dos aplicaciones: una de los vértices de 𝐺 a los vértices de 𝐻, y otra de las aristas de 𝐺 a las aristas de 𝐻. Las aplicaciones deben respetar las etiquetas de las aristas y de los vértices."
+          }
+        },
+        {
+          "id": "s0-p61",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Our grammars consist of a set of DPO production rules. A DPO rule contains a left graph 𝐿 and a right graph 𝑅. The right graph replaces the left. In addition to specifying the graphs 𝐿 and 𝑅, we must define the relationship between them. This is done through an interface graph 𝐼 and two morphisms: 𝜑𝐿: 𝐼→𝐿 and 𝜑𝑅: 𝐼→𝑅 (Fig. 7).",
+            "es": "Nuestras gramáticas consisten en un conjunto de reglas de producción (production rules) DPO. Una regla DPO contiene un grafo izquierdo 𝐿 y un grafo derecho 𝑅. El grafo derecho reemplaza al izquierdo. Además de especificar los grafos 𝐿 y 𝑅, debemos definir la relación entre ellos. Esto se hace mediante un grafo de interfaz (interface graph) 𝐼 y dos morfismos: 𝜑𝐿: 𝐼→𝐿 y 𝜑𝑅: 𝐼→𝑅 (Fig. 7)."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Fig. 7. A double-pushout production rule. The left side 𝐿 is matched with 𝐺. 𝐿 is cut from 𝐺 and 𝑅 is glued in its place to make 𝐻.",
+            "es": "Figura 7: Una regla de producción de doble pushout. El lado izquierdo 𝐿 se empareja con 𝐺. 𝐿 se recorta de 𝐺 y 𝑅 se pega en su lugar para formar 𝐻."
+          }
+        },
+        {
+          "id": "s0-p62",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In our method, graphs 𝐿 and 𝑅 always have the same graph boundary string (𝜕𝐿= 𝜕𝑅= 𝑦̅𝑦∧ in Fig. 7). This is necessary so that 𝑅 can replace 𝐿 without breaking planarity. Graphs 𝐿 and 𝑅 have the same half-edges. Each half-edge ends in a vertex shown as an empty circle. The interface graph 𝐼 consists of those vertices and the morphisms 𝜑𝐿 and 𝜑𝑅 map between them based on their matching half-edges. In most figures, we omit the interface 𝐼 since in our method 𝐼 is fully determined from the half-edges of 𝐿 and 𝑅.",
+            "es": "En nuestro método, los grafos 𝐿 y 𝑅 siempre tienen la misma cadena de frontera del grafo (graph boundary string) (𝜕𝐿= 𝜕𝑅= 𝑦̅𝑦∧ en la Fig. 7). Esto es necesario para que 𝑅 pueda reemplazar a 𝐿 sin romper la planaridad (planarity). Los grafos 𝐿 y 𝑅 tienen las mismas semiaristas (half-edges). Cada semiarista termina en un vértice mostrado como un círculo vacío. El grafo de interfaz 𝐼 consta de esos vértices, y los morfismos 𝜑𝐿 y 𝜑𝑅 establecen la correspondencia entre ellos según sus semiaristas coincidentes. En la mayoría de las figuras omitimos la interfaz 𝐼, ya que en nuestro método 𝐼 queda completamente determinada por las semiaristas de 𝐿 y 𝑅."
+          }
+        },
+        {
+          "id": "s0-p69",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "To apply a DPO rule to graph 𝐺, we find a subgraph of 𝐺 that matches 𝐿. This is described by a morphism 𝑚 called the match where 𝑚: 𝐿→𝐺. The subgraph of 𝐺 that is matched to 𝐿 is cut out, and 𝑅 is glued in its place. Cutting 𝐿 from 𝐺 produces the context graph 𝐶. Gluing 𝑅 to 𝐶 produces the final graph 𝐻. To summarize, we match a part of 𝐺 to 𝐿 and replace it with 𝑅 to produce 𝐻.",
+            "es": "Para aplicar una regla DPO al grafo 𝐺, buscamos un subgrafo de 𝐺 que coincida con 𝐿. Esto se describe mediante un morfismo 𝑚 llamado emparejamiento (match), donde 𝑚: 𝐿→𝐺. El subgrafo de 𝐺 que se empareja con 𝐿 se recorta, y 𝑅 se pega en su lugar. Al recortar 𝐿 de 𝐺 se obtiene el grafo de contexto (context graph) 𝐶. Al pegar 𝑅 a 𝐶 se obtiene el grafo final 𝐻. En resumen, emparejamos una parte de 𝐺 con 𝐿 y la reemplazamos por 𝑅 para producir 𝐻."
+          }
+        },
+        {
+          "id": "s0-p70",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Another perspective is that Figure 7 consists of two graph gluing operations. On the left side, 𝐿 is glued to 𝐶 to make 𝐺. On the right side 𝑅 is glued to 𝐶 to make 𝐻. According to category theory, these two gluing operations are pushouts and this is a double pushout.",
+            "es": "Otra perspectiva es que la Figura 7 consta de dos operaciones de pegado de grafos. En el lado izquierdo, 𝐿 se pega a 𝐶 para formar 𝐺. En el lado derecho, 𝑅 se pega a 𝐶 para formar 𝐻. Según la teoría de categorías, estas dos operaciones de pegado son pushouts, y por eso se trata de un doble pushout."
+          }
+        },
+        {
+          "id": "s0-p71",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "5.1 Outline",
+            "es": "5.1 Resumen general"
+          }
+        },
+        {
+          "id": "s0-p72",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Algorithm 1 summarizes our approach. The input to the algorithm is a set of primitives. The output is a set of rules that make up a graph grammar. We begin by building a graph hierarchy incrementally starting from the primitives, using the same branch gluing and loop gluing operations described in Section 4.3. But this hierarchy is smaller. Before each graph 𝐺 is added to the hierarchy, we check if it is possible to create a rule that will simplify 𝐺. (We explain how to create the rules in Sec. 5.3). If a graph 𝐺 can be simplified by a rule, we say that 𝐺 is reducible and we remove it from the hierarchy. Each time we add a graph 𝐺, we check if 𝐺 can be simplified or if 𝐺 can be used to simplify another graph.",
+            "es": "El Algoritmo 1 resume nuestro enfoque. La entrada del algoritmo es un conjunto de primitivas (primitives). La salida es un conjunto de reglas que conforman una gramática de grafos. Comenzamos construyendo una jerarquía de grafos de manera incremental a partir de las primitivas, usando las mismas operaciones de pegado de ramas (branch gluing) y pegado de ciclos (loop gluing) descritas en la Sección 4.3. Pero esta jerarquía es más pequeña. Antes de añadir cada grafo 𝐺 a la jerarquía, comprobamos si es posible crear una regla que simplifique 𝐺. (Explicamos cómo crear las reglas en la Sec. 5.3). Si un grafo 𝐺 puede simplificarse mediante una regla, decimos que 𝐺 es reducible y lo eliminamos de la jerarquía. Cada vez que añadimos un grafo 𝐺, comprobamos si 𝐺 puede simplificarse o si 𝐺 puede usarse para simplificar otro grafo."
+          }
+        },
+        {
+          "id": "alg-1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Algorithm 1 Find Graph Grammar From Primitives 1: Starting from primitives, glue graphs together to build a concrete hierarchy ideally until every complete shape is reducible. 2: for each graph 𝐺 do 3: If possible, use 𝐺 in a rule on the left or right (Sec. 5.3-5.5). 4: if 𝐺’s has no complete descendants then 5: Remove 𝐺 and all its descendants (Sec. 5.6).",
+            "es": "Algoritmo 1 Encontrar una gramática de grafos a partir de primitivas 1: A partir de las primitivas, pegar grafos para construir una jerarquía concreta, idealmente hasta que toda forma completa sea reducible. 2: para cada grafo 𝐺 hacer 3: Si es posible, usar 𝐺 en una regla, a la izquierda o a la derecha (Sec. 5.3-5.5). 4: si 𝐺 no tiene descendientes completos entonces 5: Eliminar 𝐺 y todos sus descendientes (Sec. 5.6)."
+          }
+        },
+        {
+          "id": "s0-p73",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Graph Complexity. We define a way of ordering the graphs from simple to complex. Graphs with fewer half-edges are simpler than those with more. If two graphs have an equal number of half-edges, then the graphs are ordered according to the hierarchy. Graphs added earlier in the hierarchy are simpler than those added later.",
+            "es": "Complejidad de los grafos. Definimos una manera de ordenar los grafos de simples a complejos. Los grafos con menos semiaristas son más simples que los que tienen más. Si dos grafos tienen el mismo número de semiaristas, entonces los grafos se ordenan según la jerarquía: los grafos añadidos antes en la jerarquía son más simples que los añadidos después."
+          }
+        },
+        {
+          "id": "s0-p74",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We use this to order the graphs in each rule. The right side 𝑅 of a rule is always simpler than the left 𝐿. A graph is reducible if it is on the left side of a rule. A rule can split a graph 𝐿 into multiple simpler graphs on the right 𝑅.",
+            "es": "Usamos este orden para ordenar los grafos de cada regla. El lado derecho 𝑅 de una regla siempre es más simple que el izquierdo 𝐿. Un grafo es reducible si está en el lado izquierdo de una regla. Una regla puede dividir un grafo 𝐿 en varios grafos más simples a la derecha 𝑅."
+          }
+        },
+        {
+          "id": "s0-p75",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "If a graph grammar contains enough rules to reduce every complete graph in the hierarchy, then it can fully construct every locally similar graph. We explain the theory behind this and how we can make such a claim in Section 5.2. We explain how to find the production rules in Section 5.3. We then discuss a complication that can happen if a graph is reduced by one of its descendants in Sections 5.4 - 5.5. It is possible that a graph has an infinite number of irreducible descendants that are all incomplete. Our method detects these graphs and removes them and their descendants (see Section 5.6). Ideally, we continue adding rules to the hierarchy until we are certain that every complete graph is reducible. But in some cases, the number of graphs in each generation grows faster than they can be removed. Then the algorithm exits without a guarantee that all graphs are reducible (see Section 5.7).",
+            "es": "Si una gramática de grafos contiene suficientes reglas para reducir todos los grafos completos de la jerarquía, entonces puede construir por completo todos los grafos localmente similares. Explicamos la teoría detrás de esto y cómo podemos hacer tal afirmación en la Sección 5.2. Explicamos cómo encontrar las reglas de producción en la Sección 5.3. Luego analizamos una complicación que puede ocurrir cuando un grafo es reducido por uno de sus descendientes en las Secciones 5.4 - 5.5. Es posible que un grafo tenga un número infinito de descendientes irreducibles que sean todos incompletos. Nuestro método detecta estos grafos y los elimina junto con sus descendientes (véase la Sección 5.6). Idealmente, seguimos añadiendo reglas a la jerarquía hasta estar seguros de que todo grafo completo es reducible. Pero en algunos casos el número de grafos de cada generación crece más rápido de lo que pueden eliminarse. Entonces el algoritmo termina sin garantía de que todos los grafos sean reducibles (véase la Sección 5.7)."
+          }
+        },
+        {
+          "id": "s0-p76",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "5.2 How this Algorithm Works",
+            "es": "5.2 Cómo funciona este algoritmo"
+          }
+        },
+        {
+          "id": "s0-p77",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "An important property of DPO graph grammars is that all production rules are invertible [Ehrig 1979]. Each rule can transform a left graph into a right graph: 𝐿→𝑅, or it can be reversed to transform a right graph into a left graph: 𝑅→𝐿.",
+            "es": "Una propiedad importante de las gramáticas de grafos DPO es que todas las reglas de producción son invertibles [Ehrig 1979]. Cada regla puede transformar un grafo izquierdo en un grafo derecho: 𝐿→𝑅, o puede invertirse para transformar un grafo derecho en un grafo izquierdo: 𝑅→𝐿."
+          }
+        },
+        {
+          "id": "s0-p78",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "By convention, we put the simpler graph on the right 𝑅, so that applying a rule 𝐿→𝑅 will simplify any graph that it is applied to 𝐺→𝐻. We say that applying a rule 𝐿→𝑅 is destructive because it deconstructs the graph into simpler parts. Applying it 𝑅→𝐿 is constructive because it constructs a more complex graph.",
+            "es": "Por convención, colocamos el grafo más simple a la derecha 𝑅, de modo que aplicar una regla 𝐿→𝑅 simplifica cualquier grafo al que se aplique 𝐺→𝐻. Decimos que aplicar una regla 𝐿→𝑅 es destructivo porque deconstruye el grafo en partes más simples. Aplicarla como 𝑅→𝐿 es constructivo porque construye un grafo más complejo."
+          }
+        },
+        {
+          "id": "s0-p79",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Figure 6b shows rules being applied constructively i.e. a complex graph is constructed from a simple one. The simplest graph is the empty graph ∅. If a complex graph can be deconstructed from a simple one, the reverse is also true. By reversing each step in Figure 6b, a complex graph can be deconstructed into the empty graph. A graph can always be reduced to a set of irreducible graphs. If a graph is reducible, it can be reduced to another graph. If that graph is reducible, it can be reduced to an even simpler graph. This is a proof by infinite descent. The graphs can continue to be reduced ad infinitum until an irreducible graph is reached.",
+            "es": "La Figura 6b muestra reglas aplicadas de manera constructiva, es decir, un grafo complejo se construye a partir de uno simple. El grafo más simple es el grafo vacío ∅. Si un grafo complejo puede deconstruirse a partir de uno simple, lo inverso también es cierto. Al invertir cada paso de la Figura 6b, un grafo complejo puede deconstruirse hasta el grafo vacío. Un grafo siempre puede reducirse a un conjunto de grafos irreducibles. Si un grafo es reducible, puede reducirse a otro grafo. Si ese grafo es reducible, puede reducirse a un grafo aún más simple. Esto es una demostración por descenso infinito (proof by infinite descent). Los grafos pueden seguir reduciéndose ad infinitum hasta que se alcanza un grafo irreducible."
+          }
+        },
+        {
+          "id": "s0-p80",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Our algorithm continues adding production rules ideally until every complete graph is reducible. At that point, the only irreducible graph left is the empty graph ∅. Every complete graph can be reduced to ∅. And since every destructive action can be reversed, the reverse is also true. Every complete graph can be constructed from the empty graph ∅. At that point, our graph grammar can construct every complete, locally similar graph and Algorithm 1 terminates.",
+            "es": "Nuestro algoritmo sigue añadiendo reglas de producción, idealmente hasta que todo grafo completo sea reducible. En ese punto, el único grafo irreducible que queda es el grafo vacío ∅. Todo grafo completo puede reducirse a ∅. Y dado que toda acción destructiva puede invertirse, lo inverso también es cierto: todo grafo completo puede construirse a partir del grafo vacío ∅. En ese punto, nuestra gramática de grafos puede construir todos los grafos completos y localmente similares, y el Algoritmo 1 termina."
+          }
+        },
+        {
+          "id": "s0-p81",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "5.2.1 Reducing All Descendants. If a rule can be applied to 𝐿, it can be applied to all of 𝐿’s descendants because its descendants contain 𝐿 as a subgraph. Remember that 𝐿’s descendants are found by gluing primitives to 𝐿. Ordinarily, if 𝐿 can be reduced by some rule, then all of 𝐿’s descendants can be reduced by the same rule. (There is an important exception to this statement discussed in Section 5.4). Below we show an example. A graph 𝐿 can be reduced by Rule 1 in Figure 5 and so can all of its descendants.",
+            "es": "5.2.1 Reducción de todos los descendientes. Si una regla puede aplicarse a 𝐿, puede aplicarse a todos los descendientes de 𝐿, porque sus descendientes contienen a 𝐿 como subgrafo. Recuérdese que los descendientes de 𝐿 se obtienen pegando primitivas a 𝐿. Normalmente, si 𝐿 puede reducirse mediante alguna regla, entonces todos los descendientes de 𝐿 pueden reducirse mediante la misma regla. (Existe una excepción importante a esta afirmación, que se analiza en la Sección 5.4). A continuación mostramos un ejemplo. Un grafo 𝐿 puede reducirse mediante la Regla 1 de la Figura 5, y también todos sus descendientes."
+          }
+        },
+        {
+          "id": "s0-p82",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "5.3 Finding a Rule to Reduce a Graph",
+            "es": "5.3 Cómo encontrar una regla para reducir un grafo"
+          }
+        },
+        {
+          "id": "s0-p83",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Boundary Strings. Our method finds production rules by matching boundary strings. A graph 𝑅 can replace a graph 𝐿 if both graphs have the same boundary string 𝜕𝑅= 𝜕𝐿. In Figure 7, 𝜕𝑅= 𝜕𝐿= 𝑦̅𝑦∧.",
+            "es": "Cadenas de frontera (Boundary strings). Nuestro método encuentra reglas de producción haciendo coincidir cadenas de frontera. Un grafo 𝑅 puede reemplazar a un grafo 𝐿 si ambos grafos tienen la misma cadena de frontera 𝜕𝑅= 𝜕𝐿. En la Figura 7, 𝜕𝑅= 𝜕𝐿= 𝑦̅𝑦∧."
+          }
+        },
+        {
+          "id": "s0-p84",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Similarly, the five rules in Figure 5, have the same boundary strings on the left and right sides.",
+            "es": "De manera similar, las cinco reglas de la Figura 5 tienen las mismas cadenas de frontera en los lados izquierdo y derecho."
+          }
+        },
+        {
+          "id": "s0-p85",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "When two graphs 𝐿 and 𝑅 have the same boundary strings, they can seamlessly replace one another. Their half-edges are the same, so each of 𝐿’s half-edges can be cut out and replaced by one of 𝑅’s half-edges. They also have the same turns ∧ and ∨ so the paths between the half-edges turn the same. They have the same total curvature. This is necessary to preserve planarity.",
+            "es": "Cuando dos grafos 𝐿 y 𝑅 tienen las mismas cadenas de frontera, pueden reemplazarse entre sí sin discontinuidades. Sus semiaristas son las mismas, por lo que cada una de las semiaristas de 𝐿 puede recortarse y reemplazarse por una de las semiaristas de 𝑅. También tienen los mismos giros ∧ y ∨, por lo que los caminos entre las semiaristas giran de la misma manera. Tienen la misma curvatura total. Esto es necesario para preservar la planaridad."
+          }
+        },
+        {
+          "id": "s0-p86",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "We find rules by string matching. For a given boundary string 𝜕𝐿, we can match 𝐿 to a graph 𝑅 with the same boundary 𝜕𝑅= 𝜕𝐿. But we could also match 𝐿 to a set of graphs {𝑅1, 𝑅2, . . .}. This set matches 𝐿 if the strings {𝜕𝑅1, 𝜕𝑅2, . . .} can be combined to equal 𝜕𝐿.",
+            "es": "Encontramos las reglas mediante coincidencia de cadenas. Para una cadena de frontera dada 𝜕𝐿, podemos emparejar 𝐿 con un grafo 𝑅 que tenga la misma frontera 𝜕𝑅= 𝜕𝐿. Pero también podemos emparejar 𝐿 con un conjunto de grafos {𝑅1, 𝑅2, . . .}. Este conjunto coincide con 𝐿 si las cadenas {𝜕𝑅1, 𝜕𝑅2, . . .} pueden combinarse para ser iguales a 𝜕𝐿."
+          }
+        },
+        {
+          "id": "s0-p87",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Our approach is outlined in pseudocode in Algorithm 2. This is a recursive divide-and-conquer algorithm. For example, suppose that graph 𝐿 has the boundary 𝜕𝐿= 𝑎𝑏𝑐𝑑𝑒𝑓𝑔ℎ𝑖∧:",
+            "es": "Nuestro enfoque se resume en pseudocódigo en el Algoritmo 2. Se trata de un algoritmo recursivo de divide y vencerás (divide-and-conquer). Por ejemplo, supongamos que el grafo 𝐿 tiene la frontera 𝜕𝐿= 𝑎𝑏𝑐𝑑𝑒𝑓𝑔ℎ𝑖∧:"
+          }
+        },
+        {
+          "id": "alg-2",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Algorithm 2 findMatchingGroups(𝜕𝐿): 𝜕𝐿 is a boundary string 1: for each graph 𝑅 with boundary 𝜕𝑅 in the hierarchy do 2: for each way of matching 𝜕𝑅 with ∨𝑛𝜕𝐿∧𝑛 for some 𝑛 do 3: 𝑚𝑎𝑡𝑐ℎ𝑒𝑠= [𝑅] 4: for each unmatched substring 𝜕𝐿𝑖 do 5: 𝑚𝑎𝑡𝑐ℎ𝑒𝑠.push(findMatchingGroups(𝜕𝐿𝑖∧)); 6: if all 𝑚𝑎𝑡𝑐ℎ𝑒𝑠 successful return 𝑚𝑎𝑡𝑐ℎ𝑒𝑠; 7: return null",
+            "es": "Algoritmo 2 findMatchingGroups(𝜕𝐿): 𝜕𝐿 es una cadena de frontera 1: para cada grafo 𝑅 con frontera 𝜕𝑅 en la jerarquía hacer 2: para cada manera de emparejar 𝜕𝑅 con ∨𝑛𝜕𝐿∧𝑛 para algún 𝑛 hacer 3: 𝑚𝑎𝑡𝑐ℎ𝑒𝑠= [𝑅] 4: para cada subcadena sin emparejar 𝜕𝐿𝑖 hacer 5: 𝑚𝑎𝑡𝑐ℎ𝑒𝑠.push(findMatchingGroups(𝜕𝐿𝑖∧)); 6: si todos los 𝑚𝑎𝑡𝑐ℎ𝑒𝑠 son exitosos, devolver 𝑚𝑎𝑡𝑐ℎ𝑒𝑠; 7: devolver null"
+          }
+        },
+        {
+          "id": "s0-p88",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Our algorithm tries to match 𝐿 using every graph 𝑅 in the hierarchy. It tries to match each 𝜕𝑅 to some part of 𝜕𝐿. Suppose that 𝜕𝑅= 𝑎𝑐𝑔∧. After matching 𝜕𝑅 to 𝜕𝐿, we are left with three unmatched substrings: 𝑏, 𝑑𝑒𝑓, and ℎ𝑖. The algorithm runs recursively on each substring. One solution might be to match 𝜕𝐿= 𝑎𝑏𝑐𝑑𝑒𝑓𝑔ℎ𝑖∧ to 𝑎𝑐𝑔∧, 𝑏∧, 𝑑∧, 𝑒𝑓∧, and ℎ𝑖∧ assuming those graphs are in the hierarchy.",
+            "es": "Nuestro algoritmo intenta emparejar 𝐿 usando cada grafo 𝑅 de la jerarquía. Intenta emparejar cada 𝜕𝑅 con alguna parte de 𝜕𝐿. Supongamos que 𝜕𝑅= 𝑎𝑐𝑔∧. Después de emparejar 𝜕𝑅 con 𝜕𝐿, nos quedan tres subcadenas sin emparejar: 𝑏, 𝑑𝑒𝑓 y ℎ𝑖. El algoritmo se ejecuta recursivamente sobre cada subcadena. Una solución podría ser emparejar 𝜕𝐿= 𝑎𝑏𝑐𝑑𝑒𝑓𝑔ℎ𝑖∧ con 𝑎𝑐𝑔∧, 𝑏∧, 𝑑∧, 𝑒𝑓∧ y ℎ𝑖∧, suponiendo que esos grafos estén en la jerarquía."
+          }
+        },
+        {
+          "id": "s0-p89",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The way we combine the boundary strings {𝜕𝑅1, 𝜕𝑅2, . . .} requires some additional explanation. The strings are combined by splicing them together. When we splice two boundary strings an extra turn ∨ is added between them: 𝜕𝑅1|𝜕𝑅2| →𝜕𝑅1∨𝜕𝑅2. In fact, there are multiple ways to splice two strings together. Below are two examples where the same right graphs 𝑅1 and 𝑅2 are spliced together in different ways to produce different left graphs: 𝑦∧𝑦̅𝑦̅𝑦 and 𝑦̅𝑦∨𝑦∧𝑦̅∧",
+            "es": "La manera en que combinamos las cadenas de frontera {𝜕𝑅1, 𝜕𝑅2, . . .} requiere alguna explicación adicional. Las cadenas se combinan empalmándolas (splicing). Cuando empalmamos dos cadenas de frontera se añade un giro extra ∨ entre ellas: 𝜕𝑅1|𝜕𝑅2| →𝜕𝑅1∨𝜕𝑅2. De hecho, existen múltiples maneras de empalmar dos cadenas. A continuación se muestran dos ejemplos en los que los mismos grafos derechos 𝑅1 y 𝑅2 se empalman de maneras distintas para producir grafos izquierdos distintos: 𝑦∧𝑦̅𝑦̅𝑦 y 𝑦̅𝑦∨𝑦∧𝑦̅∧"
+          }
+        },
+        {
+          "id": "s0-p90",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "When we splice together two strings, we are free to add extra turns between them. The splice operation can be written more generally as 𝐴|𝐵| →𝐴∧𝑛𝐵∨𝑛+1 for some 𝑛∈Z.",
+            "es": "Cuando empalmamos dos cadenas, somos libres de añadir giros extra entre ellas. La operación de empalme puede escribirse de forma más general como 𝐴|𝐵| →𝐴∧𝑛𝐵∨𝑛+1 para algún 𝑛∈Z."
+          }
+        },
+        {
+          "id": "s0-p91",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Suppose we have matched 𝜕𝑅 to part of 𝜕𝐿. And let 𝜕𝐿𝑖 be the unmatched part so that 𝜕𝐿= 𝜕𝑅𝜕𝐿𝑖. We wish to splice some string to 𝜕𝑅 to get 𝜕𝐿. This formula will give us the desired result: 𝜕𝑅|∨𝑛𝜕𝐿𝑖∧𝑛+1| →𝜕𝑅𝜕𝐿𝑖= 𝜕𝐿. Consequently on line 2 of Algorithm 2, we match 𝜕𝑅 with ∨𝑛𝜕𝐿∧𝑛 and on line 5 we match with 𝜕𝐿𝑖∧. Notice that in the example above the unmatched substrings were: 𝑏, 𝑑𝑒𝑓, and ℎ𝑖 and they were matched to 𝑏∧, 𝑑𝑒𝑓∧, and ℎ𝑖∧. The extra ∧ cancels with the ∨ that is added during splicing.",
+            "es": "Supongamos que hemos emparejado 𝜕𝑅 con una parte de 𝜕𝐿. Y sea 𝜕𝐿𝑖 la parte sin emparejar, de modo que 𝜕𝐿= 𝜕𝑅𝜕𝐿𝑖. Deseamos empalmar alguna cadena a 𝜕𝑅 para obtener 𝜕𝐿. Esta fórmula nos da el resultado deseado: 𝜕𝑅|∨𝑛𝜕𝐿𝑖∧𝑛+1| →𝜕𝑅𝜕𝐿𝑖= 𝜕𝐿. En consecuencia, en la línea 2 del Algoritmo 2 emparejamos 𝜕𝑅 con ∨𝑛𝜕𝐿∧𝑛 y en la línea 5 emparejamos con 𝜕𝐿𝑖∧. Obsérvese que en el ejemplo anterior las subcadenas sin emparejar eran: 𝑏, 𝑑𝑒𝑓 y ℎ𝑖, y se emparejaron con 𝑏∧, 𝑑𝑒𝑓∧ y ℎ𝑖∧. El ∧ adicional se cancela con el ∨ que se añade durante el empalme."
+          }
+        },
+        {
+          "id": "s0-p100",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "5.3.1 Special Case: Complete Graphs. A complete graph 𝐺 has no half-edges and has the boundary string 𝜕𝐺= ∧. For every complete graph, we can define a rule that deletes the graph like Rule 0 in Figure 5. We call these starter rules.",
+            "es": "5.3.1 Caso especial: grafos completos. Un grafo completo 𝐺 no tiene semiaristas y tiene la cadena de frontera 𝜕𝐺= ∧. Para cada grafo completo podemos definir una regla que elimina el grafo, como la Regla 0 de la Figura 5. A estas las llamamos reglas iniciales (starter rules)."
+          }
+        },
+        {
+          "id": "s0-p101",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Like other grammars, graph grammars have an axiom or a start graph that they begin with and then rules are applied to derive new graphs. In our method, the start graph is an empty graph ∅. Initially, the starter rules are the only rules that can be applied.",
+            "es": "Como otras gramáticas, las gramáticas de grafos tienen un axioma (axiom) o grafo inicial (start graph) con el que comienzan, y luego se aplican reglas para derivar nuevos grafos. En nuestro método, el grafo inicial es un grafo vacío ∅. Al principio, las reglas iniciales son las únicas reglas que pueden aplicarse."
+          }
+        },
+        {
+          "id": "s0-p102",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "5.4 Reducing a Graph with Its Descendants",
+            "es": "5.4 Reducción de un grafo con sus descendientes"
+          }
+        },
+        {
+          "id": "s0-p103",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Suppose that a rule simplifies the graph 𝐿 into the graphs 𝑅1 and 𝑅2. Ordinarily, that would mean that 𝐿 and all its descendants are reducible (Sec. 5.2.1). But what if 𝑅1 is a descendant of 𝐿? This rule does not reduce every descendant of 𝐿 since applying the rule to 𝑅1 replaces 𝑅1 with itself. This does not simplify 𝑅1. For example, consider this rule from the Diagonal example (Fig. 4a):",
+            "es": "Supongamos que una regla simplifica el grafo 𝐿 en los grafos 𝑅1 y 𝑅2. Normalmente, eso significaría que 𝐿 y todos sus descendientes son reducibles (Sec. 5.2.1). Pero ¿qué ocurre si 𝑅1 es un descendiente de 𝐿? Esta regla no reduce a todos los descendientes de 𝐿, ya que aplicar la regla a 𝑅1 reemplaza a 𝑅1 por sí mismo. Esto no simplifica 𝑅1. Por ejemplo, consideremos esta regla del ejemplo Diagonal (Fig. 4a):"
+          }
+        },
+        {
+          "id": "s0-p104",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "This rule reduces the left graph 𝜕𝐿= 𝑦̅𝑥̅𝑦𝑥∧ into two simpler right graphs 𝜕𝑅1 = 𝑦̅𝑥̅∧ and 𝜕𝑅2 = 𝑦𝑥∧. 𝑅1 and 𝑅2 are simpler than 𝐿 since they have two half-edges and 𝐿 has four. 𝑅1 and 𝑅2 contain 𝐿 as a subgraph, so they are descendants of 𝐿.",
+            "es": "Esta regla reduce el grafo izquierdo 𝜕𝐿= 𝑦̅𝑥̅𝑦𝑥∧ en dos grafos derechos más simples 𝜕𝑅1 = 𝑦̅𝑥̅∧ y 𝜕𝑅2 = 𝑦𝑥∧. 𝑅1 y 𝑅2 son más simples que 𝐿 porque tienen dos semiaristas y 𝐿 tiene cuatro. 𝑅1 y 𝑅2 contienen a 𝐿 como subgrafo, por lo que son descendientes de 𝐿."
+          }
+        },
+        {
+          "id": "s0-p105",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "This rule is still useful. It can reduce all descendants of 𝐿 besides those that are descendants of 𝑅1 and 𝑅2. Our method then restructures the graph hierarchy. It removes 𝐿 and its descendants from the hierarchy and replaces them with 𝑅1 and 𝑅2 and their descendants. Every descendant of 𝐿 can be turned into a descendant of 𝑅1 and 𝑅2 using the above rule:",
+            "es": "Esta regla sigue siendo útil. Puede reducir todos los descendientes de 𝐿, salvo aquellos que son descendientes de 𝑅1 y 𝑅2. Nuestro método entonces reestructura la jerarquía de grafos: elimina 𝐿 y sus descendientes de la jerarquía y los reemplaza por 𝑅1 y 𝑅2 y sus descendientes. Todo descendiente de 𝐿 puede convertirse en un descendiente de 𝑅1 y 𝑅2 usando la regla anterior:"
+          }
+        },
+        {
+          "id": "s0-p106",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "This scenario only happens occasionally. In most of our results, our algorithm can finish without using any rules that contain descendants of 𝐿 on the right side of the rule. Often this technique reduces the number of rules, but the algorithm can finish without it.",
+            "es": "Este escenario solo ocurre ocasionalmente. En la mayoría de nuestros resultados, nuestro algoritmo puede terminar sin usar ninguna regla que contenga descendientes de 𝐿 en el lado derecho de la regla. A menudo esta técnica reduce el número de reglas, pero el algoritmo puede terminar sin ella."
+          }
+        },
+        {
+          "id": "s0-p107",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "5.5 One-half-edge Graphs, Stubs",
+            "es": "5.5 Grafos de una semiarista, muñones"
+          }
+        },
+        {
+          "id": "s0-p108",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "If a graph has one half-edge, its boundary string is 𝑎∧ or 𝑎̅∧ for some label 𝑎. We call these graphs stubs. If the stub 𝑎∧ is glued to half-edge 𝑎̅, then 𝑎̅→∧∨= 𝜖 according to Section 4.2. This property is very useful. Stubs often exist. If the input graph has no cycles, then a pair of stubs 𝑎∧ and 𝑎̅∧ exists for every label 𝑎. And even when the input graph has only cycles, stubs often exist. Our algorithm finds any stubs that can be created since our graph hierarchy checks every locally similar graph. Our algorithm finds stubs that are not in the primitives and are not part of the input graph.",
+            "es": "Si un grafo tiene una semiarista, su cadena de frontera es 𝑎∧ o 𝑎̅∧ para alguna etiqueta 𝑎. Llamamos a estos grafos muñones (stubs). Si el muñón 𝑎∧ se pega a la semiarista 𝑎̅, entonces 𝑎̅→∧∨= 𝜖 según la Sección 4.2. Esta propiedad es muy útil. Los muñones existen con frecuencia. Si el grafo de entrada no tiene ciclos, entonces existe un par de muñones 𝑎∧ y 𝑎̅∧ para cada etiqueta 𝑎. E incluso cuando el grafo de entrada solo tiene ciclos, a menudo existen muñones. Nuestro algoritmo encuentra cualquier muñón que pueda crearse, ya que nuestra jerarquía de grafos revisa todos los grafos localmente similares. Nuestro algoritmo encuentra muñones que no están en las primitivas y que no forman parte del grafo de entrada."
+          }
+        },
+        {
+          "id": "s0-p109",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Stubs are very useful for deconstructing graphs. If the stubs 𝑎∧ and 𝑎̅∧ exist, every primitive and every edge that has the label 𝑎 can be deconstructed. For example, below left is an input graph. The input contains no stubs. But when we build the graph hierarchy we find stubs that can deconstruct all the primitives.",
+            "es": "Los muñones son muy útiles para deconstruir grafos. Si existen los muñones 𝑎∧ y 𝑎̅∧, toda primitiva y toda arista que tenga la etiqueta 𝑎 puede deconstruirse. Por ejemplo, a la izquierda abajo hay un grafo de entrada. La entrada no contiene muñones. Pero cuando construimos la jerarquía de grafos encontramos muñones que pueden deconstruir todas las primitivas."
+          }
+        },
+        {
+          "id": "s0-p110",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The approach outlined in Section 5.4 applies here since the stub 𝑥∧ is a descendant of the primitive 𝑦̅𝑥∧ and it can also deconstruct 𝑦̅𝑥∧. Every primitive and every graph can be deconstructed into the four stubs: 𝑥∧, 𝑥̅∧, 𝑦∧, and 𝑦̅∧. Below a shape is deconstructed by applying the rules 𝑥̅𝑥∧→𝑥̅∧|𝑥∧| and 𝑦̅𝑦∧→𝑦̅∧|𝑦∧|. The remaining graphs can be deconstructed by 8 starter rules. In this case, the stubs alone solve the problem.",
+            "es": "El enfoque descrito en la Sección 5.4 se aplica aquí, ya que el muñón 𝑥∧ es un descendiente de la primitiva 𝑦̅𝑥∧ y también puede deconstruir 𝑦̅𝑥∧. Toda primitiva y todo grafo puede deconstruirse en los cuatro muñones: 𝑥∧, 𝑥̅∧, 𝑦∧ y 𝑦̅∧. A continuación se deconstruye una forma aplicando las reglas 𝑥̅𝑥∧→𝑥̅∧|𝑥∧| y 𝑦̅𝑦∧→𝑦̅∧|𝑦∧|. Los grafos restantes pueden deconstruirse mediante 8 reglas iniciales. En este caso, los muñones por sí solos resuelven el problema."
+          }
+        },
+        {
+          "id": "s0-p111",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "5.6 No Complete Irreducible Descendants",
+            "es": "5.6 Sin descendientes completos irreducibles"
+          }
+        },
+        {
+          "id": "s0-p112",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The graph hierarchy may contain graphs that cannot be reduced. For example, if Figure 5 were continued several more generations, we would see the graph 𝑦∧4𝑦̅∨3 inside the hierarchy:",
+            "es": "La jerarquía de grafos puede contener grafos que no pueden reducirse. Por ejemplo, si la Figura 5 se continuara varias generaciones más, veríamos el grafo 𝑦∧4𝑦̅∨3 dentro de la jerarquía:"
+          }
+        },
+        {
+          "id": "s0-p113",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Not only is 𝑦∧4𝑦̅∨3 irreducible, it is part of an infinite set of irreducible graphs of the form 𝑦∧𝑛+1𝑦̅∨𝑛 for some 𝑛. The hierarchy of Figure 5 contains no stubs. Each graph can only be completed by forming a path that turns 360◦ and then loop gluing it. The path from 𝑦 to 𝑦̅ has 4 counter-clockwise turns (∧4). The only way to form it into a loop is for it to turn clockwise. But if anything is glued to the path to turn it clockwise, the resulting graph can be reduced by one of Figure 5’s rules. Therefore every descendant of 𝑦∧4𝑦̅∨3 is reducible or incomplete.",
+            "es": "𝑦∧4𝑦̅∨3 no solo es irreducible, sino que forma parte de un conjunto infinito de grafos irreducibles (irreducible graphs) de la forma 𝑦∧𝑛+1𝑦̅∨𝑛 para algún 𝑛. La jerarquía de la Figura 5 no contiene extremos sin salida (stubs). Cada grafo solo puede completarse formando un camino que gire 360◦ y luego cerrándolo mediante pegado en bucle (loop gluing). El camino de 𝑦 a 𝑦̅ tiene 4 giros en sentido antihorario (counter-clockwise) (∧4). La única manera de convertirlo en un bucle es que gire en sentido horario. Pero si se pega algo al camino para hacerlo girar en sentido horario, el grafo resultante puede reducirse mediante una de las reglas de la Figura 5. Por lo tanto, todo descendiente de 𝑦∧4𝑦̅∨3 es reducible o incompleto."
+          }
+        },
+        {
+          "id": "s0-p114",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We need to detect and remove graphs with only reducible or incomplete descendants. Otherwise, we cannot be certain that our grammar can reduce every complete graph. We work through a more complex example in Appendix C. We consider all the options for a graph. We show that the half-edges always end up in a replacement cycle and that the graph cannot be completed.",
+            "es": "Necesitamos detectar y eliminar los grafos cuyos descendientes son todos reducibles o incompletos. De lo contrario, no podemos estar seguros de que nuestra gramática pueda reducir cada grafo completo. En el Apéndice C desarrollamos un ejemplo más complejo. Consideramos todas las opciones para un grafo. Mostramos que las semiaristas (half-edges) siempre terminan en un ciclo de reemplazo (replacement cycle) y que el grafo no puede completarse."
+          }
+        },
+        {
+          "id": "s0-p115",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "For every boundary string, there exists a complementary boundary string that could be glued to it to make it complete. For example, 𝑎𝑏𝑐∧ can be glued to 𝑐̅𝑏̅𝑎̅∧. A graph can be completed if and only if a complementary string can be derived using the context-sensitive grammar defined in Section 4.2 and splicing.",
+            "es": "Para cada cadena de frontera (boundary string) existe una cadena de frontera complementaria que podría pegarse a ella para completarla. Por ejemplo, 𝑎𝑏𝑐∧ puede pegarse a 𝑐̅𝑏̅𝑎̅∧. Un grafo puede completarse si y solo si se puede derivar una cadena complementaria mediante la gramática sensible al contexto (context-sensitive grammar) definida en la Sección 4.2 y el empalme (splicing)."
+          }
+        },
+        {
+          "id": "s0-p116",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We can guarantee that all of a graph’s descendants are reducible or incomplete if: (1) The graph contains a half-edge that has turned more than 360◦ from the previous or next half-edge. (2) The total curvature stays above 360◦ through every path that descends from the graph. Considering that every sufficiently long path must end either in a stub or be part of a replacement cycle, that means (3) none of the paths ends in a stub and (4) every cycle has positive or zero curvature. If these conditions are met the graph cannot be completed and it has no complete descendants. The graph and all its descendants are removed from the hierarchy.",
+            "es": "Podemos garantizar que todos los descendientes de un grafo son reducibles o incompletos si: (1) El grafo contiene una semiarista que ha girado más de 360◦ respecto de la semiarista anterior o siguiente. (2) La curvatura total (curvature) se mantiene por encima de 360◦ en todo camino que desciende del grafo. Considerando que todo camino suficientemente largo debe terminar en un extremo sin salida o formar parte de un ciclo de reemplazo, esto significa que (3) ninguno de los caminos termina en un extremo sin salida y (4) todo ciclo tiene curvatura positiva o cero. Si se cumplen estas condiciones, el grafo no puede completarse y no tiene descendientes completos. El grafo y todos sus descendientes se eliminan de la jerarquía."
+          }
+        },
+        {
+          "id": "s0-p117",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "5.7 The Growth of the Graph Hierarchy",
+            "es": "5.7 El crecimiento de la jerarquía de grafos"
+          }
+        },
+        {
+          "id": "s0-p118",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "For some graph hierarchies, it can be very difficult to track down and conclusively show that every complete graph is reducible. There are simply too many ways that the graphs can spiral in on themselves.",
+            "es": "En algunas jerarquías de grafos (graph hierarchies), puede ser muy difícil rastrear y demostrar de manera concluyente que todo grafo completo es reducible. Simplemente hay demasiadas maneras en que los grafos pueden enroscarse en espiral sobre sí mismos."
+          }
+        },
+        {
+          "id": "s0-p119",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "A simple solution is to limit the number of generations or half-edges in the hierarchy or to ignore graphs that have turned more than 360◦. The downside is that we can no longer be certain that our grammar can produce every locally similar graph. The remaining irreducible graphs are very complex spiraled shapes. We suspect most of them have no complete irreducible descendants, but we cannot be certain of this. Here are some examples of graphs that remain in the hierarchy for the Castle example in Figure 1:",
+            "es": "Una solución sencilla es limitar el número de generaciones o de semiaristas en la jerarquía, o ignorar los grafos que han girado más de 360◦. La desventaja es que ya no podemos estar seguros de que nuestra gramática pueda producir todos los grafos localmente similares. Los grafos irreducibles restantes son formas en espiral muy complejas. Sospechamos que la mayoría de ellos no tiene descendientes irreducibles completos, pero no podemos estar seguros de ello. A continuación se muestran algunos ejemplos de grafos que permanecen en la jerarquía para el ejemplo Castle de la Figura 1:"
+          }
+        },
+        {
+          "id": "s0-p120",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "This is more of an issue when we extend the algorithm to 3D shapes in Section 7. For 2D shapes, we only need to limit the size of the hierarchy in a few cases. And also we can see that these grammars still produce a rich variety of shapes and so as a practical matter they fulfill the desired goals.",
+            "es": "Esto es más problemático cuando extendemos el algoritmo a formas 3D en la Sección 7. Para las formas 2D, solo necesitamos limitar el tamaño de la jerarquía en unos pocos casos. Además, podemos ver que estas gramáticas siguen produciendo una gran variedad de formas, por lo que, en la práctica, cumplen los objetivos deseados."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6 USING THE GRAPH GRAMMAR",
+        "es": "6 USO DE LA GRAMÁTICA DE GRAFOS"
+      },
+      "blocks": [
+        {
+          "id": "s0-p122",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Now that we have a graph grammar (Fig. 2d), this section explains how to use it to generate a graph drawing (Fig. 2f). Our approach is described in pseudocode in Algorithm 3. We use the graph grammar to go on a random walk through the space of complete locally similar shapes. Algorithm 3 begins with an empty graph ∅ and changes it incrementally. At each iteration, our method proposes a change to the graph using a rule (Line 3, Sec. 6.1). Each rule specifies what edges and vertices to add or remove, but it does not specify the vertex positions. By setting vertex positions, an angle graph (Fig. 2e) becomes a graph drawing (Fig. 2f). Our method proposes a set of vertex positions (Line 7, Sec. 6.2) which are then accepted or rejected (Line 8, Sec. 6.3). While this is a random process, it can be guided by being selective in which proposals are accepted.",
+            "es": "Ahora que tenemos una gramática de grafos (graph grammar) (Fig. 2d), esta sección explica cómo usarla para generar un dibujo de grafo (graph drawing) (Fig. 2f). Nuestro enfoque se describe en pseudocódigo (pseudocode) en el Algoritmo 3. Usamos la gramática de grafos para realizar un recorrido aleatorio (random walk) por el espacio de las formas completas localmente similares. El Algoritmo 3 comienza con un grafo vacío ∅ y lo modifica de forma incremental. En cada iteración, nuestro método propone un cambio al grafo mediante una regla (línea 3, Sec. 6.1). Cada regla especifica qué aristas y vértices agregar o eliminar, pero no especifica las posiciones de los vértices. Al fijar las posiciones de los vértices, un grafo de ángulos (angle graph) (Fig. 2e) se convierte en un dibujo de grafo (Fig. 2f). Nuestro método propone un conjunto de posiciones de vértices (línea 7, Sec. 6.2) que luego se aceptan o se rechazan (línea 8, Sec. 6.3). Aunque se trata de un proceso aleatorio, puede guiarse siendo selectivos respecto de qué propuestas se aceptan."
+          }
+        },
+        {
+          "id": "alg-3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Algorithm 3 Generate Graph Drawing From Grammar 1: Start with an empty graph ∅. 2: for 𝑛= 1 to 𝑁 do 3: Propose a change to the graph using a rule. 4: for 𝑖= 1 to 𝐼 and not accepted do 5: Find the space of consistent graph drawings: ˆx + K𝐴Λ 6: for 𝑗= 1 to 𝐽 and not accepted do 7: Sample from the space ˆx + K𝐴Λ 8: if sample is acceptable then accept new graph drawing. 9: Free a vertex. Allow its position to change.",
+            "es": "Algoritmo 3 Generar un dibujo de grafo a partir de la gramática 1: Comenzar con un grafo vacío ∅. 2: for 𝑛= 1 to 𝑁 do 3: Proponer un cambio al grafo mediante una regla. 4: for 𝑖= 1 to 𝐼 and not accepted do 5: Encontrar el espacio de dibujos de grafo consistentes: ˆx + K𝐴Λ 6: for 𝑗= 1 to 𝐽 and not accepted do 7: Muestrear del espacio ˆx + K𝐴Λ 8: if la muestra es aceptable then aceptar el nuevo dibujo de grafo. 9: Liberar un vértice. Permitir que su posición cambie."
+          }
+        },
+        {
+          "id": "s0-p133",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "6.1 Propose an Angle Graph",
+            "es": "6.1 Proponer un grafo de ángulos"
+          }
+        },
+        {
+          "id": "s0-p134",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "At each iteration, our method proposes a change to the graph using a production rule. Each DPO rule is bidirectional and can be applied constructively 𝑅→𝐿 or destructively 𝐿→𝑅. Our method applies the rules in both directions with no preference on the direction.",
+            "es": "En cada iteración, nuestro método propone un cambio al grafo mediante una regla de producción (production rule). Cada regla DPO es bidireccional y puede aplicarse de forma constructiva 𝑅→𝐿 o de forma destructiva 𝐿→𝑅. Nuestro método aplica las reglas en ambas direcciones, sin preferencia por ninguna de ellas."
+          }
+        },
+        {
+          "id": "s0-p135",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "To apply a rule, our method matches part of the existing graph to the left 𝐿 or right side 𝑅 of a rule. The match 𝑚 is a morphism depicted in Figure 7 that maps from the left side 𝐿 to the existing graph 𝐺. Determining if a morphism exists between two arbitrary graphs is an NP-hard problem [Cook 1971]. But our graphs are all planar and planar graphs can be matched in linear time [Eppstein 1999]. When a match is found the left or right side is cut out and replaced by the opposite side. There is one special case. A starter rule has an empty graph on its right. Starter rules can create graphs from nothing or delete graphs to nothing.",
+            "es": "Para aplicar una regla, nuestro método hace coincidir una parte del grafo existente con el lado izquierdo 𝐿 o el lado derecho 𝑅 de una regla. La coincidencia 𝑚 es un morfismo (morphism), representado en la Figura 7, que va del lado izquierdo 𝐿 al grafo existente 𝐺. Determinar si existe un morfismo entre dos grafos arbitrarios es un problema NP-difícil (NP-hard) [Cook 1971]. Pero todos nuestros grafos son planares, y los grafos planares (planar graphs) pueden compararse en tiempo lineal [Eppstein 1999]. Cuando se encuentra una coincidencia, se recorta el lado izquierdo o derecho y se reemplaza por el lado opuesto. Hay un caso especial. Una regla inicial (starter rule) tiene un grafo vacío a su derecha. Las reglas iniciales pueden crear grafos a partir de la nada o eliminar grafos hasta dejar la nada."
+          }
+        },
+        {
+          "id": "s0-p136",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "6.2 Propose a Graph Drawing",
+            "es": "6.2 Proponer un dibujo de grafo"
+          }
+        },
+        {
+          "id": "s0-p137",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The next step is to propose a planar graph drawing. Our graph grammars guarantee that all closed loops turn ±360◦. This is a necessary but not a sufficient condition for a planar graph drawing to exist. For a given angle graph, a planar graph drawing may not exist and deciding if it exists is NP-hard [Garg 1998]. But there are many exceptions. The problem can be solved in linear time if the graph is a tree, a simple cycle, or a series-parallel graph [Garg 1998].",
+            "es": "El siguiente paso es proponer un dibujo de grafo planar. Nuestras gramáticas de grafos garantizan que todos los bucles cerrados giran ±360◦. Esta es una condición necesaria, pero no suficiente, para que exista un dibujo de grafo planar. Para un grafo de ángulos dado, puede que no exista un dibujo de grafo planar, y decidir si existe es NP-difícil [Garg 1998]. Pero hay muchas excepciones. El problema puede resolverse en tiempo lineal si el grafo es un árbol, un ciclo simple o un grafo serie-paralelo [Garg 1998]."
+          }
+        },
+        {
+          "id": "s0-p138",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Our approach is to make small incremental changes to an existing graph drawing. Ideally, we would only set the positions of vertices added by the production rule and not move other vertices, but sometimes it is necessary to move them. Our method repeatedly attempts to create a planar graph drawing (Lines 4 - 9). If these attempts fail, it tries a new rule at a new location. Because this problem is NP-hard, we cannot rule out the possibility that it may be exceptionally difficult to produce a planar drawing for some input shapes. But we have not seen this behavior in any of our experiments. Our method makes small incremental changes and exits early if any particular angle graph is difficult to solve.",
+            "es": "Nuestro enfoque consiste en hacer pequeños cambios incrementales a un dibujo de grafo existente. Idealmente, solo fijaríamos las posiciones de los vértices agregados por la regla de producción y no moveríamos otros vértices, pero a veces es necesario moverlos. Nuestro método intenta repetidamente crear un dibujo de grafo planar (líneas 4 - 9). Si estos intentos fallan, prueba una nueva regla en una nueva ubicación. Debido a que este problema es NP-difícil, no podemos descartar la posibilidad de que sea excepcionalmente difícil producir un dibujo planar para algunas formas de entrada. Pero no hemos observado este comportamiento en ninguno de nuestros experimentos. Nuestro método hace pequeños cambios incrementales y termina antes de tiempo si algún grafo de ángulos en particular es difícil de resolver."
+          }
+        },
+        {
+          "id": "s0-p139",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Our eventual goal is to produce a graph drawing that satisfies all requirements listed below in Section 6.3. But first we need to find the space of possible solutions. Following Bokeloh et al. [2012], we will find the nullspace of a linear system.",
+            "es": "Nuestro objetivo final es producir un dibujo de grafo que satisfaga todos los requisitos enumerados más adelante en la Sección 6.3. Pero primero necesitamos encontrar el espacio de soluciones posibles. Siguiendo a Bokeloh et al. [2012], encontraremos el espacio nulo (nullspace) de un sistema lineal."
+          }
+        },
+        {
+          "id": "s0-p140",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The angle of each edge must agree with its label. Each edge label ˜𝑎= (𝑙,𝑟,𝜃) specifies an angle 𝜃. Let u = [cos𝜃, sin𝜃] be the direction of an edge that goes between two vertices located at v0 and v1, then v1 = v0 +𝑠u for some edge length 𝑠. This is the equation for one edge. The equations for all the edges can be combined into one matrix equation Ax = b where x is a column vector of the vertex positions and edge lengths.",
+            "es": "El ángulo de cada arista debe concordar con su etiqueta. Cada etiqueta de arista ˜𝑎= (𝑙,𝑟,𝜃) especifica un ángulo 𝜃. Sea u = [cos𝜃, sin𝜃] la dirección de una arista que va entre dos vértices ubicados en v0 y v1; entonces v1 = v0 +𝑠u para alguna longitud de arista 𝑠. Esta es la ecuación para una arista. Las ecuaciones de todas las aristas pueden combinarse en una sola ecuación matricial Ax = b, donde x es un vector columna con las posiciones de los vértices y las longitudes de las aristas."
+          }
+        },
+        {
+          "id": "s0-p141",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The equation Ax = b may have many solutions or it may have none. If matrix A has a nullspace, let K𝐴 be a basis for this nullspace. If ˆx is a solution, then ˆx + K𝐴Λ is also a solution for any Λ. We propose solutions by sampling from the solution space ˆx + K𝐴Λ.",
+            "es": "La ecuación Ax = b puede tener muchas soluciones o ninguna. Si la matriz A tiene un espacio nulo, sea K𝐴 una base de este espacio nulo. Si ˆx es una solución, entonces ˆx + K𝐴Λ también es una solución para cualquier Λ. Proponemos soluciones muestreando del espacio de soluciones ˆx + K𝐴Λ."
+          }
+        },
+        {
+          "id": "s0-p142",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "On the other hand, Ax = b may not have a solution. The vertex positions may be overconstrained. This is the potential problem with our initial strategy of moving as few vertices as possible. In this case, it is necessary to move more vertices. We use an iterative approach. At each iteration 𝑖, there are a set of free vertices whose position can change. While the vertices are overconstrained, randomly pick a non-free vertex that is adjacent to a free vertex and turn it into a free vertex (Line 9). Its position is now a free variable in our equations and so are the lengths of any adjacent edges. We update A and b accordingly. This gives us additional degrees of freedom which can turn an overconstrained problem into a solvable problem.",
+            "es": "Por otro lado, Ax = b puede no tener solución. Las posiciones de los vértices pueden estar sobrerrestringidas. Este es el problema potencial de nuestra estrategia inicial de mover la menor cantidad posible de vértices. En este caso, es necesario mover más vértices. Usamos un enfoque iterativo. En cada iteración 𝑖, hay un conjunto de vértices libres cuya posición puede cambiar. Mientras los vértices estén sobrerrestringidos, se elige al azar un vértice no libre que sea adyacente a un vértice libre y se convierte en un vértice libre (línea 9). Su posición es ahora una variable libre en nuestras ecuaciones, al igual que las longitudes de las aristas adyacentes. Actualizamos A y b en consecuencia. Esto nos da grados de libertad adicionales que pueden convertir un problema sobrerrestringido en un problema resoluble."
+          }
+        },
+        {
+          "id": "s0-p143",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "6.3 Accept or Reject Proposal",
+            "es": "6.3 Aceptar o rechazar la propuesta"
+          }
+        },
+        {
+          "id": "s0-p144",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The graph drawing must satisfy four requirements: (1) the edges must have the correct angle, (2) the edge lengths must be positive and fit within a specified range, (3) the drawing must be planar i.e. the edges must not intersect, and (4) the drawing must not be rejected by the Metropolis algorithm. (4) is optional.",
+            "es": "El dibujo de grafo debe satisfacer cuatro requisitos: (1) las aristas deben tener el ángulo correcto, (2) las longitudes de las aristas deben ser positivas y caer dentro de un rango especificado, (3) el dibujo debe ser planar, es decir, las aristas no deben intersectarse, y (4) el dibujo no debe ser rechazado por el algoritmo de Metropolis. (4) es opcional."
+          }
+        },
+        {
+          "id": "s0-p145",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "For requirement (2), the user can specify length requirements. Alternatively, we could infer this from training data. The user can specify minimum and maximum edge lengths. The user could strictly set the edge length to one particular value. Or they can require it to be an integer multiple of some length. This is useful for tiled patterns like windows or stairs.",
+            "es": "Para el requisito (2), el usuario puede especificar requisitos de longitud. Alternativamente, podríamos inferirlos a partir de datos de entrenamiento. El usuario puede especificar longitudes mínimas y máximas de las aristas. El usuario podría fijar estrictamente la longitud de la arista en un valor particular. O puede exigir que sea un múltiplo entero de alguna longitud. Esto es útil para patrones en mosaico como ventanas o escaleras."
+          }
+        },
+        {
+          "id": "s0-p146",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Requirement (1) is satisfied by any solution of the form ˆx + K𝐴Λ. Together requirements (1) and (2) have the same form as a linear programming problem consisting of a set of linear constraints and inequalities. But unlike linear programming, this is a sampling problem, not an optimization. We are sampling from the space of locally similar shapes, not optimizing for any particular edge lengths. We use rejection sampling. We sample solutions of the form ˆx + K𝐴Λ and reject samples that do not satisfy the requirements. If 𝐽 samples are rejected, we move onto a new proposal.",
+            "es": "El requisito (1) lo satisface cualquier solución de la forma ˆx + K𝐴Λ. En conjunto, los requisitos (1) y (2) tienen la misma forma que un problema de programación lineal (linear programming), que consiste en un conjunto de restricciones e inecuaciones lineales. Pero a diferencia de la programación lineal, este es un problema de muestreo, no de optimización. Estamos muestreando del espacio de formas localmente similares, no optimizando para ninguna longitud de arista en particular. Usamos muestreo por rechazo (rejection sampling). Muestreamos soluciones de la forma ˆx + K𝐴Λ y rechazamos las muestras que no satisfacen los requisitos. Si se rechazan 𝐽 muestras, pasamos a una nueva propuesta."
+          }
+        },
+        {
+          "id": "s0-p147",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Requirement (4) is an optional way of optimizing the graph drawing using a cost function. Our method can accept or reject the new drawing based on a probability determined by the Metropolis-Hastings Algorithm [Metropolis et al. 1953; Talton et al. 2011]. The cost function is arbitrary. We can optimize for any property. We can specify the desired density of the geometry or a particular edge label we wish to see more or less frequently.",
+            "es": "El requisito (4) es una manera opcional de optimizar el dibujo de grafo mediante una función de costo (cost function). Nuestro método puede aceptar o rechazar el nuevo dibujo con una probabilidad determinada por el algoritmo de Metropolis-Hastings [Metropolis et al. 1953; Talton et al. 2011]. La función de costo es arbitraria. Podemos optimizar para cualquier propiedad. Podemos especificar la densidad deseada de la geometría o una etiqueta de arista particular que deseemos ver con mayor o menor frecuencia."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "title": {
+        "en": "7 EXTENSION TO 3D SHAPES",
+        "es": "7 EXTENSIÓN A FORMAS 3D"
+      },
+      "blocks": [
+        {
+          "id": "s0-p149",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Up to this point our discussion has focused on 2D shapes. But our method can be extended to generate 3D shapes with a few changes. In 3D, the input and output shapes consist of 3D vertices, edges, faces, and volumes. This can be represented as a graph with the edges labeled based on the adjacent faces and volumes. In the 2D case, the boundary 𝜕𝐺 was a 1D path around a 2D graph 𝐺. But in the 3D case, the boundary 𝜕𝐺 is a 2D surface. In the 2D case, the boundary 𝜕𝐺 could be represented by a 1D string because it was 1D. But in the 3D case, the boundary 𝜕𝐺 is a 2D graph. When we go from the graph 𝐺 to the boundary 𝜕𝐺, we essentially lose one dimension. A 3D graph 𝐺 has a 2D boundary graph 𝜕𝐺. The 2D faces of 𝐺 intersect 𝜕𝐺 along 1D edges. The 1D edges of 𝐺 intersect 𝜕𝐺 at 0D points. These are the points we have been illustrating as empty circles at the end of each half-edge.",
+            "es": "Hasta este punto, nuestra discusión se ha centrado en formas 2D. Pero nuestro método puede extenderse para generar formas 3D con unos pocos cambios. En 3D, las formas de entrada y de salida consisten en vértices, aristas, caras y volúmenes 3D. Esto puede representarse como un grafo con las aristas etiquetadas según las caras y los volúmenes adyacentes. En el caso 2D, la frontera 𝜕𝐺 era un camino 1D alrededor de un grafo 2D 𝐺. Pero en el caso 3D, la frontera 𝜕𝐺 es una superficie 2D. En el caso 2D, la frontera 𝜕𝐺 podía representarse mediante una cadena 1D porque era 1D. Pero en el caso 3D, la frontera 𝜕𝐺 es un grafo 2D. Cuando pasamos del grafo 𝐺 a la frontera 𝜕𝐺, esencialmente perdemos una dimensión. Un grafo 3D 𝐺 tiene un grafo frontera 2D 𝜕𝐺. Las caras 2D de 𝐺 intersectan a 𝜕𝐺 a lo largo de aristas 1D. Las aristas 1D de 𝐺 intersectan a 𝜕𝐺 en puntos 0D. Estos son los puntos que hemos ilustrado como círculos vacíos al final de cada semiarista."
+          }
+        },
+        {
+          "id": "s0-p150",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The algorithm is very similar in 2D and 3D. The input shape is disassembled into primitives. The primitives are glued together to form a graph hierarchy. Loop gluing is possible when two half-edges sharing a common face turn ±360◦. We define a coordinate system for each face from which we can compute tangent angles 𝜃 and positive ∧ and negative ∨ turns. In 2D, we find graph grammars by matching boundary strings. In 3D, the boundary is a graph, so we find graph isomorphisms instead.",
+            "es": "El algoritmo es muy similar en 2D y en 3D. La forma de entrada se desensambla en primitivas. Las primitivas se pegan entre sí para formar una jerarquía de grafos. El pegado en bucle es posible cuando dos semiaristas que comparten una cara común giran ±360◦. Definimos un sistema de coordenadas para cada cara, a partir del cual podemos calcular ángulos tangentes 𝜃 y giros positivos ∧ y negativos ∨. En 2D, encontramos gramáticas de grafos haciendo coincidir cadenas de frontera. En 3D, la frontera es un grafo, por lo que en su lugar buscamos isomorfismos de grafos (graph isomorphisms)."
+          }
+        },
+        {
+          "id": "s0-p151",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "We generalize the splice operation 𝐴|𝐵| for the 3D case. Splicing is now a graph operation where we swap the connections between two edges. Below is an example of this operation. It merges two separate graphs into one:",
+            "es": "Generalizamos la operación de empalme (splice) 𝐴|𝐵| para el caso 3D. El empalme es ahora una operación de grafos en la que intercambiamos las conexiones entre dos aristas. A continuación se muestra un ejemplo de esta operación. Fusiona dos grafos separados en uno:"
+          }
+        },
+        {
+          "id": "s0-p152",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The two graphs are joined along a common face. Faces are edges in the boundary. Edge 1 goes from vertex 𝑎 to 𝑏. Edge 2 from 𝑐 to 𝑑. The splice operation replaces these edges. Edge 3 goes from 𝑎 to 𝑐. Edge 4 from 𝑏 to 𝑑. This is the same splice operation we have been using. It only requires a shift in perspective thinking of the boundary 𝜕𝐺 as a graph rather than a string.",
+            "es": "Los dos grafos se unen a lo largo de una cara común. Las caras son aristas en la frontera. La arista 1 va del vértice 𝑎 al 𝑏. La arista 2, de 𝑐 a 𝑑. La operación de empalme reemplaza estas aristas. La arista 3 va de 𝑎 a 𝑐. La arista 4, de 𝑏 a 𝑑. Esta es la misma operación de empalme que hemos estado usando. Solo requiere un cambio de perspectiva: pensar en la frontera 𝜕𝐺 como un grafo en lugar de una cadena."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s8",
+      "title": {
+        "en": "8 RESULTS",
+        "es": "8 RESULTADOS"
+      },
+      "blocks": [
+        {
+          "id": "s0-p154",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Figures 1, 8, and 9 show shapes that are automatically generated from an example. The inputs are an example shape, information about the expected edge lengths (Sec. 6.3) and optionally instructions for decorating the vertices, edges, and faces (Appendix B). From the example shape, our algorithm automatically generates primitives, then a graph grammar, and then a decorated graph drawing. Algorithm 3 contains a few parameters. We set 𝐼= 5 and 𝐽= 10 for all the results. We vary the number of iterations 𝑁 as needed based on the size of the output and the amount of geometric detail desired. Table 1 shows various statistics for the results in Figure 9. Some of the results require some extra handling to include a ground plane or to be fully connected (see Appendix A).",
+            "es": "Las Figuras 1, 8 y 9 muestran formas que se generan automáticamente a partir de un ejemplo. Las entradas son una forma de ejemplo, información sobre las longitudes de arista esperadas (Sec. 6.3) y, opcionalmente, instrucciones para decorar los vértices, las aristas y las caras (Apéndice B). A partir de la forma de ejemplo, nuestro algoritmo genera automáticamente primitivas (primitives), luego una gramática de grafos (graph grammar) y después un dibujo de grafo decorado. El Algoritmo 3 contiene algunos parámetros. Fijamos 𝐼= 5 y 𝐽= 10 para todos los resultados. Variamos el número de iteraciones 𝑁 según sea necesario, con base en el tamaño de la salida y la cantidad de detalle geométrico deseado. La Tabla 1 muestra varias estadísticas de los resultados de la Figura 9. Algunos de los resultados requieren un manejo adicional para incluir un plano de suelo (ground plane) o para ser totalmente conexos (véase el Apéndice A)."
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Fig. 8. From each set of primitives, a graph grammar is automatically generated and then it is used to generate shapes.",
+            "es": "Figura 8: A partir de cada conjunto de primitivas, se genera automáticamente una gramática de grafos y luego se usa para generar formas."
+          }
+        },
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-9.png",
+          "text": {
+            "en": "Fig. 9. From each example shape, a graph grammar is automatically generated. We show two output shapes produced from each grammar. One is large-scale and one is detailed.",
+            "es": "Figura 9: A partir de cada forma de ejemplo, se genera automáticamente una gramática de grafos. Mostramos dos formas de salida producidas con cada gramática. Una es a gran escala y la otra es detallada."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 10,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1. Statistics for the Large-Scale Generated Shapes in Figure 1 and 9. Shows total computation time and time for creating grammars. The remaining time is for rejection sampling and finding the match 𝑚 in Fig. 7. Shows number of iterations 𝑁, number of input primitives, output primitives, graphs in the hierarchy, and rules in the grammar.",
+            "es": "Tabla 1: Estadísticas de las formas generadas a gran escala de las Figuras 1 y 9. Muestra el tiempo total de cómputo y el tiempo de creación de las gramáticas. El tiempo restante corresponde al muestreo por rechazo (rejection sampling) y a la búsqueda de la coincidencia 𝑚 en la Fig. 7. Muestra el número de iteraciones 𝑁, el número de primitivas de entrada, de primitivas de salida, de grafos en la jerarquía (hierarchy) y de reglas en la gramática."
+          }
+        },
+        {
+          "id": "s0-p155",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The graph grammars generated for Figure 8 are relatively simple and easier to understand. The graph grammars generated for Figure 9 are much more complicated. Figure 8 demonstrates a number of the techniques we describe including starter rules, stubs, and grammars with no loops.",
+            "es": "Las gramáticas de grafos generadas para la Figura 8 son relativamente simples y más fáciles de entender. Las gramáticas de grafos generadas para la Figura 9 son mucho más complicadas. La Figura 8 demuestra varias de las técnicas que describimos, entre ellas las reglas iniciales (starter rules), los remates (stubs) y las gramáticas sin bucles (loops)."
+          }
+        },
+        {
+          "id": "s0-p157",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Figures 1 and 9 shows several examples of how an artist can use our method to generate large complex shapes like castles, caves, space stations, processing plants, islands, neighborhood streets, flowers, villages, trees, houses, and city skylines. We apply bending in Figures 9a,d-g. Figures 8h,i,q,r and 9i-l show some preliminary results for 3D shapes.",
+            "es": "Las Figuras 1 y 9 muestran varios ejemplos de cómo un artista puede usar nuestro método para generar formas grandes y complejas como castillos, cuevas, estaciones espaciales, plantas de procesamiento, islas, calles de vecindarios, flores, aldeas, árboles, casas y siluetas urbanas. Aplicamos doblado (bending) en las Figuras 9a,d-g. Las Figuras 8h,i,q,r y 9i-l muestran algunos resultados preliminares para formas 3D."
+          }
+        },
+        {
+          "id": "s0-p158",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Only a few of the 2D results require us to limit the size of the hierarchy as discussed in Section 5.7, namely Figures 1, 9e,g,h. And Figures 9e,h only have this problem because we add restrictions according to Appendix A. (Fig. 9e is fully connected and Fig. 9h has no loops.) 3D shapes provide more ways for the primitives to be glued together. Most of the 3D shapes require us to limit the size of the hierarchy which can impact the expressiveness of the grammar.",
+            "es": "Solo unos pocos de los resultados 2D nos obligan a limitar el tamaño de la jerarquía, como se discute en la Sección 5.7, a saber, las Figuras 1, 9e,g,h. Y las Figuras 9e,h solo tienen este problema porque agregamos restricciones de acuerdo con el Apéndice A. (La Fig. 9e es totalmente conexa y la Fig. 9h no tiene bucles.) Las formas 3D ofrecen más maneras de pegar las primitivas entre sí. La mayoría de las formas 3D nos obligan a limitar el tamaño de la jerarquía, lo que puede afectar la expresividad de la gramática."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s9",
+      "title": {
+        "en": "9 DISCUSSION",
+        "es": "9 DISCUSIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s0-p159",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "9.1 Comparison",
+            "es": "9.1 Comparación"
+          }
+        },
+        {
+          "id": "s0-p160",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Most procedural modeling techniques use hand-crafted rules designed by experts [Christiansen and Bærentzen 2012; Lindenmayer 1968; Müller et al. 2006; Parish and Müller 2001; Pogrzebacz and Ilčík 2019; Prusinkiewicz 1986; Smelik et al. 2014; Wong et al. 1998; Wonka et al. 2003]. There are many of these techniques and they can produce beautiful intricate shapes. But creating these rules is difficult especially for non-experts.",
+            "es": "La mayoría de las técnicas de modelado procedural (procedural modeling) usan reglas hechas a mano y diseñadas por expertos [Christiansen and Bærentzen 2012; Lindenmayer 1968; Müller et al. 2006; Parish and Müller 2001; Pogrzebacz and Ilčík 2019; Prusinkiewicz 1986; Smelik et al. 2014; Wong et al. 1998; Wonka et al. 2003]. Hay muchas de estas técnicas y pueden producir formas hermosas e intrincadas. Pero crear estas reglas es difícil, especialmente para quienes no son expertos."
+          }
+        },
+        {
+          "id": "s0-p161",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "There are several inverse procedural modeling techniques, but they are usually restricted to particular types of shapes like building facades [Aliaga et al. 2007; Demir et al. 2016; Martinovic and Van Gool 2013; Wu et al. 2014] or trees [Guo et al. 2020; Stava et al. 2010, 2014] and cannot handle arbitrary shapes. These methods also do not explore new variations very well. They can create a grammar from an input shape and then a user could edit the grammar to produce slightly different output shapes. But the output is still quite similar to the input. Our method greatly expands and generalizes the input, exploring a large space of locally similar shapes.",
+            "es": "Existen varias técnicas de modelado procedural inverso (inverse procedural modeling), pero suelen estar restringidas a tipos particulares de formas, como fachadas de edificios [Aliaga et al. 2007; Demir et al. 2016; Martinovic and Van Gool 2013; Wu et al. 2014] o árboles [Guo et al. 2020; Stava et al. 2010, 2014], y no pueden manejar formas arbitrarias. Estos métodos tampoco exploran muy bien nuevas variaciones. Pueden crear una gramática a partir de una forma de entrada y luego un usuario podría editar la gramática para producir formas de salida ligeramente distintas. Pero la salida sigue siendo bastante similar a la entrada. Nuestro método expande y generaliza enormemente la entrada, y explora un amplio espacio de formas localmente similares."
+          }
+        },
+        {
+          "id": "s0-p162",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Many techniques have a common failure point. Input shapes like Figure 8d that have a tree-like structure are relatively easy to handle. Several techniques handle them well such as the simple algorithm described in Section 4.4. Completing a path by attaching a dead end is simple. The difficulty comes when that is not an option and the paths must be formed into closed loops. Most of the inputs in Figures 8 & 9 have this property. Our method solves this difficult problem.",
+            "es": "Muchas técnicas tienen un punto de falla común. Las formas de entrada con estructura de árbol, como la Figura 8d, son relativamente fáciles de manejar. Varias técnicas las manejan bien, como el algoritmo simple descrito en la Sección 4.4. Completar un camino agregando un extremo sin salida (dead end) es sencillo. La dificultad aparece cuando esa no es una opción y los caminos deben formar bucles cerrados. La mayoría de las entradas de las Figuras 8 y 9 tienen esta propiedad. Nuestro método resuelve este difícil problema."
+          }
+        },
+        {
+          "id": "s0-p163",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Texture synthesis techniques have trouble with this issue. They are designed to create locally similar textures. They work well on normal textures and on some rasterized geometric shapes. They work well on shapes with lots of dead ends like Figure 8d, but not well on shapes with closed loops. They break down in one of two ways. Either the result stops being locally similar or the result is almost identical to the input with no new variations explored. Figure 10 compares our method with a texture synthesis method [Gatys et al. 2015].",
+            "es": "Las técnicas de síntesis de texturas (texture synthesis) tienen problemas con este asunto. Están diseñadas para crear texturas localmente similares. Funcionan bien con texturas normales y con algunas formas geométricas rasterizadas. Funcionan bien con formas que tienen muchos extremos sin salida, como la Figura 8d, pero no con formas que tienen bucles cerrados. Fallan de una de dos maneras: o el resultado deja de ser localmente similar, o el resultado es casi idéntico a la entrada y no se exploran nuevas variaciones. La Figura 10 compara nuestro método con un método de síntesis de texturas [Gatys et al. 2015]."
+          }
+        },
+        {
+          "id": "fig-10",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-10.png",
+          "text": {
+            "en": "Fig. 10. Prior work has trouble with loops. Existing methods either do not close the loops [Gatys et al. 2015] or they directly copy the input with only minor changes to the aspect ratio [Bokeloh et al. 2010]. The red lines in Bokeloh et al.’s grammar are their docking sites.",
+            "es": "Figura 10: Los trabajos previos tienen problemas con los bucles. Los métodos existentes no cierran los bucles [Gatys et al. 2015] o copian directamente la entrada con solo cambios menores en la relación de aspecto [Bokeloh et al. 2010]. Las líneas rojas en la gramática de Bokeloh et al. son sus sitios de acoplamiento (docking sites)."
+          }
+        },
+        {
+          "id": "s0-p164",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Wu and Zheng [2022] generate 3D shapes from an example. Their method can robustly handle noisy volumetric data, while ours assumes exact self-similarity. But their method overfits to the example and does not fully explore the space of locally similar shapes. In the example in Figure 11, their method only changes the shape’s aspect ratio.",
+            "es": "Wu and Zheng [2022] generan formas 3D a partir de un ejemplo. Su método puede manejar de forma robusta datos volumétricos con ruido, mientras que el nuestro supone autosimilitud exacta. Pero su método se sobreajusta (overfits) al ejemplo y no explora por completo el espacio de formas localmente similares. En el ejemplo de la Figura 11, su método solo cambia la relación de aspecto de la forma."
+          }
+        },
+        {
+          "id": "fig-11",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-11.png",
+          "text": {
+            "en": "Fig. 11. 3D Comparison. Wu and Zheng, 2022 overfit to the input model.",
+            "es": "Figura 11: Comparación 3D. Wu and Zheng, 2022 se sobreajustan al modelo de entrada."
+          }
+        },
+        {
+          "id": "s0-p165",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "The most closely related method is the highly influential work of Bokeloh et al. [2010]. Their method takes an input shape and automatically creates a shape grammar that generates locally similar shapes. Their method cuts the input shape into pieces by finding partial symmetries where the input shape matches itself under a rigid transformation. But unlike our method which cuts the input into the smallest possible primitives, their method only allows cuts at docking sites defined as sites that divide the shape into two disconnected pieces. So while their method cuts the input into pieces, their pieces can be much larger than our primitives. And so their method cannot produce every locally similar shape. Their method works well for shapes with many dead ends like Figure 8d, but it has trouble with shapes with closed loops. Figure 10 shows that their method only produces minor variations on the input shape while our method produces the full range of variations. Furthermore their method generates similar limited results on most of the examples in Figures 8 and 9.",
+            "es": "El método más estrechamente relacionado es el trabajo de gran influencia de Bokeloh et al. [2010]. Su método toma una forma de entrada y crea automáticamente una gramática de formas (shape grammar) que genera formas localmente similares. Su método corta la forma de entrada en piezas al encontrar simetrías parciales, donde la forma de entrada coincide consigo misma bajo una transformación rígida. Pero a diferencia de nuestro método, que corta la entrada en las primitivas más pequeñas posibles, su método solo permite cortes en sitios de acoplamiento, definidos como sitios que dividen la forma en dos piezas desconectadas. Así que, aunque su método corta la entrada en piezas, sus piezas pueden ser mucho más grandes que nuestras primitivas. Y por eso su método no puede producir todas las formas localmente similares. Su método funciona bien con formas que tienen muchos extremos sin salida, como la Figura 8d, pero tiene problemas con formas que tienen bucles cerrados. La Figura 10 muestra que su método solo produce variaciones menores de la forma de entrada, mientras que nuestro método produce todo el rango de variaciones. Además, su método genera resultados limitados similares en la mayoría de los ejemplos de las Figuras 8 y 9."
+          }
+        },
+        {
+          "id": "s0-p166",
+          "type": "heading",
+          "page": 13,
+          "text": {
+            "en": "9.2 Practical Utility",
+            "es": "9.2 Utilidad práctica"
+          }
+        },
+        {
+          "id": "s0-p167",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "A natural application of this technology is in video games and virtual worlds where a rich variety of shapes are needed. Our method is well-suited towards generating the type of randomized levels used in many games. It is also useful for creating decorative designs like floral patterns. Our method has the advantage of only requiring small amount of training data. It can generalize from a limited data set and create novel variations not found in it.",
+            "es": "Una aplicación natural de esta tecnología son los videojuegos y los mundos virtuales, donde se necesita una rica variedad de formas. Nuestro método es muy adecuado para generar el tipo de niveles aleatorios que se usan en muchos juegos. También es útil para crear diseños decorativos, como patrones florales. Nuestro método tiene la ventaja de requerir solo una pequeña cantidad de datos de entrenamiento. Puede generalizar a partir de un conjunto de datos limitado y crear variaciones novedosas que no se encuentran en él."
+          }
+        },
+        {
+          "id": "s0-p168",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "For this type of approach to work properly, the input shape must contain repeated elements. For instance, if the input was a model of a dog, our method would not find repeated elements and would not generate new varieties of dogs from the input. Our method assumes some edges repeat exactly and does not handle noisy input data.",
+            "es": "Para que este tipo de enfoque funcione correctamente, la forma de entrada debe contener elementos repetidos. Por ejemplo, si la entrada fuera un modelo de un perro, nuestro método no encontraría elementos repetidos y no generaría nuevas variedades de perros a partir de la entrada. Nuestro método supone que algunas aristas se repiten exactamente y no maneja datos de entrada con ruido."
+          }
+        },
+        {
+          "id": "s0-p169",
+          "type": "heading",
+          "page": 13,
+          "text": {
+            "en": "9.3 User Control",
+            "es": "9.3 Control del usuario"
+          }
+        },
+        {
+          "id": "s0-p170",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Our method generates locally similar shapes at random. It enforces local constraints, but not large-scale constraints. Large-scale constraints are needed in many applications to give the user more control over the results. Learning large-scale constraints from examples is challenging and would require a larger training set.",
+            "es": "Nuestro método genera formas localmente similares al azar. Impone restricciones locales, pero no restricciones a gran escala. En muchas aplicaciones se necesitan restricciones a gran escala para dar al usuario más control sobre los resultados. Aprender restricciones a gran escala a partir de ejemplos es un reto y requeriría un conjunto de entrenamiento más grande."
+          }
+        },
+        {
+          "id": "s0-p171",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "In Section 6.3, we discussed a simple way of combining our method with an MCMC approach to optimize for an arbitrary cost function. Such an approach can apply broadly to many different goals, but can be slow. And formulating the right cost function is also an important, difficult task that greatly depends on the type of application.",
+            "es": "En la Sección 6.3 discutimos una forma simple de combinar nuestro método con un enfoque MCMC para optimizar una función de costo arbitraria. Un enfoque así puede aplicarse ampliamente a muchos objetivos distintos, pero puede ser lento. Y formular la función de costo adecuada también es una tarea importante y difícil que depende en gran medida del tipo de aplicación."
+          }
+        },
+        {
+          "id": "s0-p172",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Several other methods focus more on large-scale constraints. Some methods are targeted to specific applications like road networks [Vanegas et al. 2012] or plant ecosystems [Pałubicki et al. 2022]. While others discuss constraints that apply across a wide range of shapes [Dang et al. 2015; Ritchie et al. 2015; Talton et al. 2011]. Our method could be combined with some of these approaches in future work.",
+            "es": "Varios otros métodos se centran más en las restricciones a gran escala. Algunos métodos están dirigidos a aplicaciones específicas, como las redes viales [Vanegas et al. 2012] o los ecosistemas vegetales [Pałubicki et al. 2022]. Mientras que otros discuten restricciones que se aplican a una amplia gama de formas [Dang et al. 2015; Ritchie et al. 2015; Talton et al. 2011]. Nuestro método podría combinarse con algunos de estos enfoques en trabajos futuros."
+          }
+        },
+        {
+          "id": "s0-p173",
+          "type": "heading",
+          "page": 14,
+          "text": {
+            "en": "9.4 Limitations and Future Work",
+            "es": "9.4 Limitaciones y trabajo futuro"
+          }
+        },
+        {
+          "id": "s0-p174",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "More work is needed to handle the large set of possible gluing combinations for 3D shapes. More sophisticated tools are needed to narrowly focus on parts of the graph hierarchy where production rules can be found rather than such a broad search.",
+            "es": "Se necesita más trabajo para manejar el gran conjunto de posibles combinaciones de pegado (gluing) en formas 3D. Se necesitan herramientas más sofisticadas para enfocarse de manera estrecha en las partes de la jerarquía de grafos donde se pueden encontrar reglas de producción, en lugar de realizar una búsqueda tan amplia."
+          }
+        },
+        {
+          "id": "s0-p175",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Section 6 describes how create planar graph drawing through rejection sampling. This works fine for most grammar rules, but in some cases it is very difficult to find planar graph drawings. More sophisticated tools for generating planar graph drawings are needed.",
+            "es": "La Sección 6 describe cómo crear un dibujo de grafo planar mediante muestreo por rechazo. Esto funciona bien para la mayoría de las reglas de la gramática, pero en algunos casos es muy difícil encontrar dibujos de grafo planares. Se necesitan herramientas más sofisticadas para generar dibujos de grafo planares."
+          }
+        },
+        {
+          "id": "s0-p176",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "We assume the edges can be stretched enough that forming 360◦ loops without self-intersection is not difficult. But this assumption breaks down when there are tight restrictions on the edge lengths such as when the input is a set of connectable tiles. This scenario is handled well by tile-based techniques [Merrell 2007]. It may be possible to combine these two approaches.",
+            "es": "Suponemos que las aristas pueden estirarse lo suficiente como para que formar bucles de 360◦ sin autointersección no sea difícil. Pero esta suposición falla cuando hay restricciones estrictas sobre las longitudes de las aristas, como cuando la entrada es un conjunto de teselas conectables. Este escenario es bien manejado por las técnicas basadas en teselas [Merrell 2007]. Podría ser posible combinar estos dos enfoques."
+          }
+        },
+        {
+          "id": "s0-p177",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Our method assumes the input contains exact self-similarity and does not handle noisy input data. We can bend and deform the shapes as a post-processing step, but these deformations could be considered when creating the grammar.",
+            "es": "Nuestro método supone que la entrada contiene autosimilitud exacta y no maneja datos de entrada con ruido. Podemos doblar y deformar las formas como un paso de posprocesamiento, pero estas deformaciones podrían considerarse al crear la gramática."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ack",
+      "title": {
+        "en": "ACKNOWLEDGMENTS",
+        "es": "AGRADECIMIENTOS"
+      },
+      "blocks": [
+        {
+          "id": "s0-p179",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Thank you to Sylvain Lefebvre, Martin Ilčík, Élie Michel, Vladlen Koltun, Peter Djeu, and Martin Bokeloh for helpful comments and suggestions. Thank you to Morgan McGrath and Abigail Chamberlain for illustrations used to decorate the 2D results. Patent Pending.",
+            "es": "Gracias a Sylvain Lefebvre, Martin Ilčík, Élie Michel, Vladlen Koltun, Peter Djeu y Martin Bokeloh por sus útiles comentarios y sugerencias. Gracias a Morgan McGrath y Abigail Chamberlain por las ilustraciones usadas para decorar los resultados 2D. Patente en trámite."
+          }
+        }
+      ]
+    },
+    {
+      "id": "appa",
+      "title": {
+        "en": "A SPECIAL CASES",
+        "es": "A CASOS ESPECIALES"
+      },
+      "blocks": [
+        {
+          "id": "appa-p1",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Infinitely-Long Lines. We may want the example and output shapes to contain lines that do not end. For example, a line for the ground extends indefinitely. Our method generates shapes within a finite space. We can treat the border of the space as part of the input shape. Lines that extend infinitely far are modeled as lines that intersect this border.",
+            "es": "Líneas infinitamente largas. Es posible que queramos que la forma de ejemplo y las formas de salida contengan líneas que no terminan. Por ejemplo, una línea para el suelo se extiende indefinidamente. Nuestro método genera formas dentro de un espacio finito. Podemos tratar el borde del espacio como parte de la forma de entrada. Las líneas que se extienden infinitamente lejos se modelan como líneas que intersectan este borde."
+          }
+        },
+        {
+          "id": "appa-p2",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Connected Shapes. We may want the output graph to be fully connected. This can be done by (1) not allowing starter rules to be used more than once, and (2) disallowing rules that use multiple spliced graphs.",
+            "es": "Formas conexas. Es posible que queramos que el grafo de salida sea totalmente conexo. Esto puede lograrse (1) no permitiendo que las reglas iniciales se usen más de una vez y (2) prohibiendo las reglas que usan múltiples grafos empalmados (spliced)."
+          }
+        },
+        {
+          "id": "appa-p3",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "No Loops. We also may want our output to not contain loops such as for streams and trees. This can be done by (1) disallowing loop gluing and (2) disallowing rules that use multiple spliced graphs.",
+            "es": "Sin bucles. También podemos querer que nuestra salida no contenga bucles, como en el caso de arroyos y árboles. Esto puede lograrse (1) prohibiendo el pegado de bucles y (2) prohibiendo las reglas que usan múltiples grafos empalmados."
+          }
+        }
+      ]
+    },
+    {
+      "id": "appb",
+      "title": {
+        "en": "B DECORATED GRAPH DRAWINGS",
+        "es": "B DIBUJOS DE GRAFOS DECORADOS"
+      },
+      "blocks": [
+        {
+          "id": "appb-p1",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Decorations can be added to the graph drawings as an optional postprocessing step. Adding decorations like this is a common practice in many procedural modeling techniques [Müller et al. 2006; Wong et al. 1998]. This allows us to use a simplified representation that acts as a proxy for a more detailed final result. The user can specify images or geometry that should be added or tiled.",
+            "es": "Se pueden agregar decoraciones a los dibujos de grafos como un paso opcional de posprocesamiento. Agregar decoraciones de esta manera es una práctica común en muchas técnicas de modelado procedural [Müller et al. 2006; Wong et al. 1998]. Esto nos permite usar una representación simplificada que actúa como un sustituto (proxy) de un resultado final más detallado. El usuario puede especificar imágenes o geometría que deban agregarse o repetirse en mosaico."
+          }
+        },
+        {
+          "id": "appb-p2",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Bending. The user can also allow some edges to bend. To bend the edges, we traverse each edge in the graph, divide it into small segments and bend each segment by a random angle. The result is a new bent graph drawing. But this is just an intermediate solution since the bending can break some of the cycles in the drawing. The final positions are found using linear least squares. We find the optimal positions such that the change in position between two adjacent points matches the bent drawing as closely as possible while preserving all cycles.",
+            "es": "Doblado. El usuario también puede permitir que algunas aristas se doblen. Para doblar las aristas, recorremos cada arista del grafo, la dividimos en segmentos pequeños y doblamos cada segmento en un ángulo aleatorio. El resultado es un nuevo dibujo de grafo doblado. Pero esto es solo una solución intermedia, ya que el doblado puede romper algunos de los ciclos del dibujo. Las posiciones finales se encuentran mediante mínimos cuadrados lineales (linear least squares). Encontramos las posiciones óptimas de modo que el cambio de posición entre dos puntos adyacentes coincida lo más posible con el dibujo doblado, preservando todos los ciclos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "appc",
+      "title": {
+        "en": "C NO COMPLETE DESCENDANTS EXAMPLE",
+        "es": "C EJEMPLO SIN DESCENDIENTES COMPLETOS"
+      },
+      "blocks": [
+        {
+          "id": "appc-p1",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Following the discussion in Section 5.6, we wish to show that a graph has no complete descendants. Consider the primitives below left and the graph below right. We will show that the graph 𝑦̅01∨𝑥01∧𝑥̅02𝑥02∧ has no complete descendants:",
+            "es": "Siguiendo la discusión de la Sección 5.6, deseamos mostrar que un grafo no tiene descendientes completos. Consideremos las primitivas de abajo a la izquierda y el grafo de abajo a la derecha. Mostraremos que el grafo 𝑦̅01∨𝑥01∧𝑥̅02𝑥02∧ no tiene descendientes completos:"
+          }
+        },
+        {
+          "id": "appc-p2",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Note that the half-edge 𝑦̅01 is pointed in the −𝑦 direction and is adjacent to the faces labeled 0 and 1. A graph can be completed if there is some sequence of gluing operations that can transform the boundary string to ∧. This is impossible. Consider the half-edge 𝑦̅01. There is no way to loop glue it. Here is a decision tree showing the result of every possible graph gluing operation starting with 𝑦̅01:",
+            "es": "Nótese que la semiarista (half-edge) 𝑦̅01 apunta en la dirección −𝑦 y es adyacente a las caras etiquetadas 0 y 1. Un grafo puede completarse si existe alguna secuencia de operaciones de pegado que pueda transformar la cadena de frontera (boundary string) en ∧. Esto es imposible. Consideremos la semiarista 𝑦̅01. No hay manera de pegarla en bucle. Aquí hay un árbol de decisión (decision tree) que muestra el resultado de cada posible operación de pegado de grafos a partir de 𝑦̅01:"
+          }
+        },
+        {
+          "id": "fig-12",
+          "type": "figure",
+          "page": 15,
+          "image": "fig/fig-12.png",
+          "text": {
+            "en": "Fig. 12. A decision tree of possible gluing operations starting with 𝑦̅01.",
+            "es": "Figura 12: Un árbol de decisión de posibles operaciones de pegado a partir de 𝑦̅01."
+          }
+        },
+        {
+          "id": "appc-p4",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "No matter which choice we take we never get any closer to completing the graph. Gluing has the effect of doing a string replacement. We keep trying to replace the first half-edge, but no matter which decision we make we end up back with 𝑦̅01 as the first half-edge and a turn added in the wrong direction. Every path down the decision tree cycles: 𝑦̅01 →𝑥̅11 →𝑥̅12 →∨𝑦01∧→∨𝑦̅01∧ without us getting any closer to completing the graph. It is impossible to complete the graph 𝑦̅01∨𝑥01∧𝑥̅02𝑥02∧.",
+            "es": "Sin importar qué opción tomemos, nunca nos acercamos más a completar el grafo. El pegado tiene el efecto de hacer un reemplazo de cadenas. Seguimos intentando reemplazar la primera semiarista, pero sin importar qué decisión tomemos, terminamos de nuevo con 𝑦̅01 como la primera semiarista y con un giro agregado en la dirección equivocada. Cada camino del árbol de decisión cae en un ciclo: 𝑦̅01 →𝑥̅11 →𝑥̅12 →∨𝑦01∧→∨𝑦̅01∧ sin que nos acerquemos más a completar el grafo. Es imposible completar el grafo 𝑦̅01∨𝑥01∧𝑥̅02𝑥02∧."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "REFERENCES"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Daniel G. Aliaga, Paul A. Rosen, and Daniel R. Bekins. 2007. Style Grammars for Interactive Visualization of Architecture. IEEE Transactions on Visualization and Computer Graphics 13, 4 (2007), 786–797."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Connelly Barnes, Eli Shechtman, Adam Finkelstein, and Dan B Goldman. 2009. PatchMatch: A Randomized Correspondence Algorithm for Structural Image Editing. ACM Transactions on Graphics (Proc. SIGGRAPH) 28, 3 (2009)."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Martin Bokeloh, Michael Wand, and Hans-Peter Seidel. 2010. A Connection between Partial Symmetry and Inverse Procedural Modeling. ACM Trans. Graph. 29, 4 (2010)."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Martin Bokeloh, Michael Wand, Hans-Peter Seidel, and Vladlen Koltun. 2012. An Algebraic Model for Parameterized Shape Editing. ACM Trans. Graph. 31, 4 (2012)."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Asger Nyman Christiansen and Jakob Andreas Bærentzen. 2012. Generic graph grammar: a simple grammar for generic procedural modelling. In SCCG."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Stephen A. Cook. 1971. The Complexity of Theorem-Proving Procedures (STOC ’71). Association for Computing Machinery, New York, NY, USA, 151–158."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "George R. Cross and Anil K. Jain. 1983. Markov Random Field Texture Models. IEEE Transactions on Pattern Analysis and Machine Intelligence PAMI-5, 1 (1983), 25–39."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Minh Dang, Stefan Lienhard, Duygu Ceylan, Boris Neubert, Peter Wonka, and Mark Pauly. 2015. Interactive Design of Probability Density Functions for Shape Grammars. ACM Trans. Graph. 34, 6 (2015)."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "İlke Demir, Daniel G. Aliaga, and Bedrich Benes. 2016. Proceduralization for Editing 3D Architectural Models. In 2016 Fourth International Conference on 3D Vision (3DV). 194–202."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Alexei Efros and Thomas Leung. 1999. Texture synthesis by non-parametric sampling. In ICCV, Vol. 2. 1033–1038."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Hartmut Ehrig. 1979. Introduction to the algebraic theory of graph grammars. In Graph-Grammars and Their Application to Computer Science and Biology, Volker Claus, Hartmut Ehrig, and Grzegorz Rozenberg (Eds.). Springer Berlin Heidelberg, Berlin, Heidelberg, 1–69."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "H. Ehrig, M. Pfender, and H. J. Schneider. 1973. Graph-grammars: An algebraic approach. In 14th Annual Symposium on Switching and Automata Theory (swat 1973). 167–180."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "David Eppstein. 1999. Subgraph isomorphism in planar graphs and related problems. Journal of Graph Algorithms and Applications 3, 1-3 (1999)."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Marek Fiser, Bedrich Benes, Jorge Garcia Galicia, Michel Abdul-Massih, Daniel G. Aliaga, and Vojtech Krs. 2016. Learning Geometric Graph Grammars. In Proceedings of the 32nd Spring Conference on Computer Graphics (SCCG ’16). Association for Computing Machinery, New York, NY, USA, 7–15."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Ashim Garg. 1998. New results on drawing angle graphs. Computational Geometry 9, 1 (1998), 43–82. Special Issue on Geometric Representations of Graphs."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Leon A. Gatys, Alexander S. Ecker, and Matthias Bethge. 2015. Texture Synthesis Using Convolutional Neural Networks (NIPS’15). MIT Press, Cambridge, MA, USA, 262–270."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Maxim Gumin. 2016. WaveFunctionCollapse. https://github.com/mxgmn/WaveFunctionCollapse"
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Jianwei Guo, Haiyong Jiang, Bedrich Benes, Oliver Deussen, Xiaopeng Zhang, Dani Lischinski, and Hui Huang. 2020. Inverse Procedural Modeling of Branching Structures by Inferring L-Systems. ACM Transactions on Graphics 39, 5 (2020), 155:1– 155:13."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Aaron Hertzmann, Nuria Oliver, Brian Curless, and Steven M. Seitz. 2002. Curve Analogies. In Proceedings of the 13th Eurographics Workshop on Rendering (Pisa, Italy) (EGRW ’02). Eurographics Association, 233–246."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Takashi Ijiri, Radomír Mêch, Takeo Igarashi, and Gavin Miller. 2008. An Example-based Procedural System for Element Arrangement. Computer Graphics Forum 27, 2 (2008), 429–436."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Javor Kalojanov, Martin Bokeloh, Michael Wand, Leonidas Guibas, Hans-Peter Seidel, and Philipp Slusallek. 2012. Microtiles: Extracting Building Blocks from Correspondences. Comput. Graph. Forum 31, 5 (2012), 1597–1606."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Barbara König, Dennis Nolte, Julia Padberg, and Arend Rensink. 2018. A Tutorial on Graph Transformation. Springer International Publishing, Cham, 83–104."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Johannes Kopf, Chi-Wing Fu, Daniel Cohen-Or, Oliver Deussen, Dani Lischinski, and Tien-Tsin Wong. 2007. Solid Texture Synthesis from 2D Exemplars. ACM Trans. Graph. 26, 3 (2007)."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Aristid Lindenmayer. 1968. Mathematical models for cellular interactions in development. II. Simple and branching filaments with two-sided inputs. J Theor Biol 18, 3 (1968), 300–315."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Markus Lipp, Peter Wonka, and Michael Wimmer. 2008. Interactive Visual Editing of Grammars for Procedural Architecture. ACM Transactions on Graphics (Proc. SIGGRAPH) (2008)."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Han Liu, Ulysse Vimont, Michael Wand, Marie-Paule Cani, Stefanie Hahmann, Damien Rohmer, and Niloy Mitra. 2015. Replaceable Substructures for Efficient Part-Based Modeling. Computer Graphics Forum 34 (05 2015)."
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Chongyang Ma, Li-Yi Wei, Sylvain Lefebvre, and Xin Tong. 2013. Dynamic Element Textures. ACM Trans. Graph. 32, 4 (2013)."
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Chongyang Ma, Li-Yi Wei, and Xin Tong. 2011. Discrete Element Textures. ACM Trans. Graph. 30, 4 (2011)."
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Andelo Martinovic and Luc Van Gool. 2013. Bayesian Grammar Learning for Inverse Procedural Modeling. In CVPR. 201–208."
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Paul Merrell. 2007. Example-Based Model Synthesis. Symp. Interactive 3D Graphics and Games (2007), 105–112."
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Paul Merrell and Dinesh Manocha. 2008. Continuous Model Synthesis. ACM Trans. Graph. 27, 5 (2008)."
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Paul Merrell and Dinesh Manocha. 2010. Example-based curve synthesis. Computers & Graphics 34, 4 (2010), 304–311."
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Paul Merrell and Dinesh Manocha. 2011. Model Synthesis: A General Procedural Modeling Algorithm. IEEE Transactions on Visualization and Computer Graphics 17, 6 (2011), 715–728."
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Nicholas Metropolis, Arianna W. Rosenbluth, Marshall N. Rosenbluth, Augusta H. Teller, and Edward Teller. 1953. Equation of State Calculations by Fast Computing Machines. The Journal of Chemical Physics 21, 6 (1953), 1087–1092."
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Pascal Müller, Peter Wonka, Simon Haegler, Andreas Ulmer, and Luc Van Gool. 2006. Procedural Modeling of Buildings. ACM Trans. Graph. 25, 3 (2006), 614–623."
+          }
+        },
+        {
+          "id": "refs-36",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Wojtek Pałubicki, Miłosz Makowski, Weronika Gajda, Torsten Hädrich, Dominik L. Michels, and Sören Pirk. 2022. Ecoclimates: Climate-Response Modeling of Vegetation. ACM Trans. Graph. 41, 4, Article 155 (jul 2022), 19 pages."
+          }
+        },
+        {
+          "id": "refs-37",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Yoav I. H. Parish and Pascal Müller. 2001. Procedural Modeling of Cities (SIGGRAPH ’01). Association for Computing Machinery, New York, NY, USA, 301–308."
+          }
+        },
+        {
+          "id": "refs-38",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "John L. Pfaltz and Azriel Rosenfeld. 1969. Web Grammars. In Proceedings of the 1st International Joint Conference on Artificial Intelligence (Washington, DC) (IJCAI’69). Morgan Kaufmann Publishers Inc., San Francisco, CA, USA, 609–619."
+          }
+        },
+        {
+          "id": "refs-39",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Viktor Pogrzebacz and Martin Ilčík. 2019. A Graph Grammar for Modelling of 2D Shapes. In Proceedings of the 23rd Central European Seminar on Computer Graphics. TU Wien."
+          }
+        },
+        {
+          "id": "refs-40",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Przemyslaw Prusinkiewicz. 1986. Graphical applications of l-systems. In In Proceedings of Graphics Interface ’86 — Vision Interface ’86. 247–253."
+          }
+        },
+        {
+          "id": "refs-41",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Daniel Ritchie, Ben Mildenhall, Noah D. Goodman, and Pat Hanrahan. 2015. Controlling Procedural Modeling Programs with Stochastically-Ordered Sequential Monte Carlo. ACM Trans. Graph. 34, 4, Article 105 (jul 2015), 11 pages."
+          }
+        },
+        {
+          "id": "refs-42",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Grzegorz Rozenberg. 1997. Handbook of graph grammars and computing by graph transformation. Vol. 1. World scientific."
+          }
+        },
+        {
+          "id": "refs-43",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Ruben M. Smelik, Tim Tutenel, Rafael Bidarra, and Bedrich Benes. 2014. A Survey on Procedural Modelling for Virtual Worlds. Computer Graphics Forum 33, 6 (2014), 31–50."
+          }
+        },
+        {
+          "id": "refs-44",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Colin Smith, Przemyslaw Prusinkiewicz, and Faramarz Samavati. 2004. Local Specification of Surface Subdivision Algorithms. In Applications of Graph Transformations with Industrial Relevance. Springer Berlin Heidelberg, Berlin, Heidelberg, 313–327."
+          }
+        },
+        {
+          "id": "refs-45",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Ondrej Stava, Bedrich Benes, Radomir Mech, Daniel Aliaga, and Peter Kristof. 2010. Inverse Procedural Modeling by Automatic Generation of L-systems. Computer Graphics Forum 29 (05 2010), 1467–8659."
+          }
+        },
+        {
+          "id": "refs-46",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "O. Stava, S. Pirk, J. Kratt, B. Chen, R. Mźch, O. Deussen, and B. Benes. 2014. Inverse Procedural Modelling of Trees. 33, 6 (2014), 118–131."
+          }
+        },
+        {
+          "id": "refs-47",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "George Stiny. 1975. Pictorial and Formal Aspects of Shape and Shape Grammars. Birkhauser Verlag, Basel."
+          }
+        },
+        {
+          "id": "refs-48",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "George Stiny. 1982. Spatial relations and grammars. Environment and Planning B 9 (1982), 313–314."
+          }
+        },
+        {
+          "id": "refs-49",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Jerry Talton, Lingfeng Yang, Ranjitha Kumar, Maxine Lim, Noah Goodman, and Radomír Měch. 2012. Learning Design Patterns with Bayesian Grammar Induction. Association for Computing Machinery, 63–74."
+          }
+        },
+        {
+          "id": "refs-50",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Jerry O. Talton, Yu Lou, Steve Lesser, Jared Duke, Radomír Měch, and Vladlen Koltun. 2011. Metropolis Procedural Modeling. ACM Trans. Graph. 30, 2 (2011)."
+          }
+        },
+        {
+          "id": "refs-51",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Peihan Tu, Li-Yi Wei, Koji Yatani, Takeo Igarashi, and Matthias Zwicker. 2020. Continuous Curve Textures. ACM Trans. Graph. 39, 6 (2020)."
+          }
+        },
+        {
+          "id": "refs-52",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Carlos A. Vanegas, Ignacio Garcia-Dorado, Daniel G. Aliaga, Bedrich Benes, and Paul Waddell. 2012. Inverse Design of Urban Procedural Models. ACM Trans. Graph. 31, 6 (2012)."
+          }
+        },
+        {
+          "id": "refs-53",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Luiz Velho. 2003. Stellar Subdivision Grammars. In Proceedings of the 2003 Eurographics ACM SIGGRAPH Symposium on Geometry Processing (SGP ’03). Eurographics Association, 188–199."
+          }
+        },
+        {
+          "id": "refs-54",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Michael T. Wong, Douglas E. Zongker, and David H. Salesin. 1998. Computer-Generated Floral Ornament (SIGGRAPH ’98). Association for Computing Machinery, New York, NY, USA, 423–434."
+          }
+        },
+        {
+          "id": "refs-55",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Peter Wonka, Michael Wimmer, François Sillion, and William Ribarsky. 2003. Instant Architecture. ACM Trans. Graph. 22, 3 (2003), 669–677."
+          }
+        },
+        {
+          "id": "refs-56",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Fuzhang Wu, Dong-Ming Yan, Weiming Dong, Xiaopeng Zhang, and Peter Wonka. 2014. Inverse Procedural Modeling of Facade Layouts. ACM Trans. Graph. 33, 4 (2014)."
+          }
+        },
+        {
+          "id": "refs-57",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Rundi Wu and Changxi Zheng. 2022. Learning to Generate 3D Shapes from a Single Example. ACM Trans. Graph. 41, 6, Article 224 (nov 2022), 19 pages."
+          }
+        },
+        {
+          "id": "refs-58",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Yi-Ting Yeh, Katherine Breeden, Lingfeng Yang, Matthew Fisher, and Pat Hanrahan. 2013. Synthesis of Tiled Patterns Using Factor Graphs. ACM Trans. Graph. 32, 1 (2013)."
+          }
+        },
+        {
+          "id": "refs-59",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Allan Zhao, Jie Xu, Mina Konaković Luković, Josephine Hughes, Andrew Speilberg, Daniela Rus, and Wojciech Matusik. 2020. RoboGrammar: Graph Grammar for Terrain-Optimized Robot Design. ACM Transactions on Graphics (TOG) 39, 6 (2020), 1–16."
+          }
+        }
+      ]
+    }
+  ]
+}

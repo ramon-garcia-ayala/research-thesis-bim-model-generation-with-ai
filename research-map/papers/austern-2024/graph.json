@@ -1,0 +1,558 @@
+{
+  "version": 1,
+  "node": "austern-2024",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can adding contextual information, meaning which elements touch which, improve the machine-learning classification of building elements in BIM models?",
+      "es": "¿Puede la información de contexto, es decir, qué elementos se tocan entre sí, mejorar la clasificación de elementos de construcción en modelos BIM con aprendizaje automático?",
+      "blocks": [
+        "s1-p18",
+        "s3-p1"
+      ],
+      "key": "context-improves-classification",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Semantic enrichment infers implicit information and makes it explicit for a receiving platform. Classifying objects is its foundation, since the classes in a BIM file are often wrong, corrupt or incomplete.",
+      "es": "El enriquecimiento semántico infiere información implícita y la hace explícita para la plataforma receptora. Clasificar objetos es su base, porque las clases en un archivo BIM suelen estar mal, dañadas o incompletas.",
+      "blocks": [
+        "s1-p7",
+        "s2-p4"
+      ],
+      "key": "semantic-enrichment",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "In practice IFC has no universally enforced semantic classification, so the same information can be modeled in several ways. For example, a wide column can be modeled as a wall, and stakeholders label similar objects differently.",
+      "es": "En la práctica IFC no impone una clasificación semántica universal, así que la misma información puede modelarse de varias formas. Por ejemplo, una columna ancha puede modelarse como muro, y cada actor etiqueta distinto objetos parecidos.",
+      "blocks": [
+        "s2-p3",
+        "s2-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "A building is turned into a geometric proximity graph: each element is a node with basic geometric features, and an edge joins two elements that intersect. Intersection was chosen because every element touches at least one other and it is easy to compute.",
+      "es": "El edificio se convierte en un grafo de proximidad geométrica: cada elemento es un nodo con rasgos geométricos básicos y una arista une dos elementos que se intersectan. Se eligió la intersección porque todo elemento toca al menos a otro y es fácil de calcular.",
+      "blocks": [
+        "s1-p16",
+        "s2-p15",
+        "s4-p15"
+      ],
+      "key": "geometric-proximity-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "Revit 2023 models are exported to JSON with Rhino Inside Revit and Grasshopper. Per element it records category, family, type, material, an oriented bounding box (X, Y, Z, volume, relative height), solid volume and number of components.",
+      "es": "Los modelos de Revit 2023 se exportan a JSON con Rhino Inside Revit y Grasshopper. Por elemento se registran categoría, familia, tipo, material, una caja delimitadora orientada (X, Y, Z, volumen, altura relativa), volumen sólido y número de componentes.",
+      "blocks": [
+        "s4-p7",
+        "fig-3",
+        "s4-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Proximity is defined as an intersection between bounding boxes, found with the Grasshopper Clash component checking all elements against all others. In huge models with tens of thousands of elements this took almost an hour on a 32GB RAM workstation.",
+      "es": "La proximidad se define como la intersección entre cajas delimitadoras, detectada con el componente Clash de Grasshopper, que compara todos los elementos contra todos. En modelos enormes con decenas de miles de elementos tardó casi una hora en una estación con 32GB de RAM.",
+      "blocks": [
+        "s4-p16",
+        "s4-p17"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "dataset",
+      "en": "Over 42,000 elements in 10 classes (walls, doors, furniture, windows, plumbing fixtures, floors, stairs, railings, structural columns, structural framing), from Revit models of residential and commercial buildings shared by local architects. One building per architect was included; the paper counts the files as ten in some places and eleven in others.",
+      "es": "Más de 42,000 elementos en 10 clases (muros, puertas, mobiliario, ventanas, muebles sanitarios, pisos, escaleras, barandales, columnas estructurales, estructura de vigas), de modelos de Revit residenciales y comerciales compartidos por arquitectos locales. Se incluyó un edificio por arquitecto; el artículo cuenta los archivos como diez en unos lugares y once en otros.",
+      "blocks": [
+        "s4-p1",
+        "s4-p4",
+        "s4-p11",
+        "tab-1"
+      ],
+      "key": "austern-bim-graph-dataset",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Seven simple geometric properties are each cut into 10 equal-frequency bins and one-hot encoded, giving 70 features. Using 20 bins did not significantly change the results.",
+      "es": "Siete propiedades geométricas simples se dividen cada una en 10 intervalos de igual frecuencia y se codifican one-hot, lo que da 70 rasgos. Usar 20 intervalos no cambió significativamente los resultados.",
+      "blocks": [
+        "s4-p25",
+        "s4-p27",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "The same relation pairs build two kinds of graph: one large graph per building, and many small subgraphs, each centered on one element and its first-order neighbors.",
+      "es": "Los mismos pares de relaciones construyen dos tipos de grafo: un grafo grande por edificio y muchos subgrafos pequeños, cada uno centrado en un elemento y sus vecinos de primer orden.",
+      "blocks": [
+        "s4-p18",
+        "s4-p19",
+        "s4-p20"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "To mimic classifying an element right after it is created, the neighbors' categories are added to the subgraph encoding while the root element's category is masked as a generic 'root'. This is the 'category encoding' variant.",
+      "es": "Para imitar la clasificación de un elemento recién creado, se agregan a la codificación del subgrafo las categorías de los vecinos y se enmascara la del elemento raíz con una categoría genérica 'root'. Es la variante de 'codificación de categorías'.",
+      "blocks": [
+        "s4-p21"
+      ],
+      "key": "category-encoding",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "One whole BIM file is held out as a test file, and the rest are split 80/20 into training and validation. The experiment is run five times, each time holding out a different file, because results depended heavily on which file was set aside.",
+      "es": "Se aparta un archivo BIM completo como prueba y el resto se divide 80/20 en entrenamiento y validación. El experimento se repite cinco veces apartando cada vez un archivo distinto, porque los resultados dependían mucho de cuál se apartaba.",
+      "blocks": [
+        "s4-p29",
+        "s4-p30"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Baselines use only each element's own features: logistic regression, random forest, SVM and k-nearest neighbors with out-of-the-box parameters, plus a three-layer MLP. Training settings (Adam, learning rate 0.01, 200 epochs) are fixed across all models.",
+      "es": "Las líneas base usan solo los rasgos propios de cada elemento: regresión logística, bosque aleatorio, SVM y k vecinos más cercanos con parámetros por defecto, además de un MLP de tres capas. Los ajustes de entrenamiento (Adam, tasa de aprendizaje 0.01, 200 épocas) se fijan para todos los modelos.",
+      "blocks": [
+        "s4-p34",
+        "s4-p36",
+        "s4-p37"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "GNN node classifiers follow the classic GCN design, with the MLP's first layers replaced by GraphConv, SAGEConv or TransformerConv layers from PyTorch Geometric, using the same data and training parameters.",
+      "es": "Los clasificadores de nodos GNN siguen el diseño clásico de GCN, con las primeras capas del MLP sustituidas por capas GraphConv, SAGEConv o TransformerConv de PyTorch Geometric, con los mismos datos y parámetros de entrenamiento.",
+      "blocks": [
+        "s4-p39",
+        "s4-p40"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "Subgraph classification trains the same GNN layers on each element's first-order neighborhood as its own small graph, with mean pooling and batches of 1000.",
+      "es": "La clasificación de subgrafos entrena las mismas capas GNN sobre la vecindad de primer orden de cada elemento como un grafo pequeño propio, con pooling por media y lotes de 1000.",
+      "blocks": [
+        "s4-p41",
+        "s4-p42"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "result",
+      "en": "Averaged over the five held-out files, the best classic model (SVM) reached 86.7%, the best GNN node classifier 87.7%, and GNN subgraph classification 88.3%. Among GNN layers, graph transformer networks gave the most favorable outcomes.",
+      "es": "Promediando los cinco archivos apartados, el mejor modelo clásico (SVM) alcanzó 86.7%, el mejor clasificador de nodos GNN 87.7% y la clasificación de subgrafos GNN 88.3%. Entre las capas GNN, las redes graph transformer dieron los mejores resultados.",
+      "blocks": [
+        "s5-p4",
+        "fig-6",
+        "s1-p20"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "Adding the neighbors' categories to the subgraphs dramatically improved results: GraphConv-based GNNs reached 89.9% on files not used for training, more than 3% over the best classic model, which reached a maximum of 86.7%.",
+      "es": "Agregar las categorías de los vecinos a los subgrafos mejoró mucho los resultados: las GNN basadas en GraphConv alcanzaron 89.9% en archivos no usados para entrenar, más de 3% sobre el mejor modelo clásico, que llegó a un máximo de 86.7%.",
+      "blocks": [
+        "s5-p5",
+        "s7-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "The best method exceeded 99% on training data and 98% on validation data, but accuracy on BIM files not in training dropped to 81%–90% for all models, with a variance of over 5% depending on the test file.",
+      "es": "El mejor método superó 99% en datos de entrenamiento y 98% en validación, pero en archivos BIM fuera del entrenamiento la exactitud de todos los modelos bajó a 81%–90%, con una varianza de más de 5% según el archivo de prueba.",
+      "blocks": [
+        "s6-p1",
+        "s5-p3",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "claim",
+      "en": "Splitting elements into training and validation sets is not enough. Models should be tested on elements from BIM files left out of training, since unseen files are the real target of semantic enrichment. The authors attribute the drop to real files from different offices having different modeling conventions.",
+      "es": "Dividir elementos en entrenamiento y validación no basta. Los modelos deben probarse con elementos de archivos BIM excluidos del entrenamiento, pues los archivos nuevos son el objetivo real del enriquecimiento semántico. Los autores atribuyen la caída a que los archivos reales de distintas oficinas tienen convenciones de modelado distintas.",
+      "blocks": [
+        "s5-p2",
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "In a 10-story residential test building of 4442 elements, the SVM mislabeled 133 windows as doors because of similar dimensions. Graph models avoided this because windows usually neighbor only wall-type elements while doors also connect to floors.",
+      "es": "En un edificio residencial de prueba de 10 niveles con 4442 elementos, el SVM etiquetó mal 133 ventanas como puertas por tener dimensiones parecidas. Los modelos de grafo lo evitaron porque las ventanas suelen tocar solo muros, mientras que las puertas también se conectan con pisos.",
+      "blocks": [
+        "s5-p7",
+        "s5-p10",
+        "fig-9",
+        "fig-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Graph models tended to classify windows as plumbing fixtures, which the SVM avoided. Both windows and plumbing fixtures predominantly intersect walls, so their shared context may explain the mistake.",
+      "es": "Los modelos de grafo tendieron a clasificar ventanas como muebles sanitarios, error que el SVM evitó. Tanto ventanas como muebles sanitarios intersectan sobre todo muros, y ese contexto compartido puede explicar el error.",
+      "blocks": [
+        "s5-p8",
+        "s5-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "claim",
+      "en": "Geometric relations between walls, floors and doors do not depend on construction technique and stay invariant across geography, method and time. The authors suggest graph-based GNNs may generalize better and need smaller training sets than classic models.",
+      "es": "Las relaciones geométricas entre muros, pisos y puertas no dependen de la técnica constructiva y se mantienen entre geografías, métodos e incluso épocas. Los autores sugieren que las GNN pueden generalizar mejor y requerir conjuntos de entrenamiento más pequeños que los modelos clásicos.",
+      "blocks": [
+        "s6-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "claim",
+      "en": "Subgraph models do not need the whole building's graph, so they scale better and suit real-time use inside BIM authoring software.",
+      "es": "Los modelos de subgrafos no necesitan el grafo completo del edificio, por lo que escalan mejor y sirven para uso en tiempo real dentro del software de autoría BIM.",
+      "blocks": [
+        "s6-p2",
+        "s7-p3",
+        "s1-p20"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "limitation",
+      "en": "The training files all come from one country, with similar practices and regulations. A general model would need files from other countries, typologies and construction methods, and the data are restricted, available only with the architectural firms' permission.",
+      "es": "Todos los archivos de entrenamiento provienen de un mismo país, con prácticas y normativas similares. Un modelo general requeriría archivos de otros países, tipologías y métodos constructivos, y los datos están restringidos y solo se obtienen con permiso de los despachos.",
+      "blocks": [
+        "s6-p4",
+        "s7-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "limitation",
+      "en": "The graph uses only intersection relations, defined on bounding boxes. For irregular objects this can link elements that do not physically touch. Spaces and zones are out of scope, and current GNNs do not perform well on graphs with several edge types.",
+      "es": "El grafo usa solo relaciones de intersección, definidas sobre cajas delimitadoras. En objetos irregulares esto puede unir elementos que no se tocan físicamente. Los espacios y zonas quedan fuera del alcance, y las GNN actuales no funcionan bien con grafos de varios tipos de arista.",
+      "blocks": [
+        "s4-p16",
+        "s2-p16",
+        "s6-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "future",
+      "en": "Future work: test other relations such as co-verticality, containment (windows inside walls) and 'connected to' (for plumbing and electrical systems), find which relation best indicates which property, and combine several relation types in one graph.",
+      "es": "Trabajo futuro: probar otras relaciones como co-verticalidad, contención (ventanas dentro de muros) y 'conectado a' (para instalaciones hidráulicas y eléctricas), identificar qué relación indica mejor cada propiedad y combinar varios tipos de relación en un solo grafo.",
+      "blocks": [
+        "s6-p7",
+        "s6-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "future",
+      "en": "Envisioned uses: validating existing BIM information, translating between simplified 3D models and Revit, 'autocomplete' (a featureless box gets its category and parameters) and 'autocorrect' (each added element is checked for modeling errors).",
+      "es": "Usos previstos: validar la información BIM existente, traducir entre modelos 3D simplificados y Revit, 'autocompletar' (una caja sin atributos recibe su categoría y parámetros) y 'autocorregir' (cada elemento agregado se revisa en busca de errores de modelado).",
+      "blocks": [
+        "s1-p21",
+        "s7-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "concept",
+      "en": "GNNs embed information from neighboring nodes into each node during training, making them sensitive to context. They can classify single nodes, edges or whole graphs.",
+      "es": "Las GNN incorporan en cada nodo información de los nodos vecinos durante el entrenamiento, lo que las hace sensibles al contexto. Pueden clasificar nodos, aristas o grafos completos.",
+      "blocks": [
+        "s2-p22",
+        "s1-p17"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "claim",
+      "en": "The authors state that, to their knowledge, no graph-based learning approach for BIM element classification had been shown, and the value of context had not been compared with geometry-only classification. Prior work includes random forests and SVMs on geometry (Wu, Koo), CNNs, and a geometry-only GNN reaching 85% (Collins).",
+      "es": "Los autores afirman que, hasta donde saben, no se había mostrado un enfoque de aprendizaje con grafos para clasificar elementos BIM, ni se había comparado el valor del contexto con la clasificación solo geométrica. Los trabajos previos incluyen bosques aleatorios y SVM sobre geometría (Wu, Koo), CNN y una GNN solo geométrica con 85% (Collins).",
+      "blocks": [
+        "s2-p11",
+        "s2-p9",
+        "s2-p24"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "concept",
+      "en": "Earlier GNN work in AEC mostly classifies spaces from room-connectivity graphs, such as room function (Buruzs; Wang et al. with 79% accuracy), rather than building elements.",
+      "es": "El trabajo previo con GNN en AEC clasifica sobre todo espacios a partir de grafos de conectividad entre cuartos, como la función de cada cuarto (Buruzs; Wang et al. con 79% de exactitud), y no elementos de construcción.",
+      "blocks": [
+        "s2-p23",
+        "s2-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "claim",
+      "en": "The paper's scope is a proof of concept that graph data of building models can support downstream ML applications, tested on element classification to verify information quality in BIM files.",
+      "es": "El alcance del artículo es una prueba de concepto de que los datos en forma de grafo de modelos de edificios pueden sostener aplicaciones de aprendizaje automático, probada en la clasificación de elementos para verificar la calidad de la información en archivos BIM.",
+      "blocks": [
+        "s3-p1",
+        "s7-p1"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "Classification is the semantic enrichment task the context question is tested on."
+    },
+    {
+      "from": "i3",
+      "to": "i2",
+      "type": "supports",
+      "why": "Inconsistent labels in IFC and Revit are the reason enrichment is needed."
+    },
+    {
+      "from": "i4",
+      "to": "i1",
+      "type": "supports",
+      "why": "The proximity graph is the way context is represented."
+    },
+    {
+      "from": "i5",
+      "to": "i7",
+      "type": "part-of",
+      "why": "The BIM-to-JSON export produces the dataset's element records."
+    },
+    {
+      "from": "i6",
+      "to": "i4",
+      "type": "part-of",
+      "why": "Bounding-box clashes give the edges of the graph."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "uses",
+      "why": "Encoding turns the extracted element features into model input."
+    },
+    {
+      "from": "i9",
+      "to": "i4",
+      "type": "uses",
+      "why": "Both graph forms are built from the same proximity relations."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "uses",
+      "why": "The category encoding is added to the subgraph version."
+    },
+    {
+      "from": "i11",
+      "to": "i17",
+      "type": "measures",
+      "why": "Holding out whole files exposes the generalization gap."
+    },
+    {
+      "from": "i12",
+      "to": "i15",
+      "type": "measures",
+      "why": "Classic models give the baseline the GNNs are compared against."
+    },
+    {
+      "from": "i13",
+      "to": "i27",
+      "type": "uses",
+      "why": "Node classifiers are GNNs that pass messages between neighbors."
+    },
+    {
+      "from": "i14",
+      "to": "i9",
+      "type": "uses",
+      "why": "Subgraph classification trains on the neighborhood subgraphs."
+    },
+    {
+      "from": "i15",
+      "to": "i1",
+      "type": "supports",
+      "why": "GNNs with context beat classic models on unseen files."
+    },
+    {
+      "from": "i16",
+      "to": "i10",
+      "type": "measures",
+      "why": "The 89.9% result comes from the category-encoding variant."
+    },
+    {
+      "from": "i16",
+      "to": "i1",
+      "type": "supports",
+      "why": "The best result uses the most context."
+    },
+    {
+      "from": "i17",
+      "to": "i18",
+      "type": "supports",
+      "why": "The drop from over 98% to 81%–90% motivates testing on unseen files."
+    },
+    {
+      "from": "i19",
+      "to": "i15",
+      "type": "example-of",
+      "why": "Windows versus doors shows how context helps beyond geometry."
+    },
+    {
+      "from": "i20",
+      "to": "i19",
+      "type": "contradicts",
+      "why": "Graph models fix windows-as-doors but introduce windows-as-plumbing-fixtures."
+    },
+    {
+      "from": "i21",
+      "to": "i17",
+      "type": "supports",
+      "why": "Invariant relations are offered as the reason context helps on unseen files."
+    },
+    {
+      "from": "i22",
+      "to": "i14",
+      "type": "supports",
+      "why": "Operational scalability is the argument for the subgraph approach."
+    },
+    {
+      "from": "i23",
+      "to": "i21",
+      "type": "contradicts",
+      "why": "Training files from one country limit how far the generalization claim can be tested."
+    },
+    {
+      "from": "i24",
+      "to": "i25",
+      "type": "supports",
+      "why": "The relation limits lead to the future relations proposed."
+    },
+    {
+      "from": "i28",
+      "to": "i1",
+      "type": "supports",
+      "why": "The gap in prior work is what the context question fills."
+    },
+    {
+      "from": "i29",
+      "to": "i28",
+      "type": "part-of",
+      "why": "Space-level GNN work is the nearest prior art, which leaves elements open."
+    },
+    {
+      "from": "i26",
+      "to": "i22",
+      "type": "uses",
+      "why": "Real-time autocomplete and autocorrect rely on local subgraph models."
+    },
+    {
+      "from": "i30",
+      "to": "i23",
+      "type": "supports",
+      "why": "A proof of concept scope explains the small, local dataset."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i4",
+      "to": "ifc-to-graph-recipe",
+      "why": "Gives a concrete recipe: elements as nodes with simple geometric features, intersections as edges, taken from Revit through JSON."
+    },
+    {
+      "idea": "i9",
+      "to": "deconstruct-for-training",
+      "why": "Splitting a building graph into one subgraph per element and its neighbors is a way to produce many training examples from one model."
+    },
+    {
+      "idea": "i1",
+      "to": "hypothesis",
+      "why": "Supports the idea that elements and their relations carry learnable patterns: neighbor context improved classification of elements."
+    },
+    {
+      "idea": "i28",
+      "to": "question",
+      "why": "Shows a gap: the paper classifies existing elements and does not generate new models from the decomposed parts."
+    },
+    {
+      "idea": "i17",
+      "to": "austern-2024",
+      "why": "Measures the gap between real BIM files: accuracy falls to 81%–90% on files not in training, with over 5% variance."
+    },
+    {
+      "idea": "i23",
+      "to": "real-or-synthetic-data",
+      "why": "Real files from a single country and a small number of offices limit generalization, which bears on where a dataset's size and variety come from."
+    },
+    {
+      "idea": "i5",
+      "to": "cbim-2023",
+      "why": "Another route from Revit to a graph, using Grasshopper and Rhino Inside Revit instead of IFC, to compare."
+    },
+    {
+      "idea": "i3",
+      "to": "noardo-2021-inspection",
+      "why": "Matches that real models model the same thing in different ways, such as a column as a wall."
+    }
+  ]
+}

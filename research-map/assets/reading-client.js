@@ -88,6 +88,16 @@ export function createClient({ fetch = (...a) => globalThis.fetch(...a), wait = 
         for (const e of parsed.events) onEvent(e.event, e.data)
       }
     },
+    /** What is marked as read: { version, read: { id: date } }. */
+    async library() {
+      const r = await fetch('api/library')
+      if (!r.ok) throw new Error(await errorOf(r))
+      return r.json()
+    },
+    async setRead(id, read) {
+      const r = await fetch(`api/library/${encodeURIComponent(id)}`, json({ read }))
+      if (!r.ok) throw new Error(await errorOf(r))
+    },
     async draftNote(body) {
       const r = await fetch('api/note-draft', post(body))
       if (!r.ok) throw new Error(await errorOf(r))
@@ -96,6 +106,18 @@ export function createClient({ fetch = (...a) => globalThis.fetch(...a), wait = 
     async saveNote(body) {
       const r = await fetch('api/note', post(body))
       if (!r.ok) throw new Error(await errorOf(r))
+    },
+    /** A proposed change to the map from a chat message: { proposal: { idea, links }, problems, groups }. */
+    async draftMapEntry(body) {
+      const r = await fetch('api/map-draft', post(body))
+      if (!r.ok) throw new Error(await errorOf(r))
+      return r.json()
+    },
+    /** Writes an approved proposal into map.json; the server refuses one that would leave the map invalid. */
+    async saveMapEntry(body) {
+      const r = await fetch('api/map-entry', post(body))
+      if (!r.ok) throw new Error(await errorOf(r))
+      return r.json()
     },
   }
 }

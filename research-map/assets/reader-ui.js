@@ -101,6 +101,18 @@ export const LABELS = {
     approve: 'Approve',
     discard: 'Discard',
     saved: 'Saved to the note.',
+    addToMap: 'Add to the map',
+    mapDrafting: 'Writing the proposal for the map…',
+    mapIdea: 'New idea or conclusion',
+    mapTitle: 'Title',
+    mapId: 'Id',
+    mapGroup: 'Group',
+    mapNote: 'Its note',
+    mapLinks: 'Links',
+    mapLinkWhy: 'What the relation is',
+    mapProblems: 'To fix before approving:',
+    mapSaved: 'Added to the map.',
+    mapReload: 'Reload to see it',
     pickNotes: 'Add it to the notes of:',
     you: 'You',
     companion: 'Claude',
@@ -156,6 +168,18 @@ export const LABELS = {
     approve: 'Aprobar',
     discard: 'Descartar',
     saved: 'Guardado en la nota.',
+    addToMap: 'Agregar al mapa',
+    mapDrafting: 'Redactando la propuesta para el mapa…',
+    mapIdea: 'Idea o conclusión nueva',
+    mapTitle: 'Título',
+    mapId: 'Id',
+    mapGroup: 'Grupo',
+    mapNote: 'Su nota',
+    mapLinks: 'Vínculos',
+    mapLinkWhy: 'Cuál es la relación',
+    mapProblems: 'Por corregir antes de aprobar:',
+    mapSaved: 'Agregado al mapa.',
+    mapReload: 'Recargar para verlo',
     pickNotes: 'Agrégalo a las notas de:',
     you: 'Tú',
     companion: 'Claude',
@@ -198,7 +222,7 @@ const remember = (win, key, value) => {
  */
 export function mountReader(
   root,
-  { papers = [], map, load, base = '', client = null, onLit = () => {}, onShow = () => {}, win = window, speech = { synth: win.speechSynthesis, Utterance: win.SpeechSynthesisUtterance } } = {},
+  { papers = [], map, load, base = '', client = null, onLit = () => {}, onShow = () => {}, onPaper = () => {}, win = window, speech = { synth: win.speechSynthesis, Utterance: win.SpeechSynthesisUtterance } } = {},
 ) {
   const doc = root.ownerDocument
   let lang = stored(win, LANG_KEY, ['en', 'es'], 'es')
@@ -249,6 +273,7 @@ export function mountReader(
       <span class="reader__voice"></span>
       <button type="button" class="reader__mode"></button>
       <button type="button" class="reader__chat-open" hidden></button>
+      <button type="button" class="reader__mark" hidden></button>
       <button type="button" class="reader__close">×</button>
     </header>
     <p class="reader__hint" hidden></p>
@@ -561,6 +586,8 @@ export function mountReader(
       }
       el.hidden = false
       onShow()
+      $('.reader__mark').dataset.mark = nodeId
+      onPaper(nodeId)
       if (!paper) {
         now = null
         $('.reader__title').textContent = map?.nodes?.find((n) => n.id === nodeId)?.title ?? nodeId

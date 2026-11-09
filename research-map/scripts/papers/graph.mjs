@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { EDGE_TYPES, IDEA_KINDS, blocksOf, textOf, validateGraph } from '../../assets/paper.js'
-import { indexPapers } from '../check.mjs'
+import { writeIndexes } from '../check.mjs'
 import { runClaude } from '../lib/claude.mjs'
 import { extractJson } from '../lib/json.mjs'
 
@@ -84,7 +84,7 @@ export async function buildGraph(nodeId, { root = process.cwd(), claude = runCla
     throw new Error(`the graph Claude wrote is not valid; graph.json is unchanged; the reply is saved in ${saved}\n${problems.join('\n')}`)
   }
   writeFileSync(join(root, 'papers', nodeId, 'graph.json'), `${JSON.stringify(graph, null, 2)}\n`)
-  writeFileSync(join(root, 'papers', 'index.json'), `${JSON.stringify(indexPapers(root), null, 2)}\n`)
+  writeIndexes(root)
   return { ideas: graph.ideas.length, edges: graph.edges.length, thesis: graph.thesis.length }
 }
 

@@ -1,0 +1,578 @@
+{
+  "version": 1,
+  "node": "building-graph-ai-2025",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Existing generative AI models struggle to learn 3D building layouts at the component level, so they cannot produce highly detailed, layered building models (walls, floors, ceilings organised in layers) from simple geometry.",
+      "es": "Los modelos generativos de IA existentes tienen dificultades para aprender la distribución 3D de edificios a nivel de componente, por lo que no logran producir modelos detallados y por capas (muros, pisos, plafones organizados en capas) a partir de geometrías simples.",
+      "blocks": [
+        "s1-p1",
+        "s1-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Voxels, point clouds, signed-distance fields and neural fields mostly capture the spatial attributes of individual elements and have limited capacity to learn how elements relate within a layout. Voxel results need manual detailing, and SDF focuses on the outer structure.",
+      "es": "Los vóxeles, las nubes de puntos, los campos de distancia con signo y los campos neuronales capturan sobre todo los atributos espaciales de elementos individuales y tienen poca capacidad para aprender cómo se relacionan dentro de una distribución. Los resultados con vóxeles requieren detallado manual y los SDF se centran en la estructura exterior.",
+      "blocks": [
+        "s1-p2",
+        "s1-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Graph-BIM encoding converts BIM data into graph-structured data: building components become nodes and physical, spatial or functional links become edges. In the tests, wall endpoints and non-overlapping columns are nodes with spatial positions and environmental data, and walls are edges whose attribute is the wall type.",
+      "es": "La codificación Graph-BIM convierte datos BIM en datos con estructura de grafo: los componentes del edificio son nodos y los vínculos físicos, espaciales o funcionales son aristas. En las pruebas, los extremos de muros y las columnas sin traslape son nodos con posiciones espaciales y datos ambientales, y los muros son aristas cuyo atributo es el tipo de muro.",
+      "blocks": [
+        "s1-p4",
+        "s3-p2",
+        "s2-p2"
+      ],
+      "key": "graph-bim-encoding",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "The 3D spatial grid structure divides a building volume with a uniform 3D grid. Nodes are points in space such as wall intersections or endpoints, and edges are possible connections such as walls, doors or structural elements. This supplies the internal nodes and edges that a simple volume lacks, so the VGAE can predict edge classes.",
+      "es": "La estructura de rejilla espacial 3D divide un volumen de edificio con una rejilla 3D uniforme. Los nodos son puntos del espacio, como intersecciones o extremos de muros, y las aristas son conexiones posibles, como muros, puertas o elementos estructurales. Esto aporta los nodos y aristas interiores que le faltan a un volumen simple, de modo que el VGAE puede predecir clases de arista.",
+      "blocks": [
+        "s1-p6",
+        "s2-p8",
+        "fig-6"
+      ],
+      "key": "3d-spatial-grid-structure",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "A Variational Graph Auto-Encoder (VGAE) is used because it learns from graph data in a self-supervised way, so it needs less labelling. The encoder samples a latent vector z and the decoder reconstructs the edge class matrix, which is compared with the original BIM dataset to compute the loss.",
+      "es": "Se usa un autoencoder variacional de grafos (VGAE) porque aprende de datos de grafo de forma autosupervisada, con menos necesidad de etiquetado. El codificador muestrea un vector latente z y el decodificador reconstruye la matriz de clases de arista, que se compara con el conjunto de datos BIM original para calcular la pérdida.",
+      "blocks": [
+        "s1-p5",
+        "s3-p8",
+        "fig-4"
+      ],
+      "key": "vgae",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Building-Graph-AI combines Graph-BIM encoding, the 3D spatial grid structure and a VGAE. It encodes 3D building models as graphs to train GNNs, then generates layered 3D models at the building component level.",
+      "es": "Building-Graph-AI combina la codificación Graph-BIM, la estructura de rejilla espacial 3D y un VGAE. Codifica modelos 3D de edificios como grafos para entrenar GNN y luego genera modelos 3D por capas a nivel de componente del edificio.",
+      "blocks": [
+        "s1-p7",
+        "fig-1",
+        "s0-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "Graph-BIM encoding is implemented in Revit Dynamo, which converts Revit 3D models into graph data stored in Microsoft Excel: one file for node features and one for the edge index and edge attributes. Revit's built-in component IDs and essential attributes make the conversion efficient.",
+      "es": "La codificación Graph-BIM se implementa en Revit Dynamo, que convierte modelos 3D de Revit en datos de grafo guardados en Microsoft Excel: un archivo para las características de los nodos y otro para el índice y los atributos de las aristas. Los ID de componente integrados de Revit y sus atributos esenciales hacen eficiente la conversión.",
+      "blocks": [
+        "s3-p5",
+        "fig-3"
+      ],
+      "key": "revit-dynamo-to-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "dataset",
+      "en": "The training data is a modification of the Housegan dataset. The authors filter the 27,965 original Housegan plans to keep main functional rooms, entrance corridors, kitchens, living rooms and bedrooms, align the walls to a 1 meter grid, and turn the 2D plans into 3D Revit models that fit the 3D spatial grid structure.",
+      "es": "Los datos de entrenamiento son una modificación del conjunto de datos Housegan. Los autores filtran los 27,965 planos originales de Housegan para conservar las funciones principales, los pasillos de entrada, las cocinas, las salas y las recámaras, alinean los muros a una rejilla de 1 metro y convierten los planos 2D en modelos 3D de Revit que se ajustan a la estructura de rejilla espacial 3D.",
+      "blocks": [
+        "s3-p17",
+        "fig-7",
+        "s3-p5"
+      ],
+      "key": "housegan",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "Encoding test: three encoding methods, each a different combination of node features and edge attributes, are run with three encoder networks (GCNConv, GINEConv, TransformerConv). They are compared by the loss between the reconstructed models and the original dataset, where lower loss means the layout is captured better.",
+      "es": "Prueba de codificación: se ejecutan tres métodos de codificación, cada uno con una combinación distinta de características de nodo y atributos de arista, con tres redes codificadoras (GCNConv, GINEConv, TransformerConv). Se comparan por la pérdida entre los modelos reconstruidos y el conjunto de datos original, donde una pérdida menor indica que la distribución se captura mejor.",
+      "blocks": [
+        "s3-p2",
+        "s3-p8",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "result",
+      "en": "Encoding method 3 gives the lowest reconstruction loss for each network. With TransformerGCN, the predicted wall positions and types are almost identical to the original model, with a training loss of approximately 0.098.",
+      "es": "El método de codificación 3 da la menor pérdida de reconstrucción en cada red. Con TransformerGCN, las posiciones y tipos de muro predichos son casi idénticos al modelo original, con una pérdida de entrenamiento de aproximadamente 0.098.",
+      "blocks": [
+        "s3-p11",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "result",
+      "en": "Encoding method 1 with TransformerGCN reaches a reconstruction loss of 0.184, missing only a few walls; with GINE it misses more walls, with a loss of 0.574. Encoding method 2 is the least effective: it predicts irrelevant diagonal walls or misses walls, and with GINE the test reconstruction loss reaches 0.756.",
+      "es": "El método de codificación 1 con TransformerGCN alcanza una pérdida de reconstrucción de 0.184 y omite solo unos pocos muros; con GINE omite más muros, con una pérdida de 0.574. El método 2 es el menos efectivo: predice muros diagonales irrelevantes o pierde muros, y con GINE la pérdida de reconstrucción en prueba llega a 0.756.",
+      "blocks": [
+        "s3-p11",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "claim",
+      "en": "Relying only on environmental information is not enough to learn building spatial layouts. Spatial information is crucial, while environmental information also captures local features, and encoding method 3 is selected as the Graph-BIM encoding.",
+      "es": "Depender solo de la información ambiental no basta para aprender distribuciones espaciales de edificios. La información espacial es crucial, mientras que la información ambiental también captura características locales, y se elige el método de codificación 3 como la codificación Graph-BIM.",
+      "blocks": [
+        "s3-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "Training for generation masks the interior walls of the 3D BIM models, keeping only the boundary walls, so the VGAE must infer the interior wall arrangement from the basic geometry and the main entrance position. The predictions are compared with the original complete dataset to compute the loss.",
+      "es": "El entrenamiento para generación enmascara los muros interiores de los modelos BIM 3D y conserva solo los muros de borde, de modo que el VGAE debe inferir la disposición de muros interiores a partir de la geometría básica y la posición de la entrada principal. Las predicciones se comparan con el conjunto de datos completo original para calcular la pérdida.",
+      "blocks": [
+        "s3-p8",
+        "s3-p20",
+        "fig-8"
+      ],
+      "key": "masking",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "The only design constraint encoded is the location of the main entrance, which is put into the node features and adjacency matrices. Generation compares four encoders (GCNConv, SAGEConv, GATConv, TransformerConv), and the VGAE predicts the classes of edges of the 3D spatial grid, which are modelled into detailed 3D building models.",
+      "es": "La única restricción de diseño codificada es la ubicación de la entrada principal, que se incluye en las características de nodo y en las matrices de adyacencia. La generación compara cuatro codificadores (GCNConv, SAGEConv, GATConv, TransformerConv), y el VGAE predice las clases de arista de la rejilla espacial 3D, que se modelan como modelos 3D detallados del edificio.",
+      "blocks": [
+        "s3-p14",
+        "s3-p20",
+        "s4-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "concept",
+      "en": "Room accessibility is defined as the evaluation metric for generated layouts, used to verify generalisation under different geometric inputs.",
+      "es": "La accesibilidad de las habitaciones se define como la métrica de evaluación de las distribuciones generadas, y sirve para verificar la generalización con distintas geometrías de entrada.",
+      "blocks": [
+        "s3-p20",
+        "s3-p23"
+      ],
+      "key": "room-accessibility",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "The VGAE with the SAGEConv encoder gives the best generation results and improves notably as data volume increases, with the model loss reaching 0.45.",
+      "es": "El VGAE con el codificador SAGEConv da los mejores resultados de generación y mejora notablemente al aumentar el volumen de datos, con una pérdida del modelo de 0.45.",
+      "blocks": [
+        "s3-p23",
+        "fig-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "With the main entrance on the west, east or south sides, the generated layouts have accessibility above 75%. For irregular volumes one layout had enclosed spaces without doors, with accessibility of 45%, while the other two reached 100%. In Figure 9(b)(3), all generated layouts have accessibility above 80%.",
+      "es": "Con la entrada principal en los lados oeste, este o sur, las distribuciones generadas tienen accesibilidad superior al 75%. Con volúmenes irregulares, una distribución tuvo espacios cerrados sin puertas, con accesibilidad de 45%, mientras que las otras dos llegaron a 100%. En la Figura 9(b)(3), todas las distribuciones generadas tienen accesibilidad superior al 80%.",
+      "blocks": [
+        "s3-p23",
+        "fig-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "claim",
+      "en": "Because the generated models are layered by component type, they can be edited by swapping components of the same type, such as exterior walls replaced with glass curtain walls, walls switched to different brick materials, or windows replaced with other types. The authors say this reduces the time architects spend adjusting details.",
+      "es": "Como los modelos generados están organizados en capas por tipo de componente, se pueden editar cambiando componentes del mismo tipo, por ejemplo muros exteriores sustituidos por muros cortina de vidrio, muros cambiados a distintos materiales de ladrillo o ventanas reemplazadas por otros tipos. Los autores afirman que esto reduce el tiempo que los arquitectos dedican a ajustar detalles.",
+      "blocks": [
+        "s3-p27",
+        "fig-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "concept",
+      "en": "Earlier graph approaches stay at a coarser level: HouseGAN uses rooms as nodes and adjacencies as edges and overlooks columns, walls and windows; Building-GNN uses voxels as nodes; a shear wall GNN works with walls as edges but does not address the entire layout. Graph-BIM encoding treats columns and walls as nodes and edges.",
+      "es": "Los enfoques de grafo anteriores se quedan en un nivel más grueso: HouseGAN usa cuartos como nodos y adyacencias como aristas y pasa por alto columnas, muros y ventanas; Building-GNN usa vóxeles como nodos; un GNN de muros de cortante usa muros como aristas pero no aborda la distribución completa. La codificación Graph-BIM trata columnas y muros como nodos y aristas.",
+      "blocks": [
+        "s2-p2",
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "claim",
+      "en": "The authors conclude that Graph-BIM encoding can automatically convert any BIM model based on straight wall layout into graph data, and that the VGAE can generate high-detail layered 3D models from geometries. They present Building-Graph-AI as a collaborative design partner for architects.",
+      "es": "Los autores concluyen que la codificación Graph-BIM puede convertir automáticamente cualquier modelo BIM basado en muros rectos en datos de grafo, y que el VGAE puede generar modelos 3D por capas y de alto detalle a partir de geometrías. Presentan Building-Graph-AI como un socio de diseño colaborativo para los arquitectos.",
+      "blocks": [
+        "s5-p1",
+        "s0-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "limitation",
+      "en": "The dataset has only spatial layouts defined by walls and columns. It lacks isolated windows, doors and furniture, and the Housegan-derived data has inaccuracies and little diversity of room functions.",
+      "es": "El conjunto de datos solo contiene distribuciones espaciales definidas por muros y columnas. Carece de ventanas y puertas aisladas y de mobiliario, y los datos derivados de Housegan tienen imprecisiones y poca diversidad de funciones de cuarto.",
+      "blocks": [
+        "s4-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "limitation",
+      "en": "The Housegan-based data, drawn from Japanese residential layouts, gives only orthogonal layouts and ties the trained model to the spatial characteristics of that dataset. The framework handles straight-edged volumes and has trouble with intricate surfaces or curved geometries.",
+      "es": "Los datos basados en Housegan, tomados de distribuciones residenciales japonesas, solo dan distribuciones ortogonales y atan el modelo entrenado a las características espaciales de ese conjunto de datos. El marco maneja volúmenes de bordes rectos y tiene dificultades con superficies complejas o geometrías curvas.",
+      "blocks": [
+        "s4-p1",
+        "s4-p3",
+        "s4-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "limitation",
+      "en": "Layout accuracy depends on grid resolution: smaller grid units improve precision but raise the computational cost, making high-resolution models computationally intensive.",
+      "es": "La precisión de la distribución depende de la resolución de la rejilla: unidades más pequeñas mejoran la precisión pero aumentan el costo computacional, lo que hace costosos los modelos de alta resolución.",
+      "blocks": [
+        "s4-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "limitation",
+      "en": "The framework predicts edge types from the original graph's node features. It does not generate new nodes or infer entire spatial layouts from minimal input. Integrating edge attributes into node features also remained challenging.",
+      "es": "El marco predice tipos de arista a partir de las características de los nodos del grafo original. No genera nodos nuevos ni infiere distribuciones espaciales completas a partir de datos mínimos. Integrar los atributos de arista en las características de nodo también siguió siendo difícil.",
+      "blocks": [
+        "s4-p3",
+        "s4-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "limitation",
+      "en": "Evaluation uses only loss metrics and room accessibility, which the authors say partially simulates real design evaluation. No professional architects or industry stakeholders assessed the results.",
+      "es": "La evaluación usa solo métricas de pérdida y la accesibilidad de las habitaciones, que según los autores simula solo en parte la evaluación en el diseño real. Ningún arquitecto profesional ni actor de la industria evaluó los resultados.",
+      "blocks": [
+        "s4-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "future",
+      "en": "Future work: improve dataset quality and diversity, generate non-orthogonal and curved shapes at higher grid resolution, and use transformers or RNNs to infer and generate additional nodes and edges. The authors also suggest neural implicit fields and topologically extendable quadrilateral networks for varied geometries.",
+      "es": "Trabajo futuro: mejorar la calidad y diversidad de los datos, generar formas no ortogonales y curvas con mayor resolución de rejilla, y usar transformers o RNN para inferir y generar nodos y aristas adicionales. Los autores también sugieren campos implícitos neuronales y redes de cuadriláteros topológicamente extensibles para geometrías variadas.",
+      "blocks": [
+        "s4-p2",
+        "s4-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "future",
+      "en": "Future work: add more complex design constraints (ventilation, daylighting, surrounding green spaces, transportation access, functional bubble diagrams), add detailed components such as doors, windows and furniture to the encoding, and have professional architects assess accessibility, functional layout and space utilization.",
+      "es": "Trabajo futuro: agregar restricciones de diseño más complejas (ventilación, iluminación natural, áreas verdes circundantes, acceso al transporte, diagramas de burbujas funcionales), incluir componentes detallados como puertas, ventanas y mobiliario en la codificación, y hacer que arquitectos profesionales evalúen la accesibilidad, la distribución funcional y el aprovechamiento del espacio.",
+      "blocks": [
+        "s4-p5",
+        "s4-p4",
+        "s4-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "concept",
+      "en": "VGAE draws on earlier work: GraphVAE generates a probabilistic fully connected graph in one pass and its probability thresholds control node and edge existence, which inspired testing thresholds. Masking label prediction inspired hiding parts of the layout data, and the permutation-invariant VAE speaks to node ordering.",
+      "es": "El VGAE se apoya en trabajos previos: GraphVAE genera un grafo probabilístico totalmente conectado en una sola pasada y sus umbrales de probabilidad controlan la existencia de nodos y aristas, lo que inspiró probar umbrales. La predicción de etiquetas con máscara inspiró ocultar partes de los datos de distribución, y el VAE invariante a permutaciones aborda el orden de los nodos.",
+      "blocks": [
+        "s2-p4"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i3",
+      "to": "i6",
+      "type": "part-of",
+      "why": "Graph-BIM encoding is one of the three components of Building-Graph-AI."
+    },
+    {
+      "from": "i4",
+      "to": "i6",
+      "type": "part-of",
+      "why": "The 3D spatial grid structure is a component of the framework."
+    },
+    {
+      "from": "i5",
+      "to": "i6",
+      "type": "part-of",
+      "why": "The VGAE is the learning and generation model of the framework."
+    },
+    {
+      "from": "i1",
+      "to": "i2",
+      "type": "supports",
+      "why": "The limits of voxels, point clouds and fields explain why component-level layered generation is hard."
+    },
+    {
+      "from": "i3",
+      "to": "i1",
+      "type": "supports",
+      "why": "Graph-BIM encoding is proposed as the answer to the learning difficulty."
+    },
+    {
+      "from": "i4",
+      "to": "i1",
+      "type": "supports",
+      "why": "The grid supplies the interior nodes and edges that simple volumes lack."
+    },
+    {
+      "from": "i7",
+      "to": "i3",
+      "type": "uses",
+      "why": "The encoding is implemented as a Dynamo script that exports Revit models to graph tables."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "uses",
+      "why": "The Housegan-derived Revit models are converted to graphs through the Dynamo pipeline."
+    },
+    {
+      "from": "i9",
+      "to": "i3",
+      "type": "measures",
+      "why": "The test compares three encodings to choose the Graph-BIM encoding."
+    },
+    {
+      "from": "i9",
+      "to": "i5",
+      "type": "uses",
+      "why": "Each encoding is trained and scored with a VGAE."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "measures",
+      "why": "Method 3 with TransformerGCN gets the lowest loss, about 0.098."
+    },
+    {
+      "from": "i11",
+      "to": "i9",
+      "type": "measures",
+      "why": "Loss values of 0.184, 0.574 and 0.756 rank methods 1 and 2 below method 3."
+    },
+    {
+      "from": "i12",
+      "to": "i10",
+      "type": "supports",
+      "why": "The choice of method 3 rests on its lowest loss."
+    },
+    {
+      "from": "i12",
+      "to": "i11",
+      "type": "supports",
+      "why": "The weak method 2 shows environmental information alone is not enough."
+    },
+    {
+      "from": "i13",
+      "to": "i5",
+      "type": "uses",
+      "why": "Masking is applied when training the VGAE for generation."
+    },
+    {
+      "from": "i13",
+      "to": "i4",
+      "type": "uses",
+      "why": "Masked interior walls are edges of the 3D spatial grid to be predicted."
+    },
+    {
+      "from": "i14",
+      "to": "i13",
+      "type": "uses",
+      "why": "Entrance and boundary geometry are the inputs from which the masked interior is inferred."
+    },
+    {
+      "from": "i8",
+      "to": "i4",
+      "type": "uses",
+      "why": "Plans are snapped to a 1 meter grid so the models fit the spatial grid structure."
+    },
+    {
+      "from": "i16",
+      "to": "i14",
+      "type": "measures",
+      "why": "SAGEConv gets the best loss, 0.45, among the compared encoders."
+    },
+    {
+      "from": "i15",
+      "to": "i17",
+      "type": "measures",
+      "why": "Accessibility percentages quantify the generated layouts."
+    },
+    {
+      "from": "i17",
+      "to": "i15",
+      "type": "example-of",
+      "why": "The 75%, 45%, 100% and 80% figures are applications of the accessibility metric."
+    },
+    {
+      "from": "i18",
+      "to": "i20",
+      "type": "supports",
+      "why": "Component-level editing is offered as evidence of better workflow integration."
+    },
+    {
+      "from": "i16",
+      "to": "i20",
+      "type": "supports",
+      "why": "The generation results back the claim that the VGAE generates detailed layered models."
+    },
+    {
+      "from": "i19",
+      "to": "i3",
+      "type": "supports",
+      "why": "The gaps in earlier graph encodings motivate treating columns and walls as nodes and edges."
+    },
+    {
+      "from": "i28",
+      "to": "i5",
+      "type": "supports",
+      "why": "Prior VAE work informs the thresholds, masking and node ordering choices."
+    },
+    {
+      "from": "i21",
+      "to": "i8",
+      "type": "part-of",
+      "why": "The data shortcomings are shortcomings of the Housegan-derived dataset."
+    },
+    {
+      "from": "i22",
+      "to": "i8",
+      "type": "part-of",
+      "why": "Orthogonal layouts and the Japanese residential bias come from the source dataset."
+    },
+    {
+      "from": "i24",
+      "to": "i14",
+      "type": "contradicts",
+      "why": "Predicting only edge classes on a fixed grid limits the generation the framework claims."
+    },
+    {
+      "from": "i25",
+      "to": "i17",
+      "type": "contradicts",
+      "why": "Accessibility alone does not show the layouts meet professional design standards."
+    },
+    {
+      "from": "i23",
+      "to": "i4",
+      "type": "part-of",
+      "why": "The resolution trade-off is a cost of the grid structure."
+    },
+    {
+      "from": "i26",
+      "to": "i24",
+      "type": "supports",
+      "why": "Transformers or RNNs are proposed to generate new nodes and edges."
+    },
+    {
+      "from": "i27",
+      "to": "i21",
+      "type": "supports",
+      "why": "Adding doors, windows and furniture addresses the missing components."
+    },
+    {
+      "from": "i27",
+      "to": "i25",
+      "type": "supports",
+      "why": "Evaluation by architects addresses the evaluation limit."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i3",
+      "to": "hypothesis",
+      "why": "Supports the hypothesis: a BIM model reduced to elements as nodes and relations as edges is something a network can learn from and reconstruct, with loss as low as about 0.098."
+    },
+    {
+      "idea": "i3",
+      "to": "ifc-to-graph-recipe",
+      "why": "A working version of the model-to-graph recipe, with components as nodes and relations as edges, built on Revit rather than IFC."
+    },
+    {
+      "idea": "i7",
+      "to": "cbim-2023",
+      "why": "A similar Revit to graph and back to Revit pipeline, here through Dynamo and Excel tables, with the same use of Revit element IDs."
+    },
+    {
+      "idea": "i13",
+      "to": "deconstruct-for-training",
+      "why": "Masking the interior walls and keeping the boundary turns one complete model into a training example, a method to borrow."
+    },
+    {
+      "idea": "i24",
+      "to": "assemble-node-by-node",
+      "why": "A gap: the framework only classifies edges on a fixed grid and does not add new elements, which is the step the thesis needs to assemble models element by element."
+    },
+    {
+      "idea": "i8",
+      "to": "real-or-synthetic-data",
+      "why": "The 3D BIM training data was made by lifting filtered 2D Housegan plans onto a 1 meter grid in Revit, not taken from real project models."
+    },
+    {
+      "idea": "i21",
+      "to": "clean-real-models",
+      "why": "The authors treat dataset quality as a limit: only walls and columns, inaccuracies and little diversity, which shows why training data needs preparation."
+    },
+    {
+      "idea": "i18",
+      "to": "correct-by-construction",
+      "why": "Layered output by component type lets elements be swapped without redrawing, a step toward usable BIM output, though no information-completeness check is made."
+    },
+    {
+      "idea": "i25",
+      "to": "question",
+      "why": "Challenges the claim of valid models: validity is judged only by loss and room accessibility, with no architect or code check."
+    }
+  ]
+}

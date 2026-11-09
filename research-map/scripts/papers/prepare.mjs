@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { blocksOf, validatePaper } from '../../assets/paper.js'
-import { indexPapers } from '../check.mjs'
+import { writeIndexes } from '../check.mjs'
 import { dropRunning, structure } from './structure.mjs'
 
 const PDF_DUMP = join(import.meta.dirname, 'pdf_dump.py')
@@ -73,7 +73,7 @@ export async function prepare(nodeId, { root = process.cwd(), dump = runDump, cr
     writeJson(join(tmp, 'crops.json'), crops)
     await crop(pdf, join(tmp, 'crops.json'), join(dir, 'fig'))
     writeJson(join(dir, 'paper.json'), paper)
-    writeJson(join(root, 'papers', 'index.json'), indexPapers(root))
+    writeIndexes(root)
     return { sections: paper.sections.length, blocks: blocksOf(paper).length, figures: crops.length }
   } finally {
     rmSync(tmp, { recursive: true, force: true })

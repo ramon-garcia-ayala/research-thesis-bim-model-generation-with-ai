@@ -1,0 +1,791 @@
+{
+  "version": 1,
+  "node": "renner-2025",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can a graph neural network, trained on graphs made from real BIM models, suggest the next building element in 3D, so that a designer can autocomplete a partial design?",
+      "es": "¿Puede una red neuronal de grafos, entrenada con grafos hechos de modelos BIM reales, sugerir el siguiente elemento de un edificio en 3D para que un diseñador complete un diseño parcial?",
+      "blocks": [
+        "s3-p1",
+        "s6-p4",
+        "s2-p1"
+      ],
+      "key": "bim-autocompletion",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Building elements and the relations between them are extracted from IFC files and stored as a heterogeneous graph, with several node and edge types, using a custom semantic schema.",
+      "es": "Los elementos del edificio y sus relaciones se extraen de archivos IFC y se guardan como un grafo heterogéneo, con varios tipos de nodos y aristas, usando un esquema semántico propio.",
+      "blocks": [
+        "s6-p4",
+        "s8-p3",
+        "s5-p8"
+      ],
+      "key": "ifc-heterogeneous-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "dataset",
+      "en": "The data come from 50 BIM models contributed by architectural firms in Germany and Austria; 148 offices were contacted, 24 responded with usable data, and 22 models passed quality screening. The set is residential and kept typologically homogeneous.",
+      "es": "Los datos vienen de 50 modelos BIM aportados por despachos de arquitectura de Alemania y Austria; se contactó a 148 oficinas, 24 respondieron con datos utilizables y 22 modelos pasaron la revisión de calidad. El conjunto es residencial y se mantuvo tipológicamente homogéneo.",
+      "blocks": [
+        "s8-p1",
+        "s8-p2"
+      ],
+      "key": "renner-ifc-22",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "method",
+      "en": "Six IFC elements are kept (IfcBuildingStorey, IfcSpace, IfcSlab, IfcWall, IfcColumn, IfcBeam). Each one's geometry becomes a tensor of seven values: center x, y, z, rotation angle α, and length, width and height, computed from an oriented bounding box.",
+      "es": "Se conservan seis elementos IFC (IfcBuildingStorey, IfcSpace, IfcSlab, IfcWall, IfcColumn, IfcBeam). La geometría de cada uno se vuelve un tensor de siete valores: centro x, y, z, ángulo de rotación α, y largo, ancho y alto, calculados con una caja delimitadora orientada.",
+      "blocks": [
+        "s8-p4",
+        "s8-e1",
+        "s8-p8"
+      ],
+      "key": "element-tensor",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "The number of data points is first increased by augmenting the models with rotation and mirroring.",
+      "es": "Primero se aumenta el número de datos con aumentación de los modelos mediante rotación y espejo.",
+      "blocks": [
+        "s8-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "To produce ground truth and more data, each graph is split into subgraphs and deconstructed nodes with modified breadth-first search (BFS) algorithms and a Minimal Node Degree (MND) algorithm.",
+      "es": "Para producir la verdad de referencia y más datos, cada grafo se divide en subgrafos y nodos deconstruidos con algoritmos de búsqueda en anchura (BFS) modificados y un algoritmo de Grado Mínimo de Nodo (MND).",
+      "blocks": [
+        "s8-p5",
+        "s8-p6"
+      ],
+      "key": "graph-splitting",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "dataset",
+      "en": "Three datasets of 180,000 heterogeneous subgraphs each: IFC_hBFS_180k (hierarchical node-type starting point), IFC_rBFS_180k (random starting point) and IFC_MND_180k (node selection by edge count).",
+      "es": "Tres conjuntos de 180,000 subgrafos heterogéneos cada uno: IFC_hBFS_180k (punto de partida jerárquico por tipo de nodo), IFC_rBFS_180k (punto de partida aleatorio) e IFC_MND_180k (selección de nodo por número de aristas).",
+      "blocks": [
+        "s8-p6",
+        "s8-p7",
+        "s8-p10",
+        "s8-p11"
+      ],
+      "key": "ifc-180k",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Autocompletion predicts a single node. First the component type is predicted (multi-label classification). Then regression predicts either position, angle and dimensions (A), or only angle and dimensions when the position is given (B).",
+      "es": "La autocompletación predice un solo nodo. Primero se predice el tipo de componente (clasificación multietiqueta). Luego una regresión predice posición, ángulo y dimensiones (A), o solo ángulo y dimensiones cuando la posición ya está dada (B).",
+      "blocks": [
+        "s9-p1",
+        "s9-p2",
+        "s9-p8"
+      ],
+      "key": "next-node-prediction",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "The classification network applies GraphSAGE or GCN layers through DGL's HeteroGraphConv, a Gated Recurrent Unit over the stacked node embeddings of each layer, then a multilayer perceptron with LogSoftMax. GATConv and EdgeConv were tested but dropped for their higher computational cost.",
+      "es": "La red de clasificación aplica capas GraphSAGE o GCN mediante HeteroGraphConv de DGL, una Gated Recurrent Unit sobre los embeddings apilados de cada capa, y luego un perceptrón multicapa con LogSoftMax. GATConv y EdgeConv se probaron pero se descartaron por su mayor costo computacional.",
+      "blocks": [
+        "s9-p3",
+        "s9-p4",
+        "s9-p5",
+        "fig-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "The regression networks have the same shape (a GNN followed by an MLP) but use GATConv layers with attention heads and a Sigmoid output. The ground-truth node type is concatenated before the final layer, and for model B the center point as well.",
+      "es": "Las redes de regresión tienen la misma forma (una GNN seguida de un MLP) pero usan capas GATConv con cabezas de atención y una salida Sigmoid. El tipo de nodo real se concatena antes de la capa final, y en el modelo B también el punto central.",
+      "blocks": [
+        "s9-p6",
+        "s9-p7",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "Each epoch with message passing took about 3–4 h on one GPU, against 10–20 min without it. Because of this cost, no systematic hyperparameter optimization was done; parameters were picked by empirical trials, with a smaller IFC_18k set for early tests.",
+      "es": "Cada época con paso de mensajes tomó unas 3–4 h en una GPU, contra 10–20 min sin él. Por este costo no se hizo una optimización sistemática de hiperparámetros; los parámetros se eligieron por pruebas empíricas, con un conjunto menor IFC_18k para pruebas iniciales.",
+      "blocks": [
+        "s10-p2",
+        "s10-p3",
+        "s10-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Regression is evaluated with the mean of all pairwise Euclidean distances between the vertices of the predicted and true oriented bounding boxes. IoU was set aside because predicted and true components often do not overlap, so it says nothing about how far apart they are.",
+      "es": "La regresión se evalúa con la media de todas las distancias euclidianas entre pares de vértices de las cajas delimitadoras orientadas predicha y real. Se descartó IoU porque los componentes predicho y real a menudo no se traslapan y no informa qué tan separados están.",
+      "blocks": [
+        "s10-p9"
+      ],
+      "key": "vertex-distance",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "Three levels of human-AI control: Restricted (user gives type and exact position, AI predicts dimensions), Partial Assistance (user gives type, AI predicts placement, angle and dimensions) and Fully Autonomous (AI suggests type, position, angle and dimensions).",
+      "es": "Tres niveles de control humano-IA: Restringido (el usuario da tipo y posición exacta, la IA predice dimensiones), Asistencia Parcial (el usuario da el tipo, la IA predice ubicación, ángulo y dimensiones) y Totalmente Autónomo (la IA sugiere tipo, posición, ángulo y dimensiones).",
+      "blocks": [
+        "s11-p1",
+        "s11-p2",
+        "s11-p10",
+        "s11-p11",
+        "fig-3"
+      ],
+      "key": "control-modes",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "The tool runs in Rhino/Grasshopper as a Hops component. The user sketches a 3D component, it is converted to a graph, the networks predict the next element, the result is turned back into geometry, and the user accepts or rejects it.",
+      "es": "La herramienta corre en Rhino/Grasshopper como componente Hops. El usuario dibuja un componente 3D, se convierte en grafo, las redes predicen el siguiente elemento, el resultado se convierte de nuevo en geometría y el usuario lo acepta o lo rechaza.",
+      "blocks": [
+        "s11-p4",
+        "s11-p5",
+        "s11-p8",
+        "s11-p14",
+        "s11-p15",
+        "s11-p16",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "Usability was assessed with the System Usability Scale, a 10-item questionnaire scored 0 to 100, with 20 participants, 19 of them architecture students. They continued simplified, incomplete 3D buildings in Rhino using the co-pilot.",
+      "es": "La usabilidad se evaluó con la System Usability Scale, un cuestionario de 10 reactivos con puntaje de 0 a 100, con 20 participantes, 19 de ellos estudiantes de arquitectura. Continuaron edificios 3D simplificados e incompletos en Rhino con el co-piloto.",
+      "blocks": [
+        "s12-p1",
+        "s12-p6",
+        "s15-p1",
+        "s15-p2"
+      ],
+      "key": "sus",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "Models trained on IFC_180k performed better than on IFC_18k, and for node type prediction IFC_hBFS_180k consistently outperformed IFC_rBFS_180k and IFC_MND_180k.",
+      "es": "Los modelos entrenados con IFC_180k rindieron mejor que con IFC_18k, y en la predicción del tipo de nodo IFC_hBFS_180k superó consistentemente a IFC_rBFS_180k e IFC_MND_180k.",
+      "blocks": [
+        "s13-p3",
+        "s13-p4",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "After 20 epochs (approximately 80 hours) on IFC_hBFS_180k, the classification network correctly predicts approximately 79% of node types, against 16.67% for random guessing among six classes.",
+      "es": "Tras 20 épocas (aproximadamente 80 horas) en IFC_hBFS_180k, la red de clasificación predice correctamente aproximadamente 79% de los tipos de nodo, contra 16.67% de adivinar al azar entre seis clases.",
+      "blocks": [
+        "s14-p2",
+        "s14-p4",
+        "tab-2",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "A similar network without the GRU and without message passing reached accuracy 71.14% after 20 epochs (approximately 3 hours). Adding the graph model improves performance significantly, but training time could not be compared fairly.",
+      "es": "Una red similar sin GRU y sin paso de mensajes alcanzó una exactitud de 71.14% tras 20 épocas (aproximadamente 3 horas). Añadir el modelo de grafos mejora el desempeño de forma significativa, pero el tiempo de entrenamiento no pudo compararse de forma justa.",
+      "blocks": [
+        "s14-p6",
+        "s14-p7",
+        "s14-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "Regression network A (position, angle and dimensions) converged at an average distance of approximately 22 meters over the entire dataset.",
+      "es": "La red de regresión A (posición, ángulo y dimensiones) convergió en una distancia promedio de aproximadamente 22 meters sobre todo el conjunto de datos.",
+      "blocks": [
+        "s14-p13",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Regression network B, which is given the coordinates, performs significantly better than A and converges at approximately 15 meters.",
+      "es": "La red de regresión B, a la que se le dan las coordenadas, rinde significativamente mejor que A y converge en aproximadamente 15 meters.",
+      "blocks": [
+        "s14-p14",
+        "fig-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "SUS scores were 56.25 for Restricted Mode, 53.75 for Fully Autonomous Mode and 51.875 for Partial Assistance Mode, all read as \"OK\".",
+      "es": "Los puntajes SUS fueron 56.25 para el modo Restringido, 53.75 para el modo Totalmente Autónomo y 51.875 para el modo de Asistencia Parcial, todos interpretados como \"OK\".",
+      "blocks": [
+        "s15-p3",
+        "fig-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "In Restricted Mode all participants completed their tasks, though it needed the most configuration and clicks. In Partial Assistance and Fully Autonomous modes, predictions were overly simplistic and often needed significant user correction, so success was driven mostly by the user.",
+      "es": "En el modo Restringido todos los participantes completaron sus tareas, aunque requirió más configuración y clics. En los modos de Asistencia Parcial y Totalmente Autónomo las predicciones fueron demasiado simples y a menudo requirieron corrección significativa del usuario, por lo que el éxito dependió sobre todo del usuario.",
+      "blocks": [
+        "s15-p4",
+        "s15-p5",
+        "s15-p6",
+        "s15-p8",
+        "fig-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "Regression model A produces predictions constrained to a narrow range of locations. The authors list insufficient training data, incorrect normalization or an inappropriate loss function among possible causes.",
+      "es": "El modelo de regresión A produce predicciones restringidas a un rango estrecho de ubicaciones. Los autores mencionan datos de entrenamiento insuficientes, normalización incorrecta o una función de pérdida inadecuada entre las causas posibles.",
+      "blocks": [
+        "s15-p10",
+        "s15-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "limitation",
+      "en": "Oversampling of underrepresented classes may introduce some data leakage; the authors say this happens only in marginal cases, such as IfcBuildingStorey in IFC_180k_hBFS.",
+      "es": "El sobremuestreo de clases subrepresentadas puede introducir algo de fuga de datos; los autores dicen que ocurre solo en casos marginales, como IfcBuildingStorey en IFC_180k_hBFS.",
+      "blocks": [
+        "s13-p2",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "limitation",
+      "en": "Training and validation subgraphs all come from the same IFC models. The volume of 180,000 subgraphs should not be equated with structural or functional variability, and recurring local patterns may bias generalization. Claims are limited to the architectural scope of this dataset.",
+      "es": "Los subgrafos de entrenamiento y validación vienen todos de los mismos modelos IFC. El volumen de 180,000 subgrafos no debe equipararse con variabilidad estructural o funcional, y los patrones locales recurrentes pueden sesgar la generalización. Las afirmaciones se limitan al alcance arquitectónico de este conjunto.",
+      "blocks": [
+        "s8-p9",
+        "s16-p17"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "limitation",
+      "en": "The dataset is restricted to residential projects from a narrow regional and functional context, and inconsistent modeling practices across firms add noise to preprocessing. The authors point to a lack of open-access IFC datasets of varied building types.",
+      "es": "El conjunto se limita a proyectos residenciales de un contexto regional y funcional estrecho, y las prácticas de modelado inconsistentes entre despachos añaden ruido al preprocesamiento. Los autores señalan la falta de conjuntos IFC de acceso abierto con tipos de edificio variados.",
+      "blocks": [
+        "s16-p2",
+        "s8-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "There are no objective architectural evaluation metrics, only technical ones, and usability was only \"OK\". A larger sample would make the findings more representative.",
+      "es": "No hay métricas objetivas de evaluación arquitectónica, solo técnicas, y la usabilidad fue solo \"OK\". Una muestra mayor haría los hallazgos más representativos.",
+      "blocks": [
+        "s16-p15",
+        "s14-p15"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "Predicted geometry is flexible but has no logical constraints, such as columns attached to slabs or one column aligned over another, and the proportions of predicted geometries need improvement.",
+      "es": "La geometría predicha es flexible pero no tiene restricciones lógicas, como columnas unidas a losas o una columna alineada sobre otra, y las proporciones de las geometrías predichas necesitan mejorar.",
+      "blocks": [
+        "s16-p16"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "claim",
+      "en": "The study presents a viable generative AI methodology for context-informed autocompletion co-pilots, and graphs are an effective lightweight representation of 3D architecture. It is an initial step toward a foundation model for architectural design.",
+      "es": "El estudio presenta una metodología de IA generativa viable para co-pilotos de autocompletación informados por el contexto, y los grafos son una representación ligera y eficaz de la arquitectura 3D. Es un primer paso hacia un modelo fundacional para el diseño arquitectónico.",
+      "blocks": [
+        "s16-p1",
+        "s16-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "claim",
+      "en": "Training on partial subgraphs of heterogeneous graphs, instead of voxel grids or whole-building layouts, lets the model infer spatial organization incrementally and supports a user-guided process, as opposed to one-shot generation.",
+      "es": "Entrenar con subgrafos parciales de grafos heterogéneos, en lugar de rejillas de vóxeles o distribuciones completas del edificio, permite al modelo inferir la organización espacial de forma incremental y apoya un proceso guiado por el usuario, frente a la generación de un solo paso.",
+      "blocks": [
+        "s6-p2",
+        "s6-p4",
+        "s6-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "concept",
+      "en": "GCN, GraphSAGE and GAT are GNN architectures that aggregate information from neighboring nodes with convolution, LSTM or self-attention, and can generalize to unseen nodes or graphs. Deep generative models of graphs use GNNs to generate synthetic graphs.",
+      "es": "GCN, GraphSAGE y GAT son arquitecturas de GNN que agregan información de los nodos vecinos con convolución, LSTM o autoatención, y pueden generalizar a nodos o grafos no vistos. Los modelos generativos profundos de grafos usan GNN para generar grafos sintéticos.",
+      "blocks": [
+        "s5-p5",
+        "s5-p6",
+        "s5-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "future",
+      "en": "Possible extensions include material suggestions, cost estimation, MEP design, retrieval-augmented generation, code compliance verification, sensor and image evaluation, and automated detailing of connections.",
+      "es": "Las extensiones posibles incluyen sugerencias de materiales, estimación de costos, diseño MEP, generación aumentada por recuperación, verificación de cumplimiento normativo, evaluación de datos de sensores e imágenes, y detallado automático de conexiones.",
+      "blocks": [
+        "s16-p4",
+        "s16-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "future",
+      "en": "The authors call for curating open IFC datasets with varied types, evaluating on entirely unseen IFC models, adding structural rules, and a more systematic, design-oriented evaluation of model behavior.",
+      "es": "Los autores piden curar conjuntos IFC abiertos y variados, evaluar con modelos IFC totalmente no vistos, añadir reglas estructurales y una evaluación más sistemática y orientada al diseño del comportamiento del modelo.",
+      "blocks": [
+        "s16-p2",
+        "s16-p17",
+        "s16-p16",
+        "s15-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "concept",
+      "en": "Autocompletion has improved with generative AI; LLMs trained on vast text datasets enable autocompletion for text and code.",
+      "es": "El autocompletado ha mejorado con la IA generativa; los LLM entrenados con enormes conjuntos de texto permiten autocompletar texto y código.",
+      "blocks": [
+        "s4-p2"
+      ],
+      "origin": "question",
+      "date": "2026-11-08"
+    },
+    {
+      "id": "i35",
+      "kind": "claim",
+      "en": "AI-driven design assistance extends autocompletion beyond text to BIM data, giving context-aware generative suggestions.",
+      "es": "La asistencia de diseño con IA extiende el autocompletado más allá del texto a datos BIM, con sugerencias generativas sensibles al contexto.",
+      "blocks": [
+        "s4-p2"
+      ],
+      "origin": "question",
+      "date": "2026-11-08"
+    },
+    {
+      "id": "i36",
+      "kind": "method",
+      "en": "The system autocompletes architectural elements locally from graph representations of BIM models, using GNNs and DGMG rather than an LLM.",
+      "es": "El sistema autocompleta elementos arquitectónicos localmente a partir de grafos de modelos BIM, usando GNN y DGMG en lugar de un LLM.",
+      "blocks": [
+        "s3-p1",
+        "s2-p1"
+      ],
+      "origin": "question",
+      "date": "2026-11-08"
+    },
+    {
+      "id": "i37",
+      "kind": "method",
+      "en": "Training on subgraphs of partial building configurations allows incremental, user-guided generation instead of one-shot generation.",
+      "es": "Entrenar con subgrafos de configuraciones parciales permite una generación incremental guiada por el usuario, en vez de generación de una sola vez.",
+      "blocks": [
+        "s6-p4"
+      ],
+      "origin": "question",
+      "date": "2026-11-08"
+    },
+    {
+      "id": "i38",
+      "kind": "concept",
+      "en": "Message Passing (MP) is the graph-model step, together with convolution, in which nodes update their features from connected neighbours; the classifier pairs it with an MLP.",
+      "es": "El paso de mensajes (MP) es el paso del modelo de grafos, junto con la convolución, en el que los nodos actualizan sus rasgos con los de sus vecinos conectados; el clasificador lo combina con un MLP.",
+      "blocks": [
+        "s9-p3"
+      ],
+      "origin": "question",
+      "date": "2026-11-08"
+    },
+    {
+      "id": "i39",
+      "kind": "result",
+      "en": "Training with the GNN (MP) took approximately 3–4 h per epoch, whereas training without MP took 10–20 min.",
+      "es": "Entrenar con la GNN (MP) tomó aproximadamente 3–4 h por época, mientras que sin MP tomó 10–20 min.",
+      "blocks": [
+        "s10-p2"
+      ],
+      "origin": "question",
+      "date": "2026-11-08"
+    },
+    {
+      "id": "i40",
+      "kind": "result",
+      "en": "Without a GRU and without GNN message passing, the classifier reached 71.14% accuracy, versus 79% for the full network.",
+      "es": "Sin GRU y sin paso de mensajes de la GNN, el clasificador alcanzó 71.14% de exactitud, frente a 79% de la red completa.",
+      "blocks": [
+        "s14-p7",
+        "s14-p4"
+      ],
+      "origin": "question",
+      "date": "2026-11-08"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i4",
+      "type": "uses",
+      "why": "Each node of the graph carries the seven-value tensor of its element."
+    },
+    {
+      "from": "i3",
+      "to": "i2",
+      "type": "uses",
+      "why": "The graphs are built from the 22 screened IFC models."
+    },
+    {
+      "from": "i5",
+      "to": "i7",
+      "type": "part-of",
+      "why": "Augmentation is one step of building the 180k datasets."
+    },
+    {
+      "from": "i6",
+      "to": "i7",
+      "type": "part-of",
+      "why": "The splitting algorithms produce the three subgraph datasets."
+    },
+    {
+      "from": "i7",
+      "to": "i2",
+      "type": "uses",
+      "why": "Datasets are made of heterogeneous subgraphs."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "uses",
+      "why": "Ground truth for the next node comes from the deconstructed nodes."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "part-of",
+      "why": "The classifier handles the type-prediction step."
+    },
+    {
+      "from": "i10",
+      "to": "i8",
+      "type": "part-of",
+      "why": "Regression A and B handle the feature-prediction step."
+    },
+    {
+      "from": "i9",
+      "to": "i31",
+      "type": "uses",
+      "why": "Built from GraphSAGE or GCN layers."
+    },
+    {
+      "from": "i10",
+      "to": "i31",
+      "type": "uses",
+      "why": "Built from GAT layers."
+    },
+    {
+      "from": "i11",
+      "to": "i9",
+      "type": "uses",
+      "why": "Gives the training settings of the classifier."
+    },
+    {
+      "from": "i12",
+      "to": "i10",
+      "type": "measures",
+      "why": "Vertex distance is the evaluation of the regression networks."
+    },
+    {
+      "from": "i13",
+      "to": "i8",
+      "type": "uses",
+      "why": "Each control mode corresponds to one prediction problem."
+    },
+    {
+      "from": "i14",
+      "to": "i13",
+      "type": "uses",
+      "why": "The tool lets the user choose among the three modes."
+    },
+    {
+      "from": "i14",
+      "to": "i2",
+      "type": "uses",
+      "why": "The user's sketch is converted to a graph before prediction."
+    },
+    {
+      "from": "i15",
+      "to": "i13",
+      "type": "measures",
+      "why": "A SUS score is obtained for each control mode."
+    },
+    {
+      "from": "i16",
+      "to": "i7",
+      "type": "measures",
+      "why": "Compares accuracy across the dataset variants."
+    },
+    {
+      "from": "i17",
+      "to": "i9",
+      "type": "measures",
+      "why": "Reports the classifier's accuracy."
+    },
+    {
+      "from": "i18",
+      "to": "i17",
+      "type": "supports",
+      "why": "The version without message passing scores lower, so the graph model helps."
+    },
+    {
+      "from": "i19",
+      "to": "i10",
+      "type": "measures",
+      "why": "Result of regression network A."
+    },
+    {
+      "from": "i20",
+      "to": "i10",
+      "type": "measures",
+      "why": "Result of regression network B."
+    },
+    {
+      "from": "i20",
+      "to": "i19",
+      "type": "supports",
+      "why": "Giving the position makes the error smaller: about 15 vs about 22 meters."
+    },
+    {
+      "from": "i21",
+      "to": "i15",
+      "type": "measures",
+      "why": "Scores obtained with the SUS procedure."
+    },
+    {
+      "from": "i22",
+      "to": "i21",
+      "type": "supports",
+      "why": "Participant feedback explains why Restricted Mode scored highest."
+    },
+    {
+      "from": "i22",
+      "to": "i13",
+      "type": "measures",
+      "why": "Describes how each mode behaved in use."
+    },
+    {
+      "from": "i23",
+      "to": "i19",
+      "type": "supports",
+      "why": "The visual narrow range matches the large distance error of model A."
+    },
+    {
+      "from": "i24",
+      "to": "i17",
+      "type": "contradicts",
+      "why": "Possible leakage weakens how far the reported accuracy can be trusted."
+    },
+    {
+      "from": "i25",
+      "to": "i17",
+      "type": "contradicts",
+      "why": "Validation drawn from the same models limits what the 79% says about new models."
+    },
+    {
+      "from": "i26",
+      "to": "i3",
+      "type": "supports",
+      "why": "Explains the narrow scope and noise of the collected data."
+    },
+    {
+      "from": "i28",
+      "to": "i22",
+      "type": "supports",
+      "why": "Missing logical constraints help explain why users had to correct predictions."
+    },
+    {
+      "from": "i29",
+      "to": "i17",
+      "type": "supports",
+      "why": "The viability claim rests on the type-prediction result and the visual evaluation."
+    },
+    {
+      "from": "i29",
+      "to": "i22",
+      "type": "contradicts",
+      "why": "Most successful use needed heavy user input, which limits how autonomous the co-pilot is."
+    },
+    {
+      "from": "i30",
+      "to": "i6",
+      "type": "supports",
+      "why": "Subgraph training depends on splitting graphs into partial configurations."
+    },
+    {
+      "from": "i33",
+      "to": "i25",
+      "type": "supports",
+      "why": "Unseen-model evaluation answers the generalization bias."
+    },
+    {
+      "from": "i32",
+      "to": "i29",
+      "type": "supports",
+      "why": "Extensions follow from the foundation-model direction."
+    },
+    {
+      "from": "i1",
+      "to": "i29",
+      "type": "supports",
+      "why": "The paper concludes the question is answerable with a viable methodology."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i2",
+      "to": "ifc-to-graph-recipe",
+      "why": "A concrete IFC-to-graph recipe: six element types as nodes with a seven-value tensor, relations as edges in a heterogeneous graph."
+    },
+    {
+      "idea": "i6",
+      "to": "deconstruct-for-training",
+      "why": "Shows BFS and minimal-node-degree splitting as a way to turn few models into 180,000 training examples with a known next node."
+    },
+    {
+      "idea": "i8",
+      "to": "assemble-node-by-node",
+      "why": "Generation is done by predicting one element at a time, type first and then position, angle and size, which is the assembly step the thesis plans."
+    },
+    {
+      "idea": "i14",
+      "to": "assemble-node-by-node",
+      "why": "Closes the loop: predicted tensors are turned back into geometry and the user accepts or rejects each element before the next."
+    },
+    {
+      "idea": "i3",
+      "to": "clean-real-models",
+      "why": "Only 22 of 50 collected models passed screening, and inconsistent modeling practice added noise, which is evidence that real models need cleaning."
+    },
+    {
+      "idea": "i5",
+      "to": "real-or-synthetic-data",
+      "why": "Dataset size comes from augmentation and splitting of a small set of real models, not from new models."
+    },
+    {
+      "idea": "i25",
+      "to": "real-or-synthetic-data",
+      "why": "Warns that 180,000 subgraphs from 22 models are not 180,000 independent examples."
+    },
+    {
+      "idea": "i17",
+      "to": "hypothesis",
+      "why": "About 79% type accuracy against 16.67% chance, with lower accuracy without message passing, supports that patterns in elements and relations are learnable."
+    },
+    {
+      "idea": "i25",
+      "to": "hypothesis",
+      "why": "Validation on subgraphs from the same models leaves open whether the patterns carry over to unseen models."
+    },
+    {
+      "idea": "i1",
+      "to": "question",
+      "why": "A close precedent: a GNN co-pilot decomposes IFC models into graphs and generates new elements, but one element at a time and in a residential scope."
+    },
+    {
+      "idea": "i28",
+      "to": "explicit-vs-learned",
+      "why": "Learned predictions lacked simple structural rules such as columns attached to slabs, so explicit constraints may need to sit beside the learned part."
+    },
+    {
+      "idea": "i28",
+      "to": "production-ready",
+      "why": "Generated elements without logical constraints and with poor proportions are not yet a model someone can rely on."
+    },
+    {
+      "idea": "i13",
+      "to": "decision-delegation",
+      "why": "The three modes set how many decisions go to the AI, and users rated the one where they decided most the highest."
+    },
+    {
+      "idea": "i22",
+      "to": "hands-move",
+      "why": "With less AI control users did more setting up but finished; with more AI control they spent their effort correcting predictions."
+    },
+    {
+      "idea": "i3",
+      "to": "renner-2025",
+      "why": "Describes the data collection and the models behind this paper's node."
+    },
+    {
+      "idea": "i26",
+      "to": "dataset-purposes",
+      "why": "Authors name the lack of open IFC datasets as the main barrier to learning from real models."
+    }
+  ]
+}

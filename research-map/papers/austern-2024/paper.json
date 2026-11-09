@@ -1,0 +1,1825 @@
+{
+  "version": 1,
+  "node": "austern-2024",
+  "title": "Incorporating Context into BIM-Derived Data—Leveraging Graph Neural Networks for Building Element Classification",
+  "source": "files/Incorporating Context into BIM-Derived Data.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Información preliminar"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "Incorporating Context into BIM-Derived Data—Leveraging Graph Neural Networks for Building Element Classification",
+            "es": "Incorporación del contexto en los datos derivados de BIM: aprovechamiento de las redes neuronales de grafos para la clasificación de elementos de construcción"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Guy Austern 1,*, Tanya Bloch 2 and Yael Abulafia 1",
+            "es": "Guy Austern 1,*, Tanya Bloch 2 and Yael Abulafia 1"
+          }
+        },
+        {
+          "id": "s0-p6",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Citation: Austern, G.; Bloch, T.; Abulafia, Y. Incorporating Context into BIM-Derived Data—Leveraging Graph Neural Networks for Building Element Classification. Buildings 2024, 14, 527. https://doi.org/10.3390/buildings14020527",
+            "es": "Citation: Austern, G.; Bloch, T.; Abulafia, Y. Incorporating Context into BIM-Derived Data—Leveraging Graph Neural Networks for Building Element Classification. Buildings 2024, 14, 527. https://doi.org/10.3390/buildings14020527"
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Academic Editor: Ahmed Senouci. Received: 25 December 2023; Revised: 22 January 2024; Accepted: 11 February 2024; Published: 16 February 2024",
+            "es": "Editor académico: Ahmed Senouci. Recibido: 25 de diciembre de 2023; Revisado: 22 de enero de 2024; Aceptado: 11 de febrero de 2024; Publicado: 16 de febrero de 2024"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "1 Faculty of Architecture and Town Planning, Technion—Israel Institute of Technology, Haifa 3200003, Israel; yael.abu@campus.technion.ac.il",
+            "es": "1 Facultad de Arquitectura y Planificación Urbana, Technion—Israel Institute of Technology, Haifa 3200003, Israel; yael.abu@campus.technion.ac.il"
+          }
+        },
+        {
+          "id": "s0-p11",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "2 Faculty of Civil and Environmental Engineering, Israel Institute of Technology, Haifa 3200003, Israel; bloch@technion.ac.il",
+            "es": "2 Facultad de Ingeniería Civil y Ambiental, Israel Institute of Technology, Haifa 3200003, Israel; bloch@technion.ac.il"
+          }
+        },
+        {
+          "id": "s0-p12",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "* Correspondence: guyaustern@technion.ac.il; Tel.: +972-545461918",
+            "es": "* Correspondencia: guyaustern@technion.ac.il; Tel.: +972-545461918"
+          }
+        }
+      ]
+    },
+    {
+      "id": "abs",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The application of machine learning (ML) for the automatic classification of building elements is a powerful technique for ensuring information integrity in building information models (BIMs). Previous work has demonstrated the favorable performance of such models on classification tasks using geometric information. This research explores the hypothesis that incorporating contextual information into the ML models can improve classification accuracy. To test this, we created a graph data structure where each building element is represented as a node assigned with basic geometric information. The connections between the graph nodes (edges) represent the immediate neighbors of that node, capturing the contextual information expressed in the BIM model. We devised a process for extracting graphs from BIM files and used it to construct a graph dataset of over 42,000 building elements and used the data to train several types of ML models. We compared the classification results of models that rely only on geometry, to graph neural networks (GNNs) that leverage contextual information. This work demonstrates that graph-based models for building element classification generally outperform classic ML models. Furthermore, dividing the graphs that represent complete buildings into smaller subgraphs further improves classification accuracy. These results underscore the potential of leveraging contextual information via graphs for advancing ML capabilities in the BIM environment.",
+            "es": "La aplicación del aprendizaje automático (machine learning, ML) para la clasificación automática de elementos de construcción es una técnica poderosa para garantizar la integridad de la información en los modelos de información de construcción (building information models, BIM). Trabajos previos han demostrado el desempeño favorable de dichos modelos en tareas de clasificación que utilizan información geométrica. Esta investigación explora la hipótesis de que incorporar información contextual en los modelos de ML puede mejorar la exactitud de la clasificación. Para probarlo, creamos una estructura de datos de grafo (graph) en la que cada elemento de construcción se representa como un nodo (node) al que se le asigna información geométrica básica. Las conexiones entre los nodos del grafo (aristas, edges) representan los vecinos inmediatos de ese nodo y capturan la información contextual expresada en el modelo BIM. Diseñamos un proceso para extraer grafos de archivos BIM y lo utilizamos para construir un conjunto de datos de grafos con más de 42,000 elementos de construcción, con los que entrenamos varios tipos de modelos de ML. Comparamos los resultados de clasificación de los modelos que dependen únicamente de la geometría con los de las redes neuronales de grafos (graph neural networks, GNN) que aprovechan la información contextual. Este trabajo demuestra que los modelos basados en grafos para la clasificación de elementos de construcción generalmente superan a los modelos clásicos de ML. Además, dividir los grafos que representan edificios completos en subgrafos más pequeños mejora aún más la exactitud de la clasificación. Estos resultados subrayan el potencial de aprovechar la información contextual mediante grafos para impulsar las capacidades del ML en el entorno BIM."
+          }
+        },
+        {
+          "id": "s0-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Keywords: machine learning; graph neural networks; building information modeling; classification; semantic enrichment; graph classification",
+            "es": "Palabras clave: aprendizaje automático; redes neuronales de grafos; modelado de información de construcción; clasificación; enriquecimiento semántico; clasificación de grafos"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1. Introduction",
+        "es": "1. Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The possibility to integrate machine learning (ML) in architecture, engineering, and construction (AEC) introduced numerous opportunities for advancement in design, building, and operation. The ability to process vast amounts of AEC data can support intelligent decision making in this complex field. Data, specifically machine-readable data, are the key to enabling ML applications.",
+            "es": "La posibilidad de integrar el aprendizaje automático (ML) en la arquitectura, ingeniería y construcción (architecture, engineering, and construction, AEC) abrió numerosas oportunidades de avance en el diseño, la edificación y la operación. La capacidad de procesar grandes volúmenes de datos de AEC puede respaldar la toma de decisiones inteligente en este complejo campo. Los datos, en particular los legibles por máquina, son la clave para habilitar las aplicaciones de ML."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The introduction of building information models (BIMs) has established a standardized framework for data representation in a machine-readable form, facilitating efficient modifications, queries, sharing, and analysis. However, effective utilization of these advantages is highly dependent upon the accurate representation of information within the BIM file. In practice, the accuracy of the information in a BIM file is not guaranteed. Thus, a prerequisite for using many advanced applications is the processing of the file to assure the quality of information and its adequate representation for the intended use. Semantic enrichment (SE) of BIM models has been suggested [1] in response to these challenges. SE is a goal-driven technique that aims to infer implicit information and provide an explicit representation of that information in accordance with the expected information structure of a receiving platform. Object classification plays a crucial role in this context, as accurately identifying building elements serves as the foundation for various applications. Correct object classification is imperative where the original BIM file contains errors, corrupt, or incomplete classification information. The demand for automated enrichment is underscored by the absence of a standardized representation of semantic information in widely used modeling software such as Autodesk Revit [2].",
+            "es": "La introducción de los modelos de información de construcción (BIM) estableció un marco estandarizado para la representación de datos en una forma legible por máquina, lo que facilita modificaciones, consultas, intercambio y análisis eficientes. Sin embargo, el aprovechamiento eficaz de estas ventajas depende en gran medida de la representación precisa de la información dentro del archivo BIM. En la práctica, la exactitud de la información de un archivo BIM no está garantizada. Por lo tanto, un requisito previo para utilizar muchas aplicaciones avanzadas es el procesamiento del archivo para asegurar la calidad de la información y su representación adecuada para el uso previsto. Se ha propuesto [1] el enriquecimiento semántico (semantic enrichment, SE) de los modelos BIM como respuesta a estos desafíos. El SE es una técnica orientada a objetivos que busca inferir información implícita y proporcionar una representación explícita de esa información de acuerdo con la estructura de información esperada de una plataforma receptora. La clasificación de objetos desempeña un papel crucial en este contexto, ya que la identificación precisa de los elementos de construcción sirve de base para diversas aplicaciones. La clasificación correcta de objetos es imprescindible cuando el archivo BIM original contiene información de clasificación errónea, corrupta o incompleta. La demanda de enriquecimiento automatizado se ve reforzada por la ausencia de una representación estandarizada de la información semántica en programas de modelado de uso generalizado como Autodesk Revit [2]."
+          }
+        },
+        {
+          "id": "s1-p15",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Although the provided semantic information is often inaccurate, the geometric and topologic representation of the building elements are usually accurately provided. In recent academic studies, various methodologies have been suggested for enriching building information by utilizing the geometric characteristics of building elements as input [3]. These approaches span a broad spectrum of techniques, including heuristics and machine learning. These are comprehensively discussed in the background section of this work. While these methodologies have demonstrated noteworthy accomplishments, it is crucial to recognize that the topological aspect can also be harnessed for element classification, potentially resulting in enhanced accuracy.",
+            "es": "Aunque la información semántica proporcionada suele ser inexacta, la representación geométrica y topológica de los elementos de construcción suele proporcionarse con exactitud. En estudios académicos recientes se han propuesto diversas metodologías para enriquecer la información de construcción utilizando como entrada las características geométricas de los elementos de construcción [3]. Estos enfoques abarcan un amplio espectro de técnicas, entre ellas heurísticas y aprendizaje automático, y se discuten ampliamente en la sección de antecedentes de este trabajo. Si bien estas metodologías han mostrado logros notables, es fundamental reconocer que el aspecto topológico también puede aprovecharse para la clasificación de elementos, lo que podría traducirse en una mayor exactitud."
+          }
+        },
+        {
+          "id": "s1-p16",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We present a novel approach to enhance this accuracy by incorporating contextual information using geometric proximity graphs (GPGs) to represent building elements. GPG representations, such as Voronoi and Delaunay, provide an elegant solution to various computational challenges. In this context, we propose that a building model be translated into a GPG in which neighboring building elements, defined as intersections between elements, are connected by a graph edge. The nodes in the GPG of the building also contain a description of the element’s basic features used in other classification methods.",
+            "es": "Presentamos un enfoque novedoso para mejorar esta exactitud mediante la incorporación de información contextual, utilizando grafos de proximidad geométrica (geometric proximity graphs, GPG) para representar los elementos de construcción. Las representaciones GPG, como Voronoi y Delaunay, ofrecen una solución elegante a diversos desafíos computacionales. En este contexto, proponemos que un modelo de edificio se traduzca en un GPG en el que los elementos de construcción vecinos, definidos como intersecciones entre elementos, estén conectados por una arista del grafo. Los nodos del GPG del edificio contienen además una descripción de las características básicas del elemento, utilizadas en otros métodos de clasificación."
+          }
+        },
+        {
+          "id": "s1-p17",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The resulting GPG can be used as the basis for a graph neural network (GNN). GNN is a relatively recent development, allowing ML applications directly to graph-based data structures instead of Euclidean 2D information [4]. GNNs have demonstrated efficacy in enhancing predictions across various domains, including social networks, molecules, proteins, and knowledge graphs. Their performance excels in scenarios where the relationships between elements carry significant predictive implications.",
+            "es": "El GPG resultante puede utilizarse como base de una red neuronal de grafos (GNN). Las GNN son un desarrollo relativamente reciente que permite aplicar el ML directamente a estructuras de datos basadas en grafos, en lugar de a información euclidiana en 2D [4]. Las GNN han demostrado eficacia para mejorar las predicciones en diversos dominios, entre ellos las redes sociales, las moléculas, las proteínas y los grafos de conocimiento. Su desempeño sobresale en escenarios donde las relaciones entre elementos tienen implicaciones predictivas significativas."
+          }
+        },
+        {
+          "id": "s1-p18",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The primary objective of this research was to investigate the potential enhancement of building element classification through the incorporation of contextual information. Our hypothesis posited that proximity relationships among building elements could function as indicators of the elements’ identity or class, thus presenting valuable insights into improving the predictive capabilities of ML models.",
+            "es": "El objetivo principal de esta investigación fue estudiar la posible mejora de la clasificación de elementos de construcción mediante la incorporación de información contextual. Nuestra hipótesis planteaba que las relaciones de proximidad entre los elementos de construcción podrían funcionar como indicadores de la identidad o clase de los elementos, y así aportar información valiosa para mejorar las capacidades predictivas de los modelos de ML."
+          }
+        },
+        {
+          "id": "s1-p19",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To test this hypothesis, we extracted a dataset of over 35,000 building elements sourced from 11 different BIM files. Our novel extraction method enabled us to store proximity relations as well as geometric features and construct a GPG from the BIM model. The dataset was used to train different ML models to classify the basic categories of the BIM elements. We trained several types of classic ML models such as logistic regression and random forest as well as GNN models with different graph convolutional layers.",
+            "es": "Para probar esta hipótesis, extrajimos un conjunto de datos de más de 35,000 elementos de construcción procedentes de 11 archivos BIM distintos. Nuestro novedoso método de extracción nos permitió almacenar las relaciones de proximidad, así como las características geométricas, y construir un GPG a partir del modelo BIM. El conjunto de datos se utilizó para entrenar diferentes modelos de ML que clasifican las categorías básicas de los elementos BIM. Entrenamos varios tipos de modelos clásicos de ML, como la regresión logística y el bosque aleatorio (random forest), así como modelos GNN con diferentes capas convolucionales de grafos."
+          }
+        },
+        {
+          "id": "s1-p20",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "A comparison of the performance of the different models demonstrates that including contextual information through GNN models enhances predictive accuracy. Our results also reveal that among the tested GNN architectures, graph transformer networks yield the most favorable outcomes. Additionally, we show that partitioning the graph into subgraphs and employing graph classification techniques on these subsets substantially improves performance compared to the node classification task. Moreover, this subdivision into smaller data chunks exhibits practical advantages from an operational perspective.",
+            "es": "La comparación del desempeño de los diferentes modelos demuestra que incluir información contextual mediante modelos GNN mejora la exactitud predictiva. Nuestros resultados también revelan que, entre las arquitecturas de GNN probadas, las redes transformadoras de grafos (graph transformer networks) producen los resultados más favorables. Además, mostramos que dividir el grafo en subgrafos y emplear técnicas de clasificación de grafos sobre esos subconjuntos mejora sustancialmente el desempeño en comparación con la tarea de clasificación de nodos. Por otra parte, esta subdivisión en fragmentos de datos más pequeños presenta ventajas prácticas desde una perspectiva operativa."
+          }
+        },
+        {
+          "id": "s1-p21",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Based on these results, we suggest that the incorporation of graph relations into conventional semantic enrichment processes can be seamlessly integrated into modeling workflows. These processes hold the potential for validating existing BIM information and reducing modeling errors. Furthermore, they can enable automatic translation between simplified 3D models and BIM software such as Autodesk Revit [2]. Finally, we envision a future BIM “autocorrect” functionality, which validates an element’s type and properties using its geometry and topology.",
+            "es": "Con base en estos resultados, sugerimos que la incorporación de relaciones de grafo en los procesos convencionales de enriquecimiento semántico puede integrarse sin fricciones en los flujos de trabajo de modelado. Estos procesos tienen el potencial de validar la información BIM existente y de reducir los errores de modelado. Asimismo, pueden permitir la traducción automática entre modelos 3D simplificados y programas BIM como Autodesk Revit [2]. Por último, imaginamos una futura funcionalidad de “autocorrección” de BIM, que valide el tipo y las propiedades de un elemento a partir de su geometría y su topología."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2. Background",
+        "es": "2. Antecedentes"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "2.1. BIM and Semantic Enrichment",
+            "es": "2.1. BIM y enriquecimiento semántico (semantic enrichment)"
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The emergence of BIM has ushered in a transformative paradigm in building design, where architectural information is stored as parametric objects with physical and material properties [5]. BIM technology has revolutionized the process of architectural design and construction [6], yielding profound benefits across diverse domains, including project management, economics, planning, interoperability, operational efficiency, and environmental considerations [7]. However, the abundance of semantic information generated in BIM models demands paying attention to data accuracy and consistency. It also introduces the interoperability problem as interpretations of semantic labels vary among stakeholders and software tools lead to inconsistencies, hindering seamless data exchange.",
+            "es": "La aparición de BIM ha dado paso a un paradigma transformador en el diseño de edificios, en el que la información arquitectónica se almacena como objetos paramétricos (parametric objects) con propiedades físicas y de materiales [5]. La tecnología BIM ha revolucionado el proceso de diseño y construcción arquitectónicos [6], con profundos beneficios en diversos ámbitos, entre ellos la gestión de proyectos, la economía, la planeación, la interoperabilidad (interoperability), la eficiencia operativa y las consideraciones ambientales [7]. Sin embargo, la abundancia de información semántica que se genera en los modelos BIM exige prestar atención a la exactitud y la consistencia de los datos. También introduce el problema de interoperabilidad, ya que las interpretaciones de las etiquetas semánticas varían entre los participantes y las herramientas de software, lo que genera inconsistencias que obstaculizan el intercambio fluido de datos."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Contemporary BIM authoring tools originated in software developed at the end of the previous century when object-oriented design was the standard software paradigm [8]. The industry foundation class (IFC) standard is fundamental for this object-based data exchange. Although the IFC was designed to allow seamless collaboration and data exchange, in practice, when it comes to mapping entities and their relationships, the lack of universally enforced semantic classification and categorization protocols may lead to multiple data structures representing identical information. Different stakeholders may assign distinct semantic labels to similar objects, resulting in inconsistencies that pose a considerable challenge to interoperability [9]. For example, wide columns can be easily modeled using a wall element category. Diverse mapping protocols and classification methods employed by various BIM authoring tools further enhance the problem.",
+            "es": "Las herramientas contemporáneas de autoría BIM surgieron de software desarrollado a finales del siglo pasado, cuando el diseño orientado a objetos era el paradigma de software estándar [8]. El estándar de clases base de la industria (industry foundation class, IFC) es fundamental para este intercambio de datos basado en objetos. Aunque el IFC fue diseñado para permitir una colaboración y un intercambio de datos sin fricciones, en la práctica, al mapear las entidades y sus relaciones, la falta de protocolos de clasificación y categorización semántica aplicados de manera universal puede dar lugar a múltiples estructuras de datos que representan la misma información. Distintos participantes pueden asignar etiquetas semánticas diferentes a objetos similares, lo que produce inconsistencias que plantean un reto considerable para la interoperabilidad [9]. Por ejemplo, las columnas anchas pueden modelarse fácilmente con una categoría de elemento de muro. Los diversos protocolos de mapeo y métodos de clasificación que emplean las distintas herramientas de autoría BIM agravan aún más el problema."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "This variability in modeling semantics can lead to diminished data quality for further analysis. Moreover, the diverse classification methods employed by various authoring software further exacerbate issues related to interoperability and information exchange. The concept of semantic enrichment, as proposed by Belsky et al. [10], refers to generic expert systems that infer the semantic content of a model element. Enrichment processes were designed to address missing or erroneous information provided in the models, and to enhance interoperability between diverse software systems. Belsky proposed semantic enrichment for simplifying the process of semantic interpretation for receiving BIM applications, and reducing the need for domain-specific model view definitions. The approach was tested in a prototype platform called SeeBIM using precast concrete building models for automatically identifying precast joints, slab aggregations, etc. Later, the same SeeBIM platform was enhanced for enriching models obtained from point cloud data to support bridge inspection [11]. Bloch et al. [12] demonstrated the use of the SeeBIM engine for enriching BIM models in preparation for automated code checking (ACC), using a local regulatory code clause for security rooms in residential buildings.",
+            "es": "Esta variabilidad en la semántica del modelado puede reducir la calidad de los datos para análisis posteriores. Además, los diversos métodos de clasificación que emplean los distintos programas de autoría exacerban aún más los problemas de interoperabilidad y de intercambio de información. El concepto de enriquecimiento semántico, propuesto por Belsky et al. [10], se refiere a sistemas expertos (expert systems) genéricos que infieren el contenido semántico de un elemento del modelo. Los procesos de enriquecimiento se diseñaron para abordar la información faltante o errónea en los modelos y para mejorar la interoperabilidad entre sistemas de software diversos. Belsky propuso el enriquecimiento semántico para simplificar el proceso de interpretación semántica en las aplicaciones BIM receptoras y reducir la necesidad de definiciones de vista de modelo (model view definitions) específicas de un dominio. El enfoque se probó en una plataforma prototipo llamada SeeBIM, usando modelos de edificios de concreto prefabricado para identificar automáticamente juntas prefabricadas, agregaciones de losas, etc. Más tarde, la misma plataforma SeeBIM se mejoró para enriquecer modelos obtenidos a partir de datos de nubes de puntos (point cloud) en apoyo a la inspección de puentes [11]. Bloch et al. [12] demostraron el uso del motor SeeBIM para enriquecer modelos BIM como preparación para la verificación automatizada de códigos (automated code checking, ACC), utilizando una cláusula de un código normativo local sobre cuartos de seguridad en edificios residenciales."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Semantic enrichment has also been explored in the context of semantic web applications. As stated in [13], one of the reasons for using semantic web technologies is to enable logical inference through the use of first order logic (FOL) to infer new semantic information from the original building model. The major difference between this approach and the IFC-based enrichment, is in the representation of the building information, which in this case is a structured graph (resource description framework (RDF)).",
+            "es": "El enriquecimiento semántico también se ha explorado en el contexto de las aplicaciones de la web semántica (semantic web). Como se indica en [13], una de las razones para usar tecnologías de la web semántica es permitir la inferencia lógica mediante la lógica de primer orden (first order logic, FOL) para inferir nueva información semántica a partir del modelo original del edificio. La principal diferencia entre este enfoque y el enriquecimiento basado en IFC está en la representación de la información del edificio, que en este caso es un grafo (graph) estructurado (marco de descripción de recursos, resource description framework, RDF)."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "As accurate identification of building elements is key to many possible applications (e.g., ACC, quantity takeoff, energy analysis, etc.), several researchers focused on automated BIM integrity checks through BIM object classification. For example, Koo et al. [14] used support vector machine to identify misclassified elements in the IFC files, but no justification for the choice of the algorithm was provided. Based on the work of [15], classification was identified as one of four types of semantic enrichment tasks (classification, association, calculation, and creation). As for the computational methods for enriching the models, Bloch and Sacks [15] suggest a dependency on the nature of the elements to be classified, but specific classification algorithms for each type of enrichment task were not suggested. This was later enhanced and fitted to semantic enrichment using a graph structure for representing building information [16], where the element classification task was tackled using different ML algorithms, pointing to the superior performance of decision trees and random forests. Although the general direction of this work was to generate enriched BIM graphs to enable better collaboration and enhance interoperability, it seems an opportunity to leverage the graph structure for element classification was missed.",
+            "es": "Dado que la identificación precisa de los elementos de un edificio es clave para muchas aplicaciones posibles (por ejemplo, ACC, cuantificación de materiales (quantity takeoff), análisis energético, etc.), varios investigadores se han centrado en la verificación automatizada de la integridad de BIM mediante la clasificación de objetos BIM. Por ejemplo, Koo et al. [14] usaron una máquina de vectores de soporte (support vector machine) para identificar elementos mal clasificados en archivos IFC, pero no se ofreció ninguna justificación de la elección del algoritmo. A partir del trabajo de [15], la clasificación se identificó como uno de cuatro tipos de tareas de enriquecimiento semántico (clasificación, asociación, cálculo y creación). En cuanto a los métodos computacionales para enriquecer los modelos, Bloch y Sacks [15] sugieren una dependencia de la naturaleza de los elementos que se van a clasificar, pero no se sugirieron algoritmos de clasificación específicos para cada tipo de tarea de enriquecimiento. Esto se mejoró posteriormente y se adaptó al enriquecimiento semántico usando una estructura de grafo para representar la información del edificio [16], donde la tarea de clasificación de elementos se abordó con diferentes algoritmos de aprendizaje automático (machine learning, ML), lo que apunta al desempeño superior de los árboles de decisión (decision trees) y los bosques aleatorios (random forests). Aunque la dirección general de este trabajo era generar grafos BIM enriquecidos para permitir una mejor colaboración y mejorar la interoperabilidad, parece que se desaprovechó la oportunidad de aprovechar la estructura de grafo para la clasificación de elementos."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Other research endeavors focused on the classification of building elements, employing the geometric characteristics of elements extracted from BIM or IFC files as input. The system proposed by Belsky et al. [10] can infer the class of both objects and spaces based on their corresponding IFC properties. In the study conducted by Ma et al. [2], pairwise relationship matrices between objects are utilized to identify the objects. Their proposed method encapsulates the domain expert knowledge of the element classes, including relationships between elements, in the form of a matrix. Once the shape features and the spatial relationships of the objects to be classified are computed, the classification is performed using similarity calculation between the features of the models and those in the knowledge base. This work points to the importance of leveraging the relational aspect between the building elements.",
+            "es": "Otras investigaciones se centraron en la clasificación de elementos de construcción, empleando como entrada las características geométricas de los elementos extraídas de archivos BIM o IFC. El sistema propuesto por Belsky et al. [10] puede inferir la clase tanto de objetos como de espacios a partir de sus propiedades IFC correspondientes. En el estudio realizado por Ma et al. [2], se utilizan matrices de relaciones por pares entre objetos para identificarlos. El método que proponen encapsula el conocimiento experto del dominio sobre las clases de elementos, incluidas las relaciones entre elementos, en forma de matriz. Una vez calculadas las características de forma y las relaciones espaciales de los objetos que se van a clasificar, la clasificación se realiza mediante el cálculo de similitud entre las características de los modelos y las de la base de conocimiento. Este trabajo señala la importancia de aprovechar el aspecto relacional entre los elementos del edificio."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Realizing that space functionality is key for advance procedures such as ACC, Bloch and Sacks [17] compared heuristic and feature-based ML methods in the context of space function classification and demonstrated that ML methods offer certain advantages in the context of semantic enrichment. However, their proposed approach is iterative, relying completely on geometric features in the first stage, and enhancing the results by adding connection features (access relationships between spaces), in the consecutive phases. This again points to the benefit of using relational information for classifying BIM elements. The same problem was later explored as a graph-based classification task where graph neural networks (GNNs) proved to be useful [18] and reached almost 80% classification accuracy with no need for iterations.",
+            "es": "Al reconocer que la funcionalidad de los espacios es clave para procedimientos avanzados como el ACC, Bloch y Sacks [17] compararon métodos heurísticos y métodos de ML basados en características en el contexto de la clasificación de la función de los espacios, y demostraron que los métodos de ML ofrecen ciertas ventajas en el contexto del enriquecimiento semántico. Sin embargo, el enfoque que proponen es iterativo: en la primera etapa depende por completo de características geométricas y, en las fases consecutivas, mejora los resultados añadiendo características de conexión (relaciones de acceso entre espacios). Esto vuelve a señalar el beneficio de usar información relacional para clasificar elementos BIM. El mismo problema se exploró más tarde como una tarea de clasificación basada en grafos, en la que las redes neuronales de grafos (graph neural networks, GNNs) resultaron útiles [18] y alcanzaron casi 80% de exactitud de clasificación sin necesidad de iteraciones."
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Kim et al. [19] trained convolutional neural networks (CNNs) to classify 2D images extracted from BIM objects. Koo et al. [20] utilized CNNs targeted for 3D object recognition, using either point clouds or multiple 2D views. They achieved improved classification of element subcategories such as door types surpassing a feature-based model—support vector machine (SVM). They emphasize the need for automatic extraction and processing of 3D objects from the BIM file to apply these methods. Finally, Wu et al. [21] compared the effectiveness of several classic feature-based machine learning models in predicting building element classes. They found that random forest (RF) models achieve the best classification results. However, their dataset is relatively small and does not originate from real BIM files. Additionally, they trained their models using BIM-derived features such as radial dimensions, which are not consistently available across all 3D authoring software platforms.",
+            "es": "Kim et al. [19] entrenaron redes neuronales convolucionales (convolutional neural networks, CNNs) para clasificar imágenes 2D extraídas de objetos BIM. Koo et al. [20] utilizaron CNNs orientadas al reconocimiento de objetos 3D, empleando nubes de puntos o múltiples vistas 2D. Lograron una mejor clasificación de subcategorías de elementos, como los tipos de puertas, superando a un modelo basado en características: la máquina de vectores de soporte (SVM). Subrayan la necesidad de extraer y procesar automáticamente los objetos 3D del archivo BIM para aplicar estos métodos. Por último, Wu et al. [21] compararon la eficacia de varios modelos clásicos de aprendizaje automático basados en características para predecir las clases de elementos de construcción. Encontraron que los modelos de bosque aleatorio (RF) logran los mejores resultados de clasificación. Sin embargo, su conjunto de datos es relativamente pequeño y no proviene de archivos BIM reales. Además, entrenaron sus modelos con características derivadas de BIM, como las dimensiones radiales, que no están disponibles de manera consistente en todas las plataformas de software de autoría 3D."
+          }
+        },
+        {
+          "id": "s2-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Despite initial successes in the field of ML for semantic enrichment, several research opportunities persist: model predictions can be improved, particularly when working with data derived from real BIM files. There is a need to broaden the range of types identified to accommodate the variety of architectural elements. Furthermore, the data acquisition process for enrichment can be generalized (in the sense that it should rely only on basic geometric features) and streamlined (in the sense that the data extraction from the original file should be efficient).",
+            "es": "A pesar de los éxitos iniciales en el campo del ML para el enriquecimiento semántico, persisten varias oportunidades de investigación: las predicciones de los modelos pueden mejorarse, en particular al trabajar con datos derivados de archivos BIM reales. Es necesario ampliar el rango de tipos identificados para dar cabida a la variedad de elementos arquitectónicos. Además, el proceso de adquisición de datos para el enriquecimiento puede generalizarse (en el sentido de que debería depender únicamente de características geométricas básicas) y agilizarse (en el sentido de que la extracción de datos del archivo original debería ser eficiente)."
+          }
+        },
+        {
+          "id": "s2-p11",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Many semantic enrichment efforts, aimed at enhancing interoperability and supporting various design analysis platforms, are based on parsing the IFC file. Although the potential benefits of graph representations for semantic enrichment have previously been suggested, to the best of the authors’ knowledge, a graph-based learning approach for BIM element classification has not been demonstrated before. Furthermore, the added value of using contextual knowledge has not been compared to geometry-based classification approaches.",
+            "es": "Muchos esfuerzos de enriquecimiento semántico, orientados a mejorar la interoperabilidad y a apoyar diversas plataformas de análisis de diseño, se basan en el análisis sintáctico (parsing) del archivo IFC. Aunque anteriormente se han sugerido los posibles beneficios de las representaciones en grafos para el enriquecimiento semántico, hasta donde saben los autores, no se había demostrado antes un enfoque de aprendizaje basado en grafos para la clasificación de elementos BIM. Además, el valor agregado de usar conocimiento contextual no se ha comparado con los enfoques de clasificación basados en la geometría."
+          }
+        },
+        {
+          "id": "s2-p12",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "2.2. Buildings as Graphs",
+            "es": "2.2. Edificios como grafos"
+          }
+        },
+        {
+          "id": "s2-p13",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Graphs are mathematical constructs comprised of nodes and edges that represent relationships between these nodes [22]. They are effective tools for describing sets of entities, ranging from molecules to social networks [23]. In their seminal work “the social logic of space”, Hillier and Hansen [24] introduced the concept of utilizing graphs to represent architectural topological information, specifically the spatial relationships between rooms and their connectivity. Martin et al. [25] conducted a comprehensive review of various approaches to represent such topological information. They emphasize its importance in informing design decisions. Langenhan et al. [26] proposed the adoption of topological graphs to facilitate the retrieval of building information. Strug [27] applied topological graphs to evaluate design quality. Isaac et al. [28] described how BIM and graph theory could be integrated, as a preliminary step towards defining a model which represents building topology. Topological graph representations offer easily describe movement within a building, and consequently, have been employed for the analysis of building security [29], access control [30], and accessibility [31].",
+            "es": "Los grafos son constructos matemáticos compuestos por nodos y aristas que representan las relaciones entre esos nodos [22]. Son herramientas eficaces para describir conjuntos de entidades, desde moléculas hasta redes sociales [23]. En su obra fundamental “the social logic of space”, Hillier y Hansen [24] introdujeron el concepto de utilizar grafos para representar información topológica arquitectónica, en concreto las relaciones espaciales entre habitaciones y su conectividad. Martin et al. [25] realizaron una revisión exhaustiva de diversos enfoques para representar dicha información topológica. Destacan su importancia para fundamentar las decisiones de diseño. Langenhan et al. [26] propusieron adoptar grafos topológicos (topological graphs) para facilitar la recuperación de información de edificios. Strug [27] aplicó grafos topológicos para evaluar la calidad del diseño. Isaac et al. [28] describieron cómo podrían integrarse BIM y la teoría de grafos, como paso preliminar hacia la definición de un modelo que represente la topología de un edificio. Las representaciones mediante grafos topológicos ofrecen una manera sencilla de describir el movimiento dentro de un edificio y, en consecuencia, se han empleado para el análisis de la seguridad de edificios [29], el control de acceso [30] y la accesibilidad [31]."
+          }
+        },
+        {
+          "id": "s2-p14",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "A different topological approach focuses on the physical components of the building and employs graph data structures to represent their relationships. By leveraging the inherent neighbor-finding capabilities of graph data structures, these queries offer markedly improved efficiency compared to those relying on tabular data. Geometry, properties, and relationships between the elements, as defined in IFC, often form the foundation for extracting these graphs. These derived graphs contain a wealth of information and enable complex queries within the model. Various techniques for extracting graphs from IFC have been reported in the literature [32–34]. These graphs are used for rule checking [35], for data merging [36], for generative design of modular buildings [37], and for model auditing and quantity takeoffs [38].",
+            "es": "Un enfoque topológico distinto se centra en los componentes físicos del edificio y emplea estructuras de datos de grafos para representar sus relaciones. Al aprovechar las capacidades inherentes de las estructuras de datos de grafos para encontrar vecinos, estas consultas ofrecen una eficiencia notablemente mayor que las que dependen de datos tabulares. La geometría, las propiedades y las relaciones entre los elementos, tal como se definen en IFC, suelen constituir la base para extraer estos grafos. Estos grafos derivados contienen una gran cantidad de información y permiten realizar consultas complejas dentro del modelo. En la literatura se han reportado diversas técnicas para extraer grafos de IFC [32–34]. Estos grafos se usan para la verificación de reglas [35], la fusión de datos [36], el diseño generativo de edificios modulares [37] y la auditoría de modelos y la cuantificación de materiales [38]."
+          }
+        },
+        {
+          "id": "s2-p15",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "GPGs are a special instance of these topological graphs. They use the graph structure to represent the geometric distance between elements. These elegant representations are often used in classic graph algorithms such as Delaunay, Voronoi, and many others. For this research, we opted for an extreme interpretation of proximity, where an edge means an actual intersection between two building elements. We chose this relation since all building elements must touch at least one other element, and because this relation is relatively easy to check using a geometric intersection algorithm.",
+            "es": "Los GPGs son un caso especial de estos grafos topológicos. Utilizan la estructura de grafo para representar la distancia geométrica entre elementos. Estas elegantes representaciones se emplean con frecuencia en algoritmos clásicos de grafos como Delaunay, Voronoi y muchos otros. Para esta investigación, optamos por una interpretación extrema de la proximidad, en la que una arista significa una intersección real entre dos elementos del edificio. Elegimos esta relación porque todos los elementos de un edificio deben tocar al menos a otro elemento, y porque esta relación es relativamente fácil de comprobar con un algoritmo de intersección geométrica."
+          }
+        },
+        {
+          "id": "s2-p16",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Our hypothesis is that the intersection relations between building elements could be a valuable indicator for the class of the building element. A diagram depicting these relations and their distinct characteristics across various types of building elements is shown in Figure 1. We set out to see if we can improve the performance of element classification using these relations. It should be noted that at this point, our focus is exclusively on physical building elements such as walls, doors, floors, etc. Abstract entities such as spaces or zones are not in the scope of this work.",
+            "es": "Nuestra hipótesis es que las relaciones de intersección entre elementos del edificio podrían ser un indicador valioso de la clase del elemento. En la Figura 1 se muestra un diagrama que representa estas relaciones y sus características distintivas en diversos tipos de elementos de construcción. Nos propusimos averiguar si es posible mejorar el desempeño de la clasificación de elementos usando estas relaciones. Cabe señalar que, en este punto, nuestro enfoque se limita exclusivamente a elementos físicos del edificio, como muros, puertas, pisos, etc. Las entidades abstractas, como los espacios o las zonas, quedan fuera del alcance de este trabajo."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1. Local proximity graph of different types of building elements, colors signify the element types and number refer to specific elements in the design.",
+            "es": "Figura 1: Grafo de proximidad local de distintos tipos de elementos de construcción; los colores indican los tipos de elemento y los números se refieren a elementos específicos del diseño."
+          }
+        },
+        {
+          "id": "s2-p17",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "2.3. Classes of ML Models",
+            "es": "2.3. Clases de modelos de ML"
+          }
+        },
+        {
+          "id": "s2-p18",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "ML is a branch of artificial intelligence (AI) dedicated to developing models that allow computers to learn from data and make predictions autonomously, without the need for explicit programming [39]. Within this highly popular domain, our research concentrates on three main types of ML models.",
+            "es": "El ML es una rama de la inteligencia artificial (artificial intelligence, AI) dedicada a desarrollar modelos que permiten a las computadoras aprender de los datos y hacer predicciones de forma autónoma, sin necesidad de programación explícita [39]. Dentro de este ámbito tan popular, nuestra investigación se concentra en tres tipos principales de modelos de ML."
+          }
+        },
+        {
+          "id": "s2-p19",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Classic machine learning, also known as traditional machine learning, comprises a collection of models and algorithms designed to predict an output label based on a set of input features. Classic machine learning techniques have been in extensive use since the previous century and have achieved success in various domains [40]. Among the most commonly used models in this category are the following: logistic regression (LR), originally proposed as a model for predicting drug potency [41], for which the coefficients of a logarithmic probability function are iteratively adjusted until the best prediction is reached [42]; support vector machines (SVMs), originally developed in Russia during the 1960s [43], are pattern recognition models that position a hyperplane between two groups in a dataset to maximize the margin between them; decision trees are models consisting of a sequence of binary tests leading to the correct classification branch [44]; and random forests (RFs), which employ an ensemble of decision trees with a voting mechanism [45]. These models exhibit exceptional performance in tasks such as classification, regression, clustering, and anomaly detection.",
+            "es": "El aprendizaje automático clásico, también conocido como aprendizaje automático tradicional, comprende un conjunto de modelos y algoritmos diseñados para predecir una etiqueta de salida a partir de un conjunto de características de entrada. Las técnicas de aprendizaje automático clásico se utilizan ampliamente desde el siglo pasado y han tenido éxito en diversos dominios [40]. Entre los modelos más utilizados de esta categoría se encuentran los siguientes: la regresión logística (logistic regression, LR), propuesta originalmente como un modelo para predecir la potencia de fármacos [41], en la cual los coeficientes de una función de probabilidad logarítmica se ajustan iterativamente hasta alcanzar la mejor predicción [42]; las máquinas de vectores de soporte (SVM), desarrolladas originalmente en Rusia durante la década de 1960 [43], que son modelos de reconocimiento de patrones que colocan un hiperplano (hyperplane) entre dos grupos de un conjunto de datos para maximizar el margen entre ellos; los árboles de decisión, que son modelos formados por una secuencia de pruebas binarias que conducen a la rama de clasificación correcta [44]; y los bosques aleatorios (RF), que emplean un conjunto (ensemble) de árboles de decisión con un mecanismo de votación [45]. Estos modelos exhiben un desempeño excepcional en tareas como la clasificación, la regresión, el agrupamiento y la detección de anomalías."
+          }
+        },
+        {
+          "id": "s2-p20",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Artificial neural networks (ANNs) represent another subfield of ML that focuses on networks inspired by a simplified model of the human brain. These models can automatically learn to represent data through a training process involving forward and backward propagation of information [46]. Multi-layered perceptrons (MLPs) are one of the first examples of such networks. These feed-forward networks have been successfully utilized since the 1980s for tasks such as prediction, function estimation, and pattern recognition [47].",
+            "es": "Las redes neuronales artificiales (artificial neural networks, ANNs) representan otro subcampo del ML que se centra en redes inspiradas en un modelo simplificado del cerebro humano. Estos modelos pueden aprender automáticamente a representar los datos mediante un proceso de entrenamiento que implica la propagación de la información hacia adelante y hacia atrás (forward and backward propagation) [46]. Los perceptrones multicapa (multi-layered perceptrons, MLPs) son uno de los primeros ejemplos de este tipo de redes. Estas redes de propagación hacia adelante (feed-forward) se utilizan con éxito desde la década de 1980 para tareas como la predicción, la estimación de funciones y el reconocimiento de patrones [47]."
+          }
+        },
+        {
+          "id": "s2-p21",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Deep learning (DL) networks are ANNs comprising a network architecture with several consecutive layers of neurons. These models gained popularity when [48] their successful application for character recognition was demonstrated. Later, AlexNet, a DL model with a convolutional neural network (CNN) architecture, achieved unprecedented results on the ImageNet image recognition dataset [49,50]. Due to the nature of the convolution operator, CNN-type models work best with data structured as 2D matrices, such as images. Other DL models excel in tasks such as natural language processing, speech recognition, and generative modeling.",
+            "es": "Las redes de aprendizaje profundo (deep learning, DL) son ANNs con una arquitectura de red de varias capas consecutivas de neuronas. Estos modelos ganaron popularidad cuando [48] se demostró su aplicación exitosa al reconocimiento de caracteres. Más tarde, AlexNet, un modelo de DL con arquitectura de red neuronal convolucional (CNN), logró resultados sin precedentes en el conjunto de datos de reconocimiento de imágenes ImageNet [49,50]. Por la naturaleza del operador de convolución, los modelos de tipo CNN funcionan mejor con datos estructurados como matrices 2D, por ejemplo las imágenes. Otros modelos de DL destacan en tareas como el procesamiento del lenguaje natural, el reconocimiento de voz y el modelado generativo."
+          }
+        },
+        {
+          "id": "s2-p22",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Graph neural networks (GNNs) are a specialized type of neural network that is designed to work with graph-structured data. Bronstein et al. [4] describe the evolution of these networks to perform 2D convolutions on non-Euclidean data such as graphs, where traditional convolution operations are not well defined. In GNNs, information from neighboring graph nodes is embedded in the nodes when training the network, making them sensitive to the node’s context. GNNs are highly effective in tasks that involve graph analysis, such as protein analysis, social networks, and knowledge graphs [51,52]. They can be trained to classify single nodes and edges of a graph, as well as entire graphs.",
+            "es": "Las redes neuronales de grafos (GNNs) son un tipo especializado de red neuronal diseñado para trabajar con datos estructurados como grafos. Bronstein et al. [4] describen la evolución de estas redes para realizar convoluciones 2D sobre datos no euclidianos (non-Euclidean), como los grafos, donde las operaciones de convolución tradicionales no están bien definidas. En las GNNs, la información de los nodos vecinos del grafo se incorpora en los nodos durante el entrenamiento de la red, lo que las hace sensibles al contexto del nodo. Las GNNs son muy eficaces en tareas que implican el análisis de grafos, como el análisis de proteínas, las redes sociales y los grafos de conocimiento [51,52]. Pueden entrenarse para clasificar nodos y aristas individuales de un grafo, así como grafos completos."
+          }
+        },
+        {
+          "id": "s2-p23",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The use of GNNs in AEC is a relatively recent field of research. Recent studies include the use of GNNs to classify the function (as in use) of architectural spaces. This approach relies on a topological connectivity graph, in which rooms are connected to each other according to the existence of a physical passageway. Buruzs et al. [53] utilized graph convolutional networks (GCNs) on topology graphs extracted from IFC files to identify room functions in apartments. Wang et al. [18] used an improved GNN model called SAGE-E to identify room types in apartment layouts, achieving 79% accuracy. Similar graph representations were also used for an initial proof of concept for applying GNNs as the checking mechanism for design review, using accessibility requirements as a test case [54]. Yang and Huang [55] employed GNNs to classify the type of shopping mall, according to its entire connectivity graphs. However, these models focus primarily on classifying spaces, rather than building elements, which are the main concern of this work.",
+            "es": "El uso de las GNNs en AEC es un campo de investigación relativamente reciente. Los estudios recientes incluyen el uso de GNNs para clasificar la función (en el sentido de uso) de los espacios arquitectónicos. Este enfoque se basa en un grafo de conectividad topológica, en el que las habitaciones se conectan entre sí según la existencia de un paso físico. Buruzs et al. [53] utilizaron redes convolucionales de grafos (graph convolutional networks, GCNs) sobre grafos de topología extraídos de archivos IFC para identificar las funciones de las habitaciones en departamentos. Wang et al. [18] usaron un modelo de GNN mejorado llamado SAGE-E para identificar tipos de habitaciones en distribuciones de departamentos, con una exactitud de 79%. También se utilizaron representaciones de grafos similares en una prueba de concepto inicial para aplicar las GNNs como mecanismo de verificación en la revisión de diseños, usando los requisitos de accesibilidad como caso de prueba [54]. Yang y Huang [55] emplearon GNNs para clasificar el tipo de centro comercial según sus grafos de conectividad completos. Sin embargo, estos modelos se centran principalmente en clasificar espacios, y no elementos de construcción, que son la preocupación principal de este trabajo."
+          }
+        },
+        {
+          "id": "s2-p24",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Focusing on building elements, Ouyang et al. [56] extracted a knowledge graph of the entire building from IFC representations of BIM models. They used this graph to associate identical elements in different models of the same building (for example, structural and architectural) by matching their physical location as well as their relations on the graph. Collins et al. [57] based their work on the shape of 3D objects derived from an IFC file, and described it as a graph of physical vertices. These graphs were used as the input for GNNs which classify the 3D objects. They base their work solely on the object geometry without looking at its surroundings and reach an accuracy of 85%. Similarly, [58] used GNNs on graphs describing the geometry of two-dimensional planning zones, with a positive impact on the zone classification results. The potential of using contextual/topological information such as proximity graphs, together with geometric features, has yet to be explored, according to the best knowledge of the authors.",
+            "es": "Centrándose en los elementos de construcción, Ouyang et al. [56] extrajeron un grafo de conocimiento (knowledge graph) de todo el edificio a partir de representaciones IFC de modelos BIM. Utilizaron este grafo para asociar elementos idénticos en diferentes modelos del mismo edificio (por ejemplo, estructural y arquitectónico) haciendo coincidir su ubicación física, así como sus relaciones en el grafo. Collins et al. [57] basaron su trabajo en la forma de objetos 3D derivados de un archivo IFC, y la describieron como un grafo de vértices físicos. Estos grafos se usaron como entrada para GNNs (redes neuronales de grafos, graph neural networks) que clasifican los objetos 3D. Basan su trabajo únicamente en la geometría del objeto, sin considerar su entorno, y alcanzan una exactitud (accuracy) del 85%. De manera similar, [58] utilizó GNNs sobre grafos que describen la geometría de zonas de planificación bidimensionales, con un impacto positivo en los resultados de clasificación de las zonas. El potencial de utilizar información contextual/topológica, como los grafos de proximidad, junto con características geométricas, aún no ha sido explorado, según el mejor conocimiento de los autores."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3. Research Aims",
+        "es": "3. Objetivos de la investigación"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The main aim of this work is to demonstrate the ability of graph data to support possible ML applications in the AEC domain, and to compare the performance of classic and graph-based models. The scope of this paper is limited to the proof of concept for the idea that graph data which represent building models can support downstream ML applications. Within that, we focus our efforts on tasks from the semantic enrichment domain. More specifically, we aim to automatically classify building elements represented in BIM models to support the verification of information quality in BIM files. The underlying hypothesis behind this research is that adding contextual information to the geometric features can improve the results of classifying building elements.",
+            "es": "El objetivo principal de este trabajo es demostrar la capacidad de los datos de grafos para respaldar posibles aplicaciones de ML (aprendizaje automático, machine learning) en el dominio AEC, y comparar el desempeño de los modelos clásicos y los basados en grafos. El alcance de este artículo se limita a la prueba de concepto de la idea de que los datos de grafos que representan modelos de edificios pueden respaldar aplicaciones posteriores de ML. Dentro de ello, concentramos nuestros esfuerzos en tareas del dominio del enriquecimiento semántico (semantic enrichment). Más específicamente, nuestro objetivo es clasificar automáticamente los elementos de construcción representados en modelos BIM para apoyar la verificación de la calidad de la información en archivos BIM. La hipótesis subyacente a esta investigación es que añadir información contextual a las características geométricas puede mejorar los resultados de la clasificación de elementos de construcción."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4. Methods",
+        "es": "4. Métodos"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The design of this research is described in Figure 2. Initially, we assembled an extensive dataset comprising over 42,000 building elements extracted from eleven BIM files. These files were obtained from local architect offices and encompassed both residential and commercial structures, reflecting real-world scenarios. To facilitate this endeavor, we devised a parametric methodology to extract the elements from the BIM files. Subsequently, the extracted elements were stored as JSON files, containing basic geometric details (e.g., bounding box dimensions, orientation, and number of parts). As part of the extraction process, we also identified and recorded the intersections between the elements, which were subsequently stored in the corresponding JSON files.",
+            "es": "El diseño de esta investigación se describe en la Figura 2. En primer lugar, reunimos un extenso conjunto de datos (dataset) compuesto por más de 42,000 elementos de construcción extraídos de once archivos BIM. Estos archivos se obtuvieron de despachos de arquitectos locales y abarcaban tanto edificios residenciales como comerciales, lo que refleja escenarios del mundo real. Para facilitar esta tarea, ideamos una metodología paramétrica para extraer los elementos de los archivos BIM. Posteriormente, los elementos extraídos se almacenaron como archivos JSON que contenían detalles geométricos básicos (por ejemplo, las dimensiones de la caja delimitadora (bounding box), la orientación y el número de partes). Como parte del proceso de extracción, también identificamos y registramos las intersecciones entre los elementos, que después se almacenaron en los archivos JSON correspondientes."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2. Desctption of the research method, starting with data extraction methods on the left and flowing to the ML methods on the right.",
+            "es": "Figura 2: Descripción del método de investigación, que comienza con los métodos de extracción de datos a la izquierda y fluye hacia los métodos de ML a la derecha."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "To establish a standardized classification process, the properties of the building elements were extracted from the JSON files and encoded as one-hot features within pandas data frames. This encoding scheme was employed to train multiple traditional machine learning (ML) models, aiming to classify the elements across the ten defined categories. Subsequently, GPGs were generated, incorporating the intersection relationships between the elements. Several GNN models were then trained using these graphs, employing various types of GNN node classification networks with different layer configurations. Furthermore, subgraphs capturing individual elements and their immediate neighbors were extracted from the larger graph, encoded, and stored separately. Various graph classification models were applied to these subgraphs, and the outcomes were compared to the previous node classification approach.",
+            "es": "Para establecer un proceso de clasificación estandarizado, las propiedades de los elementos de construcción se extrajeron de los archivos JSON y se codificaron como características one-hot (one-hot features) dentro de marcos de datos (data frames) de pandas. Este esquema de codificación se empleó para entrenar varios modelos tradicionales de aprendizaje automático (machine learning, ML), con el fin de clasificar los elementos en las diez categorías definidas. Posteriormente, se generaron GPGs que incorporaban las relaciones de intersección entre los elementos. Luego se entrenaron varios modelos de redes neuronales de grafos (graph neural networks, GNN) con estos grafos, empleando diversos tipos de redes de clasificación de nodos (node classification) de GNN con distintas configuraciones de capas. Además, se extrajeron del grafo más grande subgrafos (subgraphs) que capturaban elementos individuales y sus vecinos inmediatos, y se codificaron y almacenaron por separado. Se aplicaron diversos modelos de clasificación de grafos (graph classification) a estos subgrafos, y los resultados se compararon con el enfoque anterior de clasificación de nodos."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "4.1. Graph DataSet Generation",
+            "es": "4.1. Generación del conjunto de datos de grafos"
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The base requirement for conducting this research is a set of BIM models containing high-quality data about the element’s classes, their geometric representation, and their relations to each other. In earlier studies [20,21], researchers generated such datasets by processing BIM files and extracting individual elements and their corresponding features. However, most datasets remain unpublished, and the ones that are accessible often lack the necessary proximity information crucial for our research. Hence, we constructed the dataset by extracting element information, and contextual information, from architectural models shared by local architects. A total of 10 Autodesk Revit files were obtained and translated to JSON as explained below. The models describe large residential and commercial buildings, which were all designed or built in the last few years. To increase the variance in the elements and avoid over-fitting, we chose to include only one building from each architect in the dataset.",
+            "es": "El requisito básico para llevar a cabo esta investigación es un conjunto de modelos BIM que contengan datos de alta calidad sobre las clases de los elementos, su representación geométrica y sus relaciones entre sí. En estudios anteriores [20,21], los investigadores generaron conjuntos de datos de este tipo procesando archivos BIM y extrayendo los elementos individuales y sus características correspondientes. Sin embargo, la mayoría de los conjuntos de datos permanecen sin publicar, y los que son accesibles suelen carecer de la información de proximidad necesaria, que es crucial para nuestra investigación. Por ello, construimos el conjunto de datos extrayendo la información de los elementos, y la información contextual, de modelos arquitectónicos compartidos por arquitectos locales. Se obtuvo un total de 10 archivos de Autodesk Revit, que se tradujeron a JSON como se explica a continuación. Los modelos describen grandes edificios residenciales y comerciales, todos diseñados o construidos en los últimos años. Para aumentar la varianza de los elementos y evitar el sobreajuste (over-fitting), decidimos incluir en el conjunto de datos solo un edificio de cada arquitecto."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The data extracted from the BIM models was organized into a JSON dataset, encompassing both the geometric features derived from the bounding box representation of each element, and the intersections between the elements. To prepare these data for ML implementation, we encoded the geometric features into binary vectors, ensuring compatibility with a wide range of ML models. We then tested several ML classification models to establish a baseline reference for assessing prediction quality. Notably, the classic models relied solely on the individual geometric features of each element, as these models cannot facilitate the representation of relational information. We then transformed the element dataset into a proximity graph, using the relational data, to leverage graph neural networks (GNNs) for the same element classification task. Several GNN models for node classification and for graph classification were implemented and evaluated. The resultant prediction outcomes from all the models were systematically compared, enabling us to gauge the influence of incorporating contextual information within this specific domain. Through this workflow, we aim to gain an understanding of how relational data can contribute to improving classification outcomes.",
+            "es": "Los datos extraídos de los modelos BIM se organizaron en un conjunto de datos JSON que abarca tanto las características geométricas derivadas de la representación de caja delimitadora de cada elemento como las intersecciones entre los elementos. Para preparar estos datos para su implementación en ML, codificamos las características geométricas en vectores binarios, lo que garantiza la compatibilidad con una amplia gama de modelos de ML. Después probamos varios modelos de clasificación de ML para establecer una referencia base (baseline) con la que evaluar la calidad de las predicciones. Cabe destacar que los modelos clásicos se basaron únicamente en las características geométricas individuales de cada elemento, ya que estos modelos no permiten representar información relacional. A continuación, transformamos el conjunto de datos de elementos en un grafo de proximidad (proximity graph), utilizando los datos relacionales, para aprovechar las GNN en la misma tarea de clasificación de elementos. Se implementaron y evaluaron varios modelos de GNN para la clasificación de nodos y para la clasificación de grafos. Los resultados de predicción de todos los modelos se compararon de forma sistemática, lo que nos permitió calibrar la influencia de incorporar información contextual en este dominio específico. Mediante este flujo de trabajo, buscamos comprender cómo pueden contribuir los datos relacionales a mejorar los resultados de la clasificación."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "4.1.1. BIM to JSON",
+            "es": "4.1.1. De BIM a JSON"
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The first stage of the workflow is translating the obtained BIM files into machine-readable format via JSON. The conversion from Revit 2023 was performed using the Rhino Inside Revit plugin [59]. This plugin utilizes the strong functionality and well-known interface of the Grasshopper associative programming [60] platform inside the commercial Autodesk Revit [3] software. It was adopted for this research because of its dependability, customizability, and ease of use. Using the workflow illustrated in Figure 3, Revit elements of predetermined types (walls, doors, stairs, etc.) were imported into the Grasshopper environment using the Category Filter and Query Element modules. Then the Element Geometry was extracted and tested to ensure that the elements describe a physical object with a measurable volume. Textual attributes of the valid elements were accessed using the Inspect Element module and recorded into tables. These include Category Name, Family Name, Type Name, Material, Structural Behavior, and ID. Then, the element’s orientation was extracted using the Facing output of the Element Location module. The orientation was used to construct an oriented bounding box, which compactly envelopes the element and describes its basic geometric properties. Properties such as X, Y, and Z dimensions, volume, and relative height (in the model) were derived from the bounding box. Additionally, properties such as Solid Volume and Number of Components were extracted directly from the element and recorded.",
+            "es": "La primera etapa del flujo de trabajo consiste en traducir los archivos BIM obtenidos a un formato legible por máquina mediante JSON. La conversión desde Revit 2023 se realizó con el complemento (plugin) Rhino Inside Revit [59]. Este complemento aprovecha la sólida funcionalidad y la conocida interfaz de la plataforma de programación asociativa (associative programming) Grasshopper [60] dentro del software comercial Autodesk Revit [3]. Se adoptó para esta investigación por su fiabilidad, su capacidad de personalización y su facilidad de uso. Siguiendo el flujo de trabajo ilustrado en la Figura 3, los elementos de Revit de tipos predeterminados (muros, puertas, escaleras, etc.) se importaron al entorno de Grasshopper mediante los módulos Category Filter y Query Element. Luego se extrajo la Element Geometry y se comprobó que los elementos describieran un objeto físico con un volumen medible. Los atributos textuales de los elementos válidos se consultaron con el módulo Inspect Element y se registraron en tablas. Estos incluyen Category Name, Family Name, Type Name, Material, Structural Behavior e ID. Después, se extrajo la orientación del elemento mediante la salida Facing del módulo Element Location. La orientación se utilizó para construir una caja delimitadora orientada, que envuelve el elemento de forma compacta y describe sus propiedades geométricas básicas. A partir de la caja delimitadora se derivaron propiedades como las dimensiones X, Y y Z, el volumen y la altura relativa (en el modelo). Además, propiedades como Solid Volume y Number of Components se extrajeron directamente del elemento y se registraron."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3. BIM element extraction process.",
+            "es": "Figura 3: Proceso de extracción de elementos BIM."
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Finally, the recorded data were written on a JSON file, which is a commonly used dictionary format, independent of software language and operating system, using the following format: [",
+            "es": "Finalmente, los datos registrados se escribieron en un archivo JSON, un formato de diccionario de uso común, independiente del lenguaje de software y del sistema operativo, con el siguiente formato: ["
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "{ “category_name”: “Walls”, “family_name”: “Basic Wall”, “type_name”: “BO-EXT Con 65”, “is_structural”: “False”, “BB_Y_dim”: 389, “BB_Z_dim”: 800, “BB_X_dim”: 65, “relative_height”: 0.24723022871239042, “BB_volume”: 20240137 “solid_volume”: 13803420, “num_of_components”: 1, “id”: “700572”, “unique_id”: “6de6eb6a-bcbf-4e08-a866-d954b83f7159-000ab09c”, “element_index”: 6 }, ]",
+            "es": "{ “category_name”: “Walls”, “family_name”: “Basic Wall”, “type_name”: “BO-EXT Con 65”, “is_structural”: “False”, “BB_Y_dim”: 389, “BB_Z_dim”: 800, “BB_X_dim”: 65, “relative_height”: 0.24723022871239042, “BB_volume”: 20240137 “solid_volume”: 13803420, “num_of_components”: 1, “id”: “700572”, “unique_id”: “6de6eb6a-bcbf-4e08-a866-d954b83f7159-000ab09c”, “element_index”: 6 }, ]"
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Each element was written separately on the file, with its properties recorded as key– value pairs. Additional information about the Revit file (Name, extraction date, geographic Location, and version number) was also appended to the file.",
+            "es": "Cada elemento se escribió por separado en el archivo, con sus propiedades registradas como pares clave–valor. También se añadió al archivo información adicional sobre el archivo de Revit (nombre, fecha de extracción, ubicación geográfica y número de versión)."
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The JSON dataset consists of over 42,000 different elements of 10 classes: ‘Walls’, ‘Doors’, ‘Furniture’, ‘Windows’, ‘Plumbing Fixtures’, ‘Floors’, ‘Stairs’, ‘Railings’, ‘Structural Columns’, and ‘Structural Framing’. The elements were derived from 10 different Revit models, consisting of residential apartment and office buildings. The division between the elements is shown in Table 1.",
+            "es": "El conjunto de datos JSON consta de más de 42,000 elementos distintos de 10 clases: ‘Walls’, ‘Doors’, ‘Furniture’, ‘Windows’, ‘Plumbing Fixtures’, ‘Floors’, ‘Stairs’, ‘Railings’, ‘Structural Columns’ y ‘Structural Framing’. Los elementos provienen de 10 modelos de Revit diferentes, que corresponden a edificios de departamentos residenciales y de oficinas. La división entre los elementos se muestra en la Tabla 1."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 10,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1. Element categories in the dataset.",
+            "es": "Tabla 1: Categorías de elementos en el conjunto de datos."
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "4.1.2. Constructing the Relation Graph",
+            "es": "4.1.2. Construcción del grafo de relaciones"
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "We chose to represent each of the extracted BIM elements as nodes in a property graph. A property graph consists of a set of objects or nodes, and a set of edges connecting the objects. Both nodes and edges can also have multiple properties, which are represented as key–value pairs. Property graphs have been extensively used in domains such as IT operations, recommendation engines, and access control. Their structure has many benefits in terms of support for graph traversal algorithms and software development [61]. Property graphs are also widely used in commercial graph databases such as Neo4J, where they outperform traditional databases in several types of searches [62].",
+            "es": "Decidimos representar cada uno de los elementos BIM extraídos como nodos de un grafo de propiedades (property graph). Un grafo de propiedades consta de un conjunto de objetos o nodos y un conjunto de aristas que conectan los objetos. Tanto los nodos como las aristas pueden tener también múltiples propiedades, que se representan como pares clave–valor. Los grafos de propiedades se han utilizado ampliamente en ámbitos como las operaciones de TI, los motores de recomendación y el control de acceso. Su estructura ofrece muchas ventajas en cuanto al soporte de algoritmos de recorrido de grafos y al desarrollo de software [61]. Los grafos de propiedades también se usan ampliamente en bases de datos de grafos comerciales como Neo4J, donde superan a las bases de datos tradicionales en varios tipos de búsquedas [62]."
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "In our case, the property graph nodes are the BIM elements, the properties are their geometric features discussed in the previous section, and the edges represent proximity relations between elements.",
+            "es": "En nuestro caso, los nodos del grafo de propiedades son los elementos BIM, las propiedades son sus características geométricas tratadas en la sección anterior, y las aristas representan relaciones de proximidad entre elementos."
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "We define the proximity relation between two elements as the existence of an intersection between their bounding boxes. In the common case of orthogonally oriented regular geometries, this means a tangible spatial intersection between the physical objects themselves. In the case of irregular objects, the notion of proximity may extend to situations where no actual physical contact between the elements exists. Still, this was the adopted approach due to the recognition of the substantial computational efficiency gains achieved by intersecting bounding boxes rather than the complex geometries of the actual elements.",
+            "es": "Definimos la relación de proximidad entre dos elementos como la existencia de una intersección entre sus cajas delimitadoras. En el caso común de geometrías regulares con orientación ortogonal, esto significa una intersección espacial tangible entre los propios objetos físicos. En el caso de objetos irregulares, la noción de proximidad puede extenderse a situaciones en las que no existe un contacto físico real entre los elementos. Aun así, este fue el enfoque adoptado debido al reconocimiento de las sustanciales ganancias de eficiencia computacional que se obtienen al intersectar cajas delimitadoras en lugar de las geometrías complejas de los elementos reales."
+          }
+        },
+        {
+          "id": "s4-p17",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "In this stage of the extraction process, a geometric algorithm interrogated the relations between all the elements in the model. The Grasshopper Clash component was used to detect intersections between the bounding boxes of elements, as this component was designed to function in parallel on large datasets. The stability of the Grasshopper platform ensured that this process was successful, even though it involved checking all elements against all other elements. Even in huge REVIT building models with tens of thousands of elements, the extraction process was successful, although it processed for almost an hour on a 32GB RAM workstation with a dedicated graphic card. These relations, expressed as ID pairs, were also recorded, and stored. The relations were also written in the JSON file as lists of “unique_id” pairs.",
+            "es": "En esta etapa del proceso de extracción, un algoritmo geométrico examinó las relaciones entre todos los elementos del modelo. Se utilizó el componente Clash de Grasshopper para detectar intersecciones entre las cajas delimitadoras de los elementos, ya que este componente fue diseñado para funcionar en paralelo sobre grandes conjuntos de datos. La estabilidad de la plataforma Grasshopper garantizó que este proceso fuera exitoso, aunque implicaba comprobar todos los elementos contra todos los demás. Incluso en modelos de edificios de REVIT enormes, con decenas de miles de elementos, el proceso de extracción fue exitoso, aunque tardó casi una hora en procesarse en una estación de trabajo con 32GB de RAM y una tarjeta gráfica dedicada. Estas relaciones, expresadas como pares de ID, también se registraron y almacenaron. Las relaciones también se escribieron en el archivo JSON como listas de pares de “unique_id”."
+          }
+        },
+        {
+          "id": "s4-p18",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "We used the relation pairs to construct the property graphs in two different ways: (1) As a series of large graphs, one for each BIM file representing all the connected elements in the building, as shown in Figure 4. (2) As a series of smaller subgraphs, each centered on a single node which is connected to its first order neighbors, as shown in Figure 1.",
+            "es": "Utilizamos los pares de relaciones para construir los grafos de propiedades de dos maneras distintas: (1) como una serie de grafos grandes, uno por cada archivo BIM, que representan todos los elementos conectados del edificio, como se muestra en la Figura 4. (2) como una serie de subgrafos más pequeños, cada uno centrado en un único nodo conectado con sus vecinos de primer orden, como se muestra en la Figura 1."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4. Graphic representation of a proximity graph derived from a small BIM file, color indictate element types and numbers refer to specific elemet ID’s.",
+            "es": "Figura 4: Representación gráfica de un grafo de proximidad derivado de un archivo BIM pequeño; los colores indican los tipos de elementos y los números se refieren a ID de elementos específicos."
+          }
+        },
+        {
+          "id": "s4-p19",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "For representing the entire graph (1), we used the networkx [63] python library for graph creation and manipulation. Using this library, we first constructed a Graph object from the encoded elements and their connections. In this case, a few unconnected elements (with no intersections with other elements) were filtered out using the connected_components command.",
+            "es": "Para representar el grafo completo (1), utilizamos la biblioteca de Python networkx [63] para la creación y manipulación de grafos. Con esta biblioteca, primero construimos un objeto Graph a partir de los elementos codificados y sus conexiones. En este caso, unos pocos elementos no conectados (sin intersecciones con otros elementos) se filtraron mediante el comando connected_components."
+          }
+        },
+        {
+          "id": "s4-p20",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "For assembling the subgraphs (2), we also started with the connected networkx graph. In this version, we then traversed all the nodes in the Graph and used the subgraph command to split the graph into a first-order neighbor subgraph at each of the nodes. Each of the subgraphs was then recorded as a separate graph with all the information about the nodes. In addition, each subgraph entry contains a unique name originating from the unique ID (UID) of its root node as well as its category.",
+            "es": "Para ensamblar los subgrafos (2), también partimos del grafo conectado de networkx. En esta versión, recorrimos todos los nodos del Graph y utilizamos el comando subgraph para dividir el grafo en un subgrafo de vecinos de primer orden en cada uno de los nodos. Cada uno de los subgrafos se registró luego como un grafo independiente con toda la información sobre los nodos. Además, cada entrada de subgrafo contiene un nombre único que se origina en el identificador único (unique ID, UID) de su nodo raíz, así como en su categoría."
+          }
+        },
+        {
+          "id": "s4-p21",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "A possible future working scenario for this approach is one where the BIM elements are classified by an ML model immediately upon their creation. In this scenario, all surrounding elements will already have been classified, and the only question that remains is the identity of the new element. To model this scenario, we added the categories of the neighboring nodes to the encoding in the subgraph. To keep the encoding structure while masking the identity of the root node, its category was replaced with a generic “root” category. We saved this dataset separately under the name of “category encoding” and later ran the subgraph classification task both with and without the additional encoding. With this novel approach, the GNN was implemented for a subgraph classification task where all the contextual information, including the category of the neighbors, is already available to the model.",
+            "es": "Un posible escenario de trabajo futuro para este enfoque es aquel en el que los elementos BIM son clasificados por un modelo de ML inmediatamente después de su creación. En este escenario, todos los elementos circundantes ya habrán sido clasificados, y la única pregunta que queda es la identidad del nuevo elemento. Para modelar este escenario, añadimos a la codificación del subgrafo las categorías de los nodos vecinos. Para mantener la estructura de la codificación y a la vez enmascarar la identidad del nodo raíz, su categoría se sustituyó por una categoría genérica “root”. Guardamos este conjunto de datos por separado bajo el nombre de “category encoding” y más adelante ejecutamos la tarea de clasificación de subgrafos tanto con la codificación adicional como sin ella. Con este enfoque novedoso, la GNN se implementó para una tarea de clasificación de subgrafos en la que toda la información contextual, incluida la categoría de los vecinos, ya está disponible para el modelo."
+          }
+        },
+        {
+          "id": "s4-p22",
+          "type": "heading",
+          "page": 11,
+          "text": {
+            "en": "4.1.3. Feature Encoding",
+            "es": "4.1.3. Codificación de características"
+          }
+        },
+        {
+          "id": "s4-p23",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "The initial JSON data were uploaded into a python runtime environment and stored as two lists, one of elements and their properties, and another with the intersection relations between the elements. The lists were then converted into pandas [64] data frames so that they could be used as input for ML models.",
+            "es": "Los datos JSON iniciales se cargaron en un entorno de ejecución de Python y se almacenaron como dos listas: una de elementos y sus propiedades, y otra con las relaciones de intersección entre los elementos. Luego, las listas se convirtieron en marcos de datos de pandas [64] para poder utilizarlas como entrada de los modelos de ML."
+          }
+        },
+        {
+          "id": "s4-p24",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "The element features were further processed to provide a dataset that can be utilized with all types of models. One-hot encoding (OHE) is a technique commonly used to represent input for deep learning models in many data science fields [65]. One-hot encoding transforms labels into a binary vector in which every category is represented by a different index on the vector. This representation results in sparse vectors where most of the Booleans are false. Despite its large size, OHE has been known to improve the performance of many types of models, including regression models [66] and CNNs [67]. In GNN models, OHE is one of the most dominant encoding methods [68], where its uniformity is well adapted to the message-passing structure of the graph. To fit the data to our object of inquiry (GNNs), we chose to encode all features using OHE and used these data for training all the models mentioned in the next section, so that their performance can be compared.",
+            "es": "Las características de los elementos se procesaron más a fondo para obtener un conjunto de datos que pueda utilizarse con todo tipo de modelos. La codificación one-hot (one-hot encoding, OHE) es una técnica de uso común para representar la entrada de modelos de aprendizaje profundo (deep learning) en muchos campos de la ciencia de datos [65]. La codificación one-hot transforma las etiquetas en un vector binario en el que cada categoría se representa mediante un índice distinto del vector. Esta representación da como resultado vectores dispersos en los que la mayoría de los valores booleanos son falsos. A pesar de su gran tamaño, se sabe que la OHE mejora el rendimiento de muchos tipos de modelos, incluidos los modelos de regresión [66] y las redes neuronales convolucionales (convolutional neural networks, CNN) [67]. En los modelos de GNN, la OHE es uno de los métodos de codificación más dominantes [68], donde su uniformidad se adapta bien a la estructura de paso de mensajes (message-passing) del grafo. Para ajustar los datos a nuestro objeto de estudio (las GNN), decidimos codificar todas las características mediante OHE y usamos estos datos para entrenar todos los modelos mencionados en la siguiente sección, de modo que se pueda comparar su rendimiento."
+          }
+        },
+        {
+          "id": "s4-p25",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Since the properties of the elements in our dataset are numeric, they had to be stored in labeled bins before encoding. This was achieved using the pandas qcut command, which divides data frame elements into a specified amount of roughly equal-sized bins. We divided all properties into 10 equally sized bins. This means that the bin boundaries are automatically set by the software according to the frequency of the appearance of dimensions in the dataset so that the bin sizes will be equal. Later investigation into the number of bins needed revealed that increasing the number of bins to 20 did not significantly change the results.",
+            "es": "Dado que las propiedades de los elementos de nuestro conjunto de datos son numéricas, tuvieron que almacenarse en intervalos (bins) etiquetados antes de la codificación. Esto se logró con el comando qcut de pandas, que divide los elementos del marco de datos en una cantidad especificada de intervalos de tamaño aproximadamente igual. Dividimos todas las propiedades en 10 intervalos del mismo tamaño. Esto significa que los límites de los intervalos son fijados automáticamente por el software según la frecuencia de aparición de las dimensiones en el conjunto de datos, de modo que los tamaños de los intervalos sean iguales. Una investigación posterior sobre el número de intervalos necesarios reveló que aumentar el número de intervalos a 20 no cambió significativamente los resultados."
+          }
+        },
+        {
+          "id": "s4-p26",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Table 2 shows the different bins generated for the X, Y, and Z dimensions of the element bounding box. The table shows how while the X and Y distributions are relatively uniform, the Z values are noticeably different. The bin division was saved on a separate file so that when analyzing a new model, the same bins could be used. Then, the pandas get dummies command was used to create frames in which all bins are represented as Boolean columns.",
+            "es": "La Tabla 2 muestra los diferentes intervalos generados para las dimensiones X, Y y Z de la caja delimitadora del elemento. La tabla muestra cómo, mientras que las distribuciones de X y Y son relativamente uniformes, los valores de Z son notablemente distintos. La división en intervalos se guardó en un archivo aparte para que, al analizar un modelo nuevo, se pudieran usar los mismos intervalos. Luego, se usó el comando get dummies de pandas para crear marcos en los que todos los intervalos se representan como columnas booleanas."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 12,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2. Example bins resulting from the qcut command.",
+            "es": "Tabla 2: Ejemplo de intervalos resultantes del comando qcut."
+          }
+        },
+        {
+          "id": "s4-p27",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "For example, when dividing all elements according to their bounding box X dimension, qcut identified that the lowest 10% of the elements fall between 0 and 41 cm, and created a label called “X_dim_0_to_41.6”. Then the get_dummies command generated ten columns, one for each of the X dim bin labels, and assigned a TRUE or FALSE value to each of the elements according to its label. The process was then repeated for the following properties: bounding box X dimension, bounding box Y dimension, bounding box Z dimension, bounding box volume, solid volume, relative height, and the number of components in the BIM element. These properties were chosen for their simplicity and the fact that they can be easily measured regardless of the modeling platform. The seven properties resulted in a dataset with 70 features, used throughout the experiments.",
+            "es": "Por ejemplo, al dividir todos los elementos según la dimensión X de su caja delimitadora, qcut identificó que el 10% inferior de los elementos se encuentra entre 0 y 41 cm, y creó una etiqueta llamada “X_dim_0_to_41.6”. Luego, el comando get_dummies generó diez columnas, una para cada una de las etiquetas de intervalo de la dimensión X, y asignó un valor TRUE o FALSE a cada uno de los elementos según su etiqueta. El proceso se repitió después para las siguientes propiedades: dimensión X de la caja delimitadora, dimensión Y de la caja delimitadora, dimensión Z de la caja delimitadora, volumen de la caja delimitadora, volumen sólido, altura relativa y número de componentes del elemento BIM. Estas propiedades se eligieron por su simplicidad y por el hecho de que pueden medirse fácilmente con independencia de la plataforma de modelado. Las siete propiedades dieron como resultado un conjunto de datos con 70 características, que se utilizó a lo largo de los experimentos."
+          }
+        },
+        {
+          "id": "s4-p28",
+          "type": "heading",
+          "page": 12,
+          "text": {
+            "en": "4.2. Machine Learning with and without Contextual Information",
+            "es": "4.2. Aprendizaje automático con y sin información contextual"
+          }
+        },
+        {
+          "id": "s4-p29",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "The entire dataset was split into several parts for training and testing. Initially, one out of the ten BIM files was set aside as a test file, with the understanding that modeling conventions vary and that the true measure of any predictive model was on elements from a file it has never seen. This proved to be extremely influential on the model performance, which varied according to which of the files was set aside. For this reason, we performed all our experiments five times, each time setting a different model aside, training with the rest of the models and then testing the performance of the model on the sequestered file.",
+            "es": "Todo el conjunto de datos se dividió en varias partes para el entrenamiento y la prueba. En primer lugar, se apartó uno de los diez archivos BIM como archivo de prueba, entendiendo que las convenciones de modelado varían y que la verdadera medida de cualquier modelo predictivo es su desempeño con elementos de un archivo que nunca ha visto. Esto resultó ser extremadamente influyente en el rendimiento del modelo, que variaba según el archivo que se apartara. Por esta razón, realizamos todos nuestros experimentos cinco veces, apartando cada vez un modelo distinto, entrenando con el resto de los modelos y probando luego el rendimiento del modelo en el archivo reservado."
+          }
+        },
+        {
+          "id": "s4-p30",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Data extracted from all files used for training was joined into a single dataset, element’s order was randomized, and a standard 80/20 training/validation split was performed. When training on the graphs, the elements could not be mixed, and a random torch training/validation mask with the same split was applied instead.",
+            "es": "Los datos extraídos de todos los archivos utilizados para el entrenamiento se unieron en un único conjunto de datos, se aleatorizó el orden de los elementos y se realizó una división estándar 80/20 entre entrenamiento y validación. Al entrenar con los grafos, los elementos no podían mezclarse, por lo que se aplicó en su lugar una máscara aleatoria de entrenamiento/validación de torch con la misma división."
+          }
+        },
+        {
+          "id": "s4-p31",
+          "type": "heading",
+          "page": 13,
+          "text": {
+            "en": "4.2.1. Training Classic ML Models as a Baseline",
+            "es": "4.2.1. Entrenamiento de modelos clásicos de ML como línea base"
+          }
+        },
+        {
+          "id": "s4-p32",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "To obtain an indication of the GNN performance in our scenario, we trained a series of classic ML models to perform element classification for comparison. We considered simpler models, which have been repeatedly and successfully used for a variety of purposes. For this purpose, we used the scikit-learn [69], a commonly used python library that contains many ML models and helper functions.",
+            "es": "Para obtener una indicación del desempeño de las GNN en nuestro escenario, entrenamos una serie de modelos clásicos de aprendizaje automático (machine learning, ML) para realizar la clasificación de elementos (element classification) con fines de comparación. Consideramos modelos más simples, que se han utilizado de manera repetida y exitosa para diversos propósitos. Para ello, usamos scikit-learn [69], una biblioteca de python de uso común que contiene muchos modelos de ML y funciones auxiliares."
+          }
+        },
+        {
+          "id": "s4-p33",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "The encoded binary features of all the elements in the dataset were loaded into pandas data frames, with a Y field denoting their category labels but without the connection information. As discussed in the previous section, we used seven basic geometric features (size, volume, location, orientation, etc.) and encoded the features in them into ten bins and shuffled the data frame. We trained the models to predict the BIM category of the elements, using the scikit fit command on the training set, and used the predict command on the validation set (sourced from the same BIM files as the training set) to evaluate performance. Finally, we tested the generalization abilities of the models on the test set (sourced from previously unseen BIM files).",
+            "es": "Las características (features) binarias codificadas de todos los elementos del conjunto de datos se cargaron en marcos de datos (data frames) de pandas, con un campo Y que denotaba sus etiquetas (labels) de categoría, pero sin la información de conexión. Como se explicó en la sección anterior, utilizamos siete características geométricas básicas (tamaño, volumen, ubicación, orientación, etc.) y codificamos las características en diez intervalos (bins), y barajamos el marco de datos. Entrenamos los modelos para predecir la categoría BIM de los elementos, usando el comando fit de scikit sobre el conjunto de entrenamiento (training set), y utilizamos el comando predict sobre el conjunto de validación (validation set; proveniente de los mismos archivos BIM que el conjunto de entrenamiento) para evaluar el desempeño. Por último, probamos la capacidad de generalización (generalization) de los modelos en el conjunto de prueba (test set; proveniente de archivos BIM no vistos previamente)."
+          }
+        },
+        {
+          "id": "s4-p34",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "First, we trained a basic logistic regression model on the data as a baseline, and then tried other models, which were successfully used in the literature for this task: random forest, serial vector machine [21], and k-nearest neighbor classifiers. Seeking to compare the performance of the models, we trained them using the exact same framework and dataset, and used the most standard “out of the box” parameters possible for each of the models.",
+            "es": "Primero, entrenamos como línea base (baseline) un modelo básico de regresión logística (logistic regression) sobre los datos, y luego probamos otros modelos que se han utilizado con éxito en la literatura para esta tarea: bosque aleatorio (random forest), máquina de vectores seriales (serial vector machine) [21] y clasificadores de k vecinos más cercanos (k-nearest neighbor). Con el fin de comparar el desempeño de los modelos, los entrenamos utilizando exactamente el mismo marco de trabajo y el mismo conjunto de datos, y empleamos para cada uno de ellos los parámetros más estándar posibles, “listos para usar”."
+          }
+        },
+        {
+          "id": "s4-p35",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "For ANN and GNN implementation, we adopted the pytorch [70] as the ML framework, due to its versatility, flexibility, and the availability of GNN architectures within this framework. For the pytorch version, we loaded the encoded element data from the JSON files into pytorch tensors, one for the features and another for the labels. The graph was converted into an adjacency matrix readable by the pytorch modules, comprised of pairs of connected elements referenced by their index in the torch data object.",
+            "es": "Para la implementación de las redes neuronales artificiales (artificial neural network, ANN) y de las GNN, adoptamos pytorch [70] como marco de trabajo de ML, debido a su versatilidad, su flexibilidad y la disponibilidad de arquitecturas de GNN dentro de este marco. Para la versión en pytorch, cargamos los datos codificados de los elementos desde los archivos JSON en tensores (tensors) de pytorch, uno para las características y otro para las etiquetas. El grafo se convirtió en una matriz de adyacencia (adjacency matrix) legible por los módulos de pytorch, compuesta por pares de elementos conectados referenciados mediante su índice en el objeto de torch."
+          }
+        },
+        {
+          "id": "s4-p36",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "The different tensors were loaded into a single pytorch Data object to be used by the models. We tested the pytorch environment by training a classic ANN—the multilayer perceptron (MLP) for the task. The MLP model was then built using the traditional three-layered architecture, with the input layer sized to fit the features, a hidden layer with the same size as the input, and an output layer sized to fit the classification categories. All layers were linear, fully connected layer. RELU activation + a dropout function was used between the first and the second layers, as well as between the second and the third. The results of the output layer were normalized using the log_softmax function.",
+            "es": "Los distintos tensores se cargaron en un único objeto Data de pytorch para que los modelos lo utilizaran. Probamos el entorno de pytorch entrenando para la tarea una ANN clásica: el perceptrón multicapa (multilayer perceptron, MLP). El modelo MLP se construyó entonces con la arquitectura tradicional de tres capas, con la capa de entrada (input layer) dimensionada para ajustarse a las características, una capa oculta (hidden layer) del mismo tamaño que la de entrada y una capa de salida (output layer) dimensionada para ajustarse a las categorías de clasificación. Todas las capas eran lineales y totalmente conectadas (fully connected). Se utilizó una activación RELU y una función de abandono (dropout) entre la primera y la segunda capa, así como entre la segunda y la tercera. Los resultados de la capa de salida se normalizaron mediante la función log_softmax."
+          }
+        },
+        {
+          "id": "s4-p37",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "The model was trained using the Adam optimizer with a standard learning rate of 0.01 and a decay of 5 × 10−4. The loss function was defined as Cross Entropy loss. The model was trained for 200 epochs on the training data, and then tested both on the validation and the test dataset. These standard parameters were then fixed and maintained in all the training sessions to enable us to isolate the effect of the model architecture on the prediction accuracy.",
+            "es": "El modelo se entrenó con el optimizador Adam, con una tasa de aprendizaje (learning rate) estándar de 0.01 y un decaimiento (decay) de 5 × 10−4. La función de pérdida se definió como la pérdida de entropía cruzada (Cross Entropy loss). El modelo se entrenó durante 200 épocas (epochs) con los datos de entrenamiento, y luego se probó tanto con el conjunto de validación como con el de prueba. Estos parámetros estándar se fijaron entonces y se mantuvieron en todas las sesiones de entrenamiento, para poder aislar el efecto de la arquitectura del modelo sobre la precisión de la predicción."
+          }
+        },
+        {
+          "id": "s4-p38",
+          "type": "heading",
+          "page": 13,
+          "text": {
+            "en": "4.2.2. Training a Graph Convolutional Network for Node Classification",
+            "es": "4.2.2. Entrenamiento de una red convolucional de grafos (Graph Convolutional Network) para la clasificación de nodos"
+          }
+        },
+        {
+          "id": "s4-p39",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "We trained the GNN for the classification task using the same pytorch framework, data, and training parameters described above. The major difference between these models and the MLP mentioned above, was that the graph connectivity matrix was added to the dataset tensors. The connectivity matrix, representing the intersections between the building elements (edges in the graphs), enabled us to introduce contextual information into the node classification model. To utilize connectivity information, GNNs are built with specifically network layers that enable message passing between neighboring nodes.",
+            "es": "Entrenamos la GNN para la tarea de clasificación utilizando el mismo marco de trabajo pytorch, los mismos datos y los mismos parámetros de entrenamiento descritos anteriormente. La principal diferencia entre estos modelos y el MLP mencionado arriba fue que la matriz de conectividad (connectivity matrix) del grafo se añadió a los tensores del conjunto de datos. La matriz de conectividad, que representa las intersecciones entre los elementos del edificio (las aristas de los grafos), nos permitió introducir información contextual en el modelo de clasificación de nodos. Para aprovechar la información de conectividad, las GNN se construyen con capas de red específicas que permiten el paso de mensajes (message passing) entre nodos vecinos."
+          }
+        },
+        {
+          "id": "s4-p40",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "We built the GNN model using the pytorch geometric (PyG) library [71]. PyG is an extension to the pytorch library that enables running deep learning models on irregular data structures such as graphs. The network was structured according to the classic design, as described in the original GCN paper [72]. This network with an input layer the same size as the features and a single hidden layer with an input of a similar size and an output size according to the classification classes. The input layer is followed by a RELU function, and the output results are normalized using a softmax function. The PyG library allowed us to replace the first two fully connected, feature sized layers from the MLP with several types of convolution layers designed specifically for graph structures. Several popular PyG graph convolution layers were explored for building the network for node classification tasks: GraphCONV, which implements the Weisfeiler–Leman graph isomorphism as described in [73]; SAGEConv [74], which leverages node feature to generate embeddings for previously unseen data; and TransformerConv [75] were all tested. All networks were trained on the same data as the previous models, and with the same training parameters as the MLP model.",
+            "es": "Construimos el modelo de GNN utilizando la biblioteca pytorch geometric (PyG) [71]. PyG es una extensión de la biblioteca pytorch que permite ejecutar modelos de aprendizaje profundo sobre estructuras de datos irregulares, como los grafos. La red se estructuró conforme al diseño clásico, tal como se describe en el artículo original de las GCN [72]. Esta red tiene una capa de entrada del mismo tamaño que las características y una única capa oculta con una entrada de tamaño similar y un tamaño de salida acorde con las clases de clasificación. La capa de entrada va seguida de una función RELU, y los resultados de salida se normalizan mediante una función softmax. La biblioteca PyG nos permitió reemplazar las dos primeras capas totalmente conectadas, del tamaño de las características, del MLP por varios tipos de capas de convolución diseñadas específicamente para estructuras de grafos. Se exploraron varias capas de convolución de grafos populares de PyG para construir la red destinada a las tareas de clasificación de nodos: se probaron GraphCONV, que implementa el isomorfismo de grafos de Weisfeiler–Leman (Weisfeiler–Leman graph isomorphism) como se describe en [73]; SAGEConv [74], que aprovecha las características de los nodos para generar incrustaciones (embeddings) para datos no vistos previamente; y TransformerConv [75]. Todas las redes se entrenaron con los mismos datos que los modelos anteriores y con los mismos parámetros de entrenamiento que el modelo MLP."
+          }
+        },
+        {
+          "id": "s4-p41",
+          "type": "heading",
+          "page": 14,
+          "text": {
+            "en": "4.2.3. Training a Subgraph Classification GNN",
+            "es": "4.2.3. Entrenamiento de una GNN para la clasificación de subgrafos"
+          }
+        },
+        {
+          "id": "s4-p42",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "GNNs are often used to classify entire graphs, such as the ones represented by proteins or molecules [52]. Our basic hypothesis is that information about the immediate neighbors of an element is useful for identifying the element’s class. The immediate neighborhood of each node can be represented by a simple graph containing the unclassified node neighbors. This compact representation is highly efficient when querying the model about a specific node. To test our hypothesis, we extracted the first-order neighborhood for each of the building elements and trained a GNN to classify these subgraphs. As the number of graphs dramatically increased, we divided the dataset into batches of 1000 for training purposes. The graph classification network was built using the same GNN layers described in Section 4.2.3, with a mean pooling layer to handle the batch training results.",
+            "es": "Las GNN se utilizan con frecuencia para clasificar grafos completos, como los que representan proteínas o moléculas [52]. Nuestra hipótesis básica es que la información sobre los vecinos inmediatos de un elemento es útil para identificar la clase del elemento. La vecindad inmediata de cada nodo puede representarse mediante un grafo simple que contiene a los vecinos no clasificados del nodo. Esta representación compacta es muy eficiente al consultar el modelo sobre un nodo específico. Para probar nuestra hipótesis, extrajimos la vecindad de primer orden (first-order neighborhood) de cada uno de los elementos del edificio y entrenamos una GNN para clasificar estos subgrafos. Como el número de grafos aumentó drásticamente, dividimos el conjunto de datos en lotes (batches) de 1000 para fines de entrenamiento. La red de clasificación de grafos se construyó con las mismas capas de GNN descritas en la Sección 4.2.3, con una capa de agrupación por media (mean pooling) para manejar los resultados del entrenamiento por lotes."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5. Results",
+        "es": "5. Resultados"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "heading",
+          "page": 14,
+          "text": {
+            "en": "5.1. Comparison between Classification Results",
+            "es": "5.1. Comparación entre los resultados de clasificación"
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "We trained the different models described above using a typical 80–20 training/validation split. As previously mentioned, we trained the models on data derived from ten of the BIM files, and kept one file aside for testing, allowing us to see the performance of the model on previously unseen data. The results presented in Table 3 show the significant variance between the different ML models. It is evident that GNN-based models outperform classic ones. Amongst the GNN models, subgraph classification models with category encoding achieve the best performance, exceeding that of the classic models by over 5%. The table also shows how the prediction accuracy on the test file, a previously unseen BIM file, was substantially lower. This result is surprising, as previous studies [19,21] have shown that ML models are able to generalize BIM classification problems. We suggest that the decreased performance on the unseen file might be due to the source of the data used in our study. We used elements sourced from the BIM files of real buildings, which were modeled by different architecture offices, as opposed to the Revit demonstrator files used in [21]. This led to naturally occurring variations in modeling conventions, which are common in the AEC industry. We propose that the real performance of the models should be measured by their prediction accuracy on unseen files, as it reflects their behavior in the real world.",
+            "es": "Entrenamos los distintos modelos descritos arriba utilizando una división típica de entrenamiento/validación de 80–20. Como se mencionó anteriormente, entrenamos los modelos con datos derivados de diez de los archivos BIM, y reservamos un archivo para la prueba, lo que nos permitió ver el desempeño del modelo con datos no vistos previamente. Los resultados presentados en la Tabla 3 muestran la variación significativa entre los distintos modelos de ML. Es evidente que los modelos basados en GNN superan a los clásicos. Entre los modelos de GNN, los modelos de clasificación de subgrafos con codificación de categorías logran el mejor desempeño, superando a los modelos clásicos por más de 5%. La tabla también muestra cómo la precisión de la predicción sobre el archivo de prueba, un archivo BIM no visto previamente, fue sustancialmente menor. Este resultado es sorprendente, ya que estudios previos [19,21] han mostrado que los modelos de ML son capaces de generalizar los problemas de clasificación de BIM. Sugerimos que la disminución del desempeño sobre el archivo no visto podría deberse al origen de los datos utilizados en nuestro estudio. Utilizamos elementos provenientes de archivos BIM de edificios reales, modelados por distintas oficinas de arquitectura, a diferencia de los archivos de demostración de Revit utilizados en [21]. Esto condujo a variaciones naturales en las convenciones de modelado, que son comunes en la industria AEC. Proponemos que el desempeño real de los modelos debería medirse por su precisión de predicción sobre archivos no vistos, ya que refleja su comportamiento en el mundo real."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 15,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3. Results of an example training process.",
+            "es": "Tabla 3: Resultados de un proceso de entrenamiento de ejemplo."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Further testing validated the observation regarding the varying prediction accuracy between different models, dependent upon the choice of the test files. We ran the whole train–validation–test setup five times, keeping a different file outside of the training data every time. Figure 5 shows the average performance of all the different classifiers on the five runs and illustrates the vast differences in prediction accuracy. The performance of all the models on the training and the validation set (which are hidden elements from the training files) is high and relatively stable, which supports findings from previous research. In contradiction, the performance on the elements from BIM models not included in the training (the test files) is significantly lower and subject to a variance of over 5%. These differences raise questions about the ability of ML models to generalize BIM classification problems, given the small size of the existing datasets.",
+            "es": "Pruebas adicionales validaron la observación sobre la precisión de predicción variable entre los diferentes modelos, dependiente de la elección de los archivos de prueba. Ejecutamos cinco veces todo el esquema de entrenamiento–validación–prueba, dejando cada vez un archivo distinto fuera de los datos de entrenamiento. La Figura 5 muestra el desempeño promedio de todos los clasificadores en las cinco ejecuciones e ilustra las enormes diferencias en la precisión de la predicción. El desempeño de todos los modelos sobre el conjunto de entrenamiento y el de validación (que son elementos ocultos de los archivos de entrenamiento) es alto y relativamente estable, lo cual respalda los hallazgos de investigaciones previas. En contraste, el desempeño sobre los elementos de modelos BIM no incluidos en el entrenamiento (los archivos de prueba) es significativamente menor y está sujeto a una varianza de más de 5%. Estas diferencias plantean dudas sobre la capacidad de los modelos de ML para generalizar los problemas de clasificación de BIM, dado el pequeño tamaño de los conjuntos de datos existentes."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 15,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5. Prediction accuracy on different test files, averaged across all tested models.",
+            "es": "Figura 5: Precisión de la predicción sobre distintos archivos de prueba, promediada entre todos los modelos probados."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "To accurately assess the performance of the different models, we averaged their prediction accuracy over the five test files as shown in Figure 6. In terms of the performance of the different model families, the classic ML models have the poorest average performance. Within this family, the support vector machine model displayed the best with an accuracy of 86.7%. In the averaged results, the GNN node classifiers performed better than the classic models and the best-performing model in this family achieved 87.7%, demonstrating that contextual information can improve prediction accuracy. Here, we see significant variations between the different types of GNN layers used, and the type of classification task—node or subgraph classification. In general, the GNN subgraph classification models achieved 88.3%, a further improvement over the GNN node classification models.",
+            "es": "Para evaluar con precisión el desempeño de los diferentes modelos, promediamos su precisión de predicción sobre los cinco archivos de prueba, como se muestra en la Figura 6. En cuanto al desempeño de las distintas familias de modelos, los modelos clásicos de ML tienen el peor desempeño promedio. Dentro de esta familia, el modelo de máquina de vectores de soporte (support vector machine) fue el mejor, con una precisión de 86.7%. En los resultados promediados, los clasificadores de nodos basados en GNN tuvieron un mejor desempeño que los modelos clásicos, y el modelo con mejor desempeño de esta familia alcanzó 87.7%, lo que demuestra que la información contextual puede mejorar la precisión de la predicción. Aquí observamos variaciones significativas entre los distintos tipos de capas de GNN utilizadas y el tipo de tarea de clasificación: de nodos o de subgrafos. En general, los modelos de clasificación de subgrafos con GNN alcanzaron 88.3%, una mejora adicional respecto de los modelos de clasificación de nodos con GNN."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 16,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6. Average prediction accuracy of the different models.",
+            "es": "Figura 6: Precisión de predicción promedio de los diferentes modelos."
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "Figure 6 also shows how adding the explicit representation of the categories of the neighboring nodes into the subgraphs dramatically improved the prediction results. With the additional information, GraphConv-based GNN networks achieved a prediction accuracy of 89.9%, more than 3% over the best-performing classic model.",
+            "es": "La Figura 6 también muestra cómo la incorporación a los subgrafos de la representación explícita de las categorías de los nodos vecinos mejoró drásticamente los resultados de la predicción. Con la información adicional, las redes GNN basadas en GraphConv alcanzaron una precisión de predicción de 89.9%, más de 3% por encima del mejor modelo clásico."
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "heading",
+          "page": 16,
+          "text": {
+            "en": "5.2. Test Case Analysis",
+            "es": "5.2. Análisis de un caso de prueba"
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "To improve our understanding of the results, one of the test cases was analyzed in detail. The test case is a 10 stories tall residential building with an irregular shape as shown in Figure 7. The building has four distinct floorplans, with a unique ground floor, penthouse, and levels 4–6. The building is constructed from a concrete skeleton with block infills and synthetic stone cladding. The BIM model includes all architectural and structural elements of the building, including basic furniture and plumbing fixtures, numbering 4442 elements in total.",
+            "es": "Para comprender mejor los resultados, se analizó en detalle uno de los casos de prueba. El caso de prueba es un edificio residencial de 10 pisos de altura con una forma irregular, como se muestra en la Figura 7. El edificio tiene cuatro plantas arquitectónicas distintas, con una planta baja, un penthouse y los niveles 4–6 únicos. El edificio está construido con un esqueleto de concreto con rellenos de bloque y revestimiento de piedra sintética. El modelo BIM incluye todos los elementos arquitectónicos y estructurales del edificio, incluidos mobiliario básico y accesorios de plomería, con un total de 4442 elementos."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 16,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7. Residential case study. Image by O2A architecture.",
+            "es": "Figura 7: Caso de estudio residencial. Imagen de O2A architecture."
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "The confusion matrixes describing the classification of the elements in the given model are presented in Figure 8. As seen in these matrixes, one of the biggest differences between the classic and graph-based models is the classification of windows as doors (common for the classic SVM model), or as plumbing fixtures (common for graph-based models).",
+            "es": "Las matrices de confusión (confusion matrices) que describen la clasificación de los elementos del modelo dado se presentan en la Figura 8. Como se aprecia en estas matrices, una de las mayores diferencias entre los modelos clásicos y los basados en grafos es la clasificación de las ventanas como puertas (común en el modelo SVM clásico) o como accesorios de plomería (común en los modelos basados en grafos)."
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 17,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Figure 8. Example of a confusion matrix for the different models. Darker green signifies higher element frequency.",
+            "es": "Figura 8: Ejemplo de una matriz de confusión para los diferentes modelos. Un verde más oscuro indica una mayor frecuencia de elementos."
+          }
+        },
+        {
+          "id": "s5-p9",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "To assess the models more closely and understand the reason for these differences, we inspected the individual elements of the BIM models where the prediction was false. In examining the classification outcomes, the occurrence of windows being misclassified as “doors” by the SVM model reveals a noteworthy difference in the behavior of the models.",
+            "es": "Para evaluar los modelos más de cerca y comprender el motivo de estas diferencias, inspeccionamos los elementos individuales de los modelos BIM en los que la predicción fue incorrecta. Al examinar los resultados de la clasificación, la aparición de ventanas clasificadas erróneamente como “puertas” por el modelo SVM revela una diferencia notable en el comportamiento de los modelos."
+          }
+        },
+        {
+          "id": "s5-p10",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "The windows with similar dimensions to doors, seemed to confuse the classic SVM model, leading to the mislabeling of 133 windows as doors. In contrast, the graph-based models, primarily guided via interconnections between building elements, demonstrate resilience against such geometric similarities. Figure 9 shows how the fact that windows usually neighbor only wall-type elements, while doors are also connected to floors helped the graph-based model differentiate between the elements. This highlights the strength of graph-based models in capturing contextual relationships.",
+            "es": "Las ventanas con dimensiones similares a las de las puertas parecían confundir al modelo SVM clásico, lo que condujo a la clasificación errónea de 133 ventanas como puertas. En contraste, los modelos basados en grafos, guiados principalmente por las interconexiones entre los elementos del edificio, demuestran resiliencia frente a tales similitudes geométricas. La Figura 9 muestra cómo el hecho de que las ventanas suelen colindar únicamente con elementos de tipo muro, mientras que las puertas también están conectadas a los pisos, ayudó al modelo basado en grafos a diferenciar entre los elementos. Esto destaca la fortaleza de los modelos basados en grafos para capturar relaciones contextuales."
+          }
+        },
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 17,
+          "image": "fig/fig-9.png",
+          "text": {
+            "en": "Figure 9. Left: toilet and window have different dimensions and similar context. Right: door and window have similar dimensions and different contexts.",
+            "es": "Figura 9: Izquierda: el inodoro y la ventana tienen dimensiones diferentes y un contexto similar. Derecha: la puerta y la ventana tienen dimensiones similares y contextos diferentes."
+          }
+        },
+        {
+          "id": "s5-p11",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "On the other hand, graph-based models tended to classify windows as plumbing fixtures while the classic SVM model avoided this mistake. After a closer examination, we see the commonality—both windows and plumbing fixtures predominantly intersect with wall elements. This shared contextual information might contribute to the misclassification.",
+            "es": "Por otro lado, los modelos basados en grafos tendieron a clasificar las ventanas como accesorios de plomería, mientras que el modelo SVM clásico evitó este error. Tras un examen más detenido, vemos el punto en común: tanto las ventanas como los accesorios de plomería se intersecan predominantemente con elementos de muro. Esta información contextual compartida podría contribuir a la clasificación errónea."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6. Discussion",
+        "es": "6. Discusión"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "In this work, we demonstrated the applicability of graph neural networks for classifying the elements in BIM models. In previous work, Wu et al. [21] demonstrated that random forest models can reach scores of over 99% on the BIM element classification task. Koo et al. [20] show how CNNs can identify element subtypes with and accuracy of 95%. Our findings demonstrated similar results on elements sourced from several BIM files. On these elements, our best-performing classification method consistently reached an accuracy of over 99% on the training data and 98% on the validation data. However, when classifying elements from BIM files that were not part of the training process, the accuracy of all the tested models dropped significantly to 81%–90%. Since previously unseen files (not elements) are the real targets of semantic enrichment processes, this raises a question about how BIM classification models are evaluated. We suggest that dividing elements into training and validation sets is not enough, and that they should be tested on elements from BIM files not included in the training process.",
+            "es": "En este trabajo demostramos la aplicabilidad de las redes neuronales de grafos (graph neural networks, GNN) para clasificar los elementos de los modelos BIM. En trabajos previos, Wu et al. [21] demostraron que los modelos de bosque aleatorio (random forest) pueden alcanzar puntuaciones superiores al 99% en la tarea de clasificación (classification) de elementos BIM. Koo et al. [20] muestran cómo las redes neuronales convolucionales (convolutional neural networks, CNN) pueden identificar subtipos de elementos con una exactitud (accuracy) del 95%. Nuestros hallazgos mostraron resultados similares en elementos provenientes de varios archivos BIM. En estos elementos, nuestro método de clasificación de mejor desempeño alcanzó de forma consistente una exactitud superior al 99% en los datos de entrenamiento (training data) y del 98% en los datos de validación (validation data). Sin embargo, al clasificar elementos de archivos BIM que no formaron parte del proceso de entrenamiento, la exactitud de todos los modelos probados cayó de manera significativa a 81%–90%. Dado que los archivos no vistos previamente (no los elementos) son los objetivos reales de los procesos de enriquecimiento semántico (semantic enrichment), esto plantea una pregunta sobre cómo se evalúan los modelos de clasificación BIM. Sugerimos que dividir los elementos en conjuntos de entrenamiento y de validación no es suficiente, y que deben probarse con elementos de archivos BIM no incluidos en el proceso de entrenamiento."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "As presented in the results section, introducing context in the form of geometric proximity graphs improved the prediction accuracy in the element classification task on previously unseen BIM files. Breaking up the graph into smaller parts and classifying each one of them according to the properties and categories of their immediate neighbors achieved a further improvement in the results. Since this type of classification model does not require the entire relation graph of the building, this approach has an operational advantage due to its scalability.",
+            "es": "Como se presentó en la sección de resultados, introducir contexto en forma de grafos de proximidad geométrica (geometric proximity graphs) mejoró la exactitud de la predicción en la tarea de clasificación de elementos en archivos BIM no vistos previamente. Dividir el grafo en partes más pequeñas y clasificar cada una de ellas según las propiedades y categorías de sus vecinos inmediatos logró una mejora adicional en los resultados. Dado que este tipo de modelo de clasificación no requiere el grafo completo de relaciones del edificio, este enfoque tiene una ventaja operativa debido a su escalabilidad (scalability)."
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "heading",
+          "page": 18,
+          "text": {
+            "en": "6.1. Limitations",
+            "es": "6.1. Limitaciones"
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "While the GNNs presented promising advancements, limitations in generalization and the need for diversity in the training dataset are acknowledged. The findings emphasize the significance of a diverse and high-quality dataset with a broad spectrum of complex geometries and contextual information to enhance model performance and accuracy. Our dataset contains 42,000 individual elements, from eleven different BIM files. All the training files come from the same country, with similar practices and building regulations. Local differences in construction methods and regulations might affect the dimensional features that traditional models are dependent on, for example, a concrete wall is dimensionally distinct from a wall made from wood or stone. To develop a general classification model, training information would need to include files from different countries, with different regulations, typologies, and construction methods.",
+            "es": "Si bien las GNN presentaron avances prometedores, se reconocen limitaciones en la generalización (generalization) y la necesidad de diversidad en el conjunto de datos de entrenamiento. Los hallazgos subrayan la importancia de un conjunto de datos diverso y de alta calidad, con un amplio espectro de geometrías complejas e información contextual, para mejorar el desempeño y la exactitud del modelo. Nuestro conjunto de datos contiene 42,000 elementos individuales, provenientes de once archivos BIM diferentes. Todos los archivos de entrenamiento provienen del mismo país, con prácticas y normativas de construcción similares. Las diferencias locales en los métodos constructivos y en las normativas podrían afectar las características dimensionales de las que dependen los modelos tradicionales; por ejemplo, un muro de concreto es dimensionalmente distinto de un muro de madera o de piedra. Para desarrollar un modelo de clasificación general, la información de entrenamiento tendría que incluir archivos de distintos países, con diferentes normativas, tipologías y métodos constructivos."
+          }
+        },
+        {
+          "id": "s6-p5",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "However, the geometric relations between walls, floors, and doors are not dependent upon the construction technique used and remain invariant across geography, method, and even time. Our findings indicate that introducing contextual information in the form of intersection graphs between building elements assists the models in generalizing. By using these relations, GNN models improved the prediction accuracy on previously unseen BIM files sourced from different architectural offices. This suggests that graph-based GNNs can be more adept at generalization and may require smaller training sets than classic models.",
+            "es": "Sin embargo, las relaciones geométricas entre muros, pisos y puertas no dependen de la técnica constructiva utilizada y permanecen invariantes a través de la geografía, el método e incluso el tiempo. Nuestros hallazgos indican que introducir información contextual en forma de grafos de intersección entre los elementos del edificio ayuda a los modelos a generalizar. Al usar estas relaciones, los modelos GNN mejoraron la exactitud de la predicción en archivos BIM no vistos previamente, provenientes de diferentes despachos de arquitectura. Esto sugiere que las GNN basadas en grafos pueden ser más hábiles para generalizar y pueden requerir conjuntos de entrenamiento más pequeños que los modelos clásicos."
+          }
+        },
+        {
+          "id": "s6-p6",
+          "type": "heading",
+          "page": 18,
+          "text": {
+            "en": "6.2. Future Work",
+            "es": "6.2. Trabajo futuro"
+          }
+        },
+        {
+          "id": "s6-p7",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "The graphs used in this research are based on “intersection” relations between different elements. Intersections are the simplest types of topological relations between elements and were found to contain information relevant to the classification task. However, these relations are not the only ones that can be utilized to improve classification. For example, a “co-verticality” relation, indicating that two elements share x and y coordinates with different z values, could be a strong indicator of structural properties. A “containment” relation is likely the best indicator for elements such as windows, which are contained within walls, but less relevant for other elements. A more complex relation such as a “connected to” can provide significant information for classifying plumbing and electric building systems.",
+            "es": "Los grafos utilizados en esta investigación se basan en relaciones de “intersección” entre distintos elementos. Las intersecciones son los tipos más simples de relaciones topológicas entre elementos, y se encontró que contienen información relevante para la tarea de clasificación. Sin embargo, estas relaciones no son las únicas que pueden utilizarse para mejorar la clasificación. Por ejemplo, una relación de “co-verticalidad”, que indica que dos elementos comparten coordenadas x y y con distintos valores de z, podría ser un fuerte indicador de propiedades estructurales. Una relación de “contención” es probablemente el mejor indicador para elementos como las ventanas, que están contenidas dentro de los muros, pero es menos relevante para otros elementos. Una relación más compleja, como “conectado a”, puede aportar información significativa para clasificar los sistemas de plomería y eléctricos del edificio."
+          }
+        },
+        {
+          "id": "s6-p8",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Future work can build upon these relations to improve and expand classification processes. It would be interesting to test which relations would be the best indicators of which properties of the elements. Furthermore, combining more than one type of relation into a single graph can potentially introduce even more information into the data. Current GNN models do not perform well on graphs with multiple edge types that represent different relations. However, GNNs are a rapidly advancing field and such an improvement may be already under development.",
+            "es": "Trabajos futuros pueden basarse en estas relaciones para mejorar y ampliar los procesos de clasificación. Sería interesante probar qué relaciones serían los mejores indicadores de qué propiedades de los elementos. Además, combinar más de un tipo de relación en un solo grafo puede introducir potencialmente aún más información en los datos. Los modelos GNN actuales no tienen un buen desempeño en grafos con múltiples tipos de aristas (edge types) que representan diferentes relaciones. Sin embargo, las GNN son un campo que avanza rápidamente y es posible que tal mejora ya esté en desarrollo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "title": {
+        "en": "7. Conclusions",
+        "es": "7. Conclusiones"
+      },
+      "blocks": [
+        {
+          "id": "s7-p1",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "In this work, we presented a framework for processing BIM files into graph representation to leverage advanced ML algorithms applicable directly to graph data. We have demonstrated a workflow for extracting element features and intersection-based graphs of building elements from BIM models. The presented test case of BIM element classification is based on processing BIM files obtained from the industry. Over 42,000 elements, their features, and their relations were encoded and utilized as the basis for training several types of machine learning models to classify building elements.",
+            "es": "En este trabajo presentamos un marco para procesar archivos BIM y convertirlos en una representación de grafos, con el fin de aprovechar algoritmos avanzados de aprendizaje automático (machine learning, ML) aplicables directamente a datos de grafos. Hemos demostrado un flujo de trabajo para extraer características de los elementos y grafos basados en intersecciones de los elementos de construcción a partir de modelos BIM. El caso de prueba presentado, la clasificación de elementos BIM, se basa en el procesamiento de archivos BIM obtenidos de la industria. Más de 42,000 elementos, sus características y sus relaciones se codificaron y se utilizaron como base para entrenar varios tipos de modelos de aprendizaje automático para clasificar elementos de construcción."
+          }
+        },
+        {
+          "id": "s7-p2",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "A comparison between the performance of the different models on identical data shows that a GNN classification can improve the accuracy of the other tested models. The best-performing models used subgraph classification, where each element, its features, and the categories of its immediate neighbors were separated from the main graph and classified individually. These models achieved 89.9% accuracy in the classification task of elements from BIM files not used for training. This represents a significant improvement over classic ML models which reached a maximum accuracy of 86.7%.",
+            "es": "Una comparación entre el desempeño de los distintos modelos sobre datos idénticos muestra que una clasificación con GNN puede mejorar la exactitud de los demás modelos probados. Los modelos de mejor desempeño usaron clasificación de subgrafos (subgraph classification), en la que cada elemento, sus características y las categorías de sus vecinos inmediatos se separaron del grafo principal y se clasificaron individualmente. Estos modelos alcanzaron una exactitud de 89.9% en la tarea de clasificación de elementos de archivos BIM no utilizados para el entrenamiento. Esto representa una mejora significativa respecto de los modelos clásicos de ML, que alcanzaron una exactitud máxima de 86.7%."
+          }
+        },
+        {
+          "id": "s7-p3",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "We believe that the introduction of contextual information in the shape of graphs into BIM workflows can lead the way to advanced ML capabilities. Element classification and model enrichment illustrate how ML-powered BIM can accommodate automatic translation and data exchange between modeling software. In one possible application, users model a featureless box, and the authoring software automatically assigns its category and fills in design parameters (autocomplete). In another, the BIM software automatically checks every element added by the user for modeling errors (autocorrect). The local character and improved performance of subgraph classification models are well suited to the real-time integration of ML within BIM authoring software.",
+            "es": "Creemos que la introducción de información contextual en forma de grafos en los flujos de trabajo BIM puede abrir el camino a capacidades avanzadas de ML. La clasificación de elementos y el enriquecimiento de modelos ilustran cómo un BIM impulsado por ML puede facilitar la traducción automática y el intercambio de datos entre programas de modelado. En una posible aplicación, los usuarios modelan una caja sin ninguna característica, y el software de autoría le asigna automáticamente su categoría y completa los parámetros de diseño (autocompletado). En otra, el software BIM revisa automáticamente cada elemento agregado por el usuario en busca de errores de modelado (autocorrección). El carácter local y el mejor desempeño de los modelos de clasificación de subgrafos los hacen muy adecuados para la integración en tiempo real del ML dentro del software de autoría BIM."
+          }
+        }
+      ]
+    },
+    {
+      "id": "back",
+      "title": {
+        "en": "Declarations",
+        "es": "Declaraciones"
+      },
+      "blocks": [
+        {
+          "id": "s7-p4",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Author Contributions: Conceptualization, G.A. and T.B.; methodology, G.A. and T.B.; software, G.A. and Y.A.; formal analysis, G.A. and Y.A.; investigation, G.A., T.B. and Y.A.; resources, G.A, T.B. and Y.A.; data curation, Y.A.; writing—original draft preparation, G.A.; writing—review and editing, G.A. and T.B.; visualization, G.A., T.B. and Y.A.; supervision, G.A.; project administration, G.A.; funding acquisition, G.A. and T.B. All authors have read and agreed to the published version of the manuscript.",
+            "es": "Contribuciones de los autores: Conceptualización, G.A. y T.B.; metodología, G.A. y T.B.; software, G.A. y Y.A.; análisis formal, G.A. y Y.A.; investigación, G.A., T.B. y Y.A.; recursos, G.A, T.B. y Y.A.; curación de datos, Y.A.; redacción—preparación del borrador original, G.A.; redacción—revisión y edición, G.A. y T.B.; visualización, G.A., T.B. y Y.A.; supervisión, G.A.; administración del proyecto, G.A.; obtención de financiamiento, G.A. y T.B. Todos los autores han leído y aceptado la versión publicada del manuscrito."
+          }
+        },
+        {
+          "id": "s7-p5",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Funding: This research was funded by grant 880007 from the Israel Ministry of Construction and Housing.",
+            "es": "Financiamiento: Esta investigación fue financiada por la subvención 880007 del Ministerio de Construcción y Vivienda de Israel."
+          }
+        },
+        {
+          "id": "s7-p6",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Data Availability Statement: Restrictions apply to the availability of the data. Data were obtained from architectural offices and are available from the corresponding author with the permission of the architectural firms.",
+            "es": "Declaración de disponibilidad de datos: Se aplican restricciones a la disponibilidad de los datos. Los datos se obtuvieron de despachos de arquitectura y están disponibles a través del autor de correspondencia, con el permiso de las firmas de arquitectura."
+          }
+        },
+        {
+          "id": "s7-p7",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Acknowledgments: The authors would like to thank Yasha Jacob Grobman for his help in contacting the various architecture offices that contributed to the BIM models for the research. We would also like to thank the architects who agreed to contribute their data to this research. Finally, we would like to thank the research team that helped tag and prepare the data for learning: Abraham Shkolnik and Oz Kalo.",
+            "es": "Agradecimientos: Los autores desean agradecer a Yasha Jacob Grobman por su ayuda para contactar a los diversos despachos de arquitectura que aportaron los modelos BIM para la investigación. También quisieran agradecer a los arquitectos que aceptaron aportar sus datos a esta investigación. Finalmente, queremos agradecer al equipo de investigación que ayudó a etiquetar y preparar los datos para el aprendizaje: Abraham Shkolnik y Oz Kalo."
+          }
+        },
+        {
+          "id": "s7-p8",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "Conflicts of Interest: The authors declare no conflicts of interest. The funders had no role in the design of the study; in the collection, analyses, or interpretation of data; in the writing of the manuscript; or in the decision to publish the results.",
+            "es": "Conflictos de interés: Los autores declaran no tener conflictos de interés. Los financiadores no tuvieron ningún papel en el diseño del estudio; en la recolección, el análisis o la interpretación de los datos; en la redacción del manuscrito; ni en la decisión de publicar los resultados."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[1] Bloch, T. Connecting research on semantic enrichment of BIM-review of approaches, methods and possible applications. J. Inf. Technol. Constr. 2022, 27, 416–440. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[2] Autodesk. Autodesk Revit Software. Available online: https://www.autodesk.com/products/revit/overview (accessed on 29 October 2023)."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[3] Ma, L.; Sacks, R.; Kattel, U.; Bloch, T. 3D Object Classification Using Geometric Features and Pairwise Relationships. Comput. Aided Civ. Infrastruct. Eng. 2018, 33, 152–164. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[4] Bronstein, M.M.; Bruna, J.; LeCun, Y.; Szlam, A. Vandergheynst, Geometric deep learning: Going beyond Euclidean data. IEEE Signal Process. Mag. 2017, 34, 18–42. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[5] Sacks, R.; Eastman, C.; Lee, G.; Teicholz, P. BIM Handbook: A Guide to Building Information Modeling for Owners, Designers, Engineers, Contractors, and Facility Managers; John Wiley & Sons: Hoboken, NJ, USA, 2018."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[6] Azhar, S.; Khalfan, M.; Maqsood, T. Building Information Modeling (BIM): Now and beyond. Australas. J. Constr. Econ. Build. 2012, 12, 15–28."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[7] Ghaffarianhoseini, A.; Tookey, J.; Ghaffarianhoseini, A.; Naismith, N.; Azhar, S.; Efimova, O.; Raahemifar, K. Building Information Modelling (BIM) uptake: Clear benefits, understanding its implementation, risks and challenges. Renew. Sustain. Energy Rev. 2017, 75, 1046–1053. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[8] Booch, G. Object Oriented Design with Applications; Benjamin-Cummings Publishing Co., Inc.: San Francisco, CA, USA, 1990."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[9] Wu, J.; Zhang, J. New Automated BIM Object Classification Method to Support BIM Interoperability. J. Comput. Civ. Eng. 2019, 33, 04019033. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[10] Belsky, M.; Sacks, R.; Brilakis, I. Semantic Enrichment for Building Information Modeling. Comput. Aided Civ. Infrastruct. Eng. 2016, 31, 261–274. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[11] Sacks, R.; Ma, L.; Yosef, R.; Borrmann, A.; Daum, S.; Kattel, U. Semantic Enrichment for Building Information Modeling: Procedure for Compiling Inference Rules and Operators for Complex Geometry. J. Comput. Civ. Eng. 2017, 31, 04017062. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[12] Bloch, T.; Katz, M.; Yosef, R.; Sacks, R. Automated model checking for topologically complex code requirements—Security room case study. In Proceedings of the 2019 European Conference for Computing in Construction, University College Dublin, Chania, Greece, 10–12 July 2019. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[13] Pauwels, P.; Zhang, S.; Lee, Y.-C. Semantic web technologies in AEC industry: A literature overview. Autom. Constr. 2017, 73, 145–165. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[14] Koo, B.; La, S.; Cho, N.-W.; Yu, Y. Using support vector machines to classify building elements for checking the semantic integrity of building information models. Autom. Constr. 2019, 98, 183–194. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[15] Bloch, T.; Sacks, R. Clustering Information Types for Semantic Enrichment of Building Information Models to Support Automated Code Compliance Checking. J. Comput. Civ. Eng. 2020, 34, 04020040. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[16] Wang, Z.; Ying, H.; Sacks, R.; Borrmann, A. CBIM: A Graph-based Approach to Enhance Interoperability Using Semantic Enrichment. arXiv 2023, arXiv:2304.11672."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[17] Bloch, T.; Sacks, R. Comparing machine learning and rule-based inferencing for semantic enrichment of BIM models. Autom. Constr. 2018, 91, 256–272. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[18] Wang, Z.; Sacks, R.; Yeung, T. Exploring graph neural networks for semantic enrichment: Room type classification. Autom. Constr. 2022, 134, 104039. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[19] Kim, J.; Song, J.; Lee, J. Recognizing and Classifying Unknown Object in BIM Using 2D CNN. In Computer-Aided Architectural Design. “Hello, Culture”. CAAD Futures 2019; Lee, J., Ed.; Springer: Singapore, 2019; pp. 47–57. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[20] Koo, B.; Jung, R.; Yu, Y. Automatic classification of wall and door BIM element subtypes using 3D geometric deep neural networks. Adv. Eng. Inform. 2021, 47, 101200. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[21] Wu, J.; Akanbi, T.; Zhang, J. Constructing Invariant Signatures for AEC Objects to Support BIM-Based Analysis Automation through Object Classification. J. Comput. Civ. Eng. 2022, 36, 04022008. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[22] Bondy, J.A.; Murty, U.S.R. Graph Theory with Applications, 290; Macmillan: London, UK, 1976."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[23] Degenne, A.; Forsé, M. Introducing Social Networks; Sage: Thousand Oaks, CA, USA, 1999."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[24] Hillier, B.; Hanson, J. The Social Logic of Space; Cambridge University Press: Cambridge, UK, 1989."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[25] Martin, B.D.; Fernández, Á.L.G.; Higueruela, F.R.F. Semantic and topological representation of building indoors: An overview. In Proceedings of the Joint ISPRS Workshop on 3D City Modelling & Applications and the 6th 3D GeoInfo Conference, Wuhan, China, 26–28 June 2011."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[26] Langenhan, C.; Weber, M.; Liwicki, M.; Petzold, F.; Dengel, A. Graph-based retrieval of building information models for supporting the early design stages. Adv. Eng. Inform. 2013, 27, 413–426. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "[27] Strug, B. Automatic design quality evaluation using graph similarity measures. Autom. Constr. 2013, 32, 187–195. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[28] Isaac, S.; Sadeghpour, F.; Navon, R. Analyzing Building Information Using Graph Theory. In Proceedings of the 30th International Symposium on Automation and Robotics in Construction and Mining, Held in Conjunction with the 23rd World Mining Congress, Montreal, QC, Canada, 11–15 August 2013. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[29] Porter, S.; Tan, T.; Tan, T.; West, G. Breaking into BIM: Performing static and dynamic security analysis with the aid of BIM. Autom. Constr. 2014, 40, 84–95. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[30] Skandhakumar, N.; Salim, F.; Reid, J.; Drogemuller, R.; Dawson, E. Graph theory based representation of building information models for access control applications. Autom. Constr. 2016, 68, 44–51. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[31] Strug, B.; ´Slusarczyk, G. Reasoning about accessibility for disabled using building graph models based on BIM/IFC. Vis. Eng. 2017, 5, 10. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[32] Ismail, A.; Strug, B.; ´Slusarczyk, G. Building Knowledge Extraction from BIM/IFC Data for Analysis in Graph Databases. In Artificial Intelligence and Soft Computing; Lecture Notes in Computer Science; Rutkowski, L., Scherer, R., Korytkowski, M., Pedrycz, W., Tadeusiewicz, R., Zurada, J.M., Eds.; Springer International Publishing: Cham, Switzerland, 2018; pp. 652–664. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[33] Khalili, A.; Chua, D.K.H. IFC-Based Graph Data Model for Topological Queries on Building Elements. J. Comput. Civ. Eng. 2015, 29, 04014046. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[34] Tauscher, E.; Bargstädt, H.-J.; Smarsly, K. Generic BIM queries based on the IFC object model using graph theory. In Proceedings of the 16th International Conference on Computing in Civil and Building Engineering, Osaka, Japan, 6–8 July 2016."
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[35] Solihin, W.; Eastman, C. A Knowledge Representation Approach to Capturing BIM Based Rule Checking Requirements Using Conceptual Graph. Available online: https://www.semanticscholar.org/paper/A-Knowledge-Representation-Approach-to-Capturing-Solihin-Eastman/6eea60c1d1444974d50e9ed6bff4ea787227f507 (accessed on 21 January 2021)."
+          }
+        },
+        {
+          "id": "refs-36",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[36] Zhao, Q.; Li, Y.; Hei, X.; Yang, M.; A Graph-Based Method for IFC Data Merging. Advances in Civil Engineering. Available online: https://www.hindawi.com/journals/ace/2020/8782740/ (accessed on 21 January 2021)."
+          }
+        },
+        {
+          "id": "refs-37",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[37] Gan, V.J.L. BIM-based graph data model for automatic generative design of modular buildings. Autom. Constr. 2022, 134, 104062. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-38",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[38] Liu, H.; Cheng, J.C.P.; Gan, V.J.L.; Zhou, S. A novel Data-Driven framework based on BIM and knowledge graph for automatic model auditing and Quantity Take-off. Adv. Eng. Inform. 2022, 54, 101757. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-39",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[39] Dutton, D.M.; Conroy, G.V. A review of machine learning. Knowl. Eng. Rev. 1997, 12, 341–367. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-40",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[40] Simeone, O. A Very Brief Introduction to Machine Learning With Applications to Communication Systems. IEEE Trans. Cogn. Commun. Netw. 2018, 4, 648–664. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-41",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[41] Berkson, J. Application of the Logistic Function to Bio-Assay. J. Am. Stat. Assoc. 1944, 39, 357–365. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-42",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[42] Peng, C.-Y.J.; Lee, K.L.; Ingersoll, G.M. An Introduction to Logistic Regression Analysis and Reporting. J. Educ. Res. 2002, 96, 3–14. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-43",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[43] Chervonenkis, A.Y. Early History of Support Vector Machines. In Empirical Inference: Festschrift in Honor of Vladimir N. Vapnik; Schölkopf, B., Luo, Z., Vovk, V., Eds.; Springer: Berlin/Heidelberg, Germany, 2013; pp. 13–20. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-44",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[44] Quinlan, J.R. Induction of decision trees. Mach. Learn. 1986, 1, 81–106. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-45",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[45] Breiman, L. Random Forests. Mach. Learn. 2001, 45, 5–32. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-46",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[46] Ackley, D.H.; Hinton, G.E.; Sejnowski, T.J. A learning algorithm for boltzmann machines. Cogn. Sci. 1985, 9, 147–169. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-47",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[47] Gardner, M.W.; Dorling, S.R. Artificial neural networks (the multilayer perceptron)—A review of applications in the atmospheric sciences. Atmos. Environ. 1998, 32, 2627–2636. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-48",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[48] Hinton, G.E.; Osindero, S.; Teh, Y.-W. A Fast Learning Algorithm for Deep Belief Nets. Neural Comput. 2006, 18, 1527–1554. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-49",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[49] Krizhevsky, A.; Sutskever, I.; Hinton, G.E. ImageNet Classification with Deep Convolutional Neural Networks. In Advances in Neural Information Processing Systems 25; Pereira, F., Burges, C.J.C., Bottou, L., Weinberger, K.Q., Eds.; Curran Associates, Inc.: Red Hook, NY, USA, 2012; pp. 1097–1105. Available online: http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf (accessed on 20 November 2018)."
+          }
+        },
+        {
+          "id": "refs-50",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[50] Alom, M.Z.; Taha, T.M.; Yakopcic, C.; Westberg, S.; Sidike, P.; Nasrin, M.S.; Van Esesn, B.C.; Awwal, A.A.S.; Asari, V.K. The History Began from AlexNet: A Comprehensive Survey on Deep Learning Approaches. arXiv 2018, arXiv:1803.01164v2."
+          }
+        },
+        {
+          "id": "refs-51",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[51] Wu, Z.; Pan, S.; Chen, F.; Long, G.; Zhang, C.; Yu, P.S. A Comprehensive Survey on Graph Neural Networks. IEEE Trans. Neural Netw. Learn. Syst. 2021, 32, 4–24. [CrossRef] [PubMed]"
+          }
+        },
+        {
+          "id": "refs-52",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[52] Zhou, J.; Cui, G.; Hu, S.; Zhang, Z.; Yang, C.; Liu, Z.; Wang, L.; Li, C.; Sun, M. Graph neural networks: A review of methods and applications. AI Open 2020, 1, 57–81. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-53",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[53] Buruzs, A.; Šipeti´c, M.; Blank-Landeshammer, B.; Zucker, G. IFC BIM Model Enrichment with Space Function Information Using Graph Neural Networks. Energies 2022, 15, 8. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-54",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[54] Bloch, T.; Borrmann, A.; Pauwels, P. Graph-based learning for automated code checking—Exploring the application of graph neural networks for design review. Adv. Eng. Inform. 2023, 58, 102137. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-55",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[55] Yang, L.; Huang, W. Representation and assessment of spatial design using a hierarchical graph neural network: Classification of shopping center types. Autom. Constr. 2023, 147, 104727. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-56",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "[56] Ouyang, B.; Wang, Z.; Sacks, R. Semantic Enrichment of Object Associations Across Federated BIM Semantic Graphs in a Common Data Environment. In ECPPM 2022—eWork and eBusiness in Architecture, Engineering and Construction 2022; CRC Press: Boca Raton, FL, USA, 2022."
+          }
+        },
+        {
+          "id": "refs-57",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[57] Collins, F.; Ringsquandl, M.; Braun, A.; Hall, D.; Borrmann, A. Assessing IFC classes with means of geometric deep learning on different graph encodings. In Proceedings of the 2021 European Conference on Computing in Construction, Ixia, Greece, 25–27 July 2021."
+          }
+        },
+        {
+          "id": "refs-58",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[58] Kaczmarek, I.; Iwaniak, A.; ´Swietlicka, A. Classification of Spatial Objects with the Use of Graph Neural Networks. ISPRS Int. J. Geo-Inf. 2023, 12, 3. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-59",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[59] McNeel. Rhino.Inside®.Revit. Available online: https://www.rhino3d.com/inside/revit/1.0/ (accessed on 29 October 2023)."
+          }
+        },
+        {
+          "id": "refs-60",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[60] Davidson, S. Grasshopper. Available online: https://www.grasshopper3d.com/ (accessed on 29 October 2023)."
+          }
+        },
+        {
+          "id": "refs-61",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[61] Francis, N.; Green, A.; Guagliardo, P.; Libkin, L.; Lindaaker, T.; Marsault, V.; Plantikow, S.; Rydberg, M.; Selmer, P.; Taylor, A. Cypher: An Evolving Query Language for Property Graphs. In Proceedings of the SIGMOD ’18: 2018 International Conference on Management of Data, Houston, TX, USA, 10–15 June 2018; Association for Computing Machinery: New York, NY, USA, 2018; pp. 1433–1445. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-62",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[62] Vicknair, C.; Macias, M.; Zhao, Z.; Nan, X.; Chen, Y.; Wilkins, D. A comparison of a graph database and a relational database: A data provenance perspective. In Proceedings of the ACM SE ’10: 48th Annual Southeast Regional Conference, Oxford, MS, USA, 15–17 April 2010; Association for Computing Machinery: New York, NY, USA, 2010; pp. 1–6. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-63",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[63] NetworkX. NetworkX—NetworkX Documentation. Available online: https://networkx.org/ (accessed on 29 October 2023)."
+          }
+        },
+        {
+          "id": "refs-64",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[64] pandas. pandas Documentation—pandas 2.1.2 Documentation. Available online: https://pandas.pydata.org/docs/index.html (accessed on 29 October 2023)."
+          }
+        },
+        {
+          "id": "refs-65",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[65] Dahouda, M.K.; Joe, I. A Deep-Learned Embedding Technique for Categorical Features Encoding. IEEE Access 2021, 9, 114381–114391. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-66",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[66] Seger, C. An Investigation of Categorical Variable Encoding Techniques in Machine Learning: Binary versus One-Hot and Feature Hashing. 2018. Available online: https://urn.kb.se/resolve?urn=urn:nbn:se:kth:diva-237426 (accessed on 8 January 2024)."
+          }
+        },
+        {
+          "id": "refs-67",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[67] Li, J.; Si, Y.; Xu, T.; Jiang, S. Deep convolutional neural network based ECG classification system using information fusion and one-hot encoding techniques. Math. Probl. Eng. 2018, 2018, 1–10. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-68",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[68] Shen, W.; Zhang, C.; Tian, Y.; Zeng, L.; He, X.; Dou, W.; Xu, X. Inductive Matrix Completion Using Graph Autoencoder. In Proceedings of the CIKM ’21: 30th ACM International Conference on Information & Knowledge Management, Virtual, 1–5 November 2021; Association for Computing Machinery: New York, NY, USA, 2021; pp. 1609–1618. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-69",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[69] scikit-learn. scikit-learn: Machine Learning in Python—scikit-learn 1.3.2 Documentation. Available online: https://scikit-learn. org/stable/ (accessed on 29 October 2023)."
+          }
+        },
+        {
+          "id": "refs-70",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[70] PyTorch. Available online: https://www.pytorch.org (accessed on 29 October 2023)."
+          }
+        },
+        {
+          "id": "refs-71",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[71] PyG. PyG Documentation—pytorch_geometric Documentation. Available online: https://pytorch-geometric.readthedocs.io/en/ latest/# (accessed on 29 October 2023)."
+          }
+        },
+        {
+          "id": "refs-72",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[72] Kipf, T.N.; Welling, M. Semi-Supervised Classification with Graph Convolutional Networks. arXiv 2016, arXiv:1609.02907v4."
+          }
+        },
+        {
+          "id": "refs-73",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[73] Morris, C.; Ritzert, M.; Fey, M.; Hamilton, W.L.; Lenssen, J.E.; Rattan, G.; Grohe, M. Weisfeiler and Leman Go Neural: Higher-order Graph Neural Networks. arXiv 2019, arXiv:1810.02244v5. [CrossRef]"
+          }
+        },
+        {
+          "id": "refs-74",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[74] Hamilton, W.L.; Ying, R.; Leskovec, J. Inductive Representation Learning on Large Graphs. arXiv 2017, arXiv:1706.02216v4."
+          }
+        },
+        {
+          "id": "refs-75",
+          "type": "paragraph",
+          "page": 22,
+          "text": {
+            "en": "[75] Shi, Y.; Huang, Z.; Feng, S.; Zhong, H.; Wang, W.; Sun, Y. Masked Label Prediction: Unified Message Passing Model for Semi-Supervised Classification. arXiv 2020, arXiv:2009.03509v5."
+          }
+        }
+      ]
+    }
+  ]
+}

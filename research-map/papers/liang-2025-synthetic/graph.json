@@ -1,0 +1,620 @@
+{
+  "version": 1,
+  "node": "liang-2025-synthetic",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "2D-to-BIM methods cannot be evaluated objectively because there are no public datasets that pair 2D drawings with reliable reference (RF) BIMs. Existing BIMs are rarely shared because of confidentiality and intellectual property, so studies rely on small case studies.",
+      "es": "Los métodos 2D-a-BIM no se pueden evaluar de forma objetiva porque no hay conjuntos de datos públicos que emparejen dibujos 2D con modelos BIM de referencia (RF) confiables. Los BIM casi no se comparten por confidencialidad y propiedad intelectual, así que los estudios usan pocos casos propios.",
+      "blocks": [
+        "s1-p5",
+        "s1-p6",
+        "s2-p16"
+      ],
+      "key": "paired-2d-bim-gap",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "method",
+      "en": "The framework has four modular steps: data preparation, data extraction, BIM generation and annotation. It produces BIMs paired with annotated 2D drawings fully automatically.",
+      "es": "El marco tiene cuatro pasos modulares: preparación de datos, extracción de datos, generación del BIM y anotación. Produce BIM emparejados con dibujos 2D anotados de forma totalmente automática.",
+      "blocks": [
+        "s3-p1",
+        "s3-p3",
+        "fig-1"
+      ],
+      "key": "resbim-framework",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "A four-channel intermediate image encodes geometry, spatial semantics, height and material for each floor plan. Channels 1 and 2 are extracted from the generated plan; channels 3 and 4 hold predefined height and material values.",
+      "es": "Una imagen intermedia de cuatro canales codifica geometría, semántica espacial, altura y material de cada planta. Los canales 1 y 2 se extraen de la planta generada; los canales 3 y 4 llevan valores predefinidos de altura y material.",
+      "blocks": [
+        "s3-p2",
+        "s3-p3"
+      ],
+      "key": "four-channel-intermediate",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "dataset",
+      "en": "RPLAN is the training data: over 80,000 residential floor plans as 256 × 256 RGBA PNGs covering 18 m × 18 m. Each plan has a living room, 60–120 m² of area and three to nine rooms.",
+      "es": "RPLAN son los datos de entrenamiento: más de 80,000 plantas residenciales en PNG RGBA de 256 × 256 que cubren 18 m × 18 m. Cada planta tiene una sala, entre 60 y 120 m² de área y de tres a nueve cuartos.",
+      "blocks": [
+        "s3-p8",
+        "s3-p9",
+        "s3-p9-2",
+        "s3-p9-3",
+        "s3-p9-4",
+        "s3-p9-6"
+      ],
+      "key": "rplan",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "A modified ResNet-34 predicts room centroids and labels one room at a time, starting with the living room. After each prediction the layout is updated and fed back until a stop criterion is reached.",
+      "es": "Una ResNet-34 modificada predice los centroides y las etiquetas de los cuartos uno por uno, empezando por la sala. Tras cada predicción se actualiza la planta y se vuelve a alimentar hasta llegar a un criterio de paro.",
+      "blocks": [
+        "s3-p12",
+        "s3-p19",
+        "s3-p20"
+      ],
+      "key": "iterative-room-prediction",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "A U-Net encoder–decoder predicts pixel-level walls from an image holding the boundary and all room centroids. The centroids act as anchors that tell the network how to partition space.",
+      "es": "Un codificador-decodificador U-Net predice paredes a nivel de píxel a partir de una imagen con el contorno y todos los centroides de cuartos. Los centroides sirven de anclas para que la red divida el espacio.",
+      "blocks": [
+        "s3-p21",
+        "s4-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "Boundaries are produced by a Python and OpenCV program that draws polygons on a 256 × 256 canvas within the RPLAN pixel-area range. They may be non-Manhattan, and they are the only input the networks receive.",
+      "es": "Los contornos los produce un programa en Python y OpenCV que dibuja polígonos en un lienzo de 256 × 256 dentro del rango de área en píxeles de RPLAN. Pueden no ser ortogonales y son lo único que reciben las redes como entrada.",
+      "blocks": [
+        "s4-p8",
+        "s4-p9",
+        "s4-p10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Image processing sorts each pixel value of the CNN output into geometry or spatial semantics using a mask. The results go into channels 1 and 2 of the intermediate image.",
+      "es": "El procesamiento de imagen clasifica cada valor de píxel de la salida de la CNN como geometría o semántica espacial mediante una máscara. Los resultados pasan a los canales 1 y 2 de la imagen intermedia.",
+      "blocks": [
+        "s3-p23",
+        "s3-p25",
+        "s3-eq3",
+        "s3-p32",
+        "s4-p14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "Height and material are added from a custom component library under heuristic rules. Level 0 is at zero height, elements of one category share attributes, and walls get a random height between 2.8 and 3 m.",
+      "es": "La altura y el material se añaden desde una biblioteca de componentes propia con reglas heurísticas. El Nivel 0 está a altura cero, los elementos de una categoría comparten atributos y los muros reciben una altura aleatoria entre 2.8 y 3 m.",
+      "blocks": [
+        "s3-p37",
+        "s3-p38",
+        "s3-p40",
+        "s3-p40-2",
+        "s3-p40-3",
+        "s3-eq5",
+        "s3-p46",
+        "s3-eq6"
+      ],
+      "key": "semantic-completion",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Pixel coordinates become Revit positions at 70 mm per pixel. A dictionary D maps pixel values to element types, and a 3 × 3 neighborhood decides if an element is a point, line, open curve or closed curve, each created with a matching Revit API class.",
+      "es": "Las coordenadas de píxel se vuelven posiciones de Revit a 70 mm por píxel. Un diccionario D asigna tipos de elemento a los valores de píxel, y una vecindad de 3 × 3 decide si un elemento es punto, línea, curva abierta o curva cerrada, cada uno creado con su clase de la API de Revit.",
+      "blocks": [
+        "s3-p63",
+        "s3-p64",
+        "s3-p66",
+        "s3-p68",
+        "s3-p70",
+        "alg-1"
+      ],
+      "key": "pixel-to-revit-mapping",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "The rule-based algorithms and Revit API calls are written in C# and compiled into a DLL that runs inside Revit 2024. This lets the whole BIM generation run without manual intervention.",
+      "es": "Los algoritmos basados en reglas y las llamadas a la API de Revit se escriben en C# y se compilan en una DLL que corre dentro de Revit 2024. Así toda la generación del BIM se ejecuta sin intervención manual.",
+      "blocks": [
+        "s3-p36",
+        "s4-p16"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "An open-source annotation toolbox uses the Revit API filter and query module to read orientation and dimensions of elements. It creates grids and dimensions in floor plans and elevations.",
+      "es": "Una caja de herramientas de anotación de código abierto usa el módulo de filtros y consultas de la API de Revit para leer la orientación y las dimensiones de los elementos. Crea ejes y cotas en plantas y alzados.",
+      "blocks": [
+        "s3-p74",
+        "s3-p75",
+        "alg-2",
+        "s4-p20",
+        "s4-p21"
+      ],
+      "key": "annotation-toolbox",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "concept",
+      "en": "Each step of the framework can be swapped. Parameters can go to IFC entities through IfcOpenShell or to platform APIs such as Revit or ArchiCAD, and the paper demonstrates only the ResNet-34/U-Net plus Revit combination.",
+      "es": "Cada paso del marco se puede intercambiar. Los parámetros pueden ir a entidades IFC con IfcOpenShell o a APIs de plataforma como Revit o ArchiCAD, y el artículo solo demuestra la combinación ResNet-34/U-Net con Revit.",
+      "blocks": [
+        "s3-p35",
+        "s3-p80",
+        "s3-p81",
+        "s3-p82"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "concept",
+      "en": "The paper chooses a CNN pipeline because GAN-based generators often produce irregular geometry, gaps or mode collapse. CNN cascades give high geometric precision and boundary stability.",
+      "es": "El artículo elige una canalización de CNN porque los generadores basados en GAN suelen producir geometría irregular, huecos o colapso de modos. Las cascadas de CNN dan alta precisión geométrica y estabilidad de contorno.",
+      "blocks": [
+        "s2-p20",
+        "s2-p21",
+        "s3-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "RPLAN was split 70:15:15 into training, validation and test sets. The ResNet-34 was trained for 300 epochs and the U-Net for 100, both with batch size 16 and learning rate 0.0001, on an RTX 3090. Training and testing both networks took about three days.",
+      "es": "RPLAN se dividió 70:15:15 en entrenamiento, validación y prueba. La ResNet-34 se entrenó 300 épocas y la U-Net 100, ambas con tamaño de lote 16 y tasa de aprendizaje 0.0001, en una RTX 3090. Entrenar y probar las dos redes tomó unos tres días.",
+      "blocks": [
+        "s4-p3",
+        "s4-p4",
+        "s4-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "The modified ResNet-34 reaches an MAE of approximately 5.2 pixels on the test set for room centroids, with a room type classification accuracy of 99 %.",
+      "es": "La ResNet-34 modificada alcanza un MAE de aproximadamente 5.2 píxeles en el conjunto de prueba para los centroides de cuartos, con una exactitud de clasificación del tipo de cuarto de 99 %.",
+      "blocks": [
+        "s5-p3",
+        "fig-17"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "The encoder–decoder reaches 99 % spatial classification accuracy around wall regions and an average Dice score of approximately 0.52. Walls are only about 5 % of the image, so the paper uses Dice instead of IoU.",
+      "es": "El codificador-decodificador alcanza 99 % de exactitud de clasificación espacial alrededor de las paredes y un puntaje Dice promedio de aproximadamente 0.52. Las paredes son solo cerca de 5 % de la imagen, por lo que el artículo usa Dice en lugar de IoU.",
+      "blocks": [
+        "s5-p4",
+        "fig-18"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "Two hyperparameters control the output. Mask size M between 7 and 10 gives optimal convergence with clear layouts, and room number R sets the room count only below the network's threshold (the training maximum is 9 rooms).",
+      "es": "Dos hiperparámetros controlan la salida. Un tamaño de máscara M entre 7 y 10 da una convergencia óptima con trazados claros, y el número de cuartos R fija la cantidad de cuartos solo por debajo del umbral de la red (el máximo del entrenamiento es de 9 cuartos).",
+      "blocks": [
+        "s5-p6",
+        "s5-p7",
+        "s5-p19a",
+        "s5-p20a"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "Each converted BIM is checked with Revit's built-in validation for wall continuity, opening–host relationships and spatial collisions. A model that fails triggers a warning window in Revit.",
+      "es": "Cada BIM convertido se revisa con la validación integrada de Revit en cuanto a continuidad de muros, relación entre abertura y muro anfitrión y colisiones espaciales. Un modelo que falla activa una ventana de advertencia en Revit.",
+      "blocks": [
+        "s5-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "From 1100 synthetic floor plans, 1027 converted to BIMs without any warning windows, an overall conversion accuracy of 93.4 %. The process took around four hours, at approximately six models per minute.",
+      "es": "De 1100 plantas sintéticas, 1027 se convirtieron en BIM sin ninguna ventana de advertencia, una exactitud de conversión global de 93.4 %. El proceso tomó alrededor de cuatro horas, a aproximadamente seis modelos por minuto.",
+      "blocks": [
+        "s5-p13"
+      ],
+      "key": "conversion-success-rate",
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "The 73 failed conversions came mainly from dimensional errors, excessive pixel density and insufficient pixel coverage. For example, a wall under 10 pixels (less than 700 mm) cannot host a door, and a mask size that is too small or too large leaves broken or redundant walls.",
+      "es": "Las 73 conversiones fallidas se debieron sobre todo a errores dimensionales, densidad de píxeles excesiva y cobertura de píxeles insuficiente. Por ejemplo, un muro de menos de 10 píxeles (menos de 700 mm) no puede alojar una puerta, y un tamaño de máscara demasiado pequeño o grande deja muros rotos o redundantes.",
+      "blocks": [
+        "s5-p13",
+        "s5-p14",
+        "s5-p15",
+        "fig-21"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "Tuning the hyperparameters gives different layouts from the same boundary, and a two-story residential unit was built with the second level at 3000 mm using the Revit API.",
+      "es": "Ajustar los hiperparámetros produce distintos trazados con el mismo contorno, y se construyó una vivienda de dos niveles con el segundo nivel a 3000 mm usando la API de Revit.",
+      "blocks": [
+        "s4-p17",
+        "s4-p18",
+        "fig-13",
+        "fig-14",
+        "s5-p10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "dataset",
+      "en": "ResBIM is a synthetic dataset of 1027 paired samples. Each pairs a fully parametric 3D BIM in RVT format with its annotated 2D floor plan, and it is published on GitHub.",
+      "es": "ResBIM es un conjunto de datos sintético de 1027 muestras emparejadas. Cada una une un BIM 3D totalmente paramétrico en formato RVT con su planta 2D anotada, y está publicado en GitHub.",
+      "blocks": [
+        "s5-p17",
+        "s0-p7",
+        "s6-p9"
+      ],
+      "key": "resbim",
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "ResBIM is meant for benchmarking 2D-to-BIM at both stages, using detection rate, pixel accuracy, point cloud IoU and IFC component matching. Its BIMs can be exported to IFC, PLY or OBJ and yield elevations and sections.",
+      "es": "ResBIM está pensado para evaluar 2D-a-BIM en ambas etapas, con tasa de detección, exactitud de píxel, IoU de nube de puntos y comparación de componentes IFC. Sus BIM se pueden exportar a IFC, PLY u OBJ y producen alzados y secciones.",
+      "blocks": [
+        "s5-p17",
+        "s5-p18",
+        "s5-p18-2",
+        "s5-p18-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "claim",
+      "en": "Real floor plan datasets lack 3D models or exact dimensions, and existing BIM datasets come from scans and lack paired 2D drawings. ResBIM pairs drawings with RF BIMs and elevations, and it scales with minimal manual effort.",
+      "es": "Los conjuntos de plantas reales carecen de modelos 3D o de dimensiones exactas, y los conjuntos con BIM existentes vienen de escaneos y no tienen dibujos 2D emparejados. ResBIM une dibujos con BIM de referencia y alzados, y escala con poco esfuerzo manual.",
+      "blocks": [
+        "s5-p21",
+        "s5-p22",
+        "s5-p23",
+        "s5-p24",
+        "s5-p30",
+        "s5-p31"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "claim",
+      "en": "The paper presents ResBIM as a supplement to real data, not a replacement. It aims to expand early-stage data, give a controlled baseline for comparing methods, and promote standardized benchmarking.",
+      "es": "El artículo presenta ResBIM como complemento de los datos reales, no como reemplazo. Busca ampliar los datos en etapas tempranas, dar una línea base controlada para comparar métodos y promover pruebas de referencia estandarizadas.",
+      "blocks": [
+        "s5-p33",
+        "s6-p2-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "The dataset covers mostly residential layouts with straight walls. Staircases, MEP systems and façades are absent, and synthetic data cannot capture the drafting irregularities or noise of real drawings, which may hurt generalization.",
+      "es": "El conjunto cubre sobre todo distribuciones residenciales con muros rectos. Faltan escaleras, sistemas MEP y fachadas, y los datos sintéticos no capturan las irregularidades ni el ruido de los dibujos reales, lo que puede afectar la generalización.",
+      "blocks": [
+        "s5-p33",
+        "s6-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "The generated plans inherit RPLAN's conventions, such as a living room in every plan. Height and material come from predefined values, and in the demonstration channels 3 and 4 were completed manually.",
+      "es": "Las plantas generadas heredan las convenciones de RPLAN, como una sala en cada planta. La altura y el material vienen de valores predefinidos, y en la demostración los canales 3 y 4 se completaron manualmente.",
+      "blocks": [
+        "s3-p5",
+        "s3-p37",
+        "s4-p14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "future",
+      "en": "Future work should expand building typologies, add complex architectural elements and use generative models that balance diversity with geometric stability. It should also build large annotated datasets, synthetic and real, and standard evaluation protocols.",
+      "es": "El trabajo futuro debe ampliar las tipologías de edificio, añadir elementos arquitectónicos complejos y usar modelos generativos que equilibren diversidad y estabilidad geométrica. También debe construir grandes conjuntos anotados, sintéticos y reales, y protocolos de evaluación estándar.",
+      "blocks": [
+        "s6-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "concept",
+      "en": "BIM generation from extracted parameters follows three approaches: IFC-based methods (interoperable but need expertise), parametric tools like Dynamo (extensible but hard to scale), and BIM software APIs (fine-grained but software-dependent). The paper picks the Revit API.",
+      "es": "La generación de BIM a partir de parámetros extraídos sigue tres enfoques: métodos basados en IFC (interoperables pero requieren experiencia), herramientas paramétricas como Dynamo (extensibles pero difíciles de escalar) y APIs de software BIM (de control fino pero dependientes del software). El artículo elige la API de Revit.",
+      "blocks": [
+        "s2-p9",
+        "s3-p4"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "The framework is proposed to fill the missing paired 2D-BIM data."
+    },
+    {
+      "from": "i3",
+      "to": "i2",
+      "type": "part-of",
+      "why": "The intermediate image carries data between the framework's steps."
+    },
+    {
+      "from": "i5",
+      "to": "i2",
+      "type": "part-of",
+      "why": "Room prediction is the first half of data preparation."
+    },
+    {
+      "from": "i6",
+      "to": "i2",
+      "type": "part-of",
+      "why": "Wall prediction is the second half of data preparation."
+    },
+    {
+      "from": "i5",
+      "to": "i4",
+      "type": "uses",
+      "why": "The ResNet-34 is trained on RPLAN floor plans."
+    },
+    {
+      "from": "i6",
+      "to": "i4",
+      "type": "uses",
+      "why": "The U-Net is trained on RPLAN walls."
+    },
+    {
+      "from": "i6",
+      "to": "i5",
+      "type": "uses",
+      "why": "Wall prediction takes the room centroids predicted by the ResNet-34 as input."
+    },
+    {
+      "from": "i5",
+      "to": "i7",
+      "type": "uses",
+      "why": "The networks start from a generated polygonal boundary."
+    },
+    {
+      "from": "i8",
+      "to": "i3",
+      "type": "part-of",
+      "why": "Extraction fills channels 1 and 2."
+    },
+    {
+      "from": "i9",
+      "to": "i3",
+      "type": "part-of",
+      "why": "Semantic completion fills channels 3 and 4."
+    },
+    {
+      "from": "i10",
+      "to": "i3",
+      "type": "uses",
+      "why": "Algorithm 1 reads the four channels and the dictionary D."
+    },
+    {
+      "from": "i11",
+      "to": "i10",
+      "type": "supports",
+      "why": "The DLL inside Revit runs the mapping automatically."
+    },
+    {
+      "from": "i12",
+      "to": "i23",
+      "type": "supports",
+      "why": "The toolbox produces the annotated 2D plans paired with each BIM."
+    },
+    {
+      "from": "i13",
+      "to": "i30",
+      "type": "example-of",
+      "why": "Swapping the BIM target is a choice among the three generation approaches."
+    },
+    {
+      "from": "i14",
+      "to": "i5",
+      "type": "supports",
+      "why": "The CNN choice is justified by boundary stability."
+    },
+    {
+      "from": "i15",
+      "to": "i5",
+      "type": "uses",
+      "why": "These are the training settings of the ResNet-34."
+    },
+    {
+      "from": "i16",
+      "to": "i5",
+      "type": "measures",
+      "why": "MAE and classification accuracy evaluate centroid prediction."
+    },
+    {
+      "from": "i17",
+      "to": "i6",
+      "type": "measures",
+      "why": "Dice and accuracy evaluate wall segmentation."
+    },
+    {
+      "from": "i18",
+      "to": "i5",
+      "type": "measures",
+      "why": "M and R control how the networks generate layouts."
+    },
+    {
+      "from": "i19",
+      "to": "i20",
+      "type": "supports",
+      "why": "Success is defined as passing Revit's checks without warnings."
+    },
+    {
+      "from": "i20",
+      "to": "i10",
+      "type": "measures",
+      "why": "The success rate evaluates the pixel-to-Revit conversion."
+    },
+    {
+      "from": "i21",
+      "to": "i20",
+      "type": "supports",
+      "why": "The failures explain the missing 6.6 % of conversions."
+    },
+    {
+      "from": "i21",
+      "to": "i18",
+      "type": "supports",
+      "why": "Too small or too large mask sizes cause broken or redundant walls."
+    },
+    {
+      "from": "i22",
+      "to": "i18",
+      "type": "example-of",
+      "why": "Different M and R values give different layouts on one boundary."
+    },
+    {
+      "from": "i23",
+      "to": "i20",
+      "type": "uses",
+      "why": "The 1027 successful conversions form the dataset."
+    },
+    {
+      "from": "i24",
+      "to": "i23",
+      "type": "supports",
+      "why": "The listed uses motivate the dataset."
+    },
+    {
+      "from": "i25",
+      "to": "i1",
+      "type": "supports",
+      "why": "The comparison shows that no existing dataset fills the gap."
+    },
+    {
+      "from": "i26",
+      "to": "i27",
+      "type": "supports",
+      "why": "The limitations are why ResBIM is positioned as a supplement."
+    },
+    {
+      "from": "i28",
+      "to": "i4",
+      "type": "contradicts",
+      "why": "Dependence on RPLAN conventions narrows the variety the framework can reach."
+    },
+    {
+      "from": "i29",
+      "to": "i27",
+      "type": "supports",
+      "why": "The future work answers the stated limitations."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i20",
+      "to": "question",
+      "why": "Generating 1027 of 1100 BIMs without any Revit warning shows that new models can be produced automatically and checked for validity, though the learning happens on 2D rasters."
+    },
+    {
+      "idea": "i10",
+      "to": "hypothesis",
+      "why": "The paper never decomposes a BIM into elements and relations to learn from it; the CNN learns 2D layouts and a hand-made dictionary turns pixels into elements, so it is a gap relative to the hypothesis."
+    },
+    {
+      "idea": "i5",
+      "to": "assemble-node-by-node",
+      "why": "Predicting one room at a time and feeding the updated layout back is a way to assemble a model step by step."
+    },
+    {
+      "idea": "i9",
+      "to": "explicit-vs-learned",
+      "why": "Layout is learned by CNNs while height, material and element types come from explicit rules and a dictionary, which shows how the paper splits the two."
+    },
+    {
+      "idea": "i23",
+      "to": "real-or-synthetic-data",
+      "why": "Here the dataset size comes from a synthetic route: 1027 Revit BIMs built from generated plans without cleaning any real model."
+    },
+    {
+      "idea": "i27",
+      "to": "clean-real-models",
+      "why": "Synthetic data skip cleaning, but the paper admits they miss the noise and irregularities of real models, which limits generalization."
+    },
+    {
+      "idea": "i24",
+      "to": "dataset-purposes",
+      "why": "The paper aims the dataset at benchmarking 2D-to-BIM, training vision models and obtaining 2D drawings, one concrete answer to what a generated dataset is for."
+    },
+    {
+      "idea": "i19",
+      "to": "correct-by-construction",
+      "why": "Validity is secured by building every element through API rules and then checking walls, hosts and collisions in Revit."
+    },
+    {
+      "idea": "i13",
+      "to": "ifc",
+      "why": "The framework can emit IFC entities through IfcOpenShell, and RVT models in the dataset can be exported to IFC."
+    }
+  ]
+}

@@ -48,6 +48,12 @@ the paper and what it links to.
   default, Haiku to compare.
 - **Save this** on any message proposes a note entry (in English, your words quoted as written, yours and Claude's
   marked); edit it and *Approve* to append it to the paper's note.
+- **Add to the map** on any message proposes a change to `map.json` itself: a new idea or conclusion (title, id, group and its
+  note, which becomes `notes/<id>.md`) and the links that join it to papers, ideas, groups or the centre — or only links
+  between nodes the map already has. Every field is editable and each link can be unticked; *Approve* writes it, dated today,
+  but only if the whole map would still be valid (otherwise nothing is written and the problems are listed). The page shows
+  it after a reload. The line endings of `map.json` are kept, so the diff is only the addition. The server never commits:
+  the addition is yours to review and commit.
 
 Underlining, the chat and quizzes need `npm run dev` (the map's own server); opened any other way the reader shows text,
 figures and voice only.
@@ -56,6 +62,13 @@ Preparing a paper (Claude does it, once per paper): `npm run paper:prepare -- <i
 `papers/<id>/overrides.json` fixes crops and stray lines), `npm run paper:translate -- <id>` (Spanish, numbers checked),
 `npm run paper:graph -- <id>` (the idea graph, Sonnet 5.5 at xhigh). Set `PAPER_EFFORT` (e.g. `high`) to run the last two
 at another effort.
+
+Finding papers: the Papers menu searches by word (titles, citations and the text in both languages, not the references),
+filters by keywords and by read or unread. Those three commands keep `papers/index.json` and `papers/words.json` up to
+date, so a new paper gets all of this by itself. Its keywords come from the vocabulary in `papers/keywords.json`: a keyword
+applies when one of its terms is in the title or the text uses its terms at least `min` times. After changing the vocabulary
+or repairing a `paper.json` by hand, run `npm run paper:index`, which also lists how many papers each keyword has. What has
+been read is in `reading/_library.json`; without the local server the marks are hidden.
 
 ## The rule
 

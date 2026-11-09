@@ -1,0 +1,712 @@
+{
+  "version": 1,
+  "node": "kalogerakis-2012",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "How can new, plausible shapes from a complex domain be synthesized by finding new combinations of components taken from existing shapes?",
+      "es": "¿Cómo se pueden sintetizar formas nuevas y plausibles de un dominio complejo encontrando nuevas combinaciones de componentes tomados de formas existentes?",
+      "blocks": [
+        "s0-p1",
+        "s1-p1",
+        "s1-p3"
+      ],
+      "key": "component-based-synthesis",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "claim",
+      "en": "The main contribution is a generative probabilistic model of component-based shape structure. It represents relationships between component properties and ties them to learned latent causes of structural variability, and it can be learned without supervision from compatibly segmented shapes.",
+      "es": "La contribución principal es un modelo probabilístico generativo de la estructura de formas basada en componentes. Representa las relaciones entre propiedades de los componentes y las vincula con causas latentes de variabilidad estructural aprendidas, y se puede aprender sin supervisión a partir de formas segmentadas de manera compatible.",
+      "blocks": [
+        "s0-p1",
+        "s1-p3"
+      ],
+      "key": "kalogerakis-shape-model",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "The paper's key observation is that structural variability in these domains is often characterized by multiple underlying types of shapes and of their components. For example, the components of a chair differ markedly between office, dining and cantilever chairs.",
+      "es": "La observación clave del artículo es que la variabilidad estructural en estos dominios suele estar caracterizada por varios tipos subyacentes de formas y de sus componentes. Por ejemplo, los componentes de una silla difieren notablemente entre sillas de oficina, de comedor y en voladizo.",
+      "blocks": [
+        "s3-p1",
+        "s1-p2"
+      ],
+      "key": "structural-variability-types",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "The model has a latent variable R at the root, interpreted as the overall type of the shape, and a latent variable Sl for each component category l, representing the styles of its components. They produce a hierarchical clustering effect and are learned from data, not observed.",
+      "es": "El modelo tiene una variable latente R en la raíz, interpretada como el tipo general de la forma, y una variable latente Sl por cada categoría de componente l, que representa los estilos de sus componentes. Producen un efecto de agrupamiento jerárquico y se aprenden de los datos, no se observan.",
+      "blocks": [
+        "s3-p3",
+        "s3-p5",
+        "fig-2"
+      ],
+      "key": "latent-style-variables",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "concept",
+      "en": "The observed variables are Nl (number of components of category l), Cl (continuous geometric features) and Dl (discrete features encoding how many components of each other category are adjacent). The discrete adjacency features help ensure the selected components can be assembled coherently.",
+      "es": "Las variables observadas son Nl (número de componentes de la categoría l), Cl (rasgos geométricos continuos) y Dl (rasgos discretos que codifican cuántos componentes de cada otra categoría son adyacentes). Los rasgos discretos de adyacencia ayudan a que los componentes elegidos se puedan ensamblar de forma coherente.",
+      "blocks": [
+        "s3-p4"
+      ],
+      "key": "observed-component-attributes",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "concept",
+      "en": "Lateral conditional dependencies connect observed variables of different component categories and capture strong relationships between them. In the table example, the horizontal extent of the leg base correlates positively with that of the tabletop, which prevents narrow bases under wide tabletops.",
+      "es": "Las dependencias condicionales laterales conectan variables observadas de distintas categorías de componentes y capturan relaciones fuertes entre ellas. En el ejemplo de las mesas, la extensión horizontal de la base de la pata se correlaciona positivamente con la del tablero, lo que evita bases angostas bajo tableros anchos.",
+      "blocks": [
+        "s3-p5",
+        "s3-p7"
+      ],
+      "key": "lateral-edges",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "result",
+      "en": "In a small illustrative dataset of tables with two component categories (legs and tabletops), the model learned two dominant table styles (one-legged and four-legged), two tabletop styles and two leg styles, and which styles tend to go together.",
+      "es": "En un pequeño conjunto ilustrativo de mesas con dos categorías de componentes (patas y tableros), el modelo aprendió dos estilos dominantes de mesa (de una pata y de cuatro patas), dos estilos de tablero y dos estilos de pata, y cuáles tienden a asociarse.",
+      "blocks": [
+        "s3-p6",
+        "s3-p7",
+        "fig-3"
+      ],
+      "key": "table-example",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "The model is trained on compatibly segmented shapes: the set of components may differ between examples (some airplanes have landing gear, some do not), but compatible components must be labeled as the same category. The authors used the technique of Kalogerakis et al. [2010] assisted by manual segmentation and labeling.",
+      "es": "El modelo se entrena con formas segmentadas de manera compatible: el conjunto de componentes puede variar entre ejemplos (algunos aviones tienen tren de aterrizaje y otros no), pero los componentes compatibles deben etiquetarse como la misma categoría. Los autores usaron la técnica de Kalogerakis et al. [2010] con apoyo de segmentación y etiquetado manuales.",
+      "blocks": [
+        "s3-p2",
+        "s7-p1"
+      ],
+      "key": "compatible-segmentation",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "Single-parent discrete variables use conditional probability tables, multi-parent discrete variables use sigmoid (softmax) functions, and continuous variables use conditional linear Gaussians. Sigmoid parameters grow linearly with the parents, while table parameters grow exponentially, so sigmoids reduce overfitting.",
+      "es": "Las variables discretas con un solo padre usan tablas de probabilidad condicional, las discretas con varios padres usan funciones sigmoides (softmax) y las continuas usan gaussianas lineales condicionales. Los parámetros de las sigmoides crecen linealmente con los padres y los de las tablas crecen exponencialmente, por lo que las sigmoides reducen el sobreajuste.",
+      "blocks": [
+        "s3-p12",
+        "s3-p15",
+        "s3-p17",
+        "s3-e3",
+        "s3-e4"
+      ],
+      "key": "cpd-parametrization",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "The model defines a joint distribution p(X) over R, S, N, C and D, factorized as a product of conditional probability distributions in which each variable depends on its latent parent and on the observed variables linked to it by lateral edges.",
+      "es": "El modelo define una distribución conjunta p(X) sobre R, S, N, C y D, factorizada como un producto de distribuciones de probabilidad condicional en el que cada variable depende de su padre latente y de las variables observadas ligadas a ella por aristas laterales.",
+      "blocks": [
+        "s3-p8",
+        "s3-e1",
+        "s3-p11"
+      ],
+      "key": "joint-factorization",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "The structure (domain sizes of the latent variables and the lateral edges) is chosen by maximizing the Cheeseman-Stutz approximation of the marginal likelihood with a greedy search. The search first grows the domain sizes of each Sl and then of R, and then adds, removes and flips lateral edges.",
+      "es": "La estructura (tamaños de dominio de las variables latentes y las aristas laterales) se elige maximizando la aproximación de Cheeseman-Stutz de la verosimilitud marginal mediante una búsqueda voraz. La búsqueda primero aumenta los tamaños de dominio de cada Sl y luego de R, y después agrega, quita e invierte aristas laterales.",
+      "blocks": [
+        "s4-p2",
+        "s4-p4",
+        "s4-p9",
+        "s4-p14",
+        "s4-p15"
+      ],
+      "key": "structure-learning",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "For a given structure, parameters are estimated by maximum a posteriori (MAP) estimation with the expectation-maximization (EM) algorithm, because the latent variables' content is unknown. Computations are done in log-space to avoid numerical errors.",
+      "es": "Para una estructura dada, los parámetros se estiman por máxima a posteriori (MAP) con el algoritmo de esperanza-maximización (EM), porque se desconoce el contenido de las variables latentes. Los cálculos se hacen en espacio logarítmico para evitar errores numéricos.",
+      "blocks": [
+        "s4-p16"
+      ],
+      "key": "em-map",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "New component sets are found with a deterministic tree search instead of forward sampling, since sampling takes exponentially long to find valid low-probability assignments. Nodes are expanded in topological order, continuous variables only take values of existing components, and branches with density below 10−12 are pruned.",
+      "es": "Los nuevos conjuntos de componentes se encuentran con una búsqueda determinista en árbol en lugar de muestreo directo, porque el muestreo tarda un tiempo exponencial en hallar asignaciones válidas de baja probabilidad. Los nodos se expanden en orden topológico, las variables continuas solo toman valores de componentes existentes y se podan las ramas con densidad menor que 10−12.",
+      "blocks": [
+        "s5-p2",
+        "s5-p3",
+        "s5-p4"
+      ],
+      "key": "component-set-enumeration",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "Components are placed using slots, which are regions that say where a component attaches to others, store the category of the partner and hold symmetry relationships. An initial placement from the slots is refined by a linear least-squares optimization that aligns adjacent slots and penalizes distorted scale, broken symmetry and lost ground contact.",
+      "es": "Los componentes se colocan con ranuras (slots), que son regiones que indican dónde se une un componente a otros, guardan la categoría del componente compatible y contienen relaciones de simetría. Una colocación inicial a partir de las ranuras se refina con una optimización lineal de mínimos cuadrados que alinea ranuras adyacentes y penaliza escala distorsionada, simetría rota y pérdida de contacto con el suelo.",
+      "blocks": [
+        "s5-p5",
+        "s5-p6",
+        "s5-p7",
+        "fig-4"
+      ],
+      "key": "slot-placement",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "Each component is described by a feature vector with the scale of its oriented bounding box, curvature and shape-diameter histograms, PCA-based descriptors and lightfield descriptors, reduced with PCA. Meshes are first oriented with +Z up and +Y front-facing, and slots are detected as edge loops or as vertices close to another category.",
+      "es": "Cada componente se describe con un vector de rasgos que incluye la escala de su caja delimitadora orientada, histogramas de curvatura y de diámetro de forma, descriptores basados en PCA y descriptores de campo de luz, reducidos con PCA. Primero se orientan las mallas con +Z hacia arriba y +Y hacia el frente, y las ranuras se detectan como bucles de aristas o como vértices cercanos a otra categoría.",
+      "blocks": [
+        "app-a-p1",
+        "app-a-p2",
+        "app-a-p3",
+        "s3-p4"
+      ],
+      "key": "component-features",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "claim",
+      "en": "The model can amplify a shape database by an order of magnitude: from a limited set of examples it synthesizes many new shapes, each distinct from the input set. Given a hundred airplanes, it synthesizes over a thousand new ones.",
+      "es": "El modelo puede ampliar una base de datos de formas en un orden de magnitud: a partir de un conjunto limitado de ejemplos sintetiza muchas formas nuevas, cada una distinta de las del conjunto de entrada. Con cien aviones, sintetiza más de mil nuevos.",
+      "blocks": [
+        "s1-p4",
+        "s6-p2",
+        "fig-1"
+      ],
+      "key": "database-amplification",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "During amplification, instantiations very similar to input shapes or to earlier ones are rejected, using feature distances between corresponding components weighted by component area. Shapes whose placement optimization fails are also rejected. The paper says the similarity pruning is optional.",
+      "es": "Durante la ampliación se rechazan las instanciaciones muy parecidas a formas de entrada o a instanciaciones previas, usando distancias de rasgos entre componentes correspondientes ponderadas por el área. También se rechazan las formas cuya optimización de colocación falla. El artículo indica que la poda por similitud es opcional.",
+      "blocks": [
+        "s6-p2"
+      ],
+      "key": "novelty-filter",
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "In constrained synthesis, a user specifies through an interactive interface which components, categories or latent styles the new shape must have. The tree search then only takes values within those constraints for the constrained variables.",
+      "es": "En la síntesis con restricciones, el usuario especifica mediante una interfaz interactiva qué componentes, categorías o estilos latentes debe tener la forma nueva. La búsqueda en árbol solo toma valores dentro de esas restricciones para las variables restringidas.",
+      "blocks": [
+        "s6-p3"
+      ],
+      "key": "constrained-synthesis",
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "dataset",
+      "en": "The model was evaluated on five shape datasets from public 3D libraries (Digimation Model Bank, Dosch 3D and the furniture database of Wessel et al. [2009]), compatibly segmented and labeled with Kalogerakis et al. [2010] plus manual work.",
+      "es": "El modelo se evaluó con cinco conjuntos de formas de bibliotecas 3D públicas (Digimation Model Bank, Dosch 3D y la base de datos de muebles de Wessel et al. [2009]), segmentados y etiquetados de manera compatible con Kalogerakis et al. [2010] y trabajo manual.",
+      "blocks": [
+        "s7-p1",
+        "tab-1"
+      ],
+      "key": "shape-datasets-five",
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Synthesis counts reported: 100 airplanes gave 1267 new airplanes, 88 chairs gave 870, 22 construction vehicles gave 253, 42 ships gave 199 and 69 creatures gave 563.",
+      "es": "Cantidades de síntesis reportadas: 100 aviones produjeron 1267 aviones nuevos, 88 sillas produjeron 870, 22 vehículos de construcción produjeron 253, 42 barcos produjeron 199 y 69 criaturas produjeron 563.",
+      "blocks": [
+        "fig-1",
+        "fig-14",
+        "fig-15",
+        "fig-16",
+        "fig-17"
+      ],
+      "key": "synthesis-counts",
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "method",
+      "en": "Generalization is measured by holdout validation: three random 80-20 train-test splits, with the geometric mean of the probability the model assigns to the test shapes, reported as negative log-likelihood (lower is better). The full model (A) is compared with variants using tables instead of sigmoids (B), maximum likelihood instead of MAP (C), no lateral edges (D) and no latent variables (E, akin to Chaudhuri et al. [2011]).",
+      "es": "La generalización se mide con validación de reserva (holdout): tres divisiones aleatorias 80-20 de entrenamiento y prueba, con la media geométrica de la probabilidad que el modelo asigna a las formas de prueba, reportada como log-verosimilitud negativa (menor es mejor). El modelo completo (A) se compara con variantes con tablas en lugar de sigmoides (B), máxima verosimilitud en lugar de MAP (C), sin aristas laterales (D) y sin variables latentes (E, similar a Chaudhuri et al. [2011]).",
+      "blocks": [
+        "s7-p2",
+        "fig-6"
+      ],
+      "key": "holdout-nll",
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "The full model achieves the best generalization across all datasets compared with its weaker variants. Variants without latent variables or without lateral edges produced shapes with missing components or implausible combinations.",
+      "es": "El modelo completo logra la mejor generalización en todos los conjuntos de datos frente a sus variantes más débiles. Las variantes sin variables latentes o sin aristas laterales produjeron formas con componentes faltantes o combinaciones inverosímiles.",
+      "blocks": [
+        "fig-6",
+        "fig-9",
+        "fig-8"
+      ],
+      "key": "generalization-best",
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "Generalization degraded as the training split shrank from 80-20 to 20-80, i.e. as the training data became less representative of the domain. Construction vehicles degraded rapidly because 20% of that dataset is only four examples.",
+      "es": "La generalización empeoró al reducir la división de entrenamiento de 80-20 a 20-80, es decir, cuando los datos de entrenamiento representaban menos al dominio. Los vehículos de construcción se degradaron rápidamente porque el 20% de ese conjunto son solo cuatro ejemplos.",
+      "blocks": [
+        "s7-p3",
+        "fig-7"
+      ],
+      "key": "impoverished-training",
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "The earlier model of Chaudhuri et al. [2011] suggests individual components well but produces shapes of low plausibility when used to synthesize complete shapes. The paper attributes this to probability tables, the Bayesian Information Criterion and, most of all, a flat structure without latent causes.",
+      "es": "El modelo anterior de Chaudhuri et al. [2011] sugiere bien componentes individuales, pero produce formas de baja plausibilidad al usarse para sintetizar formas completas. El artículo lo atribuye a las tablas de probabilidad, al criterio de información bayesiano y, sobre todo, a una estructura plana sin causas latentes.",
+      "blocks": [
+        "s2-p2",
+        "s7-p4",
+        "fig-9"
+      ],
+      "key": "flat-model-limits",
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "In an informal perceptual study, 107 student volunteers made 3210 pairwise plausibility comparisons among training shapes, shapes from this model and shapes from the Chaudhuri et al. model. Shapes from this model were judged more plausible than those of the prior model, with strong statistical significance (p < 10−7).",
+      "es": "En un estudio perceptual informal, 107 estudiantes voluntarios hicieron 3210 comparaciones por pares de plausibilidad entre formas de entrenamiento, formas de este modelo y formas del modelo de Chaudhuri et al. Las formas de este modelo se juzgaron más plausibles que las del modelo anterior, con fuerte significancia estadística (p < 10−7).",
+      "blocks": [
+        "s7-p5",
+        "fig-10"
+      ],
+      "key": "perceptual-study",
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "Fixing the latent variables to each of their values shows what they learned. For chairs, the root variable yields distinct chair styles and a lower-level variable yields distinct styles of chair backs.",
+      "es": "Fijar las variables latentes en cada uno de sus valores muestra lo que aprendieron. En las sillas, la variable raíz produce estilos distintos de silla y una variable de nivel inferior produce estilos distintos de respaldos.",
+      "blocks": [
+        "s7-p6",
+        "fig-12",
+        "fig-13"
+      ],
+      "key": "latent-content-interpretable",
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "The number of learned lateral edges grows with the number of component categories and the domain's complexity: 9 for vehicles, 24 for creatures, 35 for chairs, 36 for planes and 89 for ships. Examples are front tool with cabin in vehicles and front legs with back legs in chairs.",
+      "es": "El número de aristas laterales aprendidas crece con el número de categorías de componentes y la complejidad del dominio: 9 para vehículos, 24 para criaturas, 35 para sillas, 36 para aviones y 89 para barcos. Ejemplos son la herramienta frontal con la cabina en vehículos y las patas delanteras con las traseras en sillas.",
+      "blocks": [
+        "s7-p8",
+        "fig-9"
+      ],
+      "key": "lateral-edge-counts",
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "result",
+      "en": "Learning has complexity O(L3K) and ran on a single core: about 0.5 hours for construction vehicles, 3 hours for creatures, 8 hours for chairs, 20 hours for planes and 70 hours for ships. Enumerating all instantiations takes less than an hour and assembling each shape takes a few seconds.",
+      "es": "El aprendizaje tiene complejidad O(L3K) y se ejecutó en un solo núcleo: unas 0.5 horas para vehículos de construcción, 3 horas para criaturas, 8 horas para sillas, 20 horas para aviones y 70 horas para barcos. Enumerar todas las instanciaciones toma menos de una hora y ensamblar cada forma toma unos segundos.",
+      "blocks": [
+        "s7-p9"
+      ],
+      "key": "running-times",
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "concept",
+      "en": "Methods that analyze a single input shape (texture-synthesis-like growth, inverse procedural modeling) produce shapes only locally similar to the input. This model instead captures the global structure of a whole domain exemplified by a set of shapes.",
+      "es": "Los métodos que analizan una sola forma de entrada (crecimiento tipo síntesis de texturas, modelado procedural inverso) producen formas solo localmente parecidas a la entrada. Este modelo, en cambio, captura la estructura global de todo un dominio ejemplificado por un conjunto de formas.",
+      "blocks": [
+        "s2-p3",
+        "s2-p5"
+      ],
+      "key": "single-shape-vs-domain",
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "claim",
+      "en": "The model is designed with a compact parameterization so that it can synthesize complete plausible novel shapes after training on only a small number of examples, up to a hundred.",
+      "es": "El modelo está diseñado con una parametrización compacta para poder sintetizar formas nuevas, completas y plausibles después de entrenar con muy pocos ejemplos, hasta cien.",
+      "blocks": [
+        "s2-p6",
+        "s3-p1",
+        "s1-p3"
+      ],
+      "key": "small-data-compactness",
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "limitation",
+      "en": "The pipeline assumes compatibly segmented training shapes that are upright-oriented and front-facing. Segmentation and orientation were semi-automatic and still needed manual effort.",
+      "es": "El proceso supone formas de entrenamiento segmentadas de manera compatible, con orientación vertical y de frente. La segmentación y la orientación fueron semiautomáticas y aún requirieron esfuerzo manual.",
+      "blocks": [
+        "s8-p1",
+        "app-a-p1"
+      ],
+      "key": "preprocessing-burden",
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "limitation",
+      "en": "The model assumes component geometric features are normally distributed and learns only linear correlations between component features, so it does not capture more complex variability.",
+      "es": "El modelo supone que los rasgos geométricos de los componentes siguen una distribución normal y solo aprende correlaciones lineales entre ellos, por lo que no captura una variabilidad más compleja.",
+      "blocks": [
+        "s8-p2"
+      ],
+      "key": "gaussian-linear-assumption",
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "limitation",
+      "en": "The component placement approach is heuristic and can fail: it does not optimize component orientation and does not prevent intersections between components. Misaligned ropes and inappropriately intersecting parts appear on synthesized ships.",
+      "es": "El enfoque de colocación de componentes es heurístico y puede fallar: no optimiza la orientación de los componentes ni evita las intersecciones entre ellos. En los barcos sintetizados aparecen cuerdas desalineadas y partes que se intersectan de forma inadecuada.",
+      "blocks": [
+        "s8-p2",
+        "fig-11"
+      ],
+      "key": "placement-heuristic",
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "future",
+      "en": "Future work named: more sophisticated component placement, analysis of shape function, better compatible segmentation and orientation techniques, and joint modeling of discrete structural variability with continuous variability inside components.",
+      "es": "El trabajo futuro mencionado incluye una colocación de componentes más sofisticada, el análisis de la función de las formas, mejores técnicas de segmentación y orientación compatibles, y el modelado conjunto de la variabilidad estructural discreta con la variabilidad continua dentro de los componentes.",
+      "blocks": [
+        "s8-p1",
+        "s8-p2",
+        "s8-p3"
+      ],
+      "key": "shape-synthesis-future",
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "The probabilistic model is the paper's answer to how new shapes can be synthesized from recombined components."
+    },
+    {
+      "from": "i3",
+      "to": "i4",
+      "type": "supports",
+      "why": "The observation that shapes come in types is what motivates the latent type and style variables."
+    },
+    {
+      "from": "i4",
+      "to": "i2",
+      "type": "part-of",
+      "why": "Latent causes of variability are the core of the proposed model."
+    },
+    {
+      "from": "i5",
+      "to": "i2",
+      "type": "part-of",
+      "why": "The observed count, geometry and adjacency variables are what the latent variables explain."
+    },
+    {
+      "from": "i6",
+      "to": "i2",
+      "type": "part-of",
+      "why": "Lateral edges are one of the model's two mechanisms for coherence between components."
+    },
+    {
+      "from": "i7",
+      "to": "i4",
+      "type": "example-of",
+      "why": "The table example shows latent shape styles and component styles being learned."
+    },
+    {
+      "from": "i7",
+      "to": "i6",
+      "type": "example-of",
+      "why": "The leg-base and tabletop correlation illustrates a learned lateral edge."
+    },
+    {
+      "from": "i8",
+      "to": "i2",
+      "type": "supports",
+      "why": "Compatible labeling is the only supervision the model needs."
+    },
+    {
+      "from": "i9",
+      "to": "i10",
+      "type": "part-of",
+      "why": "The CPD forms parametrize each factor of the joint distribution."
+    },
+    {
+      "from": "i10",
+      "to": "i2",
+      "type": "part-of",
+      "why": "The factorization defines the model."
+    },
+    {
+      "from": "i11",
+      "to": "i4",
+      "type": "uses",
+      "why": "Structure search determines how many values each latent variable has."
+    },
+    {
+      "from": "i11",
+      "to": "i6",
+      "type": "uses",
+      "why": "The second phase of the search chooses which lateral edges to keep."
+    },
+    {
+      "from": "i12",
+      "to": "i11",
+      "type": "supports",
+      "why": "Parameters estimated by EM are needed to evaluate each candidate structure's score."
+    },
+    {
+      "from": "i13",
+      "to": "i10",
+      "type": "uses",
+      "why": "The tree search enumerates high-probability assignments of the learned joint distribution."
+    },
+    {
+      "from": "i14",
+      "to": "i13",
+      "type": "uses",
+      "why": "Placement is the second synthesis stage and works on the component sets the search yields."
+    },
+    {
+      "from": "i14",
+      "to": "i5",
+      "type": "uses",
+      "why": "The discrete adjacency features guarantee compatible slots between selected components."
+    },
+    {
+      "from": "i15",
+      "to": "i5",
+      "type": "supports",
+      "why": "The geometric and adjacency features are computed from the segmented meshes."
+    },
+    {
+      "from": "i16",
+      "to": "i13",
+      "type": "uses",
+      "why": "Amplification enumerates all non-negligible instantiations and then optimizes them."
+    },
+    {
+      "from": "i17",
+      "to": "i16",
+      "type": "part-of",
+      "why": "Rejecting near-duplicates is a step of database amplification."
+    },
+    {
+      "from": "i18",
+      "to": "i13",
+      "type": "uses",
+      "why": "Constraints restrict the values taken during the same tree search."
+    },
+    {
+      "from": "i20",
+      "to": "i16",
+      "type": "supports",
+      "why": "The synthesis counts show the order-of-magnitude amplification."
+    },
+    {
+      "from": "i19",
+      "to": "i20",
+      "type": "supports",
+      "why": "The counts come from the five evaluation datasets."
+    },
+    {
+      "from": "i21",
+      "to": "i22",
+      "type": "measures",
+      "why": "Negative log-likelihood on held-out shapes is the metric behind the ablation result."
+    },
+    {
+      "from": "i22",
+      "to": "i4",
+      "type": "supports",
+      "why": "Removing latent variables worsens generalization."
+    },
+    {
+      "from": "i22",
+      "to": "i6",
+      "type": "supports",
+      "why": "Removing lateral edges worsens generalization and gives implausible shapes."
+    },
+    {
+      "from": "i23",
+      "to": "i30",
+      "type": "supports",
+      "why": "Degradation under small training sets shows how far the small-data design goes, and where it fails."
+    },
+    {
+      "from": "i24",
+      "to": "i25",
+      "type": "supports",
+      "why": "The perceptual study tests the claim that the flat prior model is less plausible."
+    },
+    {
+      "from": "i25",
+      "to": "i24",
+      "type": "supports",
+      "why": "Volunteers judged shapes from the prior model less plausible than shapes from this one."
+    },
+    {
+      "from": "i26",
+      "to": "i4",
+      "type": "example-of",
+      "why": "Fixed latent values show chair styles and back styles the variables learned."
+    },
+    {
+      "from": "i27",
+      "to": "i6",
+      "type": "example-of",
+      "why": "The edge counts and the vehicle and chair examples show what lateral edges capture."
+    },
+    {
+      "from": "i29",
+      "to": "i2",
+      "type": "supports",
+      "why": "It positions the model against single-exemplar synthesis."
+    },
+    {
+      "from": "i31",
+      "to": "i8",
+      "type": "contradicts",
+      "why": "The compatible-segmentation requirement is not fully automatic and still needed manual work."
+    },
+    {
+      "from": "i32",
+      "to": "i9",
+      "type": "contradicts",
+      "why": "Gaussian and linear parametrizations limit what the model can represent."
+    },
+    {
+      "from": "i33",
+      "to": "i14",
+      "type": "contradicts",
+      "why": "The placement heuristic can fail on orientation and intersections."
+    },
+    {
+      "from": "i34",
+      "to": "i33",
+      "type": "supports",
+      "why": "Better placement is named as future work for the observed failures."
+    },
+    {
+      "from": "i28",
+      "to": "i11",
+      "type": "measures",
+      "why": "Learning times reflect the cost of the greedy structure search and EM."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i2",
+      "to": "hypothesis",
+      "why": "Supports it: a model learned from segmented components and their relations produces new, plausible wholes, which is what the hypothesis claims for BIM elements and relations."
+    },
+    {
+      "idea": "i1",
+      "to": "question",
+      "why": "Poses the same problem in 3D shapes: decompose existing objects into parts and synthesize valid new objects from recombined parts."
+    },
+    {
+      "idea": "i8",
+      "to": "deconstruct-for-training",
+      "why": "A method to borrow: a compatible segmentation, with the same labeled category for equivalent parts, is the prerequisite for learning, much like labeled element categories in a BIM model."
+    },
+    {
+      "idea": "i13",
+      "to": "assemble-node-by-node",
+      "why": "Shows a contrasting way to assemble: enumerate whole sets of components by tree search over a probabilistic model, then place them, instead of predicting elements one at a time."
+    },
+    {
+      "idea": "i14",
+      "to": "assemble-node-by-node",
+      "why": "The slot idea (each part stores which categories it can attach to, plus symmetry) is a way to borrow for checking that placed BIM elements connect validly."
+    },
+    {
+      "idea": "i16",
+      "to": "real-or-synthetic-data",
+      "why": "Offers a source of dataset size: a model trained on about a hundred real examples synthesizes an order of magnitude more, without scraping more data."
+    },
+    {
+      "idea": "i24",
+      "to": "chaudhuri-2011",
+      "why": "Records the limit of the earlier flat model for synthesizing complete shapes, and that latent causes and lateral edges were the fix."
+    },
+    {
+      "idea": "i29",
+      "to": "merrell-2023",
+      "why": "Contrasts single-example methods, which are only locally similar to the input, with learning the global structure of a domain from many examples."
+    },
+    {
+      "idea": "i4",
+      "to": "explicit-vs-learned",
+      "why": "Types and styles are learned from the examples, not written by hand, which is a case for learned judgment about what parts go together."
+    },
+    {
+      "idea": "i31",
+      "to": "clean-real-models",
+      "why": "Shows that the preprocessing (consistent segmentation, orientation) can be the real bottleneck of learning from collections, a gap that also applies to real BIM models."
+    },
+    {
+      "idea": "i33",
+      "to": "hypothesis",
+      "why": "Challenges it: choosing valid parts is not enough, since placement can still produce misaligned or intersecting results, so a validity check on assembly is needed."
+    }
+  ]
+}

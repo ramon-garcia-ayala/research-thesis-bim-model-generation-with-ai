@@ -157,6 +157,42 @@ export function notePrompt({ text, from, node, paperTitle }) {
   return { system, prompt: `${who}:\n\n${text}` }
 }
 
+/**
+ * The instructions for turning a chat message into a proposed change to the map: a new idea (or conclusion) and the
+ * links that join it to the map, or only links between what the map already has. The reply is JSON; the author edits it.
+ */
+export function mapEntryPrompt({ text, from, node, map }) {
+  const groups = map.groups.map((g) => `- ${g.id}: ${g.title}`)
+  const nodes = map.nodes.map((n) => `- ${n.id} [${n.kind}, ${n.group}] ${n.title}`)
+  const system = [
+    `You propose one change to the research map of an architect’s MaCAD thesis, from a message in the reader’s chat about the paper "${node.title}" (${node.id}).`,
+    'The change is either (a) a new IDEA — the author’s idea or conclusion, or a conclusion the chat reached — with the links that join it to the map, or (b) only new links between nodes the map already has.',
+    'Reply with ONE JSON object and nothing else:',
+    '{"idea": {"id": "kebab-case-id", "title": "short title, English", "group": "<a group id>", "note": "the note of the idea, English, a few plain lines"} or null,',
+    ' "links": [{"from": "<id>", "to": "<id>", "explanation": "one sentence, English, saying what the relation is"}]}',
+    'Rules:',
+    '- Ids in a link are node ids, group ids, or "question" / "hypothesis" (the centre), taken only from the lists below, or the new idea’s own id.',
+    `- A new idea links to the paper ${node.id} and to whatever else it bears on; at most 4 links. A link goes from the more specific to the more general.`,
+    '- The idea’s id must not be in the lists; its group is one of the groups below, the one it fits best.',
+    '- Quote the author’s own words exactly (in their language) between quotation marks in the note; start the author’s part with "Author:" and yours with "Claude:".',
+    '- Do not invent: write only what the message supports. Do not propose a link that is already in the map.',
+    '',
+    `The question of the thesis now: ${map.centre.question.at(-1).text}`,
+    `The hypothesis now: ${map.centre.hypothesis.at(-1).text}`,
+    '',
+    'Groups:',
+    ...groups,
+    '',
+    'Nodes:',
+    ...nodes,
+    '',
+    'Links already in the map (from → to):',
+    ...map.links.map((l) => `${l.from} → ${l.to}`),
+  ].join('\n')
+  const who = from === 'author' ? 'The author wrote' : 'Claude (you) wrote, in the reader’s chat'
+  return { system, prompt: `${who}:\n\n${text}` }
+}
+
 /** The status line of a reply: covered, or not with the blocks nearest to the question; null when it is neither. */
 export function parseStatus(firstLine) {
   const line = String(firstLine ?? '').trim()

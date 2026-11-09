@@ -1,0 +1,669 @@
+{
+  "version": 1,
+  "node": "qwen-bim-2026",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "The paper asks how to evaluate and adapt LLMs for BIM-based design. It proposes a benchmark with quantitative indicators, a BIM-to-text method that builds datasets for evaluation and fine-tuning, and a fine-tuning strategy.",
+      "es": "El artículo pregunta cómo evaluar y adaptar los LLM para el diseño basado en BIM. Propone un benchmark con indicadores cuantitativos, un método de BIM a texto que construye conjuntos de datos para evaluar y ajustar, y una estrategia de ajuste fino.",
+      "blocks": [
+        "abs-p1",
+        "s1-p5"
+      ],
+      "key": "llm-bim-benchmark-and-dataset",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Most earlier work uses pre-trained general LLMs or retrieval-augmented generation, and often performs poorly in BIM-based design. The paper attributes this to the lack of systematic LLM evaluation methods and high-quality datasets, and to LLMs being used for auxiliary tasks rather than core decisions.",
+      "es": "La mayoría de los trabajos previos usa LLM generales preentrenados o generación aumentada con recuperación, y suele rendir poco en el diseño basado en BIM. El artículo lo atribuye a la falta de métodos sistemáticos de evaluación y de conjuntos de datos de calidad, y a que los LLM se usan en tareas auxiliares y no en decisiones centrales.",
+      "blocks": [
+        "s1-p4",
+        "s2-p7",
+        "s2-p8",
+        "s2-p14"
+      ],
+      "key": "llm-bim-gap",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "The usual workflow for a domain-specific LLM is to build a task benchmark, evaluate candidate base models, pick one, build a fine-tuning dataset guided by the results (with reasoning steps if needed), fine-tune with LoRA, and repeat iteratively.",
+      "es": "El flujo habitual para un LLM de dominio es construir un benchmark de tareas, evaluar modelos base candidatos, elegir uno, crear un conjunto de ajuste fino guiado por los resultados (con pasos de razonamiento si hace falta), ajustar con LoRA y repetir de forma iterativa.",
+      "blocks": [
+        "s2-p13",
+        "fig-1",
+        "s3-p1"
+      ],
+      "key": "domain-llm-workflow",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "method",
+      "en": "Capability requirements come from typical BIM design tasks: information retrieval, visualization, design review (integrality, rationality, compliance) and design detailing. They are grouped into general capabilities (extraction, statistics, calculation, reasoning) and BIM-specific ones (BIM data, design common sense, specification rules).",
+      "es": "Los requisitos de capacidad salen de tareas típicas del diseño BIM: recuperación de información, visualización, revisión de diseño (integridad, racionalidad, cumplimiento) y detallado de diseño. Se agrupan en capacidades generales (extracción, estadística, cálculo, razonamiento) y específicas de BIM (datos BIM, sentido común de diseño, reglas de las normas).",
+      "blocks": [
+        "s3-p2",
+        "s3-p3",
+        "s3-p5",
+        "s3-p6",
+        "s3-p7",
+        "tab-1"
+      ],
+      "key": "capability-requirements",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "dataset",
+      "en": "The LLM evaluation question set (EQS) has 22 parameterized question templates with placeholders filled from the BIM model. Table 2 covers general capabilities at several difficulty levels, and Table 3 covers domain tasks with two cases each.",
+      "es": "El conjunto de preguntas de evaluación (EQS) tiene 22 plantillas de preguntas parametrizadas, cuyos marcadores se llenan con datos del modelo BIM. La Tabla 2 cubre las capacidades generales en varios niveles de dificultad y la Tabla 3 las tareas de dominio, con dos casos cada una.",
+      "blocks": [
+        "s3-p9",
+        "s3-p10",
+        "s3-p11",
+        "s3-p12",
+        "s3-p13",
+        "s3-p14",
+        "tab-3"
+      ],
+      "key": "eqs-22-templates",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Outputs are scored with text-similarity indicators (format score, BLEU-1, BLEU-2, ROUGE-L) and semantic-similarity indicators (cosine similarity of embeddings and the LLM-based G-Eval score).",
+      "es": "Las salidas se califican con indicadores de similitud textual (puntaje de formato, BLEU-1, BLEU-2, ROUGE-L) y de similitud semántica (similitud coseno de embeddings y el puntaje G-Eval basado en un LLM).",
+      "blocks": [
+        "s3-p31",
+        "s3-p33",
+        "s3-p42",
+        "s3-p94",
+        "fig-3"
+      ],
+      "key": "evaluation-indicators",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "G-Eval uses GLM-4-plus at temperature 0 to compare output and reference with a detailed prompt, returning a score from 0 to 1. Judgment and data accuracy count for 90% of the score, calculated values within 3% count as accurate, and outputs more than 3 times the answer length lose 10%.",
+      "es": "G-Eval usa GLM-4-plus con temperatura 0 para comparar la salida con la referencia mediante un prompt detallado y devuelve un puntaje de 0 a 1. La exactitud de los juicios y de los datos pesa 90% del puntaje, los valores calculados con error de hasta 3% se consideran exactos y las salidas de más de 3 veces la longitud de la respuesta pierden 10%.",
+      "blocks": [
+        "s3-p44",
+        "s3-p45",
+        "s3-p48",
+        "s3-p95",
+        "s3-p49",
+        "s3-p50"
+      ],
+      "key": "g-eval",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "BIM models are turned into semi-structured text: a Header Section describing the model, a Component Header Section explaining each category's attributes and units, and a Component Data Section with each component in natural-language sentences. Irregular slabs are given as ordered corner coordinates.",
+      "es": "Los modelos BIM se convierten en texto semiestructurado: una sección de encabezado que describe el modelo, un encabezado por categoría de componente que explica atributos y unidades, y una sección de datos con cada componente en oraciones de lenguaje natural. Las losas irregulares se dan como coordenadas ordenadas de sus esquinas.",
+      "blocks": [
+        "s3-p51",
+        "s3-p52",
+        "s3-p53",
+        "s3-p54",
+        "s3-p55",
+        "fig-5"
+      ],
+      "key": "bim-textualization",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "Because of LLM input limits, each model is partitioned into blocks that package a limited number of components within an adjacent spatial range. The paper uses 5 m and 8 m blocks of about 10-15 components each, chosen by manual experimentation.",
+      "es": "Por los límites de entrada de los LLM, cada modelo se divide en bloques que agrupan un número limitado de componentes dentro de un rango espacial adyacente. El artículo usa bloques de 5 m y 8 m con unos 10-15 componentes cada uno, definidos por experimentación manual.",
+      "blocks": [
+        "s3-p58",
+        "s4-p1"
+      ],
+      "key": "spatial-block-partition",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Because real defective data is hard to obtain, defects are injected automatically into inspected, complete models: erased construction numbers or fire ratings, wall thickness outside 20-600mm, shifted wall z-coordinates, malformed construction numbers such as Q20 to WQ20, and a non-compliant fire rating of 1 hour.",
+      "es": "Como es difícil obtener datos reales con defectos, estos se inyectan automáticamente en modelos completos ya revisados: números de construcción o resistencias al fuego borrados, espesores de muro fuera de 20-600mm, coordenadas z desplazadas, números de construcción mal formados como Q20 a WQ20 y una resistencia al fuego no conforme de 1 hora.",
+      "blocks": [
+        "s3-p56",
+        "s3-p57",
+        "s3-p59"
+      ],
+      "key": "defect-injection",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "dataset",
+      "en": "The BIM-QA dataset comes from Revit models of shopping malls, offices, dormitories, teaching buildings and museums. 150 blocks yielded 3,300 BIM-QA pairs (22 questions per block), with reference answers computed by hard-coded rules.",
+      "es": "El conjunto BIM-QA proviene de modelos Revit de centros comerciales, oficinas, dormitorios, edificios de enseñanza y museos. 150 bloques produjeron 3,300 pares BIM-QA (22 preguntas por bloque), con respuestas de referencia calculadas con reglas programadas.",
+      "blocks": [
+        "s4-p1",
+        "s4-p2",
+        "s4-p3",
+        "tab-7",
+        "s3-p60"
+      ],
+      "key": "bim-qa",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "dataset",
+      "en": "The fine-tuning data came from the outputs of four LLMs (GLM-4-plus, Qwen-plus, DeepSeek-R1, QwQ-32b) on 20 extra partitions, keeping those with format score 1 and G-Eval of 0.8 or higher, then checked by hand. This gave 3,493 pairs: 2,129 QA and 1,364 QRA (question-reasoning-answer).",
+      "es": "Los datos de ajuste fino salieron de las respuestas de cuatro LLM (GLM-4-plus, Qwen-plus, DeepSeek-R1, QwQ-32b) sobre 20 particiones adicionales, conservando las de puntaje de formato 1 y G-Eval de 0.8 o más, y revisadas a mano. Resultaron 3,493 pares: 2,129 QA y 1,364 QRA (pregunta-razonamiento-respuesta).",
+      "blocks": [
+        "s3-p61",
+        "s3-p62",
+        "fig-6"
+      ],
+      "key": "bim-qra",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "Each evaluation input has four parts: a role-play system prompt with chain-of-thought and a required '[Final Answer]' format, the textualized defect data, the question, and a few-shot example prompt whose answer details are hidden with '...'. 20 partitions are sampled and the LLMs are called through their APIs.",
+      "es": "Cada entrada de evaluación tiene cuatro partes: un prompt de sistema con rol, cadena de pensamiento y formato obligatorio '[Final Answer]', los datos textualizados con defectos, la pregunta y un ejemplo few-shot cuyos detalles de respuesta se ocultan con '...'. Se muestrean 20 particiones y los LLM se llaman por API.",
+      "blocks": [
+        "s3-p64",
+        "s3-p67",
+        "s3-p68",
+        "s3-p96",
+        "s3-p97",
+        "s3-p71"
+      ],
+      "key": "evaluation-prompt",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "Fine-tuning uses LoRA with llama-factory on two Nvidia RTX A6000 GPUs (96G of memory). The system prompt becomes the 'Instruction' and the rest becomes the 'Question', and four groups mix QA and QRA data in different proportions (Group D uses only QRA, with 3 epochs).",
+      "es": "El ajuste fino usa LoRA con llama-factory en dos GPU Nvidia RTX A6000 (96G de memoria). El prompt de sistema se usa como 'Instruction' y el resto como 'Question', y cuatro grupos mezclan datos QA y QRA en distintas proporciones (el grupo D usa solo QRA, con 3 épocas).",
+      "blocks": [
+        "s3-p90",
+        "s3-p91",
+        "s3-p92",
+        "tab-2",
+        "tab-3-2"
+      ],
+      "key": "lora",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "result",
+      "en": "Cos-Sim scores were fairly similar across models and had weak discriminative power, and text-similarity indicators alone could not judge understanding. G-Eval differed significantly between models and, by manual review, was the closest to human understanding.",
+      "es": "Los puntajes de Cos-Sim fueron bastante parecidos entre modelos y discriminaron poco, y los indicadores de similitud textual por sí solos no permitieron juzgar la comprensión. G-Eval difirió significativamente entre modelos y, en la revisión manual, fue el más cercano a la comprensión humana.",
+      "blocks": [
+        "s4-p7",
+        "s4-p8"
+      ],
+      "key": "g-eval-discriminates",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "Reasoning models were stronger overall than non-reasoning ones and raised the format score. QwQ-32b, with 32b parameters, scored higher on G-Eval than DeepSeek-R1 (671b), whose redundant reasoning lowered ROUGE-L and format score.",
+      "es": "Los modelos de razonamiento fueron más fuertes en general que los que no razonan y subieron el puntaje de formato. QwQ-32b, con 32b parámetros, obtuvo mejor G-Eval que DeepSeek-R1 (671b), cuyo razonamiento redundante bajó ROUGE-L y el puntaje de formato.",
+      "blocks": [
+        "s4-p67",
+        "s4-p11",
+        "s4-p14"
+      ],
+      "key": "reasoning-models",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "For the same model, data extraction and statistics were stronger than calculation and reasoning, with a clear drop on the Level 2 question of inferring floor height from coordinates. Qwen-plus and Qwen-14B were close on simple questions, but the smaller Qwen-14B scored lower on difficult calculation and reasoning.",
+      "es": "Con el mismo modelo, la extracción de datos y la estadística fueron más fuertes que el cálculo y el razonamiento, con una caída clara en la pregunta de nivel 2 de inferir la altura de piso desde coordenadas. Qwen-plus y Qwen-14B fueron parecidos en preguntas simples, pero el menor, Qwen-14B, puntuó menos en cálculo y razonamiento difíciles.",
+      "blocks": [
+        "s4-p12",
+        "s4-p13",
+        "fig-11"
+      ],
+      "key": "general-llm-task-profile",
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "On BIM design review and design detailing, both Qwen-plus and Qwen-14B had G-Eval scores generally below 0.8, and Qwen-14B even failed some basic compliance checks. The paper concludes that general LLMs lack enough understanding of BIM semantics for these tasks.",
+      "es": "En la revisión y el detallado de diseño BIM, Qwen-plus y Qwen-14B tuvieron puntajes G-Eval por lo general menores a 0.8, y Qwen-14B incluso falló algunas revisiones básicas de cumplimiento. El artículo concluye que los LLM generales no entienden lo bastante la semántica BIM para estas tareas.",
+      "blocks": [
+        "s4-p68",
+        "fig-12",
+        "s5-p1"
+      ],
+      "key": "general-llms-fail-domain",
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "Four typical error types were found: no reasoning process, limited mathematical calculation (e.g. wrong slab area despite the right formula), misunderstanding of natural semantics (e.g. parentheses, naming rules), and lack of domain knowledge (e.g. taking floor height to be the floor thickness).",
+      "es": "Se encontraron cuatro tipos de error típicos: falta de proceso de razonamiento, cálculo matemático limitado (por ejemplo, área de losa incorrecta con la fórmula correcta), malinterpretación de la semántica natural (por ejemplo, paréntesis o reglas de nombres) y falta de conocimiento del dominio (por ejemplo, tomar la altura de piso como el espesor de la losa).",
+      "blocks": [
+        "s4-p15",
+        "s4-p69",
+        "s4-p70",
+        "s4-p71",
+        "s4-p72"
+      ],
+      "key": "llm-error-types",
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Among open-source Qwen2.5 models, the 32B and 72B matched or exceeded Qwen-plus on ROUGE-L and G-Eval, while the 7B lagged on all indicators. Qwen2.5-14B-instruct was chosen as the base model to balance capability and the 96 GB GPU budget.",
+      "es": "Entre los modelos abiertos Qwen2.5, los de 32B y 72B igualaron o superaron a Qwen-plus en ROUGE-L y G-Eval, mientras que el de 7B quedó atrás en todos los indicadores. Se eligió Qwen2.5-14B-instruct como modelo base por el equilibrio entre capacidad y el presupuesto de GPU de 96 GB.",
+      "blocks": [
+        "s4-p35",
+        "s4-p36",
+        "fig-17"
+      ],
+      "key": "base-model-choice",
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "All fine-tuned models scored at least as high as the base model on G-Eval, and more QRA reasoning data meant better performance. Group D (100% QRA) was best despite the smallest data size, with a format score of 90.2%, but more QRA lowered ROUGE-L.",
+      "es": "Todos los modelos ajustados puntuaron al menos igual que el modelo base en G-Eval, y a más datos de razonamiento QRA, mejor desempeño. El grupo D (100% QRA) fue el mejor pese a tener el menor volumen de datos, con un puntaje de formato de 90.2%, pero más QRA bajó el ROUGE-L.",
+      "blocks": [
+        "s4-p38",
+        "s4-p39",
+        "fig-18"
+      ],
+      "key": "reasoning-data-helps",
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "The best fine-tuned model, Group D, is named Qwen-BIM. Compared with the base LLM it improved the format score by 5.3% and the G-Eval score by 21.0%.",
+      "es": "El mejor modelo ajustado, el del grupo D, se llama Qwen-BIM. Frente al LLM base mejoró el puntaje de formato en 5.3% y el puntaje G-Eval en 21.0%.",
+      "blocks": [
+        "s4-p40",
+        "abs-p1"
+      ],
+      "key": "qwen-bim-gain",
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "Fine-tuning raised the overall G-Eval score from 0.689 to 0.834. General tasks went from 0.810 to 0.874, and domain-specific tasks from 0.588 to 0.801.",
+      "es": "El ajuste fino subió el puntaje G-Eval global de 0.689 a 0.834. Las tareas generales pasaron de 0.810 a 0.874 y las específicas del dominio de 0.588 a 0.801.",
+      "blocks": [
+        "s4-p61",
+        "tab-8"
+      ],
+      "key": "qwen-bim-table-8",
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "Qwen-BIM beat the base LLM on 13 question types, with an average improvement of 0.28. It was slightly worse on 8 types, with an average decrease of 0.06.",
+      "es": "Qwen-BIM superó al LLM base en 13 tipos de pregunta, con una mejora promedio de 0.28. Fue ligeramente peor en 8 tipos, con una disminución promedio de 0.06.",
+      "blocks": [
+        "s4-p73",
+        "fig-20"
+      ],
+      "key": "question-type-gains",
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "With 14B parameters, Qwen-BIM outperforms Qwen models with 32B and 72B parameters, and its G-Eval score almost matches DeepSeek-R1 with 671B parameters.",
+      "es": "Con 14B parámetros, Qwen-BIM supera a modelos Qwen de 32B y 72B parámetros, y su puntaje G-Eval casi iguala al de DeepSeek-R1 con 671B parámetros.",
+      "blocks": [
+        "s4-p41",
+        "fig-19"
+      ],
+      "key": "small-matches-large",
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "On domain-specific questions Qwen-BIM beat the base LLM on 75% of question types, with an average G-Eval improvement of 0.21. The gains were largest in design review and design detailing.",
+      "es": "En las preguntas específicas del dominio Qwen-BIM superó al LLM base en 75% de los tipos de pregunta, con una mejora promedio de G-Eval de 0.21. Las mayores ganancias estuvieron en la revisión y el detallado de diseño.",
+      "blocks": [
+        "s4-p75",
+        "s4-p65"
+      ],
+      "key": "domain-task-gains",
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "Questions involving 3D calculations, such as 3D collision detection, are left out because early tests showed LLMs struggle with them. Collision detection is reduced to 2D planes.",
+      "es": "Se excluyen las preguntas con cálculos en 3D, como la detección de colisiones en 3D, porque las pruebas iniciales mostraron que los LLM tienen dificultades con ellas. La detección de colisiones se reduce a planos 2D.",
+      "blocks": [
+        "s3-p10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "After fine-tuning, the question types that scored lower were mainly general extraction, statistics and calculation, which the base model already handled well. The paper calls the declines modest.",
+      "es": "Tras el ajuste fino, los tipos de pregunta con menor puntaje fueron sobre todo de extracción, estadística y cálculo generales, que el modelo base ya resolvía bien. El artículo considera que las caídas son modestas.",
+      "blocks": [
+        "s4-p74",
+        "s4-p73"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "limitation",
+      "en": "The data are stated to be available only on request, and every domain question, evaluation and fine-tuning example comes from Revit models cut into blocks.",
+      "es": "Se indica que los datos estarán disponibles solo por solicitud, y todas las preguntas de dominio, evaluaciones y ejemplos de ajuste salen de modelos Revit divididos en bloques.",
+      "blocks": [
+        "s5-p5",
+        "s4-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "future",
+      "en": "Future work: widen the benchmark to more design, construction and operation tasks, deploy the model in practical scenarios, explore stronger base LLMs and fine-tuning strategies, and validate at large scale in real projects. The paper also suggests applying the same strategy to larger base models.",
+      "es": "Trabajo futuro: ampliar el benchmark a más tareas de diseño, construcción y operación, desplegar el modelo en escenarios prácticos, explorar bases y estrategias de ajuste más potentes y validar a gran escala en proyectos reales. También sugiere aplicar la misma estrategia a modelos base más grandes.",
+      "blocks": [
+        "s5-p3",
+        "s4-p41"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "claim",
+      "en": "The paper claims to develop the first domain-specific LLM for BIM-based design, with a comprehensive benchmark and high-quality dataset, and says the methods have transfer value for BIM-related LLMs in other fields.",
+      "es": "El artículo afirma desarrollar el primer LLM específico de dominio para el diseño basado en BIM, con un benchmark integral y un conjunto de datos de calidad, y dice que los métodos tienen valor de transferencia para LLM relacionados con BIM en otros campos.",
+      "blocks": [
+        "abs-p1",
+        "s5-p2"
+      ],
+      "key": "first-domain-llm-bim",
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "concept",
+      "en": "Reference-based metrics such as BLEU and ROUGE mainly capture lexical similarity and correlate weakly with factual correctness, reasoning validity and constraint satisfaction. The paper keeps only BLEU-1 and BLEU-2 because BLEU-4 was close to zero, and uses ROUGE-L for outputs of very different length.",
+      "es": "Las métricas basadas en referencia como BLEU y ROUGE capturan sobre todo similitud léxica y correlacionan poco con la corrección factual, la validez del razonamiento y el cumplimiento de restricciones. El artículo conserva solo BLEU-1 y BLEU-2 porque BLEU-4 quedó cerca de cero, y usa ROUGE-L para salidas de longitud muy distinta.",
+      "blocks": [
+        "s2-p12",
+        "s3-p35",
+        "s3-p41"
+      ],
+      "key": "bleu-rouge-weak",
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "claim",
+      "en": "The paper concludes that the benchmark assesses LLMs effectively and comprehensively, that general LLMs handle simple problems but are incompetent at domain-specific ones, and that fine-tuning on the domain dataset helps most on domain capabilities. It also concludes that more high-quality reasoning data gives a better fine-tuned model.",
+      "es": "El artículo concluye que el benchmark evalúa a los LLM de forma eficaz e integral, que los LLM generales resuelven problemas simples pero no los específicos del dominio, y que el ajuste fino con el conjunto de datos del dominio ayuda sobre todo en las capacidades de dominio. También concluye que más datos de razonamiento de calidad dan un mejor modelo ajustado.",
+      "blocks": [
+        "s5-p1"
+      ],
+      "key": "benchmark-and-fine-tuning-conclusions",
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "The missing benchmark and datasets motivate the paper's aim."
+    },
+    {
+      "from": "i3",
+      "to": "i1",
+      "type": "part-of",
+      "why": "The paper follows this general workflow to build its benchmark and model."
+    },
+    {
+      "from": "i4",
+      "to": "i5",
+      "type": "supports",
+      "why": "The EQS templates are written to match the capability requirements."
+    },
+    {
+      "from": "i8",
+      "to": "i11",
+      "type": "part-of",
+      "why": "Textualized blocks are the inquiry text inside BIM-QA."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "uses",
+      "why": "Blocks are textualized after partitioning."
+    },
+    {
+      "from": "i10",
+      "to": "i11",
+      "type": "part-of",
+      "why": "Defect-augmented text provides the domain-task inputs of BIM-QA."
+    },
+    {
+      "from": "i5",
+      "to": "i11",
+      "type": "part-of",
+      "why": "EQS questions are the question data in BIM-QA."
+    },
+    {
+      "from": "i13",
+      "to": "i11",
+      "type": "uses",
+      "why": "Evaluation inputs are built from sampled BIM-QA partitions."
+    },
+    {
+      "from": "i6",
+      "to": "i7",
+      "type": "part-of",
+      "why": "G-Eval is the LLM-rated semantic indicator in the set."
+    },
+    {
+      "from": "i7",
+      "to": "i15",
+      "type": "measures",
+      "why": "G-Eval scores are the ones that differed between models."
+    },
+    {
+      "from": "i32",
+      "to": "i6",
+      "type": "supports",
+      "why": "The weakness of lexical metrics motivates adding semantic indicators."
+    },
+    {
+      "from": "i15",
+      "to": "i32",
+      "type": "supports",
+      "why": "Similar BLEU or ROUGE-L values across models fit the claim that lexical metrics are weak."
+    },
+    {
+      "from": "i12",
+      "to": "i13",
+      "type": "uses",
+      "why": "The training data are outputs of the evaluation runs."
+    },
+    {
+      "from": "i12",
+      "to": "i14",
+      "type": "part-of",
+      "why": "QA and QRA data are the fine-tuning input."
+    },
+    {
+      "from": "i14",
+      "to": "i22",
+      "type": "supports",
+      "why": "The LoRA fine-tuning produced Qwen-BIM."
+    },
+    {
+      "from": "i16",
+      "to": "i12",
+      "type": "supports",
+      "why": "Reasoning models gave detailed reasoning for QRA data."
+    },
+    {
+      "from": "i17",
+      "to": "i19",
+      "type": "supports",
+      "why": "Weak calculation and reasoning match the error types seen."
+    },
+    {
+      "from": "i18",
+      "to": "i19",
+      "type": "supports",
+      "why": "Domain failures include misunderstandings and missing domain knowledge."
+    },
+    {
+      "from": "i19",
+      "to": "i33",
+      "type": "supports",
+      "why": "The errors back the argument that fine-tuning is necessary."
+    },
+    {
+      "from": "i18",
+      "to": "i20",
+      "type": "supports",
+      "why": "General models' domain weakness prompts a fine-tuned open-source base."
+    },
+    {
+      "from": "i20",
+      "to": "i14",
+      "type": "uses",
+      "why": "Qwen2.5-14B-instruct is the model being fine-tuned."
+    },
+    {
+      "from": "i21",
+      "to": "i22",
+      "type": "supports",
+      "why": "The 100% QRA group is the one named Qwen-BIM."
+    },
+    {
+      "from": "i22",
+      "to": "i23",
+      "type": "measures",
+      "why": "Table 8 reports the G-Eval scores before and after fine-tuning."
+    },
+    {
+      "from": "i23",
+      "to": "i26",
+      "type": "supports",
+      "why": "The domain rise from 0.588 to 0.801 matches the per-question gains."
+    },
+    {
+      "from": "i24",
+      "to": "i28",
+      "type": "supports",
+      "why": "The 8 declining types are mainly general tasks."
+    },
+    {
+      "from": "i25",
+      "to": "i31",
+      "type": "supports",
+      "why": "A 14B model matching 671B backs the claim of an effective domain model."
+    },
+    {
+      "from": "i26",
+      "to": "i18",
+      "type": "contradicts",
+      "why": "Qwen-BIM improves where the general models scored below 0.8."
+    },
+    {
+      "from": "i27",
+      "to": "i5",
+      "type": "part-of",
+      "why": "The 3D exclusion limits which questions the EQS includes."
+    },
+    {
+      "from": "i30",
+      "to": "i29",
+      "type": "supports",
+      "why": "Real-project validation would address the narrow data source."
+    },
+    {
+      "from": "i33",
+      "to": "i31",
+      "type": "supports",
+      "why": "The four conclusions underpin the paper's novelty claim."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i8",
+      "to": "qwen-bim-2026",
+      "why": "This is the text format of Qwen-BIM: Revit data written as a header, component headers and numbered natural-language component sentences."
+    },
+    {
+      "idea": "i8",
+      "to": "fuchs-borrmann-2025",
+      "why": "The text form is designed to be readable by LLMs, but the paper does not compare it with other text forms of BIM."
+    },
+    {
+      "idea": "i9",
+      "to": "deconstruct-for-training",
+      "why": "A method to borrow: cut a model into blocks of 10-15 adjacent components to get many small training examples."
+    },
+    {
+      "idea": "i10",
+      "to": "real-or-synthetic-data",
+      "why": "Defects are injected into real Revit models because real defective data is hard to get, a way to add examples to real models."
+    },
+    {
+      "idea": "i12",
+      "to": "clean-real-models",
+      "why": "Training outputs are filtered by format score and G-Eval of 0.8 or higher, then checked by hand, before they are used for fine-tuning."
+    },
+    {
+      "idea": "i26",
+      "to": "explicit-vs-learned",
+      "why": "Reference answers come from hard-coded rules, and a fine-tuned model learned to approach them on review and detailing, with domain G-Eval rising from 0.588 to 0.801."
+    },
+    {
+      "idea": "i22",
+      "to": "hypothesis",
+      "why": "It partly supports learning from blocks of model elements, but the model learns to answer and fix, not to build new models; the task is review and detailing."
+    },
+    {
+      "idea": "i1",
+      "to": "question",
+      "why": "It shows an AI adapted to BIM through decomposed model blocks, but leaves generation of new valid models open; this is a gap."
+    }
+  ]
+}

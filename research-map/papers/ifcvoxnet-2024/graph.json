@@ -1,0 +1,529 @@
+{
+  "version": 1,
+  "node": "ifcvoxnet-2024",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can a neural network learn to check and correct the IFC class of building elements by looking at the element within its surrounding building context?",
+      "es": "¿Puede una red neuronal aprender a revisar y corregir la clase IFC de los elementos de un edificio al observar el elemento dentro de su contexto?",
+      "blocks": [
+        "s2-p5",
+        "s2-p20"
+      ],
+      "key": "ifc-class-consistency",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "There is no standard or universal way to break a building into elements. It depends on the modeler's preferences, the tool, the construction method and the project phase; later phases are more detailed and closer to how the building is built.",
+      "es": "No existe una forma estándar ni universal de dividir un edificio en elementos. Depende de las preferencias del modelador, la herramienta, el método constructivo y la fase del proyecto; las fases tardías son más detalladas y se acercan más a cómo se construye el edificio.",
+      "blocks": [
+        "s1-p3",
+        "s2-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "The IFC schema does not tie an element's type strictly to its geometry or use, and its textual definitions are vague. A wall can be read as a column if its footprint is short, a railing if it stops below the ceiling, or a beam if it sits above an opening.",
+      "es": "El esquema IFC no vincula estrictamente el tipo de un elemento con su geometría o uso, y sus definiciones textuales son vagas. Un muro puede leerse como columna si su planta es corta, como barandal si no llega al techo, o como viga si está sobre un vano.",
+      "blocks": [
+        "s2-p3",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "claim",
+      "en": "IFC models often contain inconsistently classified instances. This still allows visualization and coordination, but forces manual corrections for automated flows such as building permit evaluation and computer-aided manufacturing, and compromises interoperability.",
+      "es": "Los modelos IFC suelen contener instancias clasificadas de forma inconsistente. Esto aún permite visualizar y coordinar, pero obliga a correcciones manuales en flujos automatizados como la evaluación de permisos de construcción y la manufactura asistida por computadora, y compromete la interoperabilidad.",
+      "blocks": [
+        "s2-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "claim",
+      "en": "Because every IFC instance already carries its class, IFC models form a labeled dataset from which supervised learning methods can be developed. The authors say IFC models are rich but under-exploited data.",
+      "es": "Como cada instancia IFC ya trae su clase, los modelos IFC forman un conjunto de datos etiquetado con el que se pueden desarrollar métodos supervisados. Los autores afirman que los modelos IFC son datos ricos pero poco aprovechados.",
+      "blocks": [
+        "s2-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "claim",
+      "en": "Earlier element classifiers learn only from isolated, normalized elements, so they would lack robustness on ambiguous cases. The authors argue that an element is also defined by its function in the building (a wall bounds spaces, a column carries loads), so the network should be given neighboring information.",
+      "es": "Los clasificadores de elementos anteriores aprenden solo de elementos aislados y normalizados, por lo que serían poco robustos en casos ambiguos. Los autores sostienen que un elemento también se define por su función en el edificio (un muro delimita espacios, una columna carga), por lo que la red debe recibir información de los vecinos.",
+      "blocks": [
+        "s1-p2",
+        "s2-p17"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "Krijnen & Tamke (2015) classified elements and detected anomalies from derived geometric quantities with a simple neural network, and Koo et al (2017) used Support Vector Machines. Their features (surface area, volume, gyradius) are simplistic and sensitive to different modeling idioms.",
+      "es": "Krijnen y Tamke (2015) clasificaron elementos y detectaron anomalías a partir de cantidades geométricas derivadas con una red neuronal simple, y Koo et al (2017) usaron máquinas de vectores de soporte. Sus características (área de superficie, volumen, radio de giro) son simplistas y sensibles a distintos modos de modelar.",
+      "blocks": [
+        "s2-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "dataset",
+      "en": "IFCNet (Emunds et al 2021) is a dataset of IFC elements extracted from IFC models and reviewed by domain experts. The authors of IFCNet acknowledge the loss of information that occurs when normalizing the elements.",
+      "es": "IFCNet (Emunds et al 2021) es un conjunto de datos de elementos IFC extraídos de modelos IFC y revisados por expertos del dominio. Sus autores reconocen la pérdida de información que ocurre al normalizar los elementos.",
+      "blocks": [
+        "s2-p14"
+      ],
+      "key": "ifcnet",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "concept",
+      "en": "Other deep learning work on BIM includes a graph neural network over single building elements (Collins et al 2021), classification of whole buildings from screenshots with a pretrained ResNet (Lomio et al 2018), point clouds sampled from meshes (Emunds et al 2022), and IFCNet++ with multi-view embeddings (Luo et al 2023).",
+      "es": "Otros trabajos de aprendizaje profundo sobre BIM incluyen una red neuronal de grafos sobre elementos individuales (Collins et al 2021), la clasificación de edificios completos a partir de capturas de pantalla con una ResNet preentrenada (Lomio et al 2018), nubes de puntos muestreadas de mallas (Emunds et al 2022) e IFCNet++ con representaciones multivista (Luo et al 2023).",
+      "blocks": [
+        "s2-p12",
+        "s2-p13",
+        "s2-p15",
+        "s2-p16"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "limitation",
+      "en": "IFCNet++ adds relationships only as information about how many connections an element has, not how instances relate to each other. The future work of those papers is to integrate IFC semantics, which limits the methods to CAD-generated models.",
+      "es": "IFCNet++ incorpora las relaciones solo como información sobre cuántas conexiones tiene un elemento, no sobre cómo se relacionan varias instancias entre sí. El trabajo futuro de esos artículos es integrar la semántica de IFC, lo que limita los métodos a modelos generados en CAD.",
+      "blocks": [
+        "s2-p18"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "Each IFC class is voxelized from its geometry into a binary grid with a box-overlap algorithm. The grids are composed into one labelled occupancy grid, where a global priority (roughly by prevalence and expected physical size) decides the class when several classes fall in the same cell.",
+      "es": "Cada clase IFC se voxeliza a partir de su geometría en una malla binaria con un algoritmo de traslape de cajas. Las mallas se combinan en una sola malla de ocupación etiquetada, donde una prioridad global (aproximadamente según prevalencia y tamaño físico esperado) decide la clase cuando varias caen en la misma celda.",
+      "blocks": [
+        "s3-p3",
+        "s3-p4"
+      ],
+      "key": "voxelization",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "claim",
+      "en": "Voxelization is agnostic to how much an element is decomposed, to where the modeler splits elements and to fine geometric detail like fillets and chamfers. It can also be derived from BRep, meshes and point clouds, so it could serve heterogeneous projects such as scan to BIM.",
+      "es": "La voxelización es indiferente a cuánto se descompone un elemento, a dónde el modelador divide los elementos y al detalle geométrico fino como filetes y chaflanes. También puede derivarse de BRep, mallas y nubes de puntos, así que serviría en proyectos heterogéneos como el escaneo a BIM.",
+      "blocks": [
+        "s1-p3",
+        "s1-p4",
+        "s2-p8",
+        "s2-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "concept",
+      "en": "An occupancy grid keeps how building elements connect, where they sit and how much relative space they take, and lets patches be taken at chosen locations. The authors note it is computationally intensive.",
+      "es": "Una malla de ocupación conserva cómo se conectan los elementos, dónde están y cuánto espacio relativo ocupan, y permite tomar parches en ubicaciones elegidas. Los autores señalan que es computacionalmente intensiva.",
+      "blocks": [
+        "s3-p7",
+        "s2-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "Training uses 64 × 64 × 64 patches taken around each element's bounding box center, supplied on the fly with random flips or rotations. The patching lowers training cost and doubles as data augmentation; 64 was found empirically to balance cost and context.",
+      "es": "El entrenamiento usa parches de 64 × 64 × 64 tomados alrededor del centro de la caja envolvente de cada elemento, entregados al vuelo con volteos o rotaciones aleatorias. Los parches reducen el costo de entrenamiento y sirven como aumento de datos; 64 se halló empíricamente como equilibrio entre costo y contexto.",
+      "blocks": [
+        "s3-p9"
+      ],
+      "key": "patch-extraction",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "The network is a fully convolutional 3D UNet (Çiçek et al 2016) with an encoder, a decoder and skip connections. It accepts patches of different sizes (multiples of 16), so it can train on 64 × 64 × 64 patches and infer on bigger or smaller ones.",
+      "es": "La red es una UNet 3D totalmente convolucional (Çiçek et al 2016) con codificador, decodificador y conexiones de salto. Acepta parches de distintos tamaños (múltiplos de 16), así que puede entrenar con parches de 64 × 64 × 64 e inferir con parches mayores o menores.",
+      "blocks": [
+        "s3-p11",
+        "s3-p12"
+      ],
+      "key": "3d-unet",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "The model was trained for 47 epochs on patches from 8 voxelized IFC files, with batch size 8, the Adam optimizer and cross-entropy loss.",
+      "es": "El modelo se entrenó durante 47 épocas con parches de 8 archivos IFC voxelizados, con tamaño de lote 8, el optimizador Adam y pérdida de entropía cruzada.",
+      "blocks": [
+        "s3-p14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "dataset",
+      "en": "Training used 8 publicly available open-source IFC models, and evaluation used 2 models not seen in training. Table 1 counts the occurrences per IFC class, and the evaluation tables are for the Molio and FZK Haus models.",
+      "es": "El entrenamiento usó 8 modelos IFC de código abierto disponibles públicamente, y la evaluación usó 2 modelos no vistos en el entrenamiento. La Tabla 1 cuenta las ocurrencias por clase IFC, y las tablas de evaluación son de los modelos Molio y FZK Haus.",
+      "blocks": [
+        "s3-p16",
+        "fig-4",
+        "tab-1",
+        "tab-2",
+        "tab-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Evaluation has three parts: manual inspection of patches from unseen models, an element-wise confusion matrix using the predominant prediction among an element's voxels at its center patch, and a sliding window over whole unseen models for overall statistics.",
+      "es": "La evaluación tiene tres partes: inspección manual de parches de modelos no vistos, una matriz de confusión por elemento usando la predicción predominante entre los vóxeles de un elemento en su parche central, y una ventana deslizante sobre modelos completos no vistos para obtener estadísticas generales.",
+      "blocks": [
+        "s4-p1",
+        "s4-p2",
+        "s4-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "limitation",
+      "en": "There is no curated ground truth because IFC models are so diverse. Per-voxel IoU is low for thin parts: a window frame is thin next to a thick wall, so a wider boundary around the window gives many false window voxels. The authors do not report IoU scores.",
+      "es": "No hay una verdad de referencia curada porque los modelos IFC son muy diversos. El IoU por vóxel es bajo para partes delgadas: un marco de ventana es delgado junto a un muro grueso, así que un límite más amplio alrededor de la ventana produce muchos falsos vóxeles de ventana. Los autores no reportan puntajes de IoU.",
+      "blocks": [
+        "s4-p3",
+        "s4-p6"
+      ],
+      "key": "iou",
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "From the confusion matrices (Tables 2, 3, 4), the authors observe that the network learned a useful representation of building elements across different IFC models, except for some underrepresented classes or classes with high intra-class variance.",
+      "es": "A partir de las matrices de confusión (Tablas 2, 3, 4), los autores observan que la red aprendió una representación útil de los elementos de construcción a través de distintos modelos IFC, salvo en algunas clases subrepresentadas o con alta variación interna.",
+      "blocks": [
+        "s4-p6",
+        "tab-2",
+        "tab-3",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "On windows, the model can predict frames larger than they are and treat the windowsill as part of the wall (Figure 5).",
+      "es": "En las ventanas, el modelo puede predecir marcos más grandes de lo que son y tratar el alféizar como parte del muro (Figura 5).",
+      "blocks": [
+        "s4-p6",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "The podium staircase is wrongly segmented as a wall (Figure 6), and the model can confuse a stair landing with part of the slab (Figure 7).",
+      "es": "La escalera del podio se segmenta erróneamente como muro (Figura 6), y el modelo puede confundir el descanso de una escalera con parte de la losa (Figura 7).",
+      "blocks": [
+        "s4-p6",
+        "fig-6",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "On the Molio model, the high element counts of railings and stair flights come from every bar and riser being modelled individually. The network assigns the dominant class in these cases, which the authors take as showing that it considers context.",
+      "es": "En el modelo Molio, los altos conteos de barandales y tramos de escalera vienen de que cada barrote y peldaño está modelado individualmente. La red asigna la clase dominante en esos casos, lo que los autores toman como muestra de que considera el contexto.",
+      "blocks": [
+        "s4-p6",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "The authors say they prove that it is possible to learn from occupancy grids, so a volumetric representation is a powerful starting representation for building elements. They also say it gives the possibility to semantically check or enrich IFC models.",
+      "es": "Los autores dicen que demuestran que es posible aprender de mallas de ocupación, así que una representación volumétrica es un punto de partida potente para los elementos de construcción. También dicen que permite revisar o enriquecer semánticamente los modelos IFC.",
+      "blocks": [
+        "s2-p20",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "claim",
+      "en": "Learning from the full building context lets the method learn even features that are not an individual element, such as a doorknob, independently of how the modeler subdivided the model.",
+      "es": "Aprender del contexto completo del edificio permite al método aprender incluso rasgos que no son un elemento individual, como una manija de puerta, con independencia de cómo el modelador subdividió el modelo.",
+      "blocks": [
+        "s1-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "limitation",
+      "en": "The examples shown in Figures 5, 6 and 7 were chosen because they show discrepancies between predicted and original labels, so they are not representative of the network's overall performance.",
+      "es": "Los ejemplos de las Figuras 5, 6 y 7 se eligieron porque muestran discrepancias entre las etiquetas predichas y las originales, así que no representan el desempeño general de la red.",
+      "blocks": [
+        "s4-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "With only zeros and ones in the voxel grid, the model currently cannot learn anything about coverings or an air gap, since it has no material information.",
+      "es": "Con solo ceros y unos en la malla de vóxeles, el modelo por ahora no puede aprender nada sobre acabados o cámaras de aire, pues no tiene información de materiales.",
+      "blocks": [
+        "s5-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "future",
+      "en": "Next steps are instance segmentation of finer parts such as door knobs and handles, and studying the ideal voxel size and patch size.",
+      "es": "Los siguientes pasos son la segmentación de instancias de partes más finas, como perillas y manijas, y estudiar el tamaño ideal de vóxel y de parche.",
+      "blocks": [
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "future",
+      "en": "The authors would add material characteristics so elements can be delineated by non-homogeneous materials, and explore other tasks, such as anomaly detection on geometry, based on the trained model.",
+      "es": "Los autores añadirían características de materiales para delimitar elementos por materiales no homogéneos, y explorarían otras tareas, como la detección de anomalías en la geometría, con base en el modelo entrenado.",
+      "blocks": [
+        "s5-p3"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i3",
+      "to": "i4",
+      "type": "supports",
+      "why": "Vague schema definitions and a loose type-to-geometry link lead to inconsistently classified instances."
+    },
+    {
+      "from": "i4",
+      "to": "i1",
+      "type": "supports",
+      "why": "The cost of misclassified elements for automated flows is what motivates the learning question."
+    },
+    {
+      "from": "i5",
+      "to": "i1",
+      "type": "supports",
+      "why": "The IFC class on every instance supplies the labels needed for supervised learning."
+    },
+    {
+      "from": "i7",
+      "to": "i6",
+      "type": "supports",
+      "why": "Simple geometric features of single elements are sensitive to modeling idioms, which is part of the case for context."
+    },
+    {
+      "from": "i8",
+      "to": "i6",
+      "type": "supports",
+      "why": "IFCNet classifies normalized isolated elements and its authors admit information is lost."
+    },
+    {
+      "from": "i9",
+      "to": "i6",
+      "type": "supports",
+      "why": "The cited methods mostly learn from isolated elements and intrinsic shape."
+    },
+    {
+      "from": "i10",
+      "to": "i6",
+      "type": "supports",
+      "why": "Relationship counts in IFCNet++ do not capture how instances relate to each other."
+    },
+    {
+      "from": "i6",
+      "to": "i1",
+      "type": "supports",
+      "why": "The context argument is the answer the paper proposes to the classification question."
+    },
+    {
+      "from": "i2",
+      "to": "i12",
+      "type": "supports",
+      "why": "Because decomposition varies by modeler, a representation that ignores decomposition is attractive."
+    },
+    {
+      "from": "i13",
+      "to": "i12",
+      "type": "supports",
+      "why": "Occupancy grids keep connectivity and relative placement while discarding element boundaries."
+    },
+    {
+      "from": "i11",
+      "to": "i12",
+      "type": "supports",
+      "why": "Voxelization is the step that removes modeler choices."
+    },
+    {
+      "from": "i14",
+      "to": "i11",
+      "type": "uses",
+      "why": "Patches are cut from the voxelized, labelled occupancy grid."
+    },
+    {
+      "from": "i15",
+      "to": "i14",
+      "type": "uses",
+      "why": "The 3D UNet takes the extracted patches as input."
+    },
+    {
+      "from": "i16",
+      "to": "i15",
+      "type": "uses",
+      "why": "The training run trains the 3D UNet."
+    },
+    {
+      "from": "i16",
+      "to": "i17",
+      "type": "uses",
+      "why": "Training patches come from the 8 public models."
+    },
+    {
+      "from": "i18",
+      "to": "i17",
+      "type": "uses",
+      "why": "All evaluation is on models not seen in training."
+    },
+    {
+      "from": "i18",
+      "to": "i20",
+      "type": "measures",
+      "why": "The confusion matrices come from the element-wise and sliding-window evaluation."
+    },
+    {
+      "from": "i19",
+      "to": "i18",
+      "type": "part-of",
+      "why": "The lack of curated ground truth and the IoU problem concern the sliding-window part of the evaluation."
+    },
+    {
+      "from": "i21",
+      "to": "i20",
+      "type": "example-of",
+      "why": "Window frame errors illustrate the weak classes."
+    },
+    {
+      "from": "i22",
+      "to": "i20",
+      "type": "example-of",
+      "why": "Stair and slab confusions illustrate the weak classes."
+    },
+    {
+      "from": "i23",
+      "to": "i6",
+      "type": "supports",
+      "why": "Assigning the dominant class to individually modelled bars and risers is read as the network using context."
+    },
+    {
+      "from": "i20",
+      "to": "i24",
+      "type": "supports",
+      "why": "The confusion matrices back the claim that occupancy grids can be learned from."
+    },
+    {
+      "from": "i26",
+      "to": "i20",
+      "type": "part-of",
+      "why": "The inspected failures are chosen examples and are not the overall performance."
+    },
+    {
+      "from": "i27",
+      "to": "i29",
+      "type": "supports",
+      "why": "The missing material information is the reason the authors propose adding materials."
+    },
+    {
+      "from": "i28",
+      "to": "i25",
+      "type": "part-of",
+      "why": "Instance segmentation of door knobs follows from learning features that are not individual elements."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i24",
+      "to": "question",
+      "why": "Shows a network can learn what element classes mean from real IFC context, a step toward understanding parts, though it only labels existing models and does not generate new ones."
+    },
+    {
+      "idea": "i6",
+      "to": "hypothesis",
+      "why": "Supports the idea that patterns live in how elements relate to their surroundings, not in elements alone, which fits the decompose-and-relate hypothesis."
+    },
+    {
+      "idea": "i6",
+      "to": "ifcnet-2021",
+      "why": "Directly criticizes IFCNet-style benchmarks for learning from isolated, normalized elements."
+    },
+    {
+      "idea": "i1",
+      "to": "clean-real-models",
+      "why": "A context-aware classifier could flag mislabeled IFC elements, a possible cleaning step before real models are used as training data."
+    },
+    {
+      "idea": "i4",
+      "to": "noardo-2021-inspection",
+      "why": "Cites Noardo et al for permit evaluation needing reliable class labels, backing the finding that real IFC from practice is inconsistent."
+    },
+    {
+      "idea": "i14",
+      "to": "deconstruct-for-training",
+      "why": "Cutting a whole model into many context patches with flips and rotations is a method for getting training examples from few models."
+    },
+    {
+      "idea": "i2",
+      "to": "ifc-to-graph-recipe",
+      "why": "Notes that how a building is split into elements depends on the modeler, a gap for any graph recipe that treats elements as nodes, which voxels avoid."
+    },
+    {
+      "idea": "i17",
+      "to": "real-or-synthetic-data",
+      "why": "Trains on only 8 public models and gets its volume of examples from patch extraction and augmentation rather than more models."
+    }
+  ]
+}

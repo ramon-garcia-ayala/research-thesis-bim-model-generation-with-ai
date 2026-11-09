@@ -1,0 +1,454 @@
+{
+  "version": 1,
+  "node": "beorkrem-2020",
+  "title": "A Big Data Approach to BIM Models",
+  "source": "files/A Big Data Approach to BIM Models.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "A Big Data Approach to BIM Models",
+            "es": "A Big Data Approach to BIM Models"
+          }
+        },
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Christopher Beorkrem, Fernando J. Claudio Rodríguez, Alireza Karduni and Ashkan Radnia",
+            "es": "Christopher Beorkrem, Fernando J. Claudio Rodríguez, Alireza Karduni and Ashkan Radnia"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "University of North Carolina at Charlotte",
+            "es": "University of North Carolina at Charlotte"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "OPEN: 108th ACSA Annual Meeting",
+            "es": "OPEN: 108th ACSA Annual Meeting"
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Keywords: Architecture,BIM,Data,Computation, Visualizations.",
+            "es": "Palabras clave: Arquitectura, BIM, Datos, Computación, Visualizaciones."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "As technology develops at an astounding rate, data has become an intrinsic by-product on major fields, including architecture. Providing designers, contractors and other stakeholders with additional information in order to make informed real time decisions. This paper describes the creation of a series of prototypes which are intended to convert an archive of Building Information Models (BIM) from Little Diversified Architectural Consulting, an early adopter of Autodesk Revit, into a database which can be analyzed using Big Data approaches to data analysis. Using python, as opposed to Revit’s native C# language, provided a more dynamic and simpler pipeline for connecting to the underlying database behind Revit. Use of non-relational databases proved a more efficient system for managing all the information produced by the models. Throughout the use of these tools, we were able to generate our prototypes, which can be divided into three main sections. Starting with altering data inside a Revit model, allowing us to manipulate the databases and add new information as needed. Secondly we collected data between multiple models and stored all the information in a single database. Lastly is visualizing the obtained data from models in order to represent, compare and evaluate the data. After running multiple tests on the models, results proved to reduce repetitive tasks on traditional workflows, while allowing for better analysis and understanding of the implications and processes we use as designers in the 21st century.",
+            "es": "A medida que la tecnología se desarrolla a un ritmo asombroso, los datos se han convertido en un subproducto intrínseco en los campos principales, incluida la arquitectura. Proporcionan a diseñadores, contratistas y otras partes interesadas (stakeholders) información adicional para tomar decisiones informadas en tiempo real. Este artículo describe la creación de una serie de prototipos cuyo propósito es convertir un archivo de modelos de información de construcción (Building Information Models, BIM) de Little Diversified Architectural Consulting, una de las primeras adoptantes de Autodesk Revit, en una base de datos que pueda analizarse con enfoques de análisis de datos de Big Data. El uso de python, en lugar del lenguaje nativo C# de Revit, proporcionó un flujo de trabajo (pipeline) más dinámico y sencillo para conectarse a la base de datos subyacente de Revit. El uso de bases de datos no relacionales (non-relational databases) resultó ser un sistema más eficiente para gestionar toda la información producida por los modelos. A lo largo del uso de estas herramientas, pudimos generar nuestros prototipos, que pueden dividirse en tres secciones principales. Primero, la modificación de datos dentro de un modelo de Revit, lo que nos permitió manipular las bases de datos y agregar información nueva según fuera necesario. Segundo, recopilamos datos de varios modelos y almacenamos toda la información en una sola base de datos. Por último, la visualización de los datos obtenidos de los modelos para representar, comparar y evaluar los datos. Tras ejecutar múltiples pruebas en los modelos, los resultados demostraron que se reducen las tareas repetitivas de los flujos de trabajo tradicionales, al tiempo que se permite un mejor análisis y comprensión de las implicaciones y los procesos que utilizamos como diseñadores en el siglo 21."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "INTRODUCTION",
+        "es": "INTRODUCCIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Data has quickly become one of the largest and most valuable by-products in history and has revolutionized the way the world collects, develops and uses information. Industries such as automotive and motorsport analyze all the data retrieved from sensors in their vehicles to maximize the efficiency of their products and racers to gain an advantage from the competition. Therefore, “increasingly, the value of a business is tied to its ability to mine data” [1] and the AEC industry is quickly becoming one of the largest data producers in the world, as building design and production becomes more automated and more building elements are sensored. This information is becoming essential for clients to better understand how their buildings are performing, ranging from simple things like temperature statistics on thermostats, to counting the number of times doors are being opened and closed, to complex computer vision monitoring of behaviors. Alternatively, regulating the controls of HVAC systems, while monitoring heat gain and loss through this process and understanding the circulation and use in the building across the day, only helps to fix issues once the building is occupied. Data created during the design process can help to back up design estimates even after construction is completed, potentially providing live comparisons from environmental analysis to actual environmental data.",
+            "es": "Los datos se han convertido rápidamente en uno de los subproductos más grandes y valiosos de la historia y han revolucionado la manera en que el mundo recopila, desarrolla y utiliza la información. Industrias como la automotriz y el automovilismo deportivo analizan todos los datos obtenidos de los sensores de sus vehículos para maximizar la eficiencia de sus productos y para que sus pilotos obtengan una ventaja sobre la competencia. Por lo tanto, «cada vez más, el valor de un negocio está ligado a su capacidad para extraer datos» [1], y la industria AEC (arquitectura, ingeniería y construcción; AEC) se está convirtiendo rápidamente en uno de los mayores productores de datos del mundo, a medida que el diseño y la producción de edificios se automatizan más y se instrumentan con sensores más elementos de los edificios. Esta información se está volviendo esencial para que los clientes comprendan mejor el desempeño de sus edificios, desde aspectos simples como las estadísticas de temperatura de los termostatos, pasando por el conteo de las veces que se abren y cierran las puertas, hasta el monitoreo complejo de comportamientos mediante visión por computadora (computer vision). Por otro lado, regular los controles de los sistemas de HVAC, mientras se monitorean la ganancia y la pérdida de calor a través de este proceso y se comprenden la circulación y el uso del edificio a lo largo del día, solo ayuda a corregir problemas una vez que el edificio está ocupado. Los datos creados durante el proceso de diseño pueden ayudar a respaldar las estimaciones de diseño incluso después de concluida la construcción, y podrían ofrecer comparaciones en vivo entre el análisis ambiental y los datos ambientales reales."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "From an economic perspective, data can help manage construction costs and budgets, during and after the design process, providing cost and time estimates, grounded in real time data, which can be compared as the project progresses. During the construction phase, data produced on site can provide up-to-date information that can help contractors, construction companies and stakeholders make informed on-time decisions [2]. As technology continues to progress at an astounding rate, it is time for the architecture field to catch up to these advances and take advantage of them. Building Information Modeling (BIM) tools such as Autodesk Revit have revolutionized the industry becoming the standard for architectural production. At the same time Revit is generating an astounding amount of valuable data. This paper will describe the creation of a series of prototypes which are intended to convert an archive of BIM models from a large Architectural Design firm (Little Diversified Architectural Consulting) into a database which can be analyzed using Big Data approaches to data analysis.",
+            "es": "Desde una perspectiva económica, los datos pueden ayudar a gestionar los costos y presupuestos de construcción, durante y después del proceso de diseño, al proporcionar estimaciones de costo y tiempo basadas en datos en tiempo real, que pueden compararse a medida que avanza el proyecto. Durante la fase de construcción, los datos producidos en obra pueden proporcionar información actualizada que ayude a contratistas, empresas constructoras y partes interesadas a tomar decisiones informadas y oportunas [2]. Dado que la tecnología continúa avanzando a un ritmo asombroso, es momento de que el campo de la arquitectura se ponga al día con estos avances y los aproveche. Las herramientas de modelado de información de construcción (Building Information Modeling, BIM) como Autodesk Revit han revolucionado la industria y se han convertido en el estándar de la producción arquitectónica. Al mismo tiempo, Revit genera una cantidad asombrosa de datos valiosos. Este artículo describirá la creación de una serie de prototipos cuyo propósito es convertir un archivo de modelos BIM de una gran firma de diseño arquitectónico (Little Diversified Architectural Consulting) en una base de datos que pueda analizarse mediante enfoques de análisis de datos de big data."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Given the current intrinsic value of data, the goals of the project consist of creating a standardization of information and automatizing large repetitive tasks. For example, an analytical benchmarking task that normally could take multiple employees, weeks to complete, can now be performed in a matter of minutes. This helps demonstrate the power and benefits of using this information. Knowing this, the value and use of this data is greatly expanded, especially when analyzed across hundreds, or even thousands of models. When we can quickly access and compare a huge range of models we can begin to demonstrate some of the capabilities of harnessing the power of big data for Architecture.",
+            "es": "Dado el valor intrínseco actual de los datos, los objetivos del proyecto consisten en crear una estandarización de la información y automatizar grandes tareas repetitivas. Por ejemplo, una tarea de evaluación comparativa (benchmarking) analítica que normalmente podría requerir semanas de trabajo de varios empleados ahora puede realizarse en cuestión de minutos. Esto ayuda a demostrar el poder y los beneficios de usar esta información. Sabiendo esto, el valor y el uso de estos datos se amplían enormemente, especialmente cuando se analizan en cientos, o incluso miles, de modelos. Cuando podemos acceder rápidamente a una enorme variedad de modelos y compararlos, podemos comenzar a demostrar algunas de las capacidades de aprovechar el poder del big data para la arquitectura."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "DEVELOPING REVIT ANALYTICS",
+        "es": "DESARROLLO DE ANALÍTICA DE REVIT (REVIT ANALYTICS)"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Over the last 18 months we have worked with Little, an early adopter of Autodesk Revit to develop an understanding of what information might be available within their archive of approximately 300 design models (an initial data set). This archive (as those with most firms have) were modeled using an evolving subset of standards which have been loosely adhered to within the firm structure. Each model has a widely varying number of backups which were archived during the modeling process. This results in a large, potentially rich, yet unstructured data set.",
+            "es": "Durante los últimos 18 meses hemos trabajado con Little, uno de los primeros en adoptar Autodesk Revit, para comprender qué información podría estar disponible dentro de su archivo de aproximadamente 300 modelos de diseño, un conjunto de datos inicial (initial data set). Este archivo (como los de la mayoría de las firmas) fue modelado usando un subconjunto cambiante de estándares que se han seguido de manera laxa dentro de la estructura de la firma. Cada modelo tiene un número muy variable de copias de seguridad (backups) que fueron archivadas durante el proceso de modelado. Esto da como resultado un conjunto de datos grande, potencialmente rico, pero no estructurado."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We have been working to develop a process by which we can harvest particular data points within these models and add parameters to their definitions to be able to subsequently use them for creating benchmarking standards for internal office processes as well as programming and design of future projects. These tools will allow for each model to be standardized and then easily mapped using typical database automation tools to better understand past programming standards for a program type (office, retail, etc.).",
+            "es": "Hemos estado trabajando en desarrollar un proceso mediante el cual podamos recolectar puntos de datos particulares dentro de estos modelos y añadir parámetros a sus definiciones, para poder usarlos posteriormente en la creación de estándares de evaluación comparativa (benchmarking) para los procesos internos de la oficina, así como para la programación y el diseño de proyectos futuros. Estas herramientas permitirán que cada modelo se estandarice y luego se mapee fácilmente usando herramientas típicas de automatización de bases de datos (database automation tools), para comprender mejor los estándares de programación del pasado para un tipo de programa (oficinas, comercio minorista, etc.)."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Secondly, we have worked to develop a tool which will strip each of these models of their unnecessary data and create models which will have a uniformly searchable set of standards regardless of how, what version, or when they were modeled. This tool can be used to create a uniform data set which can represent both past and future work of the firm. These uniform inter-project data sets can be used for analysis using simple data analytics and interactive visualization tools. With more complex tasks and inquiries, these datasets can be analyzed using advanced machine learning and artificial intelligence algorithms.",
+            "es": "En segundo lugar, hemos trabajado en desarrollar una herramienta que despoje a cada uno de estos modelos de sus datos innecesarios y cree modelos con un conjunto de estándares uniformemente consultable, sin importar cómo, con qué versión o cuándo hayan sido modelados. Esta herramienta puede usarse para crear un conjunto de datos uniforme que pueda representar tanto el trabajo pasado como el futuro de la firma. Estos conjuntos de datos uniformes entre proyectos pueden usarse para análisis mediante analítica de datos (data analytics) sencilla y herramientas de visualización interactiva (interactive visualization). Con tareas y consultas más complejas, estos conjuntos de datos pueden analizarse con algoritmos avanzados de aprendizaje automático (machine learning) e inteligencia artificial (artificial intelligence)."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "One of the main benefits of BIM is streamlining the architectural design process towards efficiency, but these models also contain a wealth of information that could be harvested and analyzed by AEC firms. However, there are various reasons for architectural firms to need to go beyond data collection and analysis to actually programmatically alter and update data on BIM models. The first reason is the fact that in architectural firms, data is created and named inconsistently. Family parameters and naming conventions vary widely even with the most rigorous of firm standards. This inconsistency is problematic, as this would mean that all of these similar rooms would be treated differently by the analytical tools. Moreover, it would be desirable to provide a method for architects to update their Revit model data, based upon the outcomes of the analytics. To this end, in order to have a complete pipeline, we propose a framework that includes an iterative process of data collection, analysis, and alteration. Fig.1 shows a diagram of the logic of our proposed framework, this section will describe the development of a set of tools that would fit within this framework.",
+            "es": "Uno de los principales beneficios de BIM es agilizar el proceso de diseño arquitectónico hacia la eficiencia, pero estos modelos también contienen una gran riqueza de información que podría ser recolectada y analizada por las firmas AEC. Sin embargo, existen diversas razones por las que las firmas de arquitectura necesitan ir más allá de la recolección y el análisis de datos para alterar y actualizar, de manera programática, los datos de los modelos BIM. La primera razón es que, en las firmas de arquitectura, los datos se crean y se nombran de manera inconsistente. Los parámetros de las familias (family parameters) y las convenciones de nomenclatura (naming conventions) varían ampliamente incluso con los estándares más rigurosos de una firma. Esta inconsistencia es problemática, ya que implicaría que todas estas habitaciones similares serían tratadas de forma distinta por las herramientas analíticas. Además, sería deseable ofrecer a los arquitectos un método para actualizar los datos de su modelo de Revit con base en los resultados de la analítica. Con este fin, y para contar con un flujo de trabajo (pipeline) completo, proponemos un marco de trabajo (framework) que incluye un proceso iterativo de recolección, análisis y alteración de datos. La Fig. 1 muestra un diagrama de la lógica de nuestro marco de trabajo propuesto; esta sección describirá el desarrollo de un conjunto de herramientas que encajarían dentro de este marco de trabajo."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1. Architectural Analytics Framework of the multiple prototypes.",
+            "es": "Figura 1: Marco de trabajo de analítica arquitectónica de los múltiples prototipos."
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Revit has a built-in database exporter- Open Database Connectivity (ODBC), which creates a simple self-referenced database of all the elements in a given model. At their core the databases allow for more typical approaches to data analytics, but they are quite large and have object IDs which are often duplicitous. The default exports are then rendered more complex by the often-changing standards used to tag objects within the model by users or manufacturers.",
+            "es": "Revit cuenta con un exportador de bases de datos integrado, Open Database Connectivity (ODBC), que crea una base de datos simple y autorreferenciada de todos los elementos de un modelo dado. En esencia, las bases de datos permiten enfoques más típicos de analítica de datos, pero son bastante grandes y tienen identificadores de objeto (object IDs) que con frecuencia están duplicados. Las exportaciones predeterminadas se vuelven entonces más complejas debido a los estándares, en constante cambio, que los usuarios o los fabricantes emplean para etiquetar los objetos dentro del modelo."
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "As an alternative, the method we employed to create these prototype databases used PyRevit, which as the name implies is a collection of tools for developing plugins for Revit using an implementation of the Python language into the Revit ecosystem by Ehsan Iran-Nejad. As opposed to Revit’s native C# language; python, which is currently the leading programming language for data science and analytics, provides more dynamic and simpler pipelines for connecting to the underlying database behind Revit. PyRevit streamlines the process of creating UI elements within Revit, extracting data, and altering and updating data within Revit projects.",
+            "es": "Como alternativa, el método que empleamos para crear estas bases de datos prototipo usó PyRevit, que, como su nombre lo indica, es una colección de herramientas para desarrollar complementos (plugins) para Revit mediante una implementación del lenguaje Python en el ecosistema de Revit, realizada por Ehsan Iran-Nejad. A diferencia del lenguaje C# nativo de Revit, Python, que actualmente es el lenguaje de programación líder en ciencia y analítica de datos, ofrece flujos de trabajo más dinámicos y sencillos para conectarse con la base de datos subyacente de Revit. PyRevit agiliza el proceso de crear elementos de interfaz de usuario dentro de Revit, extraer datos, y alterar y actualizar datos dentro de los proyectos de Revit."
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In order to allow for a wide range of analytics using a wide range of data and visualization methods, our Revit add-ons extract data from multiple models at once and organizes them within a single database. This is made possible by utilizing a non-relational database as the backbone of the system.",
+            "es": "Para permitir una amplia gama de analíticas usando una amplia gama de datos y métodos de visualización, nuestros complementos (add-ons) de Revit extraen datos de múltiples modelos a la vez y los organizan dentro de una única base de datos. Esto es posible gracias a que se utiliza una base de datos no relacional (non-relational database) como columna vertebral del sistema."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2. Framework for the Family and Room Harvester",
+            "es": "Figura 2: Marco de trabajo para Family and Room Harvester"
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Non-relational (NoSQL) databases are best suited for datasets that are not structured like a table. NoSQL databases are structured in terms of documents and collections as opposed to tables and rows in relational datasets. As an example, within Revit families, each type of room may have different data types, names, attributes and values, these types of databases are most suitable for NoSQL. In our case, we utilized MongoDB which is an open source database designed specifically for non-relational data and has one of the most useful set of read, write and delete operations [3]. In our system, each room is a document.",
+            "es": "Las bases de datos no relacionales (NoSQL) son las más adecuadas para conjuntos de datos que no están estructurados como una tabla. Las bases de datos NoSQL se estructuran en términos de documentos y colecciones (documents and collections), en lugar de tablas y filas (tables and rows) como en los conjuntos de datos relacionales. Por ejemplo, dentro de las familias (families) de Revit, cada tipo de habitación (room) puede tener distintos tipos de datos, nombres, atributos y valores; este tipo de datos es el más adecuado para NoSQL. En nuestro caso, utilizamos MongoDB, una base de datos de código abierto diseñada específicamente para datos no relacionales y que cuenta con uno de los conjuntos más útiles de operaciones de lectura, escritura y eliminación [3]. En nuestro sistema, cada habitación es un documento."
+          }
+        },
+        {
+          "id": "s5-p9",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In this example, we worked to create a test bed for analyzing the data we were able to harvest. We gathered some simple information from five example Revit models- Rooms and Room Tags. Rooms are physical elements inside the Revit environment, like walls and doors, they have perimeter dimensions and areas. Room Tags are annotation elements that are added after rooms are created and define the area by its boundary elements, such as walls or room separation lines. The reason behind choosing these elements is because they contain different parameters, some which are dynamic and computed based on the room’s spatial properties, such as area or volume. While others are defined by the operator, for instance, occupancy type and department. Extracting room data is traditionally done using room schedules and adding the specific parameters to produce the data table. Our system allows us to gather both the physical and associated spatial qualities and quantities within a single database. We intend to add in a method for using natural language processing tools to more fully automate the renaming process in the future.",
+            "es": "En este ejemplo, trabajamos en crear un banco de pruebas para analizar los datos que pudimos recolectar. Reunimos información sencilla de cinco modelos de Revit de ejemplo: habitaciones (Rooms) y etiquetas de habitación (Room Tags). Las habitaciones son elementos físicos dentro del entorno de Revit, como los muros y las puertas, y tienen dimensiones de perímetro y áreas. Las etiquetas de habitación son elementos de anotación que se añaden después de que se crean las habitaciones y definen el área mediante sus elementos de borde, como muros o líneas de separación de habitaciones. La razón para elegir estos elementos es que contienen distintos parámetros: algunos son dinámicos y se calculan con base en las propiedades espaciales de la habitación, como el área o el volumen, mientras que otros los define el operador, por ejemplo, el tipo de ocupación y el departamento. Tradicionalmente, la extracción de datos de habitaciones se hace usando tablas de planificación de habitaciones (room schedules) y añadiendo los parámetros específicos para producir la tabla de datos. Nuestro sistema nos permite reunir, dentro de una única base de datos, tanto las cualidades y cantidades físicas como las espaciales asociadas. Pretendemos añadir en el futuro un método que utilice herramientas de procesamiento de lenguaje natural (natural language processing) para automatizar más completamente el proceso de renombrado."
+          }
+        },
+        {
+          "id": "s5-p10",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Our goal for developing this tool was to make the process of collecting, extracting and visualizing data fast and easy. All with the push of a button within the Revit interface. Given how some documents can have very large file sizes, manually browsing multiple files can be a very slow process. The power of this tool lies is the ability to process multiple Revit projects automatically, extracting data from all selected data points within each project and saving the resulting data into a database. Moreover, removing the need of going through the repetitive process of creating schedules inside each Revit document. After extracting all existing parameters for all rooms in multiple projects, these results are saved into a single database. This database becomes the powerful tool that we can use to analyze the historical value of a large quantity of Revit models at once.",
+            "es": "Nuestro objetivo al desarrollar esta herramienta fue hacer que el proceso de recolectar, extraer y visualizar datos fuera rápido y fácil, todo con el clic de un botón dentro de la interfaz de Revit. Dado que algunos documentos pueden tener tamaños de archivo muy grandes, examinar manualmente múltiples archivos puede ser un proceso muy lento. El poder de esta herramienta radica en la capacidad de procesar automáticamente múltiples proyectos de Revit, extrayendo datos de todos los puntos de datos seleccionados dentro de cada proyecto y guardando los datos resultantes en una base de datos. Además, elimina la necesidad de pasar por el proceso repetitivo de crear tablas de planificación dentro de cada documento de Revit. Después de extraer todos los parámetros existentes de todas las habitaciones en múltiples proyectos, estos resultados se guardan en una única base de datos. Esta base de datos se convierte en la poderosa herramienta que podemos usar para analizar, de una sola vez, el valor histórico de una gran cantidad de modelos de Revit."
+          }
+        },
+        {
+          "id": "s5-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "However, room tags are not limited to Revit’s default parameters as they can be compounded with other features of Revit’s API to store the data of other elements that exist within the room or identify the walls and windows which are attached to the room boundaries. This feature allows us to expand the range of data we can extract from a Revit document and make room harvester aware of all the existing elements within the room and maintain parent/child relations between a room, and its respective elements and therefore with each of those elements other relations. The standardization of parameters can be mapped to a bigger spectrum of Big Data within a firm, allowing for benchmarking standards and design alternatives for future projects.",
+            "es": "Sin embargo, las etiquetas de habitación no se limitan a los parámetros predeterminados de Revit, ya que pueden combinarse con otras características de la API de Revit para almacenar los datos de otros elementos que existen dentro de la habitación o para identificar los muros y las ventanas que están unidos a los límites de la habitación. Esta característica nos permite ampliar la gama de datos que podemos extraer de un documento de Revit y hacer que Room Harvester sea consciente de todos los elementos existentes dentro de la habitación, además de mantener relaciones padre/hijo (parent/child) entre una habitación y sus respectivos elementos y, por lo tanto, también las demás relaciones de cada uno de esos elementos. La estandarización de los parámetros puede mapearse a un espectro más amplio de Big Data dentro de una firma, lo que permite contar con estándares de evaluación comparativa y alternativas de diseño para proyectos futuros."
+          }
+        },
+        {
+          "id": "s5-p12h",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "ALTERING DATA ON REVIT MODELS",
+            "es": "ALTERACIÓN DE DATOS EN MODELOS DE REVIT"
+          }
+        },
+        {
+          "id": "s5-p12",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Architecture firms, very often have multiple people collaborating on large projects inside a single Revit model. Although most firms maintain a template standardization for their naming conventions and parameters, this is not always accurate. Employees do not always follow these standards and tend to use similar elements and naming conventions for various purposes. This causes inaccuracies and inconsistencies across models and data. This tool provides a streamlined process for any firm, to add and/or modifying a parameter to multiple elements to maintain or create consistency across all models and databases.",
+            "es": "Las firmas de arquitectura, con mucha frecuencia, tienen a varias personas colaborando en grandes proyectos dentro de un único modelo de Revit. Aunque la mayoría de las firmas mantiene una plantilla de estandarización para sus convenciones de nomenclatura y sus parámetros, esto no siempre es exacto. Los empleados no siempre siguen estos estándares y tienden a usar elementos y convenciones de nomenclatura similares para diversos propósitos. Esto causa imprecisiones e inconsistencias entre los modelos y los datos. Esta herramienta ofrece a cualquier firma un proceso ágil para añadir y/o modificar un parámetro en múltiples elementos, con el fin de mantener o crear consistencia en todos los modelos y bases de datos."
+          }
+        },
+        {
+          "id": "s5-p13",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In order to understand in depth the use of this tool and its capabilities, it is necessary to describe key components in the use of the data embedded in the Revit environment. Starting with the use of “families” which are 2D or 3D elements inside a project which houses a series of information that serves to represent a discrete building or documentation. Each one is saved as a separate file(.rfa) which can be loaded into a project. These range from furniture, doors, and windows to plumbing and lighting fixtures. Based on the properties housed by each family, these are organized into categories that Revit uses to perform certain calculations.",
+            "es": "Para comprender en profundidad el uso de esta herramienta y sus capacidades, es necesario describir los componentes clave en el uso de los datos incrustados en el entorno de Revit. Se comienza con el uso de las “familias”, que son elementos 2D o 3D dentro de un proyecto y que alojan una serie de información que sirve para representar un elemento constructivo discreto o para documentación. Cada una se guarda como un archivo independiente (.rfa) que puede cargarse en un proyecto. Estas abarcan desde mobiliario, puertas y ventanas hasta instalaciones sanitarias y luminarias. Con base en las propiedades que aloja cada familia, estas se organizan en categorías que Revit utiliza para realizar ciertos cálculos."
+          }
+        },
+        {
+          "id": "s5-p14",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "To test our process and classification system, we have developed a tool that consists of adding a standardized parameter across all furniture family files inside a Revit document. Currently occupant loads are determined based on square footage, however these are not entirely accurate. A precise number would be better determined by calculating the maximum capacity of people which can use a given space. Using the family Harvester tool, we were able to collect all the furniture across the project and create a standard parameter, that would assign the amount of people which could sit on the given piece of furniture. These furniture families are later updated in the original Revit document. Once loaded a new database can be created that identifies all the furniture, (see Fig.3) inside each room and shows the total sum of occupants for each level and room.",
+            "es": "Para probar nuestro proceso y nuestro sistema de clasificación, hemos desarrollado una herramienta que consiste en añadir un parámetro estandarizado a todos los archivos de familias de mobiliario dentro de un documento de Revit. Actualmente, las cargas de ocupación (occupant loads) se determinan con base en los pies cuadrados; sin embargo, estas no son del todo precisas. Un número preciso se determinaría mejor calculando la capacidad máxima de personas que pueden usar un espacio dado. Usando la herramienta Family Harvester, pudimos recolectar todo el mobiliario del proyecto y crear un parámetro estándar que asignara la cantidad de personas que podrían sentarse en una pieza de mobiliario dada. Posteriormente, estas familias de mobiliario se actualizan en el documento original de Revit. Una vez cargadas, puede crearse una nueva base de datos que identifique todo el mobiliario (véase la Fig. 3) dentro de cada habitación y muestre la suma total de ocupantes por nivel y por habitación."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3. Revit interface displaying family with newly added parameter and furniture schedule",
+            "es": "Figura 3: Interfaz de Revit que muestra una familia con el parámetro recién añadido y la tabla de planificación de mobiliario"
+          }
+        },
+        {
+          "id": "s5-p15",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "By calculating the number of seats designed within the space we can more accurately know the number of people the space is designed for. The process for using the tool, is divided into three simple steps; first the tool ‘harvests’ or collects all the furniture families available in the file, and creates a new parameter, while adding it and uploading it to each one of the families. Secondly, we assigned a value to that parameter which is done manually (the user will be prompted to do so for each element). Thirdly, a database in which all the furniture is sorted by level and later, by rooms to count the amount of occupancy of each spaced based on the total amount of furniture available in the space. The first two steps would only have to be performed once, as once this newly parameter is created once the family file is loaded into another document it will contain this information.",
+            "es": "Al calcular el número de asientos diseñados dentro del espacio, podemos saber con mayor precisión para cuántas personas está diseñado el espacio. El proceso para usar la herramienta se divide en tres pasos sencillos: primero, la herramienta “cosecha” o recolecta todas las familias de mobiliario disponibles en el archivo y crea un nuevo parámetro, al mismo tiempo que lo añade y lo carga en cada una de las familias. En segundo lugar, asignamos un valor a ese parámetro, lo cual se hace manualmente (se solicitará al usuario que lo haga para cada elemento). En tercer lugar, se genera una base de datos en la que todo el mobiliario se ordena por nivel y, después, por habitaciones, para contar la cantidad de ocupación de cada espacio con base en la cantidad total de mobiliario disponible en el espacio. Los dos primeros pasos solo tendrían que realizarse una vez, ya que, una vez creado este nuevo parámetro, cuando el archivo de la familia se cargue en otro documento contendrá esta información."
+          }
+        },
+        {
+          "id": "s5-p16",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The outcome of this process has multiple benefits; one is the calculation of actual occupancy as opposed to occupancy load which gives a more realistic understanding of the space required for a particular program. These calculations can be used to help determine better egress systems strategies and circulation cores, allowing buildings to perform more efficiently based on the amount of people that use each area, not the amount of people allowed by law.",
+            "es": "El resultado de este proceso tiene múltiples beneficios; uno es el cálculo de la ocupación real, en contraposición a la carga de ocupación, lo cual da una comprensión más realista del espacio requerido para un programa en particular. Estos cálculos pueden usarse para ayudar a determinar mejores estrategias de sistemas de evacuación (egress) y núcleos de circulación (circulation cores), lo que permite que los edificios funcionen con mayor eficiencia con base en la cantidad de personas que usan cada área, no en la cantidad de personas permitida por la ley."
+          }
+        },
+        {
+          "id": "s5-p17h",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "CASE STUDIES",
+            "es": "ESTUDIOS DE CASO"
+          }
+        },
+        {
+          "id": "s5-p17",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "For architects, program distribution is one of the most important components to the schematic design of a building. Relationships such as scale and proportion are intrinsic data points that help guide a project, these have very often if not always been based on intuition and precedent. However, most of this information consists of numeric data, which in large numbers can be hard to interpret. Generating visualizations for these can be a tedious and time consuming process. When presented with this problem, our solution was to provide a simple and quick alternative to the traditional spreadsheets using TreeMaps. TreeMaps provides a hierarchical structure which creates an intuitive method for navigating spatial relationships. Fig.4(Top) shows an example of the resulting TreeMaps from multiple projects. The data collected from the Room Harvester contains information by department, room type and area. Using this information we are able to create clear and simple visuals that display the relationships of spaces in and across projects. This allows for the firm to quickly and visually compare program size and distribution, and to create relations from current and previous projects. Conceptually, we imagine being able to use this tool to compare schematic designs in realtime to alert a user to anomalies in their design when compared with the firm’s historical metrics for similar programs.",
+            "es": "Para los arquitectos, la distribución del programa es uno de los componentes más importantes del diseño esquemático (schematic design) de un edificio. Relaciones como la escala y la proporción son puntos de datos intrínsecos que ayudan a guiar un proyecto, y con mucha frecuencia, si no siempre, se han basado en la intuición y en los precedentes. Sin embargo, la mayor parte de esta información consiste en datos numéricos que, en grandes cantidades, pueden ser difíciles de interpretar. Generar visualizaciones de estos puede ser un proceso tedioso y que consume mucho tiempo. Ante este problema, nuestra solución fue ofrecer una alternativa simple y rápida a las hojas de cálculo tradicionales utilizando mapas de árbol (TreeMaps). Los TreeMaps proporcionan una estructura jerárquica que crea un método intuitivo para navegar las relaciones espaciales. La Fig. 4 (arriba) muestra un ejemplo de los TreeMaps resultantes de múltiples proyectos. Los datos recolectados con Room Harvester contienen información por departamento, tipo de habitación y área. Con esta información podemos crear visuales claros y sencillos que muestran las relaciones entre los espacios dentro de los proyectos y entre ellos. Esto permite que la firma compare rápida y visualmente el tamaño y la distribución del programa, y que cree relaciones entre proyectos actuales y anteriores. Conceptualmente, imaginamos poder usar esta herramienta para comparar diseños esquemáticos en tiempo real y alertar al usuario sobre anomalías en su diseño al compararlo con las métricas históricas de la firma para programas similares."
+          }
+        },
+        {
+          "id": "s5-p18",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Using ODBC exports or schedules created by Revit can be incredibly time consuming and nearly impossible to analyze across multiple models. The data is often organized in Undefined ways and the IDs tagged to each object usually don’t have any consistent convention. Using the Room Harvester tool we were able to solve the problem of comparing multiple projects side to side. For a firm this can be a labor intensive process that requires a full time employee working for a period of two weeks to gather the required information, and graphically represent it. Using Tableau we are able to use the data collected from the Revit documents and create an interactive dashboard for analyzing multiple projects simultaneously. Reducing the labor of weeks into a matter of seconds. The interface is dynamic, allowing data from a collection of projects, (Fig.4(Bottom)) displaying more complex relationship between models. This tool enables projects to be easily compared, analyzed and referenced based on any data type, providing tremendous new insight for future projects.",
+            "es": "Usar exportaciones ODBC o tablas de planificación creadas por Revit puede consumir una cantidad increíble de tiempo y resulta casi imposible de analizar entre múltiples modelos. Los datos suelen estar organizados de maneras indefinidas y los identificadores asignados a cada objeto normalmente no siguen ninguna convención consistente. Con la herramienta Room Harvester pudimos resolver el problema de comparar múltiples proyectos lado a lado. Para una firma, esto puede ser un proceso que demanda mucha mano de obra y que requiere que un empleado de tiempo completo trabaje durante un periodo de dos semanas para reunir la información necesaria y representarla gráficamente. Con Tableau podemos utilizar los datos recolectados de los documentos de Revit y crear un tablero interactivo (dashboard) para analizar múltiples proyectos simultáneamente, reduciendo semanas de trabajo a cuestión de segundos. La interfaz es dinámica y permite usar datos de una colección de proyectos (Fig. 4 (abajo)), mostrando relaciones más complejas entre modelos. Esta herramienta permite que los proyectos se comparen, analicen y consulten fácilmente con base en cualquier tipo de dato, lo que aporta una enorme perspectiva nueva para proyectos futuros."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4. (Top) Resulting TreeMaps from multiple Revit Documents (Bottom) Tableau interface, displaying data from multiple Revit projects",
+            "es": "Figura 4: (Arriba) TreeMaps resultantes de múltiples documentos de Revit. (Abajo) Interfaz de Tableau que muestra datos de múltiples proyectos de Revit"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "DISCUSSION AND CONCLUSION",
+        "es": "DISCUSIÓN Y CONCLUSIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "As we continue this work, we intend to generate a more holistic perspective on programming strategies, family use amongst various building typologies, and to use our new standards to create a custom, searchable database based off of firm-wide models. We anticipate these tools and their use to help refine and analyze the firm wide design and modeling standards as well as to create templates based on successful past modeling analysis.",
+            "es": "A medida que continuamos este trabajo, nos proponemos generar una perspectiva más holística sobre las estrategias de programación (programming strategies), el uso de familias (families) en diversas tipologías de edificios (building typologies), y utilizar nuestros nuevos estándares para crear una base de datos personalizada y con capacidad de búsqueda (searchable database) a partir de los modelos de toda la firma. Anticipamos que estas herramientas y su uso ayudarán a refinar y analizar los estándares de diseño y modelado de toda la firma, así como a crear plantillas (templates) basadas en análisis de modelado previos que hayan tenido éxito."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The analytical tools which could sit on top of this database would create new ways for architecture firms to track previous organizational strategies across all program types. Additionally, we would work to create other tools which could be used to track redundancies, potential strengths and weaknesses in design processes, communication with consultants, contractors and code officials, which could result in reduced liability through higher quality models, less redundancy in time spent on drawing sets and modeling.",
+            "es": "Las herramientas analíticas que podrían colocarse sobre esta base de datos crearían nuevas maneras para que las firmas de arquitectura den seguimiento a estrategias organizacionales previas en todos los tipos de programa. Además, trabajaríamos para crear otras herramientas que podrían utilizarse para rastrear redundancias, así como posibles fortalezas y debilidades en los procesos de diseño y en la comunicación con consultores, contratistas y funcionarios de códigos, lo que podría traducirse en una menor responsabilidad legal (liability) gracias a modelos de mayor calidad y a menos redundancia en el tiempo dedicado a los juegos de planos y al modelado."
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "We intend to establish methods for linking key secondary information to the newly created database, potentially including programming strategies, levels of complexity and development, employees tied to the model, location, time, change orders, budgets and consultants. We will use this data set to establish a method for comparing data across the model set, to test for performative criteria. This data could be used to compare actual performance of built projects, between alternative designs for similar programs and locations. This approach could allow for deeper inquiry using more advanced exploratory visual systems or with Machine Learning (ML) and Artificial Intelligence (AI) algorithms to conduct both supervised and unsupervised analysis of the data given various problems architectural firms might be facing. Given that this an understudied area of practice, there are still multiple unknowns on how this will affect the profession itself. However, some of the next steps for this project include performing more in depth analysis and tests on Revit models. While also understanding how these new practices will be incorporated in architecture firms current workflows.",
+            "es": "Nos proponemos establecer métodos para vincular información secundaria clave con la base de datos recién creada, que potencialmente incluiría estrategias de programación, niveles de complejidad y de desarrollo, empleados vinculados con el modelo, ubicación, tiempo, órdenes de cambio (change orders), presupuestos y consultores. Utilizaremos este conjunto de datos para establecer un método que permita comparar datos a lo largo del conjunto de modelos, con el fin de someter a prueba criterios de desempeño. Estos datos podrían utilizarse para comparar el desempeño real de proyectos construidos, entre diseños alternativos para programas y ubicaciones similares. Este enfoque podría permitir una indagación más profunda mediante sistemas visuales exploratorios más avanzados o mediante algoritmos de aprendizaje automático (Machine Learning, ML) y de inteligencia artificial (Artificial Intelligence, AI) para realizar un análisis tanto supervisado como no supervisado de los datos, según los distintos problemas que las firmas de arquitectura puedan enfrentar. Dado que este es un ámbito de la práctica poco estudiado, aún existen múltiples incógnitas sobre cómo afectará esto a la propia profesión. Sin embargo, algunos de los siguientes pasos de este proyecto incluyen realizar análisis y pruebas más a fondo sobre modelos de Revit. Al mismo tiempo, también se busca comprender cómo se incorporarán estas nuevas prácticas en los flujos de trabajo actuales de las firmas de arquitectura."
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Finally, This approach will allow for us to better understand the implications of the processes we use to design and make buildings in the 21st century and allow us to see unobservable patterns in the way we design, work and build. We have too often relied upon precedent and a reliance on a ‘this is how we’ve always done it’ mentality. These tools could allow us to actually see the patterns which show how we have always done it’. They could also be tremendously valuable in helping to realize the full potential of BIM modeling on the built environment.",
+            "es": "Finalmente, este enfoque nos permitirá comprender mejor las implicaciones de los procesos que utilizamos para diseñar y construir edificios en el siglo 21, y nos permitirá ver patrones no observables en la manera en que diseñamos, trabajamos y construimos. Con demasiada frecuencia hemos dependido del precedente y de una mentalidad de «así es como siempre lo hemos hecho». Estas herramientas podrían permitirnos ver realmente los patrones que muestran cómo «siempre lo hemos hecho». También podrían ser enormemente valiosas para ayudar a materializar todo el potencial del modelado BIM (Building Information Modeling) en el entorno construido."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[1] Daniel Davis, “How Big Data Is Transforming Architecture.” ARCHITECT, April 23, 2015, https://www.architectmagazine.com/technology/how-big-data-is-transforming-architecture_o."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[2] German Aparicio. “Data-Insight-Driven Project Delivery:Approach to Accelerated Project Delivery Using Data Analytics, Data Mining and Data Visualization.” ACADIA 2017 DISCIPLINES & DISRUPTION: Proceedings of the 37th Annual Conference of the Association for Computer Aided Design in Architecture, (November 2017): 102-109. Example of a conference proceedings paper in a book: [Author Name(s), first then last], “[Paper Title],” in [Proceedings Book Name], ed. [Editor Name] ([Publisher City: Publisher Name, Year Published]), [Page Number(s)]."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "[3] Yishan Li, and Sathiamoorthy Manoharan. “A Performance Comparison of Sql and Nosql Databases.” Paper presented at the 2013 IEEE Pacific Rim Conference on Communications, Computers and Signal Processing (PACRIM), 2013."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Belle, Ashwin, Raghuram Thiagarajan, SM Soroushmehr, Fatemeh Navidi, Daniel A Beard, and Kayvan Najarian. 2015. “Big data analytics in healthcare.” BioMed research international 2015."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Johanson, Mathias, Stanislav Belenki, Jonas Jalminger, Magnus Fant, and Mats Gjertz. 2014. “Big automotive data: Leveraging large volumes of data for knowledge-driven product development.” 2014 IEEE International Conference on Big Data (Big Data)."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Nagpal, Abhinav, and Goldie Gabrani. 2019. “Python for Data Analytics, Scientific and Technical Applications.” 2019 Amity International Conference on Artificial Intelligence (AICAI)."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Talarico, Gui. 2018. “revitpythonwrapper Documentation.”"
+          }
+        }
+      ]
+    }
+  ]
+}
