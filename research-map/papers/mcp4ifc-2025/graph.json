@@ -1,0 +1,609 @@
+{
+  "version": 1,
+  "node": "mcp4ifc-2025",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "concept",
+      "en": "MCP4IFC is an open-source framework that lets an LLM read, create and edit IFC models directly through Model Context Protocol tool calls, built on IfcOpenShell with Bonsai in Blender.",
+      "es": "MCP4IFC es un marco de código abierto que permite a un LLM leer, crear y editar modelos IFC directamente mediante llamadas a herramientas del Model Context Protocol, construido sobre IfcOpenShell con Bonsai en Blender.",
+      "blocks": [
+        "abs-p1",
+        "s1-p3",
+        "s1-p10"
+      ],
+      "key": "mcp4ifc",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "question",
+      "en": "Can an LLM turn natural-language instructions into actions on standardized IFC data, without going through a proprietary BIM application's API?",
+      "es": "¿Puede un LLM convertir instrucciones en lenguaje natural en acciones sobre datos IFC estandarizados, sin pasar por la API de una aplicación BIM propietaria?",
+      "blocks": [
+        "abs-p1",
+        "s1-p1",
+        "s1-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "The Model Context Protocol (MCP) is an open standard in which an AI Client discovers and calls the tools an MCP Server exposes, described with JSON Schema, so any client can connect without custom integration code.",
+      "es": "El Model Context Protocol (MCP) es un estándar abierto en el que un cliente de IA descubre y llama las herramientas que expone un servidor MCP, descritas con JSON Schema, de modo que cualquier cliente se conecta sin código de integración a la medida.",
+      "blocks": [
+        "s2-p11",
+        "s1-p3"
+      ],
+      "key": "model-context-protocol",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "method",
+      "en": "The architecture has three parts: the AI Client, a Python MCP Server that exposes the tools as JSON definitions, and a Blender add-on that runs the operations with IfcOpenShell and updates geometry with Bonsai. The client talks to the server by JSON-RPC and the server to the add-on by a socket.",
+      "es": "La arquitectura tiene tres partes: el cliente de IA, un servidor MCP en Python que expone las herramientas como definiciones JSON, y un complemento de Blender que ejecuta las operaciones con IfcOpenShell y actualiza la geometría con Bonsai. El cliente habla con el servidor por JSON-RPC y el servidor con el complemento por un socket.",
+      "blocks": [
+        "s3-p3",
+        "fig-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "In the workflow, the client loads the tool list into the system prompt; the LLM picks a tool and its parameters, the server validates and forwards the call, and the add-on returns a success or error that the LLM reads to decide the next step, looping until the task is done.",
+      "es": "En el flujo de trabajo, el cliente carga la lista de herramientas en el prompt del sistema; el LLM elige una herramienta y sus parámetros, el servidor valida y reenvía la llamada, y el complemento devuelve un éxito o error que el LLM lee para decidir el siguiente paso, en un ciclo hasta terminar la tarea.",
+      "blocks": [
+        "s3-p4",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Scene query tools return a compact JSON summary of the top-level elements (GUID, IFC type, name, type, location) instead of the whole IFC file, because raw IFC, ifcXML or ifcJSON is long and inefficient for LLMs to process.",
+      "es": "Las herramientas de consulta de escena devuelven un resumen JSON compacto de los elementos de nivel superior (GUID, tipo IFC, nombre, tipo, ubicación) en lugar del archivo IFC completo, porque el IFC crudo, ifcXML o ifcJSON es largo e ineficiente para que lo procesen los LLM.",
+      "blocks": [
+        "s3-p8",
+        "app-a-p24"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "Screenshot tools capture the full application window or only the 3D view so the model can check its changes visually, as a human designer would.",
+      "es": "Las herramientas de captura de pantalla toman la ventana completa de la aplicación o solo la vista 3D para que el modelo verifique visualmente sus cambios, como lo haría un diseñador humano.",
+      "blocks": [
+        "s3-p9",
+        "s2-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Predefined tools create, modify or delete core elements (walls, slabs, roofs, doors, windows, stairs) from parameters such as start and end points, outlines, thickness, or a wall GUID. Each new element gets a unique IFC GUID that is returned to the client for later steps.",
+      "es": "Las herramientas predefinidas crean, modifican o eliminan elementos básicos (muros, losas, techos, puertas, ventanas, escaleras) a partir de parámetros como puntos inicial y final, contornos, espesor o el GUID de un muro. Cada elemento nuevo recibe un GUID IFC único que se devuelve al cliente para los pasos siguientes.",
+      "blocks": [
+        "s3-p11",
+        "s3-p17",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "Dynamic code generation lets the LLM write and run Python with the IfcOpenShell API in a sandbox for tasks the fixed tools do not cover. It combines in-context learning with an optional RAG tool that retrieves IfcOpenShell documentation, IFC schema definitions and example scripts from a local vector store.",
+      "es": "La generación dinámica de código permite que el LLM escriba y ejecute Python con la API de IfcOpenShell en un entorno aislado para tareas que las herramientas fijas no cubren. Combina el aprendizaje en contexto con una herramienta RAG opcional que recupera documentación de IfcOpenShell, definiciones del esquema IFC y scripts de ejemplo de un almacén vectorial local.",
+      "blocks": [
+        "s1-p4",
+        "s3-p13",
+        "s3-p15"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "For complex shapes such as curved ramps or bridges, the LLM writes Python using the trimesh library and assigns an IFC class and a few semantic properties to the mesh. It may not fully generate the IfcSpace or the relationships between objects, which the paper leaves as future work.",
+      "es": "Para formas complejas como rampas curvas o puentes, el LLM escribe Python con la biblioteca trimesh y asigna una clase IFC y algunas propiedades semánticas a la malla. Puede que no genere por completo el IfcSpace ni las relaciones entre objetos, lo cual el artículo deja como trabajo futuro.",
+      "blocks": [
+        "s3-p16"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "claim",
+      "en": "Building directly on the IFC standard avoids the tight coupling of earlier systems to Revit or Vectorworks, so one set of tools can be developed once and extended to other platforms that support IFC.",
+      "es": "Construir directamente sobre el estándar IFC evita el fuerte acoplamiento de los sistemas anteriores a Revit o Vectorworks, de modo que un solo conjunto de herramientas se desarrolla una vez y se extiende a otras plataformas que soportan IFC.",
+      "blocks": [
+        "s2-p8",
+        "s1-p2",
+        "s5-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "claim",
+      "en": "The paper contributes an open-source MCP framework with more than 50 BIM tools, dynamic tool expansion through ICL and RAG, and end-to-end IFC querying, editing and generation by multimodal LLMs using only natural language and tool calls.",
+      "es": "El artículo aporta un marco MCP de código abierto con más de 50 herramientas BIM, expansión dinámica de herramientas mediante ICL y RAG, y consulta, edición y generación de IFC de principio a fin con LLM multimodales usando solo lenguaje natural y llamadas a herramientas.",
+      "blocks": [
+        "s1-p6",
+        "s1-p7",
+        "s1-p8",
+        "s1-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "dataset",
+      "en": "The scene-querying test uses a subset of 65 IFC-Bench-v1 questions on the Duplex project's architectural (ARC) and MEP models: 27 direct, 16 indirect and 22 insufficient-information tasks.",
+      "es": "La prueba de consulta de escena usa un subconjunto de 65 preguntas de IFC-Bench-v1 sobre los modelos arquitectónico (ARC) y de instalaciones (MEP) del proyecto Duplex: 27 tareas directas, 16 indirectas y 22 con información insuficiente.",
+      "blocks": [
+        "s4-p3",
+        "s4-p4",
+        "s4-p34",
+        "s4-p35",
+        "fig-4"
+      ],
+      "key": "ifc-bench-v1",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "result",
+      "en": "On scene querying, GPT-5 mini reaches an accuracy of 83.1% and Claude Sonnet 4.5 reaches 75.4%. GPT-5 mini solves 26 direct tasks correctly against Claude's 21.",
+      "es": "En la consulta de escena, GPT-5 mini alcanza una exactitud de 83.1% y Claude Sonnet 4.5 alcanza 75.4%. GPT-5 mini resuelve correctamente 26 tareas directas frente a las 21 de Claude.",
+      "blocks": [
+        "s4-p5",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "result",
+      "en": "Both models do well on tasks with directly available information (92.6%/77.8%) and on tasks where the information is insufficient (100%/95.5%). Tasks needing indirect retrieval and aggregation are the hardest.",
+      "es": "Ambos modelos se desempeñan bien en tareas con información directamente disponible (92.6%/77.8%) y en tareas con información insuficiente (100%/95.5%). Las tareas que requieren recuperación indirecta y agregación son las más difíciles.",
+      "blocks": [
+        "s4-p5",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "Without adapting its functions to the IFC-bench-v1 tasks, MCP4IFC performs similarly to the system of Hellin et al., which achieved 80% accuracy with Sonnet 3.5. The two are not directly comparable because that evaluation used the whole dataset.",
+      "es": "Sin adaptar sus funciones a las tareas de IFC-bench-v1, MCP4IFC rinde de forma similar al sistema de Hellin et al., que logró 80% de exactitud con Sonnet 3.5. No son directamente comparables porque esa evaluación usó el conjunto completo.",
+      "blocks": [
+        "s4-p6",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "The most used tool among Sonnet 4.5's correct solutions is execute_ifc_code_tool, which lets the model write its own code, often to aggregate information such as spatial relationships or counts. Fewer than 10 tools were needed to solve the querying tasks.",
+      "es": "La herramienta más usada en las soluciones correctas de Sonnet 4.5 es execute_ifc_code_tool, que permite al modelo escribir su propio código, a menudo para agregar información como relaciones espaciales o conteos. Se necesitaron menos de 10 herramientas para resolver las tareas de consulta.",
+      "blocks": [
+        "s4-p7",
+        "tab-3",
+        "s4-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "limitation",
+      "en": "The querying evaluation is limited: a binary correct/incorrect metric (ambiguous answers were marked correct, so accuracies are an upper bound), task categories that overlap, and a large input prompt that raises cost.",
+      "es": "La evaluación de consultas es limitada: una métrica binaria correcto/incorrecto (las respuestas ambiguas se marcaron como correctas, así que las exactitudes son un límite superior), categorías de tareas que se traslapan y un prompt de entrada grande que aumenta el costo.",
+      "blocks": [
+        "s4-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "For semantic editing, eight prompts (batch renaming, creating property sets, classifying elements, custom calculations) were run on BasicHouse.ifc from the BIM-Whale repository with Claude Sonnet 4.5. Each result was verified by hand by comparing the IFC file before and after.",
+      "es": "Para la edición semántica se ejecutaron ocho instrucciones (renombrado por lotes, creación de conjuntos de propiedades, clasificación de elementos, cálculos personalizados) sobre BasicHouse.ifc del repositorio BIM-Whale con Claude Sonnet 4.5. Cada resultado se verificó a mano comparando el archivo IFC antes y después.",
+      "blocks": [
+        "s4-p12",
+        "s4-p13",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Claude Sonnet 4.5 completed all eight semantic editing tasks via dynamic code generation. The paper notes that more complex cases may fail when geometry, spatial context or element dependencies are required.",
+      "es": "Claude Sonnet 4.5 completó las ocho tareas de edición semántica mediante generación dinámica de código. El artículo señala que los casos más complejos pueden fallar cuando se requiere geometría, contexto espacial o dependencias entre elementos.",
+      "blocks": [
+        "s4-p13",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "From text prompts the system builds a range of structures, from a two-storey building to a bridge, and keeps spatial context across six consecutive prompts to produce an L-shaped building.",
+      "es": "A partir de instrucciones de texto el sistema construye una variedad de estructuras, desde un edificio de dos niveles hasta un puente, y conserva el contexto espacial a lo largo de seis instrucciones consecutivas para producir un edificio en forma de L.",
+      "blocks": [
+        "s4-p15",
+        "fig-6",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "limitation",
+      "en": "On review, the generated IFC geometry looks valid but the semantics are incomplete: walls do not connect at intersections, openings for doors and windows are not properly added, rooms lack IfcSpace, elements lack property sets and material assignments, and furniture lacks spatial containment.",
+      "es": "Al revisarla, la geometría IFC generada parece válida pero la semántica está incompleta: los muros no se conectan en las intersecciones, las aberturas de puertas y ventanas no se agregan correctamente, los cuartos carecen de IfcSpace, los elementos carecen de conjuntos de propiedades y asignaciones de material, y el mobiliario carece de contención espacial.",
+      "blocks": [
+        "s4-p16"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "claim",
+      "en": "LLM-driven IFC generation is feasible but not yet semantically robust. Current models generate geometric elements but struggle to keep the relational and semantic structure that reliable BIM workflows need.",
+      "es": "La generación de IFC con LLM es factible pero aún no es semánticamente robusta. Los modelos actuales generan elementos geométricos pero tienen dificultades para mantener la estructura relacional y semántica que requieren los flujos BIM confiables.",
+      "blocks": [
+        "s4-p33",
+        "s4-p16"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "method",
+      "en": "In an appendix test, Claude Sonnet 4.5 was given three Tell2Design floor-plan images and asked to generate the corresponding wall layouts.",
+      "es": "En una prueba del apéndice, a Claude Sonnet 4.5 se le dieron tres imágenes de planos de Tell2Design y se le pidió generar los trazos de muros correspondientes.",
+      "blocks": [
+        "app-a-p9",
+        "fig-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "From the floor plans the LLM captured the overall structure but struggled with spatial organization, and fine-grained geometry was often missing or misread. The authors suggest adding a specialized floor-plan recognition model.",
+      "es": "A partir de los planos, el LLM capturó la estructura general pero tuvo dificultades con la organización espacial, y la geometría fina a menudo faltaba o se interpretó mal. Los autores sugieren añadir un modelo especializado de reconocimiento de planos.",
+      "blocks": [
+        "app-a-p9",
+        "fig-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "In a visual question test of 40 questions on BIM screenshots (25 counting, 9 spatial relationships, 5 attributes), Claude Sonnet 4.5 scored 73%. It recognized major objects and answered attributes well, but counting was less consistent and some spatial relationships were wrong.",
+      "es": "En una prueba de 40 preguntas visuales sobre capturas de pantalla BIM (25 de conteo, 9 de relaciones espaciales, 5 de atributos), Claude Sonnet 4.5 obtuvo 73%. Reconoció los objetos principales y respondió bien los atributos, pero el conteo fue menos consistente y algunas relaciones espaciales fueron incorrectas.",
+      "blocks": [
+        "app-a-p16",
+        "app-a-p17",
+        "app-a-p28",
+        "app-a-p29",
+        "app-a-p18",
+        "tab-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "Comparing Claude Sonnet 4.5 with GPT 5, GPT 5 mini, Gemini 2.5 Flash and Gemini 2.5 Pro on the 40 questions, overall scores were closely clustered but each model had a different strength profile. The authors say these are preliminary trends from a single seed run.",
+      "es": "Al comparar Claude Sonnet 4.5 con GPT 5, GPT 5 mini, Gemini 2.5 Flash y Gemini 2.5 Pro en las 40 preguntas, los puntajes globales quedaron muy cercanos pero cada modelo tuvo un perfil de fortalezas distinto. Los autores indican que son tendencias preliminares de una sola corrida con una semilla.",
+      "blocks": [
+        "app-a-p26",
+        "fig-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "The full toolset definitions already occupy around 40k tokens of context, and it grows for complex models. Because few tools are needed per task, the authors advise disabling generative tools for querying tasks and vice versa.",
+      "es": "Las definiciones completas del conjunto de herramientas ya ocupan alrededor de 40k tokens de contexto, y crece con modelos complejos. Como se necesitan pocas herramientas por tarea, los autores aconsejan desactivar las herramientas generativas en tareas de consulta y viceversa.",
+      "blocks": [
+        "s5-p12",
+        "s4-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "limitation",
+      "en": "The experiments are a proof of concept rather than an exhaustive benchmark, with a small task set, mostly one model for editing and generation, and manual checking.",
+      "es": "Los experimentos son una prueba de concepto y no un benchmark exhaustivo, con un conjunto pequeño de tareas, casi siempre un solo modelo para edición y generación, y revisión manual.",
+      "blocks": [
+        "s4-p1",
+        "s4-p10",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "limitation",
+      "en": "LLMs lack native grounding in geometry, topology and spatial relationships. The related work notes that 3D scene graphs struggle with geometric fidelity, scalability to large BIM models and dynamic updates.",
+      "es": "Los LLM carecen de un anclaje nativo en geometría, topología y relaciones espaciales. El trabajo relacionado señala que los grafos de escena 3D tienen dificultades con la fidelidad geométrica, la escalabilidad a modelos BIM grandes y las actualizaciones dinámicas.",
+      "blocks": [
+        "s2-p10",
+        "s2-p13"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "future",
+      "en": "Expand the tool library with higher-level tools (staircases, elevators, facades) and community extensions, add floor-plan understanding and mesh-generation models, and preselect which tools are exposed to the LLM to cut prompt size.",
+      "es": "Ampliar la biblioteca de herramientas con herramientas de más alto nivel (escaleras, elevadores, fachadas) y extensiones de la comunidad, añadir modelos de comprensión de planos y de generación de mallas, y preseleccionar qué herramientas se exponen al LLM para reducir el tamaño del prompt.",
+      "blocks": [
+        "s5-p2",
+        "s5-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "future",
+      "en": "Fine-tune a model on BIM data, tool-call traces and code execution logs, so it reasons better about geometry and semantics, possibly running locally. The paper also calls for BIM-specific agents that plan, monitor and refine models over long horizons.",
+      "es": "Afinar un modelo con datos BIM, trazas de llamadas a herramientas y registros de ejecución de código, para que razone mejor sobre geometría y semántica, posiblemente en ejecución local. El artículo también pide agentes específicos de BIM que planeen, vigilen y refinen modelos a largo plazo.",
+      "blocks": [
+        "s5-p10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "future",
+      "en": "Explore multimodal spatial feedback so models can reason about geometry through structured representations such as graphs, point clouds and visual embeddings. Also fix incomplete IFC structures and give models better exposure to well-structured IFC data.",
+      "es": "Explorar retroalimentación espacial multimodal para que los modelos razonen sobre la geometría mediante representaciones estructuradas como grafos, nubes de puntos y embeddings visuales. También corregir estructuras IFC incompletas y dar a los modelos mayor exposición a datos IFC bien estructurados.",
+      "blocks": [
+        "s5-p10",
+        "s4-p33"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "future",
+      "en": "Because the core tools run on IfcOpenShell, with Bonsai and Blender only as an interface, they can be adapted to any BIM software that supports IFC import, modification or visualization.",
+      "es": "Como las herramientas centrales corren sobre IfcOpenShell, con Bonsai y Blender solo como interfaz, pueden adaptarse a cualquier software BIM que soporte importar, modificar o visualizar IFC.",
+      "blocks": [
+        "s5-p11",
+        "s1-p10"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i3",
+      "type": "uses",
+      "why": "The framework is an MCP server exposing IFC tools to any MCP client."
+    },
+    {
+      "from": "i4",
+      "to": "i1",
+      "type": "part-of",
+      "why": "The three-component architecture is how MCP4IFC is built."
+    },
+    {
+      "from": "i5",
+      "to": "i4",
+      "type": "part-of",
+      "why": "The tool-call loop is the workflow that runs over the architecture."
+    },
+    {
+      "from": "i6",
+      "to": "i1",
+      "type": "part-of",
+      "why": "Scene query tools are one of the tool groups of the framework."
+    },
+    {
+      "from": "i7",
+      "to": "i1",
+      "type": "part-of",
+      "why": "Screenshot tools give the framework visual feedback."
+    },
+    {
+      "from": "i8",
+      "to": "i1",
+      "type": "part-of",
+      "why": "Predefined creation tools are the second tool group."
+    },
+    {
+      "from": "i9",
+      "to": "i1",
+      "type": "part-of",
+      "why": "Dynamic code generation is the third tool group and the paper's key innovation."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Mesh generation is one of the two kinds of dynamic tool usage."
+    },
+    {
+      "from": "i11",
+      "to": "i1",
+      "type": "supports",
+      "why": "Working on IFC rather than a proprietary API is the stated reason for the design."
+    },
+    {
+      "from": "i12",
+      "to": "i1",
+      "type": "supports",
+      "why": "The contributions summarize what the framework offers."
+    },
+    {
+      "from": "i13",
+      "to": "i14",
+      "type": "measures",
+      "why": "The accuracies are computed on the 65-question subset."
+    },
+    {
+      "from": "i14",
+      "to": "i6",
+      "type": "supports",
+      "why": "The querying accuracy was obtained by reading the compact scene summary."
+    },
+    {
+      "from": "i15",
+      "to": "i14",
+      "type": "part-of",
+      "why": "The category scores break down the overall accuracy."
+    },
+    {
+      "from": "i16",
+      "to": "i14",
+      "type": "supports",
+      "why": "A similar score to the earlier system places the new figures in context."
+    },
+    {
+      "from": "i17",
+      "to": "i9",
+      "type": "example-of",
+      "why": "The most used tool is the code-execution tool of the dynamic code generation."
+    },
+    {
+      "from": "i18",
+      "to": "i14",
+      "type": "contradicts",
+      "why": "The binary metric and optimistic marking mean the reported accuracies are an upper bound."
+    },
+    {
+      "from": "i19",
+      "to": "i9",
+      "type": "uses",
+      "why": "The editing tasks run through generated IfcOpenShell code."
+    },
+    {
+      "from": "i20",
+      "to": "i19",
+      "type": "measures",
+      "why": "The completion of all eight tasks is the outcome of the editing experiment."
+    },
+    {
+      "from": "i21",
+      "to": "i8",
+      "type": "uses",
+      "why": "The generated structures were built mainly with predefined tools."
+    },
+    {
+      "from": "i22",
+      "to": "i21",
+      "type": "contradicts",
+      "why": "A closer review shows the generated models look valid but lack relations and semantics."
+    },
+    {
+      "from": "i23",
+      "to": "i22",
+      "type": "supports",
+      "why": "The conclusion that generation is not semantically robust rests on the missing semantics."
+    },
+    {
+      "from": "i25",
+      "to": "i24",
+      "type": "measures",
+      "why": "The floor-plan outcome is the result of this test."
+    },
+    {
+      "from": "i26",
+      "to": "i7",
+      "type": "measures",
+      "why": "The visual question test checks how well the model reads screenshots."
+    },
+    {
+      "from": "i27",
+      "to": "i26",
+      "type": "supports",
+      "why": "The model comparison puts the 73% score in context."
+    },
+    {
+      "from": "i28",
+      "to": "i9",
+      "type": "contradicts",
+      "why": "The many generic tools needed for dynamic expansion make the prompt large and costly."
+    },
+    {
+      "from": "i30",
+      "to": "i33",
+      "type": "supports",
+      "why": "The spatial-understanding gap motivates the graph-based spatial feedback direction."
+    },
+    {
+      "from": "i32",
+      "to": "i23",
+      "type": "supports",
+      "why": "Fine-tuning on well-structured BIM data is proposed as the answer to the semantic weakness."
+    },
+    {
+      "from": "i34",
+      "to": "i11",
+      "type": "supports",
+      "why": "The IfcOpenShell core is what makes porting to other IFC software possible."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i23",
+      "to": "question",
+      "why": "Shows that an LLM can generate valid-looking geometry but not the relations and semantics of a valid model, a gap a decomposition into elements and relations would address."
+    },
+    {
+      "idea": "i22",
+      "to": "correct-by-construction",
+      "why": "The missing IfcSpace, connections, containment and property sets show what a generated model lacks when relations are not carried by construction."
+    },
+    {
+      "idea": "i32",
+      "to": "hypothesis",
+      "why": "The authors propose training on BIM data and tool-call traces so the model learns to build well-structured models, which is the premise of the hypothesis."
+    },
+    {
+      "idea": "i33",
+      "to": "ifc-to-graph-recipe",
+      "why": "Proposes representing geometry through structured graphs as feedback for the model, close to treating elements as nodes and relations as edges."
+    },
+    {
+      "idea": "i6",
+      "to": "ask-bim-2026",
+      "why": "Also gives the LLM a compact structured view of the IFC instead of raw IFC, because raw files are too long and detailed for an LLM."
+    },
+    {
+      "idea": "i9",
+      "to": "tool-levels",
+      "why": "An example of the agent level: an LLM calls fixed tools and writes its own code when the tools fall short."
+    },
+    {
+      "idea": "i11",
+      "to": "ifc",
+      "why": "Argues for IFC as the neutral, open representation on which an AI tool can work across BIM software."
+    }
+  ]
+}

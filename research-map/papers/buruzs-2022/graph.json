@@ -1,0 +1,611 @@
+{
+  "version": 1,
+  "node": "buruzs-2022",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "How can the room function (kitchen, living room, foyer…) be added automatically to IFC models, where IfcSpace entities are often missing or have blank property sets?",
+      "es": "¿Cómo se puede agregar automáticamente la función de cada cuarto (cocina, sala, vestíbulo…) a modelos IFC, donde las entidades IfcSpace suelen faltar o tener sus PropertySets vacíos?",
+      "blocks": [
+        "s0-p4",
+        "s1-p17"
+      ],
+      "key": "room-function-classification",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "claim",
+      "en": "In practice IFC files are mostly incomplete, and checkers like Solibri use hard-coded rules that need exact, complete models, so semantic enrichment is needed to inject the missing information.",
+      "es": "En la práctica los archivos IFC casi siempre están incompletos, y verificadores como Solibri usan reglas fijas que exigen modelos exactos y completos, por lo que hace falta un enriquecimiento semántico que inyecte la información faltante.",
+      "blocks": [
+        "s1-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Room function matters downstream: HVAC and thermal-zoning simulation setpoints, facility management, apartment area lists, and cost and procurement estimates such as tiling for bathrooms.",
+      "es": "La función del cuarto importa aguas abajo: parámetros de simulación HVAC y zonificación térmica, gestión de instalaciones, listas de áreas por departamento y estimaciones de costo y compras, como el recubrimiento de baños.",
+      "blocks": [
+        "s1-p11",
+        "s1-p18"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "method",
+      "en": "A three-step method: detect and inject IfcSpaces, compute a graph of accessibility between spaces, and classify the spaces with a graph convolutional network using local features and neighbor context.",
+      "es": "Un método de tres pasos: detectar e insertar IfcSpaces, calcular un grafo de accesibilidad entre espacios y clasificarlos con una red convolucional de grafos que usa rasgos locales y el contexto de los vecinos.",
+      "blocks": [
+        "s0-p4",
+        "s3-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "Missing spaces are derived from walls per floor: oriented bounding-box rectangles are projected to 2D, subtracted from their convex hull with shapely, polygons touching the hull are removed, and the rest are extruded to the median wall height of the storey and written back as IfcSpace with ifcOpenShell.",
+      "es": "Los espacios faltantes se derivan de los muros de cada piso: se proyectan a 2D los rectángulos de sus cajas envolventes orientadas, se restan de su envolvente convexa con shapely, se descartan los polígonos que tocan la envolvente y el resto se extruye a la altura mediana de los muros del nivel y se escribe de vuelta como IfcSpace con ifcOpenShell.",
+      "blocks": [
+        "s3-p4",
+        "fig-1"
+      ],
+      "key": "ifcspace-detection",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "limitation",
+      "en": "Space detection assumes vertical walls and horizontal slabs, leaves slanted slabs and roofs out of scope, and fails when walls are incorrectly modelled, for example with small gaps between them.",
+      "es": "La detección de espacios supone muros verticales y losas horizontales, deja fuera losas inclinadas y techos, y falla cuando los muros están mal modelados, por ejemplo con pequeños huecos entre ellos.",
+      "blocks": [
+        "s3-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "Spaces are nodes, and an edge exists when two spaces touch, are joined by a door, by an unpopulated opening, or by stairs; this connection information is not explicitly stored in IFC.",
+      "es": "Los espacios son nodos y hay una arista cuando dos espacios se tocan, o los une una puerta, una abertura sin elemento o una escalera; esta información de conexión no está guardada de forma explícita en IFC.",
+      "blocks": [
+        "s3-p7",
+        "s3-p38",
+        "s3-p8",
+        "fig-2",
+        "s0-p4"
+      ],
+      "key": "accessibility-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Each space gets numeric features from its shape (volume, moments of inertia, gyration radii, height, bounding-box dimensions), counts of nearby windows, doors, openings and stairs, a shape-type category, and normalized ratios such as area and bounding-box fill.",
+      "es": "Cada espacio recibe rasgos numéricos de su forma (volumen, momentos de inercia, radios de giro, altura, dimensiones de la caja envolvente), conteos de ventanas, puertas, aberturas y escaleras cercanas, una categoría del tipo de forma y razones normalizadas como el área y el llenado de la caja.",
+      "blocks": [
+        "s3-p10",
+        "s3-p39",
+        "s3-p11",
+        "s3-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "concept",
+      "en": "The classifier labels each room with one of 15 labels (Bathroom, Toilet, Living Room, Kitchen, Bedroom, Corridor, Staircase, Foyer, Storage, Terrace, Office, Kitchen/LivingRoom, Living Room/Bedroom, Other, Technical Room), plus a DELETE label for wrongly defined spaces.",
+      "es": "El clasificador asigna a cada cuarto una de 15 etiquetas (Bathroom, Toilet, Living Room, Kitchen, Bedroom, Corridor, Staircase, Foyer, Storage, Terrace, Office, Kitchen/LivingRoom, Living Room/Bedroom, Other, Technical Room), más una etiqueta DELETE para espacios mal definidos.",
+      "blocks": [
+        "s3-p13"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "A multi-layer perceptron with two hidden layers takes all numeric and categorical features without any graph information and serves as the baseline.",
+      "es": "Un perceptrón multicapa con dos capas ocultas recibe todos los rasgos numéricos y categóricos sin información del grafo y sirve como línea base.",
+      "blocks": [
+        "s3-p15"
+      ],
+      "key": "mlp-baseline",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "The Kipf and Welling GCN averages each node with its neighbors through a shared weight matrix; with two layers, anything up to the second neighbors contributes to a space's predicted class.",
+      "es": "La GCN de Kipf y Welling promedia cada nodo con sus vecinos mediante una matriz de pesos compartida; con dos capas, todo hasta los segundos vecinos contribuye a la clase predicha de un espacio.",
+      "blocks": [
+        "s3-p16",
+        "s3-p17",
+        "s3-p25",
+        "s2-p8",
+        "s2-p9"
+      ],
+      "key": "gcn",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "The stellargraph GCN is transductive; to classify unseen buildings (inductive inference) the learned weight matrices are saved and loaded into a new GCN instance for the new graph without re-training.",
+      "es": "La GCN de stellargraph es transductiva; para clasificar edificios no vistos (inferencia inductiva) se guardan las matrices de pesos aprendidas y se cargan en una nueva instancia de GCN para el grafo nuevo, sin reentrenar.",
+      "blocks": [
+        "s3-p27"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "Because the GCN often did not outperform the MLP in the inductive setup, their output probabilities were summed and the argmax taken as a joint prediction (ensemble averaging).",
+      "es": "Como la GCN a menudo no superaba al MLP en el esquema inductivo, se sumaron sus matrices de probabilidades y se tomó el argmax como predicción conjunta (promedio de ensamble).",
+      "blocks": [
+        "s3-p28"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "The weighted GCN (WGCN) uses one weight matrix for the node's own features (diagonal of the adjacency) and a separate one for neighbors (off-diagonal), so a space's own features are not simply averaged with its neighbors'.",
+      "es": "La GCN ponderada (WGCN) usa una matriz de pesos para los rasgos propios del nodo (diagonal de la adyacencia) y otra distinta para los vecinos (fuera de la diagonal), de modo que los rasgos del espacio no se promedian sin más con los de sus vecinos.",
+      "blocks": [
+        "s3-p31",
+        "s3-p33",
+        "s3-e4",
+        "s3-p36",
+        "s3-p30"
+      ],
+      "key": "wgcn",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "dataset",
+      "en": "A labelled set of 320 spaces from eight freely available residential IFC models (Ghent University IFC repository and duraark), using 13 room types, split randomly 80% training and 20% validation; training ran 1500 iterations with Adam in under 1 min on an Intel i9 CPU.",
+      "es": "Un conjunto etiquetado de 320 espacios de ocho modelos IFC residenciales disponibles libremente (repositorio IFC de la Universidad de Gante y duraark), con 13 tipos de cuarto, dividido al azar en 80% para entrenar y 20% para validar; el entrenamiento duró 1500 iteraciones con Adam en menos de 1 min en una CPU Intel i9.",
+      "blocks": [
+        "s4-p1",
+        "s4-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "On the random split, accuracy was 72% over all training and validation data and 62% on the validation nodes alone; bedrooms, the most common type, were also the most often misclassified.",
+      "es": "Con la división aleatoria, la exactitud fue de 72% sobre todos los datos de entrenamiento y validación y de 62% solo sobre los nodos de validación; las recámaras, el tipo más común, fueron también el más clasificado erróneamente.",
+      "blocks": [
+        "s4-p3",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "dataset",
+      "en": "For the inductive test, models were trained on 1500 spaces from nine proprietary IFC files and tested on six other unrelated IFC files never seen in training (283 spaces), described as the most realistic accuracy assessment.",
+      "es": "Para la prueba inductiva se entrenó con 1500 espacios de nueve archivos IFC propietarios y se probó en otros seis archivos IFC no relacionados que nunca se vieron en el entrenamiento (283 espacios), lo que se describe como la evaluación de exactitud más realista.",
+      "blocks": [
+        "s4-p4",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "In the inductive test the GCN reached an average classification accuracy of 50%, varying strongly between the building models.",
+      "es": "En la prueba inductiva la GCN alcanzó una exactitud promedio de 50%, con gran variación entre los modelos de edificios.",
+      "blocks": [
+        "s4-p4",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "The WGCN gave higher accuracy than the GCN in both transductive and inductive learning, as shown in the last column of Table 1; the combined slight improvement over the common GCN is also stated in the abstract.",
+      "es": "La WGCN dio mayor exactitud que la GCN tanto en aprendizaje transductivo como inductivo, según la última columna de la Tabla 1; el resumen también menciona una ligera mejora sobre la GCN común.",
+      "blocks": [
+        "s3-p37",
+        "tab-1",
+        "s0-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Merging confusable room types into three aggregate classes (corridor/foyer/staircase/other; kitchen-living room types; storage/toilet/technical room) raised accuracy to 64%.",
+      "es": "Al fusionar tipos de cuarto confundibles en tres clases agregadas (pasillo/vestíbulo/escalera/otro; tipos de cocina-sala; bodega/sanitario/cuarto técnico) la exactitud subió a 64%.",
+      "blocks": [
+        "s4-p6",
+        "s4-p7",
+        "s4-p8",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "In the inductive confusion matrix the network mistook Corridors for Foyers 14 times and could not tell bathrooms from storage rooms in 21 cases, since IfcSanitaryTerminal elements were not used as features.",
+      "es": "En la matriz de confusión inductiva la red confundió pasillos con vestíbulos 14 veces y no distinguió baños de bodegas en 21 casos, pues los elementos IfcSanitaryTerminal no se usaron como rasgos.",
+      "blocks": [
+        "s4-p5",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "limitation",
+      "en": "The relatively low accuracy stems from the high number of room types, some with few training examples, and from types that are hard to separate without extra information (Storage vs. Toilets, Foyers vs. Corridors).",
+      "es": "La exactitud relativamente baja proviene del gran número de tipos de cuarto, algunos con pocos ejemplos de entrenamiento, y de tipos difíciles de separar sin información adicional (bodegas contra sanitarios, vestíbulos contra pasillos).",
+      "blocks": [
+        "s4-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "limitation",
+      "en": "Only a couple of IFC files were available and spaces within a model are highly correlated; even several thousand spaces would give few independent samples, and in low-detail models even human experts could not always tell the space type.",
+      "es": "Solo había un par de archivos IFC disponibles y los espacios de un mismo modelo están muy correlacionados; incluso varios miles de espacios darían pocas muestras independientes, y en modelos de poco detalle ni los expertos humanos siempre podían decir el tipo de espacio.",
+      "blocks": [
+        "s5-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "Earlier floor-plan classification studies (Su, Paudel, Hu) report around 80% accuracy, but their train/test selection does not keep each parent building together, so floors of one building can fall in both sets, and they use few room types.",
+      "es": "Estudios previos de clasificación de planos (Su, Paudel, Hu) reportan cerca de 80% de exactitud, pero su selección de entrenamiento y prueba no conserva el edificio de origen, así que pisos de un mismo edificio pueden caer en ambos conjuntos, y usan pocos tipos de cuarto.",
+      "blocks": [
+        "s2-p11",
+        "s2-p12",
+        "s2-p13"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "claim",
+      "en": "Bloch and Sacks compared neural networks against hand-crafted rules for IfcSpace classification and concluded that networks using geometric features and spatial connections strongly outperformed the rule-based method in accuracy.",
+      "es": "Bloch y Sacks compararon redes neuronales con reglas hechas a mano para clasificar IfcSpace y concluyeron que las redes basadas en rasgos geométricos y conexiones espaciales superaron con claridad al método de reglas en exactitud.",
+      "blocks": [
+        "s2-p3",
+        "s2-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "claim",
+      "en": "IFCNet's MVCNN classification of IFC elements reached over 85% accuracy, but it classifies elements from their geometry alone and does not use their context.",
+      "es": "La clasificación de elementos IFC con MVCNN en IFCNet superó 85% de exactitud, pero clasifica los elementos solo por su geometría y no usa su contexto.",
+      "blocks": [
+        "s2-p6",
+        "s2-p4"
+      ],
+      "key": "ifcnet",
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "concept",
+      "en": "IFC models hold many relations among elements, so a graph can be extracted with IfcRelationships as edges, and further relations (such as adjacency by geometric distance) can be derived by geometric reasoning, enabling graph neural networks for tasks like element classification.",
+      "es": "Los modelos IFC contienen muchas relaciones entre elementos, así que se puede extraer un grafo con las IfcRelationships como aristas, y derivar otras relaciones (como adyacencia por distancia geométrica) mediante razonamiento geométrico, lo que permite usar redes neuronales de grafos en tareas como la clasificación de elementos.",
+      "blocks": [
+        "s2-p10",
+        "s2-p7"
+      ],
+      "key": "ifc-to-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "future",
+      "en": "Future work: improve accuracy with more features, include IfcSanitaryTerminal elements to separate toilets, bathrooms and kitchens, and add whether a space is inside or outside the building, which was skipped because it needs a time-consuming geometric calculation.",
+      "es": "Trabajo futuro: mejorar la exactitud con más rasgos, incluir elementos IfcSanitaryTerminal para separar sanitarios, baños y cocinas, y agregar si un espacio está dentro o fuera del edificio, lo que se omitió porque requiere un cálculo geométrico tardado.",
+      "blocks": [
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "future",
+      "en": "Future work: detect the individual apartments and segment spaces into apartments and public areas, so that new features (small apartments have one bathroom; living rooms are the biggest room) can be computed for classification, plus higher quality labelled training data.",
+      "es": "Trabajo futuro: detectar los departamentos individuales y segmentar los espacios en departamentos y áreas públicas, para calcular nuevos rasgos (los departamentos pequeños tienen un baño; la sala es el cuarto más grande) para la clasificación, además de datos de entrenamiento etiquetados de mayor calidad.",
+      "blocks": [
+        "s5-p9",
+        "s5-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "claim",
+      "en": "The study shows that automated classification of an incomplete BIM model is possible and has potential to automate room classification, though there is still room for accuracy improvement before production deployment; a similar approach is expected to work whenever models are handed between stakeholders, such as permit issuing.",
+      "es": "El estudio muestra que es posible clasificar automáticamente un modelo BIM incompleto y que el método tiene potencial para automatizar la clasificación de cuartos, aunque falta mejorar la exactitud antes de un uso en producción; se espera que un enfoque similar sirva cuando los modelos pasan de un actor a otro, como al emitir un permiso de construcción.",
+      "blocks": [
+        "s5-p9",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "limitation",
+      "en": "IfcSanitaryTerminal elements (drains, water closets, sinks) were not used as space features because around half of the models did not contain them.",
+      "es": "Los elementos IfcSanitaryTerminal (drenes, inodoros, lavabos) no se usaron como rasgos de los espacios porque cerca de la mitad de los modelos no los contenía.",
+      "blocks": [
+        "s4-p5"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i4",
+      "to": "i1",
+      "type": "supports",
+      "why": "The three-step method is the paper's answer to missing room functions."
+    },
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "Incomplete files and rigid checkers are the motivation for enrichment."
+    },
+    {
+      "from": "i3",
+      "to": "i1",
+      "type": "supports",
+      "why": "Downstream uses explain why the missing room function matters."
+    },
+    {
+      "from": "i5",
+      "to": "i4",
+      "type": "part-of",
+      "why": "Space extraction is step one."
+    },
+    {
+      "from": "i7",
+      "to": "i4",
+      "type": "part-of",
+      "why": "The accessibility graph is step two."
+    },
+    {
+      "from": "i11",
+      "to": "i4",
+      "type": "part-of",
+      "why": "Graph-based classification is step three."
+    },
+    {
+      "from": "i6",
+      "to": "i5",
+      "type": "contradicts",
+      "why": "The geometric assumptions limit where space extraction works."
+    },
+    {
+      "from": "i7",
+      "to": "i27",
+      "type": "example-of",
+      "why": "The accessibility graph is a graph with derived relations among IFC elements."
+    },
+    {
+      "from": "i7",
+      "to": "i5",
+      "type": "uses",
+      "why": "The graph needs the spaces that step one produces."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "uses",
+      "why": "Node features are computed for each space of the graph."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "uses",
+      "why": "The features are inputs to predict these labels."
+    },
+    {
+      "from": "i10",
+      "to": "i11",
+      "type": "contradicts",
+      "why": "The MLP, with no graph, often matched the GCN in the inductive setup."
+    },
+    {
+      "from": "i11",
+      "to": "i7",
+      "type": "uses",
+      "why": "The GCN propagates features along accessibility edges."
+    },
+    {
+      "from": "i12",
+      "to": "i11",
+      "type": "part-of",
+      "why": "It makes the transductive GCN usable on unseen graphs."
+    },
+    {
+      "from": "i13",
+      "to": "i10",
+      "type": "uses",
+      "why": "The ensemble sums MLP and GCN probabilities."
+    },
+    {
+      "from": "i13",
+      "to": "i11",
+      "type": "uses",
+      "why": "The ensemble sums MLP and GCN probabilities."
+    },
+    {
+      "from": "i14",
+      "to": "i11",
+      "type": "contradicts",
+      "why": "WGCN replaces the plain averaging of self and neighbors with separate weights."
+    },
+    {
+      "from": "i15",
+      "to": "i16",
+      "type": "supports",
+      "why": "The 320-space split produced the 72% and 62% figures."
+    },
+    {
+      "from": "i17",
+      "to": "i18",
+      "type": "supports",
+      "why": "The unseen-building test produced the 50% GCN figure."
+    },
+    {
+      "from": "i16",
+      "to": "i15",
+      "type": "measures",
+      "why": "Accuracy on the random split of the eight-model set."
+    },
+    {
+      "from": "i18",
+      "to": "i11",
+      "type": "measures",
+      "why": "Inductive accuracy of the plain GCN."
+    },
+    {
+      "from": "i19",
+      "to": "i14",
+      "type": "measures",
+      "why": "Table 1 compares WGCN against the other models."
+    },
+    {
+      "from": "i20",
+      "to": "i22",
+      "type": "supports",
+      "why": "Merging confusable classes raises accuracy, consistent with class count and overlap causing errors."
+    },
+    {
+      "from": "i21",
+      "to": "i31",
+      "type": "supports",
+      "why": "The bathroom–storage confusion follows from omitting sanitary terminals."
+    },
+    {
+      "from": "i22",
+      "to": "i23",
+      "type": "supports",
+      "why": "Few and correlated examples explain weak classes."
+    },
+    {
+      "from": "i24",
+      "to": "i17",
+      "type": "supports",
+      "why": "Splitting by whole buildings answers the leakage concern raised about earlier studies."
+    },
+    {
+      "from": "i25",
+      "to": "i2",
+      "type": "supports",
+      "why": "Learned classifiers beating hand rules answers the rigidity of rule-based checkers."
+    },
+    {
+      "from": "i26",
+      "to": "i11",
+      "type": "supports",
+      "why": "Geometry-only classification motivates adding neighbor context via the graph."
+    },
+    {
+      "from": "i28",
+      "to": "i21",
+      "type": "supports",
+      "why": "The proposed features target the observed confusions."
+    },
+    {
+      "from": "i29",
+      "to": "i23",
+      "type": "supports",
+      "why": "Better labelled data and apartment structure address the data limits."
+    },
+    {
+      "from": "i30",
+      "to": "i19",
+      "type": "supports",
+      "why": "The potential claim rests on the workflow's results."
+    },
+    {
+      "from": "i30",
+      "to": "i22",
+      "type": "contradicts",
+      "why": "Accuracy remains too low for production deployment."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i27",
+      "to": "ifc-to-graph-recipe",
+      "why": "Turns IFC elements into nodes with derived relations as edges; a comparable recipe, here with spaces as nodes and walkability as the edge."
+    },
+    {
+      "idea": "i7",
+      "to": "hypothesis",
+      "why": "Supports the idea that relations among elements, not only the elements, carry the pattern a model needs; context from neighbors is used for the classification."
+    },
+    {
+      "idea": "i14",
+      "to": "hypothesis",
+      "why": "Giving a node's own features and its neighbors' separate weights is a way to treat element and relation information differently."
+    },
+    {
+      "idea": "i5",
+      "to": "clean-real-models",
+      "why": "A way to repair incomplete real models by deriving missing IfcSpaces from walls and writing them back."
+    },
+    {
+      "idea": "i1",
+      "to": "clean-real-models",
+      "why": "Shows that real IFC files lack basic information such as rooms and property values, so they need enrichment before they can teach."
+    },
+    {
+      "idea": "i23",
+      "to": "real-or-synthetic-data",
+      "why": "Few real models with correlated spaces give a small number of independent samples, a case for augmented or synthetic data."
+    },
+    {
+      "idea": "i24",
+      "to": "real-or-synthetic-data",
+      "why": "Warns that splitting by element instead of by whole building overstates accuracy; evaluation splits must keep a building together."
+    },
+    {
+      "idea": "i25",
+      "to": "explicit-vs-learned",
+      "why": "Compares learned classifiers with hand-crafted rules for IfcSpace and notes that hard-coded checkers need complete models."
+    },
+    {
+      "idea": "i30",
+      "to": "production-ready",
+      "why": "Admits the accuracy still needs improvement before production deployment, a point about what 'ready' means for a model."
+    },
+    {
+      "idea": "i30",
+      "to": "question",
+      "why": "Classifies and enriches existing models rather than generating new ones; it shows learning on a graph of parts is feasible, while generation stays a gap."
+    }
+  ]
+}

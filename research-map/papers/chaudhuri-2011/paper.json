@@ -1,0 +1,1230 @@
+{
+  "version": 1,
+  "node": "chaudhuri-2011",
+  "title": "Probabilistic Reasoning for Assembly-Based 3D Modeling",
+  "source": "files/Probabilistic Reasoning for Assembly-Based 3D Modeling.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "Probabilistic Reasoning for Assembly-Based 3D Modeling",
+            "es": "Razonamiento probabilístico para el modelado 3D basado en ensamblaje"
+          }
+        },
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Siddhartha Chaudhuri∗ Evangelos Kalogerakis∗ Leonidas Guibas Vladlen Koltun",
+            "es": "Siddhartha Chaudhuri∗ Evangelos Kalogerakis∗ Leonidas Guibas Vladlen Koltun"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Stanford University",
+            "es": "Stanford University"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "∗S. Chaudhuri and E. Kalogerakis contributed equally to this work.",
+            "es": "∗S. Chaudhuri y E. Kalogerakis contribuyeron por igual a este trabajo."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 1,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: 3D models created with our assembly-based 3D modeling tool.",
+            "es": "Figura 1: Modelos 3D creados con nuestra herramienta de modelado 3D basado en ensamblaje."
+          }
+        }
+      ]
+    },
+    {
+      "id": "abs",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "abs-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Assembly-based modeling is a promising approach to broadening the accessibility of 3D modeling. In assembly-based modeling, new models are assembled from shape components extracted from a database. A key challenge in assembly-based modeling is the identification of relevant components to be presented to the user. In this paper, we introduce a probabilistic reasoning approach to this problem. Given a repository of shapes, our approach learns a probabilistic graphical model that encodes semantic and geometric relationships among shape components. The probabilistic model is used to present components that are semantically and stylistically compatible with the 3D model that is being assembled. Our experiments indicate that the probabilistic model increases the relevance of presented components.",
+            "es": "El modelado basado en ensamblaje (assembly-based modeling) es un enfoque prometedor para ampliar la accesibilidad del modelado 3D. En el modelado basado en ensamblaje, los modelos nuevos se ensamblan a partir de componentes de forma (shape components) extraídos de una base de datos. Un reto clave del modelado basado en ensamblaje es la identificación de los componentes relevantes que se presentarán al usuario. En este artículo presentamos un enfoque de razonamiento probabilístico (probabilistic reasoning) para este problema. Dado un repositorio de formas, nuestro enfoque aprende un modelo gráfico probabilístico (probabilistic graphical model) que codifica relaciones semánticas y geométricas entre los componentes de forma. El modelo probabilístico se utiliza para presentar componentes que son semántica y estilísticamente compatibles con el modelo 3D que se está ensamblando. Nuestros experimentos indican que el modelo probabilístico aumenta la relevancia de los componentes presentados."
+          }
+        },
+        {
+          "id": "abs-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "CR Categories: I.3.5 [Computing Methodologies]: Computer Graphics—Computational Geometry and Object Modeling;",
+            "es": "Categorías CR: I.3.5 [Metodologías de cómputo]: Gráficos por computadora—Geometría computacional y modelado de objetos;"
+          }
+        },
+        {
+          "id": "abs-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Keywords: data-driven 3D modeling, probabilistic reasoning, probabilistic graphical models",
+            "es": "Palabras clave: modelado 3D basado en datos, razonamiento probabilístico, modelos gráficos probabilísticos"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 Introduction",
+        "es": "1 Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "What remains hard is modeling. The structure inherent in three-dimensional models is difficult for people to grasp and difficult too for user interfaces to reveal and manipulate. Only the determined model three-dimensional objects, and they rarely invent a shape at a computer, but only record a shape so that analysis or manufacturing can proceed. The grand challenges in three-dimensional graphics are to make simple modeling easy and to make complex modeling accessible to far more people.",
+            "es": "Lo que sigue siendo difícil es el modelado. La estructura inherente a los modelos tridimensionales es difícil de captar para las personas, y difícil también de revelar y manipular para las interfaces de usuario. Solo los más decididos modelan objetos tridimensionales, y rara vez inventan una forma en una computadora, sino que solo registran una forma para que el análisis o la fabricación puedan continuar. Los grandes retos de los gráficos tridimensionales son hacer fácil el modelado simple y hacer accesible el modelado complejo a muchas más personas."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "— Robert F. Sproull [1990]",
+            "es": "— Robert F. Sproull [1990]"
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Providing easy-to-use tools for the creation of detailed three-dimensional content is a key challenge in computer graphics. With the accessibility of comprehensive game development environments, individual programmers and small teams can build and deploy realistic computer games and virtual worlds [Epic Games 2011; Unity Technologies 2011]. Yet the creation of compelling three-dimensional content to populate such worlds remains out of reach for most developers, who lack 3D modeling expertise.",
+            "es": "Proporcionar herramientas fáciles de usar para la creación de contenido tridimensional detallado es un reto clave en los gráficos por computadora. Con la accesibilidad de entornos integrales de desarrollo de videojuegos, programadores individuales y equipos pequeños pueden construir y publicar juegos de computadora y mundos virtuales realistas [Epic Games 2011; Unity Technologies 2011]. Sin embargo, la creación de contenido tridimensional atractivo para poblar esos mundos sigue fuera del alcance de la mayoría de los desarrolladores, que carecen de experiencia en modelado 3D."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "A promising approach to 3D modeling is assembly-based modeling, in which new models are assembled from preexisting components. The set of components can be designed specifically for this purpose or derived from a repository of shapes [Funkhouser et al. 2004; Kraevoy et al. 2007; Maxis Software 2008; Chaudhuri and Koltun 2010]. The advantage of assembly-based modeling is that users do not need to specify new geometry from scratch; modeling reduces to selection and placement of components.",
+            "es": "Un enfoque prometedor para el modelado 3D es el modelado basado en ensamblaje, en el que los modelos nuevos se ensamblan a partir de componentes preexistentes. El conjunto de componentes puede diseñarse específicamente para este fin o derivarse de un repositorio de formas [Funkhouser et al. 2004; Kraevoy et al. 2007; Maxis Software 2008; Chaudhuri and Koltun 2010]. La ventaja del modelado basado en ensamblaje es que los usuarios no necesitan especificar geometría nueva desde cero; el modelado se reduce a la selección y colocación de componentes."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "A key challenge in assembly-based 3D modeling is the identification of relevant components to be presented to the user. Unless the modeling task is fixed in advance, an assembly-based modeling tool must use a large and varied database of components. The interface thus needs to provide effective mechanisms for identifying the most relevant available components at any stage of the modeling process. Previous work used either text search or geometric matching to retrieve shapes and components [Funkhouser et al. 2004; Shin and Igarashi 2007; Lee and Funkhouser 2008; Chaudhuri and Koltun 2010]. Such techniques do not take into account the semantic and stylistic relationships between the current model and the components in the database. In this paper, we present an approach that studies a model library to learn how shapes are put together, and uses this knowledge to suggest semantically and stylistically relevant components at each stage of the modeling process. Our work aims to support open-ended 3D modeling [Talton et al. 2009; Chaudhuri and Koltun 2010].",
+            "es": "Un desafío clave del modelado 3D basado en ensamblaje es la identificación de los componentes relevantes que se presentan al usuario. A menos que la tarea de modelado esté fijada de antemano, una herramienta de modelado basada en ensamblaje debe usar una base de datos de componentes grande y variada. Por ello, la interfaz necesita ofrecer mecanismos eficaces para identificar los componentes disponibles más relevantes en cualquier etapa del proceso de modelado. Trabajos previos usaron la búsqueda de texto o la comparación geométrica para recuperar formas y componentes [Funkhouser et al. 2004; Shin and Igarashi 2007; Lee and Funkhouser 2008; Chaudhuri and Koltun 2010]. Estas técnicas no tienen en cuenta las relaciones semánticas y estilísticas entre el modelo actual y los componentes de la base de datos. En este artículo presentamos un enfoque que estudia una biblioteca de modelos para aprender cómo se arman las formas, y usa ese conocimiento para sugerir componentes relevantes semántica y estilísticamente en cada etapa del proceso de modelado. Nuestro trabajo busca apoyar el modelado 3D abierto [Talton et al. 2009; Chaudhuri and Koltun 2010]."
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We use a probabilistic graphical model called a Bayesian network [Pearl 1988; Koller and Friedman 2009] to represent semantic and stylistic relationships between components in a shape database. When new models are assembled, inference in the Bayesian network is used to derive a relevance ranking on categories of components, and on individual components within each category. For example, when a user begins a modeling session by placing an airplane fuselage, the probabilistic model identifies components in the repository that are more likely to be adjacent to a fuselage, such as wings, stabilizers, and engines. The presented components continue to be dynamically updated as the current model is constructed. Thus when the user augments the fuselage with an engine from a military jet, the probabilistic model decreases the probability of propellers and increases the probability of rockets and missiles. After the user adds two wings, the probabilistic model lowers the probability of wings, since the presence of more than two wings on a jet is unlikely.",
+            "es": "Usamos un modelo gráfico probabilístico llamado red bayesiana (Bayesian network) [Pearl 1988; Koller and Friedman 2009] para representar las relaciones semánticas y estilísticas entre los componentes de una base de datos de formas. Cuando se ensamblan modelos nuevos, la inferencia (inference) en la red bayesiana se utiliza para derivar un ranking de relevancia sobre las categorías de componentes y sobre los componentes individuales dentro de cada categoría. Por ejemplo, cuando un usuario comienza una sesión de modelado colocando el fuselaje de un avión, el modelo probabilístico identifica los componentes del repositorio que tienen más probabilidad de ser adyacentes a un fuselaje, como alas, estabilizadores y motores. Los componentes presentados se siguen actualizando dinámicamente a medida que se construye el modelo actual. Así, cuando el usuario complementa el fuselaje con un motor de un avión militar a reacción, el modelo probabilístico disminuye la probabilidad de las hélices y aumenta la probabilidad de los cohetes y los misiles. Después de que el usuario agrega dos alas, el modelo probabilístico reduce la probabilidad de las alas, ya que es poco probable que un avión a reacción tenga más de dos alas."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To evaluate the effectiveness of the presented approach, we have developed an assembly-based 3D modeling tool. Our modeling interface is inspired by the successful Spore creation tools and uses the probabilistic model to dynamically update the presented components. Experiments with this interface indicate that the probabilistic model produces more relevant suggestions than a static presentation of components or a purely geometric approach.",
+            "es": "Para evaluar la eficacia del enfoque presentado, hemos desarrollado una herramienta de modelado 3D basada en ensamblaje. Nuestra interfaz de modelado está inspirada en las exitosas herramientas de creación de Spore y utiliza el modelo probabilístico para actualizar dinámicamente los componentes presentados. Los experimentos con esta interfaz indican que el modelo probabilístico produce sugerencias más relevantes que una presentación estática de componentes o que un enfoque puramente geométrico."
+          }
+        },
+        {
+          "id": "s1-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In summary, this paper introduces a probabilistic model of shape structure that incorporates both semantics and geometric style. The model is trained on a shape database and is used to present relevant shape components during a 3D modeling session. The experimental results demonstrate that the model significantly increases the relevance of presented components.",
+            "es": "En resumen, este artículo presenta un modelo probabilístico de la estructura de las formas que incorpora tanto la semántica como el estilo geométrico. El modelo se entrena con una base de datos de formas y se usa para presentar componentes de forma relevantes durante una sesión de modelado 3D. Los resultados experimentales demuestran que el modelo aumenta de manera significativa la relevancia de los componentes presentados."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 Prior Work",
+        "es": "2 Trabajo previo"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Assembly-based 3D modeling was pioneered by Funkhouser et al. [2004], whose Modeling by Example system allows users to retrieve source models using text- or shape-based search. Components are then cut out of some of the retrieved models and glued onto the current one. Subsequent research has investigated sketch-based retrieval of components [Shin and Igarashi 2007; Lee and Funkhouser 2008]. In all these approaches, the user must search for each specific component. This is less appropriate for open-ended 3D modeling, when the composition of the model is not specified in advance and the user can benefit from a variety of suggestions [Chaudhuri and Koltun 2010].",
+            "es": "El modelado 3D basado en ensamblaje fue iniciado por Funkhouser et al. [2004], cuyo sistema Modeling by Example permite a los usuarios recuperar modelos fuente mediante una búsqueda basada en texto o en formas. Luego se recortan componentes de algunos de los modelos recuperados y se pegan en el modelo actual. Investigaciones posteriores han explorado la recuperación de componentes basada en bocetos [Shin and Igarashi 2007; Lee and Funkhouser 2008]. En todos estos enfoques, el usuario debe buscar cada componente específico. Esto es menos apropiado para el modelado 3D abierto, cuando la composición del modelo no se especifica de antemano y el usuario puede beneficiarse de una variedad de sugerencias [Chaudhuri and Koltun 2010]."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Kraevoy et al. [2007] describe an assembly-based modeling tool in which the user can load a small set of compatible shapes and interchange parts between them. The method assumes that all shapes have the same number of components and does not handle heterogenous shape libraries.",
+            "es": "Kraevoy et al. [2007] describen una herramienta de modelado basada en ensamblaje en la que el usuario puede cargar un conjunto pequeño de formas compatibles e intercambiar partes entre ellas. El método supone que todas las formas tienen el mismo número de componentes y no maneja bibliotecas de formas heterogéneas."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Chaudhuri and Koltun [2010] describe a data-driven technique for presenting components that can augment a given shape. The approach is purely geometric and does not take into account the semantics of components. Our results show that the incorporation of semantic relationships increases the relevance of presented components.",
+            "es": "Chaudhuri and Koltun [2010] describen una técnica basada en datos para presentar componentes que pueden complementar una forma dada. El enfoque es puramente geométrico y no toma en cuenta la semántica de los componentes. Nuestros resultados muestran que la incorporación de relaciones semánticas aumenta la relevancia de los componentes presentados."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Fisher and Hanrahan [2010] describe a probabilistic model of spatial context for 3D model search. Given a query bounding box placed by the user in a 3D scene, their approach returns database shapes that are appropriate in the context of the surrounding scene. Our probabilistic model is substantially different from that of Fisher and Hanrahan and is designed for interactive shape modeling.",
+            "es": "Fisher and Hanrahan [2010] describen un modelo probabilístico del contexto espacial para la búsqueda de modelos 3D. Dado un cuadro delimitador de consulta colocado por el usuario en una escena 3D, su enfoque devuelve las formas de la base de datos que son apropiadas en el contexto de la escena circundante. Nuestro modelo probabilístico es sustancialmente distinto del de Fisher and Hanrahan y está diseñado para el modelado interactivo de formas."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our use of probabilistic graphical models is influenced by the work of Merrell et al. [2010], who generate residential building layouts using a Bayesian network trained on architectural programs. The probabilistic model of Merrell et al. is designed specifically to represent architectural programs. We introduce a probabilistic model for the structure of general 3D shapes. Our model represents both component categories and a variable number of individual components, and augments existence and adjacency relations with symmetry and geometric style.",
+            "es": "Nuestro uso de modelos gráficos probabilísticos está influido por el trabajo de Merrell et al. [2010], quienes generan distribuciones de edificios residenciales usando una red bayesiana entrenada con programas arquitectónicos. El modelo probabilístico de Merrell et al. está diseñado específicamente para representar programas arquitectónicos. Nosotros presentamos un modelo probabilístico para la estructura de formas 3D generales. Nuestro modelo representa tanto las categorías de componentes como un número variable de componentes individuales, y complementa las relaciones de existencia y adyacencia con simetría y estilo geométrico."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The interface of our assembly-based modeling tool is inspired by the Spore creature creator, which allows creatures to be assembled from components such as heads, legs, and arms [Maxis Software 2008]. The Spore creature creator has been used to create over one hundred million creature models in the first year after release. While our interface closely follows the successful approach of Spore, the presented categories and parts are dynamically updated in light of the current model, in order to present the most relevant components from a large heterogenous library. Furthermore, we do not require specially crafted components, but extract them semi-automatically from a shape library.",
+            "es": "La interfaz de nuestra herramienta de modelado basada en ensamblaje está inspirada en el creador de criaturas de Spore, que permite ensamblar criaturas a partir de componentes como cabezas, piernas y brazos [Maxis Software 2008]. El creador de criaturas de Spore se ha usado para crear más de cien millones de modelos de criaturas en el primer año después de su lanzamiento. Aunque nuestra interfaz sigue de cerca el exitoso enfoque de Spore, las categorías y partes presentadas se actualizan dinámicamente según el modelo actual, con el fin de presentar los componentes más relevantes de una biblioteca grande y heterogénea. Además, no requerimos componentes elaborados especialmente, sino que los extraemos de forma semiautomática de una biblioteca de formas."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 Overview",
+        "es": "3 Visión general"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our approach consists of two stages, illustrated in Figure 2. The first is an offline preprocessing stage in which a probabilistic model is trained on a shape database. The second is an interactive stage in which inference in the probabilistic model is used to present relevant shape components during a 3D modeling session.",
+            "es": "Nuestro enfoque consta de dos etapas, ilustradas en la Figura 2. La primera es una etapa de preprocesamiento fuera de línea en la que se entrena un modelo probabilístico con una base de datos de formas. La segunda es una etapa interactiva en la que la inferencia en el modelo probabilístico se usa para presentar componentes de forma relevantes durante una sesión de modelado 3D."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: Overview of our approach. The preprocessing stage (top) begins with a library of models, segmented and labeled using the technique of Kalogerakis et al. [2010]. The components extracted from the models are further clustered by geometric style. A Bayesian network is then learned that encodes probabilistic dependencies between labels, geometric styles, part adjacencies, number of parts from each category, and symmetries. The figure shows a subset from a real network learned from a library of creature models. The runtime stage (bottom) performs probabilistic inference in the learned Bayesian network to generate ranked lists of category labels and components within each category, customized for the currently assembled model.",
+            "es": "Figura 2: Visión general de nuestro enfoque. La etapa de preprocesamiento (arriba) comienza con una biblioteca de modelos, segmentados y etiquetados con la técnica de Kalogerakis et al. [2010]. Los componentes extraídos de los modelos se agrupan (clustered) además por estilo geométrico. Después se aprende una red bayesiana que codifica dependencias probabilísticas entre etiquetas, estilos geométricos, adyacencias de partes, número de partes de cada categoría y simetrías. La figura muestra un subconjunto de una red real aprendida a partir de una biblioteca de modelos de criaturas. La etapa en tiempo de ejecución (abajo) realiza inferencia probabilística en la red bayesiana aprendida para generar listas ordenadas de etiquetas de categoría y de componentes dentro de cada categoría, personalizadas para el modelo que se está ensamblando en ese momento."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Preprocessing. The input to the preprocessing stage is a repository of segmented and labeled shapes. Each label represents a component category, such as head, arm, and torso. The labeling is hierarchical and each component may contain subparts with associated subcategories; for example, torsos are composed of lower torso and upper torso. We use the technique of Kalogerakis et al. [2010] to produce the segmentation and labeling from a set of training examples. Thus we preprocess a shape repository into components semi-automatically, relieving the chore of manually segmenting each model and labeling all components.",
+            "es": "Preprocesamiento. La entrada de la etapa de preprocesamiento es un repositorio de formas segmentadas y etiquetadas. Cada etiqueta representa una categoría de componente, como cabeza, brazo y torso. El etiquetado es jerárquico y cada componente puede contener subpartes con subcategorías asociadas; por ejemplo, los torsos se componen de torso inferior y torso superior. Usamos la técnica de Kalogerakis et al. [2010] para producir la segmentación y el etiquetado a partir de un conjunto de ejemplos de entrenamiento. Así, preprocesamos un repositorio de formas en componentes de manera semiautomática, evitando la tarea tediosa de segmentar manualmente cada modelo y etiquetar todos los componentes."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Given the set of segmented components, we further cluster them based on geometric style. For each category, the components are partitioned into a set of clusters with similar geometric feature vectors. The feature vectors incorporate descriptors such as shape diameter [Shapira et al. 2010], curvature, shape context [Mori et al. 2001], and PCA-based parameters (Appendix A). An example of this clustering is illustrated in Figure 2, where arms with a roughly humanoid appearance are grouped into one cluster, while thin and alien arms are grouped into another. The clustering allows the probabilistic model to operate not only on the semantic labels, but also on the geometric appearance of components.",
+            "es": "Dado el conjunto de componentes segmentados, los agrupamos además con base en el estilo geométrico. Para cada categoría, los componentes se dividen en un conjunto de grupos (clusters) con vectores de características geométricas similares. Los vectores de características incorporan descriptores como el diámetro de la forma [Shapira et al. 2010], la curvatura, el contexto de forma [Mori et al. 2001] y parámetros basados en PCA (Apéndice A). En la Figura 2 se ilustra un ejemplo de este agrupamiento, donde los brazos de apariencia más o menos humanoide se reúnen en un grupo, mientras que los brazos delgados y alienígenas se reúnen en otro. El agrupamiento permite que el modelo probabilístico opere no solo sobre las etiquetas semánticas, sino también sobre la apariencia geométrica de los componentes."
+          }
+        },
+        {
+          "id": "s3-p33",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Given the set of category labels and style clusters within each label, the method learns a probabilistic model that encodes dependencies between labels, style clusters, part adjacencies, numbers of parts from each category, and symmetries.",
+            "es": "Dado el conjunto de etiquetas de categoría y de grupos de estilo dentro de cada etiqueta, el método aprende un modelo probabilístico que codifica dependencias entre etiquetas, grupos de estilo, adyacencias de partes, números de partes de cada categoría y simetrías."
+          }
+        },
+        {
+          "id": "s3-p34",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Runtime. During an interactive 3D modeling session, our method performs probabilistic inference in the learned model to generate a ranked list of components that may be useful for augmenting the current shape. The ranking reflects compatibility with components that are already part of the assembled shape.",
+            "es": "Tiempo de ejecución. Durante una sesión interactiva de modelado 3D, nuestro método realiza inferencia probabilística en el modelo aprendido para generar una lista ordenada de componentes que pueden ser útiles para complementar la forma actual. El orden refleja la compatibilidad con los componentes que ya forman parte de la forma ensamblada."
+          }
+        },
+        {
+          "id": "s3-p35",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In order to evaluate the relevance of the suggestions produced by the learned model, we have developed a tool for assembly-based 3D modeling. The modeling interface is illustrated in Figure 4 and in the supplementary video. On the left, the interface presents tabs with semantic labels such as torso, head, and arm. The tabs can expand hierarchically to show subcategories, such as lower torso, upper torso, and belt. When a user selects a tab, the interface shows a list of parts that belong to the associated category. The user can select a component and drag it onto the current model. When a component is added in this way, the lists of categories and components are re-ranked to reflect their semantic and stylistic compatibility with the current 3D model. Using the probabilistic model, the interface also estimates whether the new component should have a symmetric counterpart and computes the symmetry plane. The interface supports sliding any component along the surface of the model, as well as translation, rotation, scaling, duplication, and gluing, thus assisting the assembly of a 3D model from chosen components.",
+            "es": "Para evaluar la relevancia de las sugerencias producidas por el modelo aprendido, hemos desarrollado una herramienta para el modelado 3D basado en ensamblaje. La interfaz de modelado se ilustra en la Figura 4 y en el video suplementario. A la izquierda, la interfaz presenta pestañas con etiquetas semánticas como torso, cabeza y brazo. Las pestañas pueden expandirse jerárquicamente para mostrar subcategorías, como torso inferior, torso superior y cinturón. Cuando un usuario selecciona una pestaña, la interfaz muestra una lista de partes que pertenecen a la categoría asociada. El usuario puede seleccionar un componente y arrastrarlo sobre el modelo actual. Cuando se agrega un componente de esta manera, las listas de categorías y de componentes se reordenan para reflejar su compatibilidad semántica y estilística con el modelo 3D actual. Usando el modelo probabilístico, la interfaz también estima si el nuevo componente debe tener una contraparte simétrica y calcula el plano de simetría. La interfaz permite deslizar cualquier componente a lo largo de la superficie del modelo, así como trasladar, rotar, escalar, duplicar y pegar, de modo que asiste en el ensamblaje de un modelo 3D a partir de los componentes elegidos."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4: Modeling interface. The model is assembled from presented parts.",
+            "es": "Figura 4: Interfaz de modelado. El modelo se ensambla a partir de las partes presentadas."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 Probabilistic Model",
+        "es": "4 Modelo probabilístico"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Our probabilistic model is designed for the purpose of recommending components that can augment a given 3D model. The probabilistic model is trained on a set of segmented and labeled shapes. Each shape is represented by the existence, adjacencies, geometric style, symmetries, and number of components from each category, as described below. These attributes are represented as random variables. Each shape is thus treated as a sample from a joint probability distribution P(X), where X contains the following sets of variables:",
+            "es": "Nuestro modelo probabilístico (probabilistic model) está diseñado con el propósito de recomendar componentes que puedan aumentar un modelo 3D dado. El modelo probabilístico se entrena con un conjunto de formas segmentadas y etiquetadas. Cada forma se representa mediante la existencia, las adyacencias, el estilo geométrico, las simetrías y el número de componentes de cada categoría, como se describe a continuación. Estos atributos se representan como variables aleatorias (random variables). Así, cada forma se trata como una muestra de una distribución de probabilidad conjunta (joint probability distribution) P(X), donde X contiene los siguientes conjuntos de variables:"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Existence E = {El} where El ∈{0, 1} represents whether a component from category l ∈L exists in a shape, where L is the set of component labels in the repository. There is one such random variable for each label.",
+            "es": "Existencia E = {El} donde El ∈{0, 1} representa si existe en una forma un componente de la categoría l ∈L, donde L es el conjunto de etiquetas de componentes del repositorio. Hay una variable aleatoria de este tipo por cada etiqueta."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Cardinality N = {Nl} where Nl ∈{0}∪Z+ represents the number of components from category l ∈L in a shape. There is also one such random variable for each label. For tractable inference, we limit the range to {0, 1, 2, 3, 4, 5+}, where 5+ represents the case of 5 or more existing components from the category. Note that the random variables E represent information for the existence of components, whereas the cardinality variables N make it specific in terms of their exact number. The random variables E are still useful in our model as an intermediate representation, since the number of components cannot be directly observed in the user’s incomplete shape. In addition, certain dependencies of components are more compactly expressed in terms of their existence rather than their exact cardinality (e.g., a table top exists when table legs exist, regardless of their exact number), which helps decreasing the number of parameters in our model.",
+            "es": "Cardinalidad (cardinality) N = {Nl} donde Nl ∈{0}∪Z+ representa el número de componentes de la categoría l ∈L en una forma. También hay una variable aleatoria de este tipo por cada etiqueta. Para lograr una inferencia (inference) tratable, limitamos el rango a {0, 1, 2, 3, 4, 5+}, donde 5+ representa el caso de 5 o más componentes existentes de la categoría. Observa que las variables aleatorias E representan información sobre la existencia de los componentes, mientras que las variables de cardinalidad N la precisan en términos de su número exacto. Las variables aleatorias E siguen siendo útiles en nuestro modelo como representación intermedia, ya que el número de componentes no puede observarse directamente en la forma incompleta del usuario. Además, ciertas dependencias entre componentes se expresan de manera más compacta en términos de su existencia que de su cardinalidad exacta (p. ej., existe una cubierta de mesa cuando existen patas de mesa, sin importar su número exacto), lo que ayuda a reducir el número de parámetros de nuestro modelo."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Adjacency A = {Al,l′} where Al,l′ ∈{0, 1} represents whether a component from category l ∈L is adjacent to a component from category l′ ∈L in a shape. There is one such random variable for each pair of distinct labels that appear adjacent in at least one of the shapes in the repository.",
+            "es": "Adyacencia A = {Al,l′} donde Al,l′ ∈{0, 1} representa si un componente de la categoría l ∈L es adyacente a un componente de la categoría l′ ∈L en una forma. Hay una variable aleatoria de este tipo por cada par de etiquetas distintas que aparecen adyacentes en al menos una de las formas del repositorio."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Style S = {Ss,l} where Ss,l ∈{0, 1} represents whether a component of geometric style s ∈Sl exists in a shape, where Sl is the set of clusters for category l. There is one such random variable for each style cluster within each category.",
+            "es": "Estilo S = {Ss,l} donde Ss,l ∈{0, 1} representa si existe en una forma un componente de estilo geométrico s ∈Sl, donde Sl es el conjunto de grupos (clusters) de la categoría l. Hay una variable aleatoria de este tipo por cada grupo de estilo dentro de cada categoría."
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Symmetry R = {Rl,l′} where Rl,l′ ∈{0, 1} represents whether a component from category l ∈L has a symmetric counterpart with respect to a component from category l′ ∈L. For example, an arm has a symmetric counterpart with respect to the torso. There is one such random variable for each distinct pair of labels that have such a symmetry relationship in at least one of the shapes in the repository.",
+            "es": "Simetría R = {Rl,l′} donde Rl,l′ ∈{0, 1} representa si un componente de la categoría l ∈L tiene una contraparte simétrica con respecto a un componente de la categoría l′ ∈L. Por ejemplo, un brazo tiene una contraparte simétrica con respecto al torso. Hay una variable aleatoria de este tipo por cada par distinto de etiquetas que tienen una relación de simetría de este tipo en al menos una de las formas del repositorio."
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The probabilistic model encodes the joint distribution P(X). The purpose of the model is to support estimation of compatibility between each component from the repository and a given 3D model. The given model is the current 3D model observed during the runtime stage. The given model imposes specific values on some random variables in X. For example, if the current model contains a component from category l and style s, the corresponding random variables El and Ss,l are set to 1. Similarly, if a component with label l is adjacent to a component with label l′, the corresponding random variable Al,l′ is set to 1. Such variables are said to be observed. The rest of the random variables are unobserved. In addition, the cardinality random variables are never observed, since we also do not know the final number of components in the assembled shape; although unobserved, cardinality variables are important for querying our model, as explained below.",
+            "es": "El modelo probabilístico codifica la distribución conjunta P(X). El propósito del modelo es apoyar la estimación de la compatibilidad entre cada componente del repositorio y un modelo 3D dado. El modelo dado es el modelo 3D actual observado durante la etapa de ejecución (runtime stage). El modelo dado impone valores específicos a algunas variables aleatorias de X. Por ejemplo, si el modelo actual contiene un componente de la categoría l y el estilo s, las variables aleatorias correspondientes El y Ss,l se fijan en 1. De manera similar, si un componente con etiqueta l es adyacente a un componente con etiqueta l′, la variable aleatoria correspondiente Al,l′ se fija en 1. Se dice que tales variables están observadas (observed). El resto de las variables aleatorias no están observadas. Además, las variables aleatorias de cardinalidad nunca se observan, ya que tampoco conocemos el número final de componentes de la forma ensamblada; aunque no están observadas, las variables de cardinalidad son importantes para consultar (query) nuestro modelo, como se explica a continuación."
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "By performing inference in the probabilistic model, we will compute probability distributions on some of the unobserved variables given the observed ones, and thus estimate the compatibility of various components with the currently assembled shape.",
+            "es": "Al realizar inferencia en el modelo probabilístico, calcularemos distribuciones de probabilidad sobre algunas de las variables no observadas dadas las observadas, y así estimaremos la compatibilidad de diversos componentes con la forma ensamblada actualmente."
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Specifically, the compatibility of a component i from category li and style si is evaluated based on (a) how likely its category li is to be adjacent to any of the categories L′ ⊆L existing in the shape, (b) how likely the shape is to include more parts of category li, and (c) how likely the shape is to include components of style si. Thus, we need to evaluate, for each component i in the repository, the probability of the following expression:",
+            "es": "En concreto, la compatibilidad de un componente i de la categoría li y el estilo si se evalúa con base en (a) qué tan probable es que su categoría li sea adyacente a alguna de las categorías L′ ⊆L existentes en la forma, (b) qué tan probable es que la forma incluya más partes de la categoría li, y (c) qué tan probable es que la forma incluya componentes del estilo si. Por lo tanto, necesitamos evaluar, para cada componente i del repositorio, la probabilidad de la siguiente expresión:"
+          }
+        },
+        {
+          "id": "s4-e1",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "(⋁_{l′∈L′} (A_{li,l′} = 1)) ∧ (N_{li} > n_{li}) ∧ (S_{si,li} = 1), (1)"
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "where nli is the number of components from category li in the current shape. The probability of this query can be evaluated using the conditional probability distribution P(Xq | Xe = e), where Xq ∈X is the set of the random variables involved in the above query, Xe ∈X is the set of observed random variables, and e are their observed values. We define the compatibility score of component i as",
+            "es": "donde nli es el número de componentes de la categoría li en la forma actual. La probabilidad de esta consulta puede evaluarse mediante la distribución de probabilidad condicional (conditional probability distribution) P(Xq | Xe = e), donde Xq ∈X es el conjunto de variables aleatorias involucradas en la consulta anterior, Xe ∈X es el conjunto de variables aleatorias observadas y e son sus valores observados. Definimos la puntuación de compatibilidad (compatibility score) del componente i como"
+          }
+        },
+        {
+          "id": "s4-e2",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "comp(i) = Σ_{q∈Q} P(Xq = q | Xe = e), (2)"
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "where Q is the set of instantiations of Xq that satisfy Expression 1. The compatibility score measures the suitability of component i for augmenting the currently assembled shape.",
+            "es": "donde Q es el conjunto de instanciaciones de Xq que satisfacen la Expresión 1. La puntuación de compatibilidad mide la idoneidad del componente i para aumentar la forma ensamblada actualmente."
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The compatibility score is expressed in terms of the conditional probability distribution P(Xq | Xe = e). From the definition of conditional probability, we have:",
+            "es": "La puntuación de compatibilidad se expresa en términos de la distribución de probabilidad condicional P(Xq | Xe = e). A partir de la definición de probabilidad condicional, tenemos:"
+          }
+        },
+        {
+          "id": "s4-e3",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "P(Xq | Xe = e) = P(Xq, Xe = e) / P(Xe = e), (3)"
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "which can be computed from the joint distribution P(X) by summing over all possible assignments to the unobserved random variables:",
+            "es": "la cual puede calcularse a partir de la distribución conjunta P(X) sumando sobre todas las asignaciones posibles a las variables aleatorias no observadas:"
+          }
+        },
+        {
+          "id": "s4-e4",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "P(Xq | Xe = e) = Σ_u P(Xq, Xe = e, Xu = u) / Σ_{u,q} P(Xq = q, Xe = e, Xu = u), (4)"
+          }
+        },
+        {
+          "id": "s4-p18",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "where Xu = X −Xe −Xq is the set of random variables that are neither query nor evidence. However, an explicit summation of this form is generally intractable, since the number of possible assignments is in general exponential in the number of variables. The exponential complexity can be reduced by assuming that all random variables in X are independent. However, this assumption is generally incorrect. For example, if the user’s shape contains a quadruped torso, it is likely that the shape would have other quadruped parts, such as legs, a head, and a tail. The existence, number, adjacencies, and style of these parts are dependent on the existence and style of the torso.",
+            "es": "donde Xu = X −Xe −Xq es el conjunto de variables aleatorias que no son ni de consulta ni de evidencia. Sin embargo, una suma explícita de esta forma generalmente es intratable, ya que el número de asignaciones posibles es, en general, exponencial en el número de variables. La complejidad exponencial puede reducirse suponiendo que todas las variables aleatorias de X son independientes. Sin embargo, este supuesto generalmente es incorrecto. Por ejemplo, si la forma del usuario contiene un torso de cuadrúpedo, es probable que la forma tenga otras partes de cuadrúpedo, como patas, una cabeza y una cola. La existencia, el número, las adyacencias y el estilo de estas partes dependen de la existencia y el estilo del torso."
+          }
+        },
+        {
+          "id": "s4-p19",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Instead of manually specifying which random variables are probabilistically dependent on which others, we learn the factorization of the joint distribution from data. This factorization makes the computation of the compatibility score tractable. The factorized distribution is represented with a directed graphical model called a Bayesian network [Pearl 1988; Koller and Friedman 2009]. A Bayesian network represents the random variables and their conditional dependencies using a directed acyclic graph. Nodes represent random variables and directed edges represent conditional dependencies between the corresponding variables. Each random variable is associated with a probability function that takes as input the set of values of the node’s parent variables and outputs the probability of this random variable given the input values. Since our random variables are discrete, these probability functions are represented as Conditional Probability Tables (CPTs). The procedure for learning the connectivity of the network and the entries of all the CPTs is described in Section 5. Information on the learned Bayesian networks used in our experiments is provided in Table 1.",
+            "es": "En lugar de especificar manualmente qué variables aleatorias dependen probabilísticamente de cuáles otras, aprendemos a partir de los datos la factorización (factorization) de la distribución conjunta. Esta factorización hace tratable el cálculo de la puntuación de compatibilidad. La distribución factorizada se representa con un modelo gráfico dirigido llamado red bayesiana (Bayesian network) [Pearl 1988; Koller and Friedman 2009]. Una red bayesiana representa las variables aleatorias y sus dependencias condicionales mediante un grafo acíclico dirigido (directed acyclic graph). Los nodos representan variables aleatorias y las aristas dirigidas representan dependencias condicionales entre las variables correspondientes. Cada variable aleatoria está asociada con una función de probabilidad que toma como entrada el conjunto de valores de las variables padre del nodo y devuelve como salida la probabilidad de esta variable aleatoria dados los valores de entrada. Como nuestras variables aleatorias son discretas, estas funciones de probabilidad se representan como tablas de probabilidad condicional (Conditional Probability Tables, CPT). El procedimiento para aprender la conectividad de la red y las entradas de todas las CPT se describe en la Sección 5. La información sobre las redes bayesianas aprendidas que se usan en nuestros experimentos se presenta en la Tabla 1."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: Datasets used in the evaluation.",
+            "es": "Tabla 1: Conjuntos de datos usados en la evaluación."
+          }
+        },
+        {
+          "id": "s4-p20",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Inference. Given a learned Bayesian network, the joint distribution can be expressed as P(X) = ∏_{x∈X} P(x | π(x)), where π(x) is the set of parent variables of x. Inference in the Bayesian network can be used to answer conditional probability queries such as (3). Since exact inference in probabilistic graphical models is NP-hard, we use approximate inference. We had experimented with loopy belief propagation [Frey and MacKay 1997], but with limited success, as it often returned poor approximations to the query distributions. Instead, we implemented a likelihood-weighted sampling technique that stochastically samples the joint distribution and weighs each sample based on the likelihood of the observed nodes accumulated throughout the process [Fung and Chang 1990].",
+            "es": "Inferencia. Dada una red bayesiana aprendida, la distribución conjunta puede expresarse como P(X) = ∏_{x∈X} P(x | π(x)), donde π(x) es el conjunto de variables padre de x. La inferencia en la red bayesiana puede usarse para responder consultas de probabilidad condicional como (3). Dado que la inferencia exacta en modelos gráficos probabilísticos es NP-difícil (NP-hard), usamos inferencia aproximada. Experimentamos con propagación de creencias con ciclos (loopy belief propagation) [Frey and MacKay 1997], pero con un éxito limitado, ya que con frecuencia devolvía aproximaciones deficientes de las distribuciones de la consulta. En su lugar, implementamos una técnica de muestreo ponderado por verosimilitud (likelihood-weighted sampling) que muestrea de forma estocástica la distribución conjunta y pondera cada muestra con base en la verosimilitud de los nodos observados acumulada a lo largo del proceso [Fung and Chang 1990]."
+          }
+        },
+        {
+          "id": "s4-p21",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Category ranking. While the compatibility score determines the ranked order of individual components, the part categories also need to be ranked as a whole, so that category labels can be presented in order of relevance by the interface. We achieve this by evaluating a compatibility score similar to Equation 2 that ignores the part-specific style term. The score of a part category l is defined as",
+            "es": "Ordenamiento (ranking) de categorías. Mientras que la puntuación de compatibilidad determina el orden de clasificación de los componentes individuales, las categorías de partes también deben ordenarse como un todo, de modo que la interfaz pueda presentar las etiquetas de categoría en orden de relevancia. Lo logramos evaluando una puntuación de compatibilidad similar a la Ecuación 2 que ignora el término de estilo específico de la parte. La puntuación de una categoría de partes l se define como"
+          }
+        },
+        {
+          "id": "s4-e5",
+          "type": "equation",
+          "page": 5,
+          "text": {
+            "en": "comp(l) = Σ_{q∈Q′} P(Xq = q | Xe = e), (5)"
+          }
+        },
+        {
+          "id": "s4-p22",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "where Q′ is the set of instantiations of Xq that satisfy",
+            "es": "donde Q′ es el conjunto de instanciaciones de Xq que satisfacen"
+          }
+        },
+        {
+          "id": "s4-e6",
+          "type": "equation",
+          "page": 5,
+          "text": {
+            "en": "(⋁_{l′∈L′} (A_{l,l′} = 1)) ∧ (N_l > n_l), (6)"
+          }
+        },
+        {
+          "id": "s4-p24",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "where L′ ⊆L is the set of categories of components in the current shape, and nl is the number of existing components from category l.",
+            "es": "donde L′ ⊆L es el conjunto de categorías de los componentes de la forma actual, y nl es el número de componentes existentes de la categoría l."
+          }
+        },
+        {
+          "id": "s4-p25",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Initial ranking. The assembled shape is initially empty. Therefore none of the random variables in X are observed initially. In this case, we rank the parts and part categories by querying the prior probabilities P(Eli = 1, Ssi,li = 1) for each part i with label li and style si, and P(El = 1) for each label l. The resulting category ranking is determined by the frequency of occurrence of the categories in the repository: the most popular categories appear first. For example, for a repository of creatures, the top categories are torsos, legs, and heads. Similarly, the initial ranking of parts is derived from the frequency of occurrence of style clusters in the repository.",
+            "es": "Ordenamiento inicial. La forma ensamblada está inicialmente vacía. Por lo tanto, ninguna de las variables aleatorias de X está observada al inicio. En este caso, ordenamos las partes y las categorías de partes consultando las probabilidades a priori (prior probabilities) P(Eli = 1, Ssi,li = 1) para cada parte i con etiqueta li y estilo si, y P(El = 1) para cada etiqueta l. El ordenamiento de categorías resultante está determinado por la frecuencia de aparición de las categorías en el repositorio: las categorías más populares aparecen primero. Por ejemplo, en un repositorio de criaturas, las categorías principales son torsos, patas y cabezas. De manera similar, el ordenamiento inicial de las partes se deriva de la frecuencia de aparición de los grupos de estilo en el repositorio."
+          }
+        },
+        {
+          "id": "s4-p26",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Symmetry. The probabilistic model also provides information on whether a chosen component should have a symmetric counterpart. Our implementation supports planar reflective symmetry, which is among the most prevalent in real-world objects [Podolak et al. 2006]. For a chosen component i with label li, we evaluate, for each observed category l′ in the current shape, the probability P(Rli,l′ = 1 | Xe = e), and take the observed category lmax that maximizes this probability. If this maximal probability is greater than 0.5, the interface generates the symmetric counterpart of i about the symmetry plane of the component with label lmax. If there are multiple such components, we select the largest one. If there are multiple symmetry planes for that component, we select the one that maximizes the projection of the assembled shape onto it. Symmetry planes are computed using the approach of Simari et al. [2006].",
+            "es": "Simetría. El modelo probabilístico también proporciona información sobre si un componente elegido debería tener una contraparte simétrica. Nuestra implementación admite la simetría reflexiva planar (planar reflective symmetry), que se encuentra entre las más prevalentes en los objetos del mundo real [Podolak et al. 2006]. Para un componente elegido i con etiqueta li, evaluamos, para cada categoría observada l′ en la forma actual, la probabilidad P(Rli,l′ = 1 | Xe = e), y tomamos la categoría observada lmax que maximiza esta probabilidad. Si esta probabilidad máxima es mayor que 0.5, la interfaz genera la contraparte simétrica de i respecto al plano de simetría del componente con etiqueta lmax. Si hay varios componentes de este tipo, seleccionamos el más grande. Si hay varios planos de simetría para ese componente, seleccionamos el que maximiza la proyección de la forma ensamblada sobre él. Los planos de simetría se calculan con el enfoque de Simari et al. [2006]."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 Training",
+        "es": "5 Entrenamiento"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "We now describe the offline procedure for learning the entries of the conditional probability tables for the Bayesian network, as well as the structure of the network. The input to this procedure is a set of shapes from a repository. We assume that a small set of manually segmented and labeled models is provided as a training set for a supervised segmentation and labeling procedure that propagates the segmentations and labelings to the rest of the dataset [Kalogerakis et al. 2010]. The sizes of the training sets used in our experiments are reported in Table 1.",
+            "es": "Ahora describimos el procedimiento fuera de línea para aprender las entradas de las tablas de probabilidad condicional de la red bayesiana, así como la estructura de la red. La entrada de este procedimiento es un conjunto de formas de un repositorio. Suponemos que se proporciona un conjunto pequeño de modelos segmentados y etiquetados manualmente como conjunto de entrenamiento para un procedimiento supervisado de segmentación y etiquetado que propaga las segmentaciones y los etiquetados al resto del conjunto de datos [Kalogerakis et al. 2010]. Los tamaños de los conjuntos de entrenamiento usados en nuestros experimentos se reportan en la Tabla 1."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "We modified the segmentation and labeling algorithm of Kalogerakis et al. [2010] to support hierarchical labeling. For each class of shapes, the modified algorithm learns a conditional random field (CRF) at each level of the segmentation hierarchy, and generates a sequence of increasingly refined segmentations of each shape by successively applying the CRFs in order. The set of geometric descriptors is the same as in the original algorithm. The geometric descriptors are computed at surface samples rather than mesh faces to accommodate polygon soups. A JointBoost classifier [Torralba et al. 2007] is used to output the probability distribution of labels over each sample. Then the distribution is assigned to each mesh face, by averaging the probabilities of labels over its nearest point samples. The unary and pairwise terms of the CRFs are defined as in the original algorithm.",
+            "es": "Modificamos el algoritmo de segmentación y etiquetado de Kalogerakis et al. [2010] para que admita etiquetado jerárquico. Para cada clase de formas, el algoritmo modificado aprende un campo aleatorio condicional (conditional random field, CRF) en cada nivel de la jerarquía de segmentación, y genera una secuencia de segmentaciones cada vez más refinadas de cada forma al aplicar sucesivamente los CRF en orden. El conjunto de descriptores geométricos es el mismo que en el algoritmo original. Los descriptores geométricos se calculan en muestras de la superficie en lugar de en las caras de la malla, para dar cabida a sopas de polígonos (polygon soups). Se usa un clasificador JointBoost [Torralba et al. 2007] para producir la distribución de probabilidad de las etiquetas en cada muestra. Luego la distribución se asigna a cada cara de la malla, promediando las probabilidades de las etiquetas de sus muestras de puntos más cercanas. Los términos unarios y por pares de los CRF se definen como en el algoritmo original."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Given a segmented and labeled dataset, the method performs clustering to identify groups of geometrically similar parts within each part category. The method then learns the structure and parameters of the Bayesian network. The balance of this section describes these two steps in more detail.",
+            "es": "Dado un conjunto de datos segmentado y etiquetado, el método realiza un agrupamiento (clustering) para identificar grupos de partes geométricamente similares dentro de cada categoría de partes. Después, el método aprende la estructura y los parámetros de la red bayesiana. El resto de esta sección describe estos dos pasos con más detalle."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Style clustering. For each component i we compute a geometric feature vector zi. In order to capture a variety of geometric attributes, this feature vector incorporates shape diameter, curvature, shape context, and PCA descriptors (Appendix A). The clustering is based on a Gaussian mixture model in the feature space of z, so that the mixture is a superposition of Gaussian distributions that have their own covariance structure. The number of Gaussians of the mixture is estimated by penalizing the complexity of the fitted mixture model. Specifically, for each part category l, we maximize the following objective function with respect to the number and parameters of the mixture model:",
+            "es": "Agrupamiento de estilos. Para cada componente i calculamos un vector de características geométricas zi. Para capturar una variedad de atributos geométricos, este vector de características incorpora el diámetro de la forma, la curvatura, el contexto de forma y descriptores PCA (Apéndice A). El agrupamiento se basa en un modelo de mezcla gaussiana (Gaussian mixture model) en el espacio de características de z, de modo que la mezcla es una superposición de distribuciones gaussianas que tienen su propia estructura de covarianza. El número de gaussianas de la mezcla se estima penalizando la complejidad del modelo de mezcla ajustado. En concreto, para cada categoría de partes l, maximizamos la siguiente función objetivo con respecto al número y a los parámetros del modelo de mezcla:"
+          }
+        },
+        {
+          "id": "s5-e1",
+          "type": "equation",
+          "page": 5,
+          "text": {
+            "en": "J_l = Σ_{i=1}^{m_l} log( Σ_{s=1}^{k_l} w_{s,l} · N(z; μ_{s,l}, Σ_{s,l}) ) − (1/2) P log(m_l), (7)"
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "where ml is the number of parts in category l, kl is the number of Gaussians of the mixture for l, N(z; µs,l, Σs,l) is a Gaussian with mean µs,l and covariance matrix Σs,l, ws,l is the corresponding mixing coefficient, and P is the number of parameters in the mixture model. The second term penalizes model complexity based on the Bayesian Information Criterion [Schwarz 1978].",
+            "es": "donde ml es el número de partes de la categoría l, kl es el número de gaussianas de la mezcla para l, N(z; µs,l, Σs,l) es una gaussiana con media µs,l y matriz de covarianza Σs,l, ws,l es el coeficiente de mezcla correspondiente, y P es el número de parámetros del modelo de mezcla. El segundo término penaliza la complejidad del modelo con base en el Criterio de Información Bayesiano (Bayesian Information Criterion) [Schwarz 1978]."
+          }
+        },
+        {
+          "id": "s5-p9",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The objective Jl is maximized as follows. Starting from kl = 2, we run expectation-maximization (EM) to estimate the parameters ws,l, µs,l, and Σs,l. If the number of parts kl is less than twice the number of parameters, we restrict the covariance matrix to be diagonal to prevent overfitting. EM is initialized with centers computed by k-means. We run EM separately for kl = 3, 4, ... . If there is no increase in the objective function for 5 successive repetitions, we stop and accept the fitting computed by the EM iteration with the highest objective function value. The clusters are defined as follows: each part i is assigned to the cluster s that corresponds to the Gaussian that maximizes ws,l · N(zi | µs,l, Σs,l). Figure 3 illustrates the clustering of some of the head components from the creature dataset.",
+            "es": "El objetivo Jl se maximiza de la siguiente manera. Partiendo de kl = 2, ejecutamos maximización de la esperanza (expectation-maximization, EM) para estimar los parámetros ws,l, µs,l y Σs,l. Si el número de partes kl es menor que el doble del número de parámetros, restringimos la matriz de covarianza a ser diagonal para evitar el sobreajuste (overfitting). EM se inicializa con centros calculados mediante k-means. Ejecutamos EM por separado para kl = 3, 4, ... . Si no hay aumento en la función objetivo durante 5 repeticiones sucesivas, nos detenemos y aceptamos el ajuste calculado por la iteración de EM con el valor más alto de la función objetivo. Los grupos se definen de la siguiente manera: cada parte i se asigna al grupo s que corresponde a la gaussiana que maximiza ws,l · N(zi | µs,l, Σs,l). La Figura 3 ilustra el agrupamiento de algunos de los componentes de cabeza del conjunto de datos de criaturas."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: Clusters of head parts, based on a Gaussian mixture model. The feature space is visualized by projection onto the two principal axes.",
+            "es": "Figura 3: Grupos de partes de cabeza, basados en un modelo de mezcla gaussiana. El espacio de características se visualiza mediante proyección sobre los dos ejes principales."
+          }
+        },
+        {
+          "id": "s5-p10",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Bayesian network learning. Given training data D, our method learns the graph structure G and parameters Θ of the Bayesian network by maximizing the Bayesian Information Criterion score",
+            "es": "Aprendizaje de la red bayesiana. Dados los datos de entrenamiento D, nuestro método aprende la estructura de grafo G y los parámetros Θ de la red bayesiana maximizando la puntuación del Criterio de Información Bayesiano"
+          }
+        },
+        {
+          "id": "s5-e2",
+          "type": "equation",
+          "page": 6,
+          "text": {
+            "en": "log P(D | G) ≈ log P(D | G, Θ) − (1/2) v log(n), (8)"
+          }
+        },
+        {
+          "id": "s5-p11",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "where v is the number of independent parameters in the network and n is the number of shapes in the dataset. The first term is the likelihood of the parameters Θ and the second term penalizes model complexity.",
+            "es": "donde v es el número de parámetros independientes de la red y n es el número de formas del conjunto de datos. El primer término es la verosimilitud (likelihood) de los parámetros Θ y el segundo término penaliza la complejidad del modelo."
+          }
+        },
+        {
+          "id": "s5-p12",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Structure learning is NP-hard and exact algorithms are super-exponential in the number of variables. Following Merrell et al. [2010], we use a local search heuristic that explores the space of network structures by adding, removing, and flipping edges.",
+            "es": "El aprendizaje de la estructura es NP-difícil y los algoritmos exactos son superexponenciales en el número de variables. Siguiendo a Merrell et al. [2010], usamos una heurística de búsqueda local (local search heuristic) que explora el espacio de estructuras de red añadiendo, eliminando e invirtiendo aristas."
+          }
+        },
+        {
+          "id": "s5-p13",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "To assist the structure learning procedure, we enforce the existence of a set of edges that represent obvious conditional dependencies. For each category l, we establish links from the existential node El to the cardinality node Nl, as well as to the style nodes {Ss,l}s∈Sl and the symmetry and adjacency nodes involving this category. If category l has subcategories, we also establish links to the existential nodes of the subcategories.",
+            "es": "Para asistir al procedimiento de aprendizaje de la estructura, imponemos la existencia de un conjunto de aristas que representan dependencias condicionales evidentes. Para cada categoría l, establecemos enlaces desde el nodo existencial El hacia el nodo de cardinalidad Nl, así como hacia los nodos de estilo {Ss,l}s∈Sl y los nodos de simetría y adyacencia que involucran esta categoría. Si la categoría l tiene subcategorías, también establecemos enlaces hacia los nodos existenciales de las subcategorías."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6 Modeling Interface",
+        "es": "6 Interfaz de modelado"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "To evaluate the presented approach to suggestion generation, we have implemented an assembly-based 3D modeling interface. Categories of suggested parts are shown on the left, with individual parts arranged within categories (Figure 4). The categories and the parts within each category are ordered based on their compatibility with the current shape, as computed by the probabilistic model. The order of the categories and parts is automatically updated when the composition of the assembled shape changes. The user can select a part and drag it onto the assembly area on the right, where it is snapped and glued to the current shape [Schmidt and Singh 2010].",
+            "es": "Para evaluar el enfoque presentado para la generación de sugerencias, hemos implementado una interfaz de modelado 3D basada en ensamblaje. Las categorías de partes sugeridas se muestran a la izquierda, con las partes individuales organizadas dentro de cada categoría (Figura 4). Las categorías y las partes dentro de cada categoría se ordenan según su compatibilidad con la forma actual, calculada por el modelo probabilístico. El orden de las categorías y de las partes se actualiza automáticamente cuando cambia la composición de la forma ensamblada. El usuario puede seleccionar una parte y arrastrarla hacia el área de ensamblaje de la derecha, donde se ajusta (snapped) y se pega (glued) a la forma actual [Schmidt and Singh 2010]."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "After adding a component, the user can further adjust its position, orientation, and scale. During these transformations, glued connections are maintained so that the part slides, rotates and scales on the surface of the rest of the assembly. This reduces the need for painstaking 6-DOF manipulation of parts. This snap-dragging can be disabled when desired, which is useful for assemblies with narrow, irregular or hard-edged boundaries.",
+            "es": "Después de añadir un componente, el usuario puede ajustar además su posición, orientación y escala. Durante estas transformaciones se mantienen las conexiones pegadas, de modo que la parte se desliza, rota y se escala sobre la superficie del resto del ensamblaje. Esto reduce la necesidad de una manipulación laboriosa de las partes en 6-DOF. Este arrastre con ajuste (snap-dragging) puede desactivarse cuando se desee, lo que es útil para ensamblajes con límites estrechos, irregulares o de bordes duros."
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "When the user drags in a part that has a symmetric counterpart, the counterpart is automatically generated and transformed with respect to the corresponding symmetry plane. This makes it easier to position pairs of legs, arms, wings, and wheels. The user can delink the symmetric pair and position each part individually. Parts can also be duplicated, reflected and deleted. To support confident exploration, the interface provides unlimited undo/redo functionality. The interface also provides a search box that supports textual search for category labels, but participants in our experiments almost never used this functionality, preferring visual exploration of part categories.",
+            "es": "Cuando el usuario arrastra una parte que tiene una contraparte simétrica, la contraparte se genera automáticamente y se transforma con respecto al plano de simetría (symmetry plane) correspondiente. Esto facilita posicionar pares de patas, brazos, alas y ruedas. El usuario puede desvincular el par simétrico y posicionar cada parte de forma individual. Las partes también pueden duplicarse, reflejarse y eliminarse. Para apoyar una exploración segura, la interfaz ofrece funciones ilimitadas de deshacer/rehacer (undo/redo). La interfaz también incluye un cuadro de búsqueda que admite la búsqueda textual de etiquetas de categoría, pero los participantes en nuestros experimentos casi nunca usaron esta función, pues prefirieron la exploración visual de las categorías de partes."
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The modeling interface is further demonstrated in the supplementary video. In our experiments, new users became proficient with the tool after 5 minutes of demonstration and 5 additional minutes of hands-on exploration. All models in this paper were created after this minimal training period.",
+            "es": "La interfaz de modelado se muestra con más detalle en el video suplementario. En nuestros experimentos, los usuarios nuevos se volvieron competentes con la herramienta después de 5 minutos de demostración y 5 minutos adicionales de exploración práctica. Todos los modelos de este artículo se crearon después de este periodo mínimo de capacitación."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "title": {
+        "en": "7 Evaluation",
+        "es": "7 Evaluación"
+      },
+      "blocks": [
+        {
+          "id": "s7-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "In this section, we describe an experimental evaluation of the relevance of the components presented by the probabilistic model. The goal of the experiments was to evaluate the relevance of the presented components during open-ended 3D modeling.",
+            "es": "En esta sección describimos una evaluación experimental de la relevancia de los componentes presentados por el modelo probabilístico. El objetivo de los experimentos fue evaluar la relevancia de los componentes presentados durante el modelado 3D abierto."
+          }
+        },
+        {
+          "id": "s7-h1",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "7.1 Experimental Setup",
+            "es": "7.1 Configuración experimental"
+          }
+        },
+        {
+          "id": "s7-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The presentation of components using the probabilistic model was compared to two alternative approaches. The first alternative was a static ordering of categories and parts. The ordering is based on the prior probabilities of categories and style clusters in the training data. Thus more frequently used categories and geometric styles appear first. Static ordering is the approach used in the Spore creature creator [Maxis Software 2008], where the order of presented categories and components does not adapt to the current model. The second alternative was the purely geometric suggestion generation approach of Chaudhuri and Koltun [2010]. We have modified the published technique to use the same segmentations as in the other two conditions, thus the set of components was identical and only the order of presentation varied across conditions. The same modeling interface was used in all conditions, so the components suggested by the approach of Chaudhuri and Koltun [2010] were also presented by category.",
+            "es": "La presentación de componentes mediante el modelo probabilístico se comparó con dos enfoques alternativos. La primera alternativa fue un ordenamiento estático (static ordering) de categorías y partes. El ordenamiento se basa en las probabilidades a priori de las categorías y de los grupos de estilo (style clusters) en los datos de entrenamiento. Así, las categorías y los estilos geométricos de uso más frecuente aparecen primero. El ordenamiento estático es el enfoque utilizado en el creador de criaturas de Spore [Maxis Software 2008], donde el orden de las categorías y los componentes presentados no se adapta al modelo actual. La segunda alternativa fue el enfoque puramente geométrico de generación de sugerencias de Chaudhuri and Koltun [2010]. Modificamos la técnica publicada para usar las mismas segmentaciones (segmentations) que en las otras dos condiciones, de modo que el conjunto de componentes fue idéntico y solo varió el orden de presentación entre condiciones. Se usó la misma interfaz de modelado en todas las condiciones, por lo que los componentes sugeridos por el enfoque de Chaudhuri and Koltun [2010] también se presentaron por categoría."
+          }
+        },
+        {
+          "id": "s7-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "To evaluate the relevance of components presented by the three approaches, we recruited 42 volunteers from the student body of a computer science department in a research university. The students were recruited through departmental mailing lists. Most of the participants had little or no prior exposure to 3D modeling. Each participant was given a 5-10 minute orientation and was then asked to perform four modeling tasks. The tasks were of two types:",
+            "es": "Para evaluar la relevancia de los componentes presentados por los tres enfoques, reclutamos a 42 voluntarios del alumnado de un departamento de ciencias de la computación de una universidad de investigación. Los estudiantes fueron reclutados mediante listas de correo departamentales. La mayoría de los participantes tenía poca o ninguna exposición previa al modelado 3D. A cada participante se le dio una orientación de 5-10 minutos y luego se le pidió realizar cuatro tareas de modelado. Las tareas eran de dos tipos:"
+          }
+        },
+        {
+          "id": "s7-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Toy. A neighborhood toy company asked you to design a children’s toy that they will manufacture. Create such a toy using the provided application.",
+            "es": "Juguete (Toy). Una empresa juguetera local le pidió diseñar un juguete infantil que ellos fabricarán. Cree dicho juguete con la aplicación proporcionada."
+          }
+        },
+        {
+          "id": "s7-p5",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Creature. A neighborhood game company asked you to design a large number of creatures for an upcoming fantasy game. Create one such creature using the provided application.",
+            "es": "Criatura (Creature). Una empresa local de videojuegos le pidió diseñar una gran cantidad de criaturas para un próximo juego de fantasía. Cree una de esas criaturas con la aplicación proporcionada."
+          }
+        },
+        {
+          "id": "s7-p6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "For the Toy assignment, the tool used a large model library with 491 models obtained from the Digimation ModelBank and Archive collections. The library included models of creatures, aircraft, watercraft, and furniture. For the Creature assignment, the tool used a smaller library with 173 creature models. Table 1 provides further information on the two datasets.",
+            "es": "Para la tarea Juguete, la herramienta usó una biblioteca grande de modelos con 491 modelos obtenidos de las colecciones Digimation ModelBank y Archive. La biblioteca incluía modelos de criaturas, aeronaves, embarcaciones y muebles. Para la tarea Criatura, la herramienta usó una biblioteca más pequeña con 173 modelos de criaturas. La Tabla 1 ofrece más información sobre los dos conjuntos de datos."
+          }
+        },
+        {
+          "id": "s7-p7",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Each participant performed two toy tasks and two creature tasks. Each task was performed in a randomly chosen condition: components presented by the probabilistic model, static ordering, or components suggested by the approach of Chaudhuri and Koltun. The modeling interface was identical in all conditions. The conditions were not disclosed to the participants, although some differences were apparent, since in the static condition the order of the presented components never changed, and in the geometric condition the suggestion generation process was much longer due to the intensive computational demands of that technique. Several participants performed less than four tasks due to time constraints. In total, 141 modeling tasks were completed. The average modeling time per session with the probabilistic model was 21.4 minutes, the median was 19 minutes, the shortest was 7 minutes and the longest was 56 minutes. The average modeling time was 25.4 minutes with the static ordering and 34.3 minutes with the approach of Chaudhuri and Koltun.",
+            "es": "Cada participante realizó dos tareas de juguete y dos tareas de criatura. Cada tarea se realizó en una condición elegida al azar: componentes presentados por el modelo probabilístico, ordenamiento estático o componentes sugeridos por el enfoque de Chaudhuri and Koltun. La interfaz de modelado fue idéntica en todas las condiciones. Las condiciones no se revelaron a los participantes, aunque algunas diferencias eran evidentes, ya que en la condición estática el orden de los componentes presentados nunca cambiaba, y en la condición geométrica el proceso de generación de sugerencias era mucho más largo debido a las intensas demandas computacionales de esa técnica. Varios participantes realizaron menos de cuatro tareas por limitaciones de tiempo. En total se completaron 141 tareas de modelado. El tiempo promedio de modelado por sesión con el modelo probabilístico fue de 21.4 minutos, la mediana fue de 19 minutos, el más corto fue de 7 minutos y el más largo fue de 56 minutos. El tiempo promedio de modelado fue de 25.4 minutos con el ordenamiento estático y de 34.3 minutos con el enfoque de Chaudhuri and Koltun."
+          }
+        },
+        {
+          "id": "s7-p8",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The speed of component presentation by the probabilistic model compared favorably with the approach of Chaudhuri and Koltun.",
+            "es": "La velocidad de presentación de componentes del modelo probabilístico resultó favorable en comparación con el enfoque de Chaudhuri and Koltun."
+          }
+        },
+        {
+          "id": "s7-p9",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "We ran parallel modeling sessions during the evaluation, using an eight-core 2.53 GHz Xeon workstation and a quad-core 3.2 GHz Core i7 workstation. Inference in the Bayesian network used a single core and completed in 2.8 seconds on average. The approach of Chaudhuri and Koltun used all available cores and required roughly 90 seconds to generate suggestions.",
+            "es": "Ejecutamos sesiones de modelado en paralelo durante la evaluación, usando una estación de trabajo Xeon de ocho núcleos a 2.53 GHz y una estación de trabajo Core i7 de cuatro núcleos a 3.2 GHz. La inferencia (inference) en la red bayesiana (Bayesian network) usó un solo núcleo y se completó en 2.8 segundos en promedio. El enfoque de Chaudhuri and Koltun usó todos los núcleos disponibles y requirió aproximadamente 90 segundos para generar sugerencias."
+          }
+        },
+        {
+          "id": "s7-h2",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "7.2 Results",
+            "es": "7.2 Resultados"
+          }
+        },
+        {
+          "id": "s7-p10",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "To evaluate the relevance of components presented by the three approaches, we have analyzed logs generated by the application for all modeling sessions. Relevance was evaluated both for the ordering of categories and for the ordering of parts within categories. Figure 5 (left) presents the cumulative distribution of categories from which parts were chosen, as a function of the ranking of the category at the time of selection. Thus for the Toy task, 64.6% of the chosen components were selected from the first 2 categories in the probabilistic model condition, compared to 23.5% in the static condition and 21.3% in the geometric condition. For the Creature task, 75.05% of the components were chosen from the first 2 categories presented by the probabilistic model, compared to 43.9% in the static condition and 46.4% in the geometric condition. Figure 5 (right) presents the cumulative distribution of the components used by participants, as a function of the ranking of the component within its category at the time of selection. For both tasks, the probabilistic model outperformed the static ordering and the geometric approach.",
+            "es": "Para evaluar la relevancia de los componentes presentados por los tres enfoques, analizamos los registros generados por la aplicación en todas las sesiones de modelado. La relevancia se evaluó tanto para el ordenamiento de las categorías como para el ordenamiento de las partes dentro de las categorías. La Figura 5 (izquierda) presenta la distribución acumulada (cumulative distribution) de las categorías de las que se eligieron partes, en función de la posición de la categoría en el momento de la selección. Así, para la tarea Juguete, el 64.6% de los componentes elegidos se seleccionó de las primeras 2 categorías en la condición del modelo probabilístico, en comparación con el 23.5% en la condición estática y el 21.3% en la condición geométrica. Para la tarea Criatura, el 75.05% de los componentes se eligió de las primeras 2 categorías presentadas por el modelo probabilístico, en comparación con el 43.9% en la condición estática y el 46.4% en la condición geométrica. La Figura 5 (derecha) presenta la distribución acumulada de los componentes utilizados por los participantes, en función de la posición del componente dentro de su categoría en el momento de la selección. En ambas tareas, el modelo probabilístico superó al ordenamiento estático y al enfoque geométrico."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5: Results for the Toy task (top) and Creature task (bottom). The plots on the left show the cumulative distribution of categories from which parts were chosen, as a function of the ranking of the category at the time of selection. The plots on the right show the cumulative distribution of components used by participants, as a function of the ranking of the component within its category at the time of selection. The probabilistic model presented more relevant categories and components than the static ordering or the geometric approach of Chaudhuri and Koltun [2010].",
+            "es": "Figura 5: Resultados de la tarea Juguete (arriba) y de la tarea Criatura (abajo). Las gráficas de la izquierda muestran la distribución acumulada de las categorías de las que se eligieron partes, en función de la posición de la categoría en el momento de la selección. Las gráficas de la derecha muestran la distribución acumulada de los componentes utilizados por los participantes, en función de la posición del componente dentro de su categoría en el momento de la selección. El modelo probabilístico presentó categorías y componentes más relevantes que el ordenamiento estático o el enfoque geométrico de Chaudhuri and Koltun [2010]."
+          }
+        },
+        {
+          "id": "s7-p11",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Figure 6 (top) shows the distribution of the number of components used by participants in their models. On average, participants used 9.9 components for 3D models created with the probabilistic model. Figure 6 (bottom) shows the distribution of the number of library models that served as sources of components for each assembled 3D model. On average in the probabilistic model condition, the components used in single assembled model originate from 5.7 library models. The average number of components per assembled model and the average number of source library models per assembled model was similar across the three conditions.",
+            "es": "La Figura 6 (arriba) muestra la distribución del número de componentes utilizados por los participantes en sus modelos. En promedio, los participantes usaron 9.9 componentes en los modelos 3D creados con el modelo probabilístico. La Figura 6 (abajo) muestra la distribución del número de modelos de la biblioteca que sirvieron como fuente de componentes para cada modelo 3D ensamblado. En promedio, en la condición del modelo probabilístico, los componentes usados en un solo modelo ensamblado provienen de 5.7 modelos de la biblioteca. El promedio de componentes por modelo ensamblado y el promedio de modelos fuente de la biblioteca por modelo ensamblado fueron similares en las tres condiciones."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6: Number of components used in a single assembled model (top) and number of library models that the employed components originate from (bottom).",
+            "es": "Figura 6: Número de componentes utilizados en un solo modelo ensamblado (arriba) y número de modelos de la biblioteca de los que provienen los componentes empleados (abajo)."
+          }
+        },
+        {
+          "id": "s7-p12",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Figures 1 and 7 show 3D models created by participants with the probabilistic model. The models were created entirely with the assembly-based 3D modeling interface.",
+            "es": "Las Figuras 1 y 7 muestran modelos 3D creados por los participantes con el modelo probabilístico. Los modelos se crearon por completo con la interfaz de modelado 3D basado en ensamblaje."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7: Top: models created by participants with our assembly-based 3D modeling tool. Bottom: models shown above and in Figure 1, with individual components and modeling times.",
+            "es": "Figura 7: Arriba: modelos creados por los participantes con nuestra herramienta de modelado 3D basado en ensamblaje. Abajo: modelos mostrados arriba y en la Figura 1, con sus componentes individuales y tiempos de modelado."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s8",
+      "title": {
+        "en": "8 Discussion",
+        "es": "8 Discusión"
+      },
+      "blocks": [
+        {
+          "id": "s8-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We have described a probabilistic reasoning approach to the presentation of components in assembly-based 3D modeling. Our approach learns a probabilistic graphical model that encodes conditional dependencies between shape components. The model operates on both semantics and geometric style. During an interactive modeling session, inference in the probabilistic model is used to present relevant components.",
+            "es": "Hemos descrito un enfoque de razonamiento probabilístico para la presentación de componentes en el modelado 3D basado en ensamblaje. Nuestro enfoque aprende un modelo gráfico probabilístico (probabilistic graphical model) que codifica dependencias condicionales (conditional dependencies) entre componentes de forma. El modelo opera tanto sobre la semántica como sobre el estilo geométrico. Durante una sesión de modelado interactiva, la inferencia en el modelo probabilístico se usa para presentar componentes relevantes."
+          }
+        },
+        {
+          "id": "s8-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The probabilistic model can be augmented in a number of ways. The model represents conditional dependencies in a directed graph. This captures directed dependencies in the data: when a fuselage from a commercial jet is added, it “activates” the existence of two wings and their adjacency to the fuselage, as well as the existence of two or four engines adjacent to the wings. However, certain relationships can be alternatively modeled by undirected links, which are more appropriate for representing mutual constraints; for example, a fuselage from a commercial jet is unlikely to co-exist with missiles. Future work could investigate the use of undirected graphical models, such as Markov random fields, or unified models such as factor graphs. In addition, random variables that represent existence information could be omitted in favor of a tree-based representation for the CPDs at the cardinality variables. Also, the presented model uses discrete variables, which simplify both learning and inference; however, geometric style can be more precisely modeled with continuous variables, which can further increase the relevance of presented parts. The model can also be augmented to support a greater variety of symmetries, as well as spatial and functional relationships between components.",
+            "es": "El modelo probabilístico puede ampliarse de varias maneras. El modelo representa las dependencias condicionales en un grafo dirigido. Esto captura dependencias dirigidas en los datos: cuando se agrega un fuselaje de un avión comercial, este “activa” la existencia de dos alas y su adyacencia al fuselaje, así como la existencia de dos o cuatro motores adyacentes a las alas. Sin embargo, ciertas relaciones pueden modelarse alternativamente mediante enlaces no dirigidos, que son más apropiados para representar restricciones mutuas; por ejemplo, es poco probable que un fuselaje de un avión comercial coexista con misiles. Trabajos futuros podrían investigar el uso de modelos gráficos no dirigidos, como los campos aleatorios de Markov (Markov random fields), o de modelos unificados como los grafos de factores (factor graphs). Además, las variables aleatorias que representan información de existencia podrían omitirse en favor de una representación en forma de árbol para las CPD en las variables de cardinalidad (cardinality variables). Asimismo, el modelo presentado usa variables discretas, que simplifican tanto el aprendizaje como la inferencia; sin embargo, el estilo geométrico puede modelarse con mayor precisión con variables continuas, lo que puede aumentar aún más la relevancia de las partes presentadas. El modelo también puede ampliarse para admitir una mayor variedad de simetrías, así como relaciones espaciales y funcionales entre componentes."
+          }
+        },
+        {
+          "id": "s8-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Assembly-based 3D modeling can benefit from improved techniques for consistent shape segmentation [Golovinskiy and Funkhouser 2009; Kalogerakis et al. 2010] and for gluing and cutting shapes [Sharf et al. 2006; Schmidt and Singh 2010]. Sketch-based shape manipulation algorithms can be integrated to support editing of individual components [Nealen et al. 2005] and careful meshing techniques can yield structurally sound models that can be fabricated in physical form [Shen et al. 2004].",
+            "es": "El modelado 3D basado en ensamblaje puede beneficiarse de técnicas mejoradas para la segmentación consistente de formas (shape segmentation) [Golovinskiy and Funkhouser 2009; Kalogerakis et al. 2010] y para pegar y cortar formas [Sharf et al. 2006; Schmidt and Singh 2010]. Los algoritmos de manipulación de formas basados en bocetos pueden integrarse para permitir la edición de componentes individuales [Nealen et al. 2005], y las técnicas cuidadosas de mallado pueden producir modelos estructuralmente sólidos que se pueden fabricar en forma física [Shen et al. 2004]."
+          }
+        },
+        {
+          "id": "s8-p4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The data-driven approach to three-dimensional content creation also calls for improved interactive techniques for texturing, rigging, and animating shapes. Our implementation produces static shapes with no material properties. The ability to easily texture the assembled models would significantly enhance expressivity. Likewise, the ability to easily set up the created models for animation and simulation would enable users to produce functional content for computer games and virtual worlds.",
+            "es": "El enfoque basado en datos para la creación de contenido tridimensional también exige técnicas interactivas mejoradas de texturizado (texturing), rigging y animación de formas. Nuestra implementación produce formas estáticas sin propiedades de material. La capacidad de texturizar fácilmente los modelos ensamblados aumentaría significativamente la expresividad. Asimismo, la capacidad de preparar fácilmente los modelos creados para animación y simulación permitiría a los usuarios producir contenido funcional para videojuegos y mundos virtuales."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ack",
+      "title": {
+        "en": "Acknowledgments",
+        "es": "Agradecimientos"
+      },
+      "blocks": [
+        {
+          "id": "s8-p5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "We are grateful to Aaron Hertzmann, Sergey Levine, Jonathan Laserson, Suchi Saria, and Philipp Krähenbühl for their comments on this paper, and to Daphne Koller for helpful discussions. Chris Platz and Hadidjah Chamberlin assisted in the preparation of figures and the supplementary video. Niels Joubert narrated the video. This work was supported in part by NSF grants SES-0835601, CCF-0641402, and FODAVA-0808515, and by KAUST Global Collaborative Research.",
+            "es": "Agradecemos a Aaron Hertzmann, Sergey Levine, Jonathan Laserson, Suchi Saria y Philipp Krähenbühl por sus comentarios sobre este artículo, y a Daphne Koller por las discusiones útiles. Chris Platz y Hadidjah Chamberlin ayudaron en la preparación de las figuras y del video suplementario. Niels Joubert narró el video. Este trabajo recibió apoyo parcial de las subvenciones de la NSF SES-0835601, CCF-0641402 y FODAVA-0808515, y de KAUST Global Collaborative Research."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-a",
+      "title": {
+        "en": "A Geometric Descriptors for Components",
+        "es": "A Descriptores geométricos de los componentes"
+      },
+      "blocks": [
+        {
+          "id": "app-a-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "For each shape component C from source mesh M in the repository, we extract a 30 + |L|-dimensional feature vector containing: a) mean and variance of the mean curvature over the surface of C (the curvature is estimated at multiple scales over neighborhoods of point samples of increasing radii: 1%, 2%, 5% and 10% relative to the median geodesic distance between all pairs of point samples on the surface of M); b) mean and variance of the shape diameter over the surface of C, and of its logarithmized versions w.r.t. normalizing parameters 1, 2, 4 and 8; c) the following entries, derived from the singular values {s1, s2, s3} of the covariance matrix of sample positions on the surface of C: s1/Σi si, s2/Σi si, s3/Σi si, (s1+s2)/Σi si, (s1+s3)/Σi si, (s2+s3)/Σi si, s1/s2, s1/s3, s2/s3, s1/s2 + s1/s3, s1/s2 + s2/s3, s1/s3 + s2/s3; d) surface area and volume of C, divided by total surface area and volume of M; e) for each label l ∈L, the average geodesic distance between points on C and points on M with label l, measuring the proximity of C to siblings with label l. Finally, we denoise the data by retaining only the principal components capturing 70% of the variance in the data.",
+            "es": "Para cada componente de forma C de la malla fuente M en el repositorio, extraemos un vector de características de 30 + |L| dimensiones que contiene: a) la media y la varianza de la curvatura media (mean curvature) sobre la superficie de C (la curvatura se estima a múltiples escalas sobre vecindades de muestras puntuales de radios crecientes: 1%, 2%, 5% y 10% relativos a la mediana de la distancia geodésica entre todos los pares de muestras puntuales sobre la superficie de M); b) la media y la varianza del diámetro de la forma (shape diameter) sobre la superficie de C, y de sus versiones logaritmizadas con respecto a los parámetros de normalización 1, 2, 4 y 8; c) las siguientes entradas, derivadas de los valores singulares (singular values) {s1, s2, s3} de la matriz de covarianza (covariance matrix) de las posiciones de las muestras sobre la superficie de C: s1/Σi si, s2/Σi si, s3/Σi si, (s1+s2)/Σi si, (s1+s3)/Σi si, (s2+s3)/Σi si, s1/s2, s1/s3, s2/s3, s1/s2 + s1/s3, s1/s2 + s2/s3, s1/s3 + s2/s3; d) el área superficial y el volumen de C, divididos entre el área superficial total y el volumen de M; e) para cada etiqueta l ∈L, la distancia geodésica promedio entre los puntos en C y los puntos en M con la etiqueta l, que mide la cercanía de C a los componentes hermanos con la etiqueta l. Finalmente, eliminamos el ruido de los datos conservando únicamente los componentes principales (principal components) que capturan el 70% de la varianza de los datos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "CHAUDHURI, S., AND KOLTUN, V. 2010. Data-driven suggestions for creativity support in 3D modeling. In Proc. SIGGRAPH Asia, ACM."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "EPIC GAMES. 2011. Unreal Development Kit. http://www.udk.com."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "FISHER, M., AND HANRAHAN, P. 2010. Context-based search for 3D models. In Proc. SIGGRAPH Asia, ACM."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "FREY, B., AND MACKAY, D. 1997. A revolution: belief propagation in graphs with cycles. In Advances in Neural Information Processing Systems, 479–485."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "FUNG, R. M., AND CHANG, K.-C. 1990. Weighting and integrating evidence for stochastic simulation in Bayesian networks. In Proc. Conference on Uncertainty in Artificial Intelligence, North-Holland Publishing Co."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "FUNKHOUSER, T., KAZHDAN, M., SHILANE, P., MIN, P., KIEFER, W., TAL, A., RUSINKIEWICZ, S., AND DOBKIN, D. 2004. Modeling by example. In Proc. SIGGRAPH, ACM."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "GOLOVINSKIY, A., AND FUNKHOUSER, T. 2009. Consistent segmentation of 3D models. Computers & Graphics 33, 3, 262–269."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "KALOGERAKIS, E., HERTZMANN, A., AND SINGH, K. 2010. Learning 3D mesh segmentation and labeling. In Proc. SIGGRAPH, ACM."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "KOLLER, D., AND FRIEDMAN, N. 2009. Probabilistic Graphical Models: Principles and Techniques. The MIT Press."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "KRAEVOY, V., JULIUS, D., AND SHEFFER, A. 2007. Model composition from interchangeable components. In Proc. Pacific Graphics, IEEE Computer Society."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "LEE, J., AND FUNKHOUSER, T. 2008. Sketch-based search and composition of 3D models. In Proc. Eurographics Workshop on Sketch-Based Interfaces and Modeling."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "MAXIS SOFTWARE. 2008. Spore. http://www.spore.com."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "MERRELL, P., SCHKUFZA, E., AND KOLTUN, V. 2010. Computer-generated residential building layouts. In Proc. SIGGRAPH Asia, ACM."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "MORI, G., BELONGIE, S., AND MALIK, J. 2001. Shape contexts enable efficient retrieval of similar shapes. In Proc. IEEE Computer Vision and Pattern Recognition, vol. 1, 723–730."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "NEALEN, A., SORKINE, O., ALEXA, M., AND COHEN-OR, D. 2005. A sketch-based interface for detail-preserving mesh editing. In Proc. SIGGRAPH, ACM."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "PEARL, J. 1988. Probabilistic Reasoning in Intelligent Systems: Networks of Plausible Inference. Morgan Kaufmann."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "PODOLAK, J., SHILANE, P., GOLOVINSKIY, A., RUSINKIEWICZ, S., AND FUNKHOUSER, T. 2006. A planar-reflective symmetry transform for 3D shapes. In Proc. SIGGRAPH, ACM."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "SCHMIDT, R., AND SINGH, K. 2010. Drag, drop, and clone: An interactive interface for surface composition. Tech. Rep. CSRG-611, Department of Computer Science, University of Toronto."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "SCHWARZ, G. 1978. Estimating the dimension of a model. The Annals of Statistics, 2, 461–464."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "SHAPIRA, L., SHALOM, S., SHAMIR, A., ZHANG, R. H., AND COHEN-OR, D. 2010. Contextual part analogies in 3D objects. International Journal of Computer Vision 89, 2-3, 309–326."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "SHARF, A., BLUMENKRANTS, M., SHAMIR, A., AND COHEN-OR, D. 2006. SnapPaste: an interactive technique for easy mesh composition. Visual Computer 22, 9, 835–844."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "SHEN, C., O’BRIEN, J. F., AND SHEWCHUK, J. R. 2004. Interpolating and approximating implicit surfaces from polygon soup. In Proc. SIGGRAPH, ACM."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "SHIN, H., AND IGARASHI, T. 2007. Magic canvas: interactive design of a 3D scene prototype from freehand sketches. In Proc. Graphics Interface."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "SIMARI, P., KALOGERAKIS, E., AND SINGH, K. 2006. Folding meshes: hierarchical mesh segmentation based on planar symmetry. In Proc. Eurographics Symposium on Geometry Processing."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "SPROULL, R. F. 1990. Parts of the frontier are hard to move. Computer Graphics 24, 2, 9."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "TALTON, J. O., GIBSON, D., YANG, L., HANRAHAN, P., AND KOLTUN, V. 2009. Exploratory modeling with collaborative design spaces. In Proc. SIGGRAPH Asia, ACM."
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "TORRALBA, A., MURPHY, K. P., AND FREEMAN, W. T. 2007. Sharing visual features for multiclass and multiview object detection. IEEE Transactions on Pattern Analysis and Machine Intelligence 29, 5, 854–869."
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "UNITY TECHNOLOGIES. 2011. Unity. http://unity3d.com."
+          }
+        }
+      ]
+    }
+  ]
+}

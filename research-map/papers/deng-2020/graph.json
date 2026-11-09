@@ -1,0 +1,565 @@
+{
+  "version": 1,
+  "node": "deng-2020",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Business tasks usually need only a part of the complete BIM model, while large projects produce huge files that are slow to process. The paper asks how to automatically extract the required part from an IFC model according to what the user needs.",
+      "es": "Las tareas de negocio normalmente necesitan solo una parte del modelo BIM completo, mientras que los proyectos grandes generan archivos enormes y lentos de procesar. El artículo pregunta cómo extraer automáticamente de un modelo IFC la parte requerida según lo que necesita el usuario.",
+      "blocks": [
+        "s1-p3",
+        "s1-p5"
+      ],
+      "key": "partial-model-extraction",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "limitation",
+      "en": "Commercial tools only export partial models that are predefined in the software (e.g. selected or visible elements, as in ArchiCAD and Revit), and plug-ins work only in one tool. Manual selection is cumbersome, error-prone and cannot be stored as a template.",
+      "es": "Las herramientas comerciales solo exportan modelos parciales predefinidos en el software (por ejemplo, elementos seleccionados o visibles, como en ArchiCAD y Revit), y los plug-ins funcionan solo en una herramienta. La selección manual es engorrosa, propensa a errores y no puede guardarse como plantilla.",
+      "blocks": [
+        "s1-p4",
+        "s2-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "IDM defines the exchange requirements of a task in non-technical terms, and MVD is the technical subset of the IFC schema that implements them. Only a few MVDs are widely supported by BIM software, and new ones need additional software development.",
+      "es": "IDM define los requisitos de intercambio de una tarea en términos no técnicos, y MVD es el subconjunto técnico del esquema IFC que los implementa. Solo unos pocos MVD tienen amplio soporte en el software BIM, y los nuevos requieren desarrollo de software adicional.",
+      "blocks": [
+        "s2-p4",
+        "s2-p19"
+      ],
+      "key": "idm-mvd",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "Generic extraction methods are split into schema-level (a predefined structure, so all transformations must be defined in advance) and instance-level (working directly on the IFC instances of the model). Instance-level gives more flexibility but needs more complex query algorithms.",
+      "es": "Los métodos genéricos de extracción se dividen en nivel de esquema (una estructura predefinida, por lo que todas las transformaciones deben definirse de antemano) y nivel de instancia (que trabaja directamente sobre las instancias IFC del modelo). El nivel de instancia da más flexibilidad pero requiere algoritmos de consulta más complejos.",
+      "blocks": [
+        "s2-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "concept",
+      "en": "Earlier schema-level languages include PMQL, GMSD, BIMQL, mvdXML, QL4BIM and MMQL. PMQL needs many request-response cycles for relations, and GMSD requires users to define MVDs, which is a challenge. The paper builds on XML like mvdXML.",
+      "es": "Los lenguajes previos a nivel de esquema incluyen PMQL, GMSD, BIMQL, mvdXML, QL4BIM y MMQL. PMQL requiere muchos ciclos de solicitud y respuesta para las relaciones, y GMSD obliga a los usuarios a definir MVD, lo cual es un reto. El artículo se basa en XML como mvdXML.",
+      "blocks": [
+        "s2-p9",
+        "s2-p20",
+        "s2-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "limitation",
+      "en": "Instance-level methods reviewed mainly extract common physical elements and do not fully support extraction under restrictions. One no-schema algorithm could not handle combinatorial conditional expressions.",
+      "es": "Los métodos a nivel de instancia revisados extraen sobre todo elementos físicos comunes y no soportan por completo la extracción bajo restricciones. Un algoritmo sin esquema no pudo manejar expresiones condicionales combinatorias.",
+      "blocks": [
+        "s2-p13",
+        "s2-p16"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "The Selection Set is an information set that holds the user's extraction requirements (object types, attributes, relations or mixed) as input parameters. It must include at least one Entity and cannot include abstract entities.",
+      "es": "El Selection Set es un conjunto de información que contiene los requisitos de extracción del usuario (tipos de objeto, atributos, relaciones o mixtos) como parámetros de entrada. Debe incluir al menos una Entidad y no puede incluir entidades abstractas.",
+      "blocks": [
+        "s3-p2",
+        "s3-p4",
+        "s3-p7"
+      ],
+      "key": "selection-set",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "claim",
+      "en": "Theorem 1: the union of several Selection Sets is still a Selection Set, and so is their intersection. This lets requirements be combined with OR or AND.",
+      "es": "Teorema 1: la unión de varios Selection Sets sigue siendo un Selection Set, y también lo es su intersección. Esto permite combinar requisitos con OR o AND.",
+      "blocks": [
+        "s3-p9",
+        "s3-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "Seven rules, defined with mathematical logic and set theory, keep the partial IFC model valid in syntax and semantics. They fall into three groups: basic rules for a valid IFC file, extraction rules based on the Selection Set, and a processing rule for redundant information.",
+      "es": "Siete reglas, definidas con lógica matemática y teoría de conjuntos, mantienen el modelo IFC parcial válido en sintaxis y semántica. Se dividen en tres grupos: reglas básicas de un archivo IFC válido, reglas de extracción basadas en el Selection Set y una regla de procesamiento de información redundante.",
+      "blocks": [
+        "s4-p1",
+        "fig-1",
+        "s7-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Rule 1: the partial model has exactly one IfcProject entity plus the entities referenced by its attributes, since IfcProject holds the site, building, units and other basic project information.",
+      "es": "Regla 1: el modelo parcial tiene exactamente una entidad IfcProject más las entidades referenciadas por sus atributos, ya que IfcProject contiene el sitio, el edificio, las unidades y otra información básica del proyecto.",
+      "blocks": [
+        "s4-p7",
+        "s4-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "Rule 2: when a target entity is extracted, all entities referenced by its explicit attributes are extracted too. This group is called the Essential Set of the target entity.",
+      "es": "Regla 2: cuando se extrae una entidad objetivo, también se extraen todas las entidades referenciadas por sus atributos explícitos. Este grupo se llama Conjunto Esencial de la entidad objetivo.",
+      "blocks": [
+        "s4-p11",
+        "s4-p12"
+      ],
+      "key": "essential-set",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Rule 3: entities found through the inverse attributes of the target are also extracted. Widely shared entities such as IfcOwnerHistory, IfcDirection, IfcCartesianPoint and IfcLocalPlacement form the Particular Set and act as stopping points of that query. The result is the Individual Set, which holds the complete information of the target entity.",
+      "es": "Regla 3: también se extraen las entidades halladas mediante los atributos inversos del objetivo. Entidades muy compartidas como IfcOwnerHistory, IfcDirection, IfcCartesianPoint e IfcLocalPlacement forman el Particular Set y son puntos de parada de esa consulta. El resultado es el Individual Set, que contiene la información completa de la entidad objetivo.",
+      "blocks": [
+        "s4-p14",
+        "s4-p15"
+      ],
+      "key": "particular-set",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "Rules 4 to 6 map the Selection Set to IFC data: instances matching an Entity are included (Rule 4); when a relation entity is in the set, its relating and related objects are included (Rule 5); and included entities must satisfy the set's rules (Rule 6).",
+      "es": "Las reglas 4 a 6 asocian el Selection Set con datos IFC: se incluyen las instancias que coinciden con una Entidad (Regla 4); cuando una entidad de relación está en el conjunto, se incluyen sus objetos relacionantes y relacionados (Regla 5); y las entidades incluidas deben cumplir las reglas del conjunto (Regla 6).",
+      "blocks": [
+        "s4-p20",
+        "s4-p23",
+        "s4-p29"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "Rule 7: entities that are neither defined nor inferable from the Selection Set are redundant information and are filtered out before the partial model is exported.",
+      "es": "Regla 7: las entidades que no están definidas ni pueden inferirse del Selection Set son información redundante y se filtran antes de exportar el modelo parcial.",
+      "blocks": [
+        "s4-p32",
+        "s4-p33"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "PMESS is a generic XML-schema language for partial model extraction based on the Selection Set. Its root element PMESS contains 'select', whose parts are 'item', 'relation', 'where' and 'cascades'. Configuration files written in it can be saved as templates and reused.",
+      "es": "PMESS es un lenguaje genérico basado en XML Schema para la extracción de modelos parciales a partir del Selection Set. Su elemento raíz PMESS contiene 'select', cuyas partes son 'item', 'relation', 'where' y 'cascades'. Los archivos de configuración escritos en él pueden guardarse como plantillas y reutilizarse.",
+      "blocks": [
+        "s5-p1",
+        "s5-p2",
+        "fig-2",
+        "s7-p4"
+      ],
+      "key": "pmess",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "'select' has an 'option' of AND (intersection) or OR (union, the default). Each 'item' has a type (ELEMENT or ATTRIBUTE, never an abstract entity), a 'match' naming the element or attribute, and a 'function', currently only 'extract'.",
+      "es": "'select' tiene una 'option' con valor AND (intersección) u OR (unión, el valor por defecto). Cada 'item' tiene un tipo (ELEMENT o ATTRIBUTE, nunca una entidad abstracta), un 'match' que nombra el elemento o atributo y una 'function', por ahora solo 'extract'.",
+      "blocks": [
+        "s5-p4",
+        "s5-p6",
+        "s5-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "The 'relation' element names a relating object and related objects and a relation type, based on IFC relationship entities such as IfcRelAggregates and IfcRelAssignsToGroup. It currently supports building storey, group and element assembly relations.",
+      "es": "El elemento 'relation' nombra un objeto relacionante, objetos relacionados y un tipo de relación, con base en entidades de relación IFC como IfcRelAggregates e IfcRelAssignsToGroup. Por ahora soporta relaciones de nivel de edificio, grupo y ensamble de elementos.",
+      "blocks": [
+        "s5-p11",
+        "s5-p13",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "'where' selects objects by their characteristics. Direct semantics come straight from IFC instances (ID, name, description, predefined type); indirect ones must be inferred from other instances (material, storey, shape, comparison). Material, for example, is reached through IfcRelAssociatesMaterial.",
+      "es": "'where' selecciona objetos por sus características. La semántica directa viene directamente de las instancias IFC (ID, nombre, descripción, tipo predefinido); la indirecta debe inferirse de otras instancias (material, nivel, forma, comparación). El material, por ejemplo, se alcanza mediante IfcRelAssociatesMaterial.",
+      "blocks": [
+        "s5-p15",
+        "s5-p17",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "'cascades' has the same structure as 'item' and further narrows the requirement. In the example, all beams are queried first and then only those whose construction time is '2019-09-20'.",
+      "es": "'cascades' tiene la misma estructura que 'item' y acota más el requisito. En el ejemplo, primero se consultan todas las vigas y luego solo aquellas cuyo tiempo de construcción es '2019-09-20'.",
+      "blocks": [
+        "s5-p19",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "method",
+      "en": "Two C++ data interfaces were built: one reads the PMESS configuration file and the other extracts and exports the partial model. IfcPlusPlus was the IFC library. Rules 1, 2, 3 and 7 are embedded in the processing engine and users do not define them.",
+      "es": "Se construyeron dos interfaces de datos en C++: una lee el archivo de configuración PMESS y la otra extrae y exporta el modelo parcial. IfcPlusPlus fue la biblioteca IFC. Las reglas 1, 2, 3 y 7 están integradas en el motor de procesamiento y los usuarios no las definen.",
+      "blocks": [
+        "s6-p1",
+        "s2-p14",
+        "s5-p20"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "dataset",
+      "en": "The test case is a shopping mall model made in ArchiCAD and exported to IFC with default settings. It has eight floors (six above ground and two underground), a construction area of 148,564 m², a file size of about 101 M and 1,862,673 IFC instances.",
+      "es": "El caso de prueba es un modelo de centro comercial hecho en ArchiCAD y exportado a IFC con la configuración por defecto. Tiene ocho niveles (seis sobre el suelo y dos subterráneos), un área de construcción de 148,564 m², un tamaño de archivo de unos 101 M y 1,862,673 instancias IFC.",
+      "blocks": [
+        "s6-p2",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "Extracting objects by type (Table 1): in the fourth partial model (beams and columns) there were 173,763 IFC instances, 90.7% of instances were filtered out, and the file decreased to 13.8 M (only 13.7% of the original model). All matching object entities were correctly extracted.",
+      "es": "Extracción de objetos por tipo (Tabla 1): en el cuarto modelo parcial (vigas y columnas) hubo 173,763 instancias IFC, se filtró el 90.7% de las instancias y el archivo bajó a 13.8 M (solo el 13.7% del modelo original). Todas las entidades de objeto coincidentes se extrajeron correctamente.",
+      "blocks": [
+        "s6-p4",
+        "tab-1",
+        "s6-p5",
+        "fig-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "Extracting by relation (storeys Floor B1 and B2, the underground structure) gave a 32.1 M partial model with 942 columns, 1380 beams, 1253 walls, 351 doors, 69 slabs and 148 stairs, consistent with the original model.",
+      "es": "La extracción por relación (los niveles Floor B1 y B2, la estructura subterránea) dio un modelo parcial de 32.1 M con 942 columnas, 1380 vigas, 1253 muros, 351 puertas, 69 losas y 148 escaleras, consistente con el modelo original.",
+      "blocks": [
+        "s6-p8",
+        "fig-9",
+        "fig-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "Extracting curtain walls by rule in different placements gave two partial models of 2.37 M and 0.59 M, against 101 M for the original. They were imported back into ArchiCAD and could be imported into Revit and Tekla, which the paper takes as showing syntactic validity.",
+      "es": "La extracción de muros cortina por regla en distintas ubicaciones dio dos modelos parciales de 2.37 M y 0.59 M, frente a 101 M del original. Se importaron de vuelta a ArchiCAD y podían importarse a Revit y Tekla, lo que el artículo toma como muestra de validez sintáctica.",
+      "blocks": [
+        "s6-p10",
+        "s6-p11",
+        "fig-11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "claim",
+      "en": "The paper claims PMESS lets users define their own extraction requirements and obtain valid partial IFC models: semantically valid because the required objects were correctly extracted, and syntactically valid because the files could be re-imported into the original software.",
+      "es": "El artículo afirma que PMESS permite a los usuarios definir sus propios requisitos de extracción y obtener modelos IFC parciales válidos: semánticamente válidos porque los objetos requeridos se extrajeron correctamente, y sintácticamente válidos porque los archivos pudieron reimportarse al software original.",
+      "blocks": [
+        "s7-p6",
+        "s7-p7",
+        "s0-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "claim",
+      "en": "Because the rules split processing into steps and the language is built on Selection Set definitions, the structure of PMESS is meant to be stable and independent of IFC versions. When the schema is updated, only some definitions need revising, not the extraction algorithm.",
+      "es": "Como las reglas dividen el procesamiento en pasos y el lenguaje se basa en definiciones del Selection Set, la estructura de PMESS pretende ser estable e independiente de las versiones de IFC. Cuando se actualiza el esquema, solo hay que revisar algunas definiciones, no el algoritmo de extracción.",
+      "blocks": [
+        "s2-p18",
+        "s4-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "The 'function' attribute is limited to 'extract'; 'filter', 'modify' and 'add' are left for a later paper. Relations supported are limited to building storey, group and element assembly. Tests used one shopping-mall project.",
+      "es": "El atributo 'function' se limita a 'extract'; 'filter', 'modify' y 'add' quedan para un artículo posterior. Las relaciones soportadas se limitan a nivel de edificio, grupo y ensamble de elementos. Las pruebas usaron un proyecto de centro comercial.",
+      "blocks": [
+        "s5-p9",
+        "s5-p13",
+        "s6-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "future",
+      "en": "Future work: map PMESS to IDM and MVD, and study the mapping mechanism between PMESS and mvdXML, since both are XML-based.",
+      "es": "Trabajo futuro: asociar PMESS con IDM y MVD, y estudiar el mecanismo de correspondencia entre PMESS y mvdXML, ya que ambos están basados en XML.",
+      "blocks": [
+        "s7-p8"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "The limits of commercial tools are why a user-defined extraction method is needed."
+    },
+    {
+      "from": "i3",
+      "to": "i4",
+      "type": "example-of",
+      "why": "MVD-based export is a schema-level way to get partial models."
+    },
+    {
+      "from": "i5",
+      "to": "i4",
+      "type": "example-of",
+      "why": "PMQL, GMSD, BIMQL and mvdXML are the schema-level languages reviewed."
+    },
+    {
+      "from": "i6",
+      "to": "i1",
+      "type": "supports",
+      "why": "Gaps in instance-level methods motivate the Selection Set approach."
+    },
+    {
+      "from": "i7",
+      "to": "i15",
+      "type": "part-of",
+      "why": "PMESS is the language built to express the Selection Set."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "supports",
+      "why": "The theorem shows Selection Sets can be combined by union and intersection."
+    },
+    {
+      "from": "i8",
+      "to": "i16",
+      "type": "supports",
+      "why": "The AND/OR option of 'select' follows the theorem."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Rule 1 is one of the three basic rules."
+    },
+    {
+      "from": "i11",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Rule 2 is one of the three basic rules."
+    },
+    {
+      "from": "i12",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Rule 3 is one of the three basic rules."
+    },
+    {
+      "from": "i13",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Rules 4 to 6 are the extraction rules."
+    },
+    {
+      "from": "i14",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Rule 7 is the processing rule for redundant information."
+    },
+    {
+      "from": "i12",
+      "to": "i11",
+      "type": "uses",
+      "why": "The Individual Set is built from the Essential Set plus inverse-attribute entities."
+    },
+    {
+      "from": "i13",
+      "to": "i7",
+      "type": "uses",
+      "why": "Rules 4 to 6 map Selection Set elements to IFC data."
+    },
+    {
+      "from": "i16",
+      "to": "i13",
+      "type": "supports",
+      "why": "'item' implements Rule 4."
+    },
+    {
+      "from": "i17",
+      "to": "i13",
+      "type": "supports",
+      "why": "'relation' implements Rule 5."
+    },
+    {
+      "from": "i18",
+      "to": "i13",
+      "type": "supports",
+      "why": "'where' implements Rule 6."
+    },
+    {
+      "from": "i16",
+      "to": "i15",
+      "type": "part-of",
+      "why": "'select' and 'item' are elements of PMESS."
+    },
+    {
+      "from": "i17",
+      "to": "i15",
+      "type": "part-of",
+      "why": "'relation' is an element of PMESS."
+    },
+    {
+      "from": "i18",
+      "to": "i15",
+      "type": "part-of",
+      "why": "'where' is an element of PMESS."
+    },
+    {
+      "from": "i19",
+      "to": "i15",
+      "type": "part-of",
+      "why": "'cascades' is an element of PMESS."
+    },
+    {
+      "from": "i20",
+      "to": "i9",
+      "type": "uses",
+      "why": "Rules 1, 2, 3 and 7 are embedded in the engine."
+    },
+    {
+      "from": "i20",
+      "to": "i15",
+      "type": "uses",
+      "why": "The interfaces read and execute PMESS files."
+    },
+    {
+      "from": "i22",
+      "to": "i21",
+      "type": "measures",
+      "why": "Extraction by type is tested on the shopping-mall model."
+    },
+    {
+      "from": "i23",
+      "to": "i21",
+      "type": "measures",
+      "why": "Extraction by relation is tested on the shopping-mall model."
+    },
+    {
+      "from": "i24",
+      "to": "i21",
+      "type": "measures",
+      "why": "Extraction by rule is tested on the shopping-mall model."
+    },
+    {
+      "from": "i22",
+      "to": "i25",
+      "type": "supports",
+      "why": "Correct extraction of objects backs the semantic validity claim."
+    },
+    {
+      "from": "i24",
+      "to": "i25",
+      "type": "supports",
+      "why": "Re-import into ArchiCAD backs the syntactic validity claim."
+    },
+    {
+      "from": "i23",
+      "to": "i25",
+      "type": "supports",
+      "why": "Object counts consistent with the original back the validity claim."
+    },
+    {
+      "from": "i26",
+      "to": "i25",
+      "type": "supports",
+      "why": "Version independence is part of the argued benefit of the rule-based design."
+    },
+    {
+      "from": "i27",
+      "to": "i25",
+      "type": "contradicts",
+      "why": "Limited functions, relation types and a single test project bound the generality claimed."
+    },
+    {
+      "from": "i28",
+      "to": "i3",
+      "type": "uses",
+      "why": "The planned extension maps PMESS onto IDM and MVD."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i9",
+      "to": "question",
+      "why": "The seven rules say what a meaningful, valid part of an IFC model must contain, which speaks to how a decomposed part can still be a valid model."
+    },
+    {
+      "idea": "i11",
+      "to": "deconstruct-for-training",
+      "why": "Essential Set and Individual Set give a concrete way to cut one element out together with everything it needs, usable to build self-contained training fragments."
+    },
+    {
+      "idea": "i12",
+      "to": "ifc",
+      "why": "Shows how IFC's explicit and inverse references decide what travels with an element, and which shared entities must be treated as stop points."
+    },
+    {
+      "idea": "i14",
+      "to": "clean-real-models",
+      "why": "Rule 7 is a worked example of dropping information not tied to the requested elements before a fragment is used."
+    },
+    {
+      "idea": "i7",
+      "to": "hypothesis",
+      "why": "The Selection Set expresses a decomposition by elements, relations and attributes, but it is hand-written by users; nothing here learns patterns from the parts, which is the gap the thesis addresses."
+    },
+    {
+      "idea": "i15",
+      "to": "gui-2019",
+      "why": "Both extract partial IFC models; PMESS does it by a user-defined selection language, which can be compared with tracing by GlobalID."
+    }
+  ]
+}

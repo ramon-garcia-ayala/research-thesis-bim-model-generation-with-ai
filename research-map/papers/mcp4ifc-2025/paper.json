@@ -1,0 +1,1554 @@
+{
+  "version": 1,
+  "node": "mcp4ifc-2025",
+  "title": "MCP4IFC: IFC-Based Building Design using Large Language Models",
+  "source": "files/MCP4IFC  IFC-Based Building Design Using Large Language Models.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "MCP4IFC: IFC-Based Building Design using Large Language Models",
+            "es": "MCP4IFC: Diseño de edificios basado en IFC con modelos de lenguaje de gran tamaño"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Bharathi Kannan Nithyanantham¹, Tobias Sesterhenn², Ashwin Nedungadi¹, Sergio Peral Garijo², Janis Zenkner², Christian Bartelt², Stefan Lüdtke¹",
+            "es": "Bharathi Kannan Nithyanantham¹, Tobias Sesterhenn², Ashwin Nedungadi¹, Sergio Peral Garijo², Janis Zenkner², Christian Bartelt², Stefan Lüdtke¹"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "arXiv:2511.05533v1 [cs.CL] 29 Oct 2025 (Preprint)",
+            "es": "arXiv:2511.05533v1 [cs.CL] 29 oct 2025 (Preimpresión)"
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "¹University of Rostock ²Technical University of Clausthal",
+            "es": "¹University of Rostock ²Technical University of Clausthal"
+          }
+        },
+        {
+          "id": "s0-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "bharathikannan.nithyanantham@uni-rostock.de tobias.sesterhenn@tu-clausthal.de",
+            "es": "bharathikannan.nithyanantham@uni-rostock.de tobias.sesterhenn@tu-clausthal.de"
+          }
+        }
+      ]
+    },
+    {
+      "id": "abs",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "abs-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Bringing generative AI into the architecture, engineering and construction (AEC) field requires systems that can translate natural language instructions into actions on standardized data models. We present MCP4IFC, a comprehensive open-source framework that enables Large Language Models (LLMs) to directly manipulate Industry Foundation Classes (IFC) data through the Model Context Protocol (MCP). The framework provides a set of BIM tools, including scene querying tools for information retrieval, predefined functions for creating and modifying common building elements, and a dynamic code-generation system that combines in-context learning with retrieval-augmented generation (RAG) to handle tasks beyond the predefined toolset. Experiments demonstrate that an LLM using our framework can successfully perform complex tasks, from building a simple house to querying and editing existing IFC data. Our framework is released as open-source to encourage research in LLM-driven BIM design and provide a foundation for AI-assisted modeling workflows. Our code is available at https://show2instruct.github.io/mcp4ifc/",
+            "es": "Incorporar la IA generativa (generative AI) en el campo de la arquitectura, ingeniería y construcción (architecture, engineering and construction, AEC) requiere sistemas capaces de traducir instrucciones en lenguaje natural a acciones sobre modelos de datos estandarizados. Presentamos MCP4IFC, un marco de trabajo (framework) integral de código abierto que permite a los modelos de lenguaje de gran tamaño (Large Language Models, LLMs) manipular directamente datos de Industry Foundation Classes (IFC) mediante el Model Context Protocol (MCP). El marco proporciona un conjunto de herramientas de modelado de información de construcción (Building Information Modeling, BIM), que incluye herramientas de consulta de escena (scene querying) para la recuperación de información, funciones predefinidas para crear y modificar elementos de construcción comunes, y un sistema dinámico de generación de código que combina el aprendizaje en contexto (in-context learning) con la generación aumentada por recuperación (retrieval-augmented generation, RAG) para abordar tareas que van más allá del conjunto de herramientas predefinido. Los experimentos demuestran que un LLM que usa nuestro marco puede realizar con éxito tareas complejas, desde construir una casa sencilla hasta consultar y editar datos IFC existentes. Nuestro marco se publica como código abierto para fomentar la investigación en el diseño BIM impulsado por LLM y ofrecer una base para flujos de trabajo de modelado asistidos por IA. Nuestro código está disponible en https://show2instruct.github.io/mcp4ifc/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 INTRODUCTION",
+        "es": "1 INTRODUCCIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Building Information Modeling (BIM) has transformed how the architecture, engineering and construction (AEC) fields work. Instead of using separate 2D drawings, teams share a single 3D model that contains all the important details about a building (Succar, 2009). This enables seamless collaboration and more efficient coordination throughout the project lifecycle. These models can include not only building meshes, but also information about materials, costs, schedules, and more. The Industry Foundation Classes (IFC) standard defines a common schema for storing and sharing BIM data, so different software platforms can use the same models (ISO 16739-1:2024, 2024). However, creating, editing, and maintaining BIM models remains complex and is typically handled by experts. Meanwhile, rapid progress in Large Language Models (LLMs) suggests a new paradigm for interacting with complex software. Modern LLMs can interpret natural language instructions and act as intelligent agents that plan and execute tool calls to achieve user goals (Wang et al., 2023; Yao et al., 2023). This presents an exciting possibility in the BIM context: an AI assistant that enables architects and engineers to describe desired changes or questions in natural language and have the model automatically execute corresponding BIM operations.",
+            "es": "El modelado de información de construcción (BIM) ha transformado la forma de trabajar en los campos de la arquitectura, la ingeniería y la construcción (AEC). En lugar de usar planos 2D separados, los equipos comparten un único modelo 3D que contiene todos los detalles importantes de un edificio (Succar, 2009). Esto permite una colaboración fluida y una coordinación más eficiente durante todo el ciclo de vida del proyecto. Estos modelos pueden incluir no solo mallas (meshes) del edificio, sino también información sobre materiales, costos, calendarios y más. El estándar Industry Foundation Classes (IFC) define un esquema común para almacenar y compartir datos BIM, de modo que distintas plataformas de software puedan usar los mismos modelos (ISO 16739-1:2024, 2024). Sin embargo, crear, editar y mantener modelos BIM sigue siendo complejo y normalmente lo realizan expertos. Mientras tanto, el rápido avance de los modelos de lenguaje de gran tamaño (LLMs) sugiere un nuevo paradigma para interactuar con software complejo. Los LLMs modernos pueden interpretar instrucciones en lenguaje natural y actuar como agentes inteligentes (intelligent agents) que planifican y ejecutan llamadas a herramientas (tool calls) para lograr los objetivos del usuario (Wang et al., 2023; Yao et al., 2023). Esto plantea una posibilidad interesante en el contexto BIM: un asistente de IA que permita a arquitectos e ingenieros describir en lenguaje natural los cambios deseados o las preguntas, y que el modelo ejecute automáticamente las operaciones BIM correspondientes."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Recent studies have begun exploring natural language interfaces for BIM, focusing on either model generation and editing (e.g., Du et al. (2024a); Deng et al. (2025)) or on information querying (e.g., Hellin et al. (2025); Li et al. (2025a)). However, most existing systems rely on high-level APIs from proprietary software such as Revit (Autodesk Revit, 2025) or Vectorworks (Vectorworks, 2025). These APIs expose operations at the application layer with their own schema and do not interact directly with the IFC data structure.",
+            "es": "Estudios recientes han comenzado a explorar interfaces de lenguaje natural para BIM, centradas en la generación y edición de modelos (p. ej., Du et al. (2024a); Deng et al. (2025)) o en la consulta de información (p. ej., Hellin et al. (2025); Li et al. (2025a)). Sin embargo, la mayoría de los sistemas existentes dependen de API de alto nivel de software propietario como Revit (Autodesk Revit, 2025) o Vectorworks (Vectorworks, 2025). Estas API exponen operaciones en la capa de aplicación con su propio esquema y no interactúan directamente con la estructura de datos IFC."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "To address this limitation, we present MCP4IFC, a framework that leverages the Model Context Protocol (MCP) (Model Context Protocol, 2025) to enable LLMs to read, create, and edit IFC models directly via high-level tool calls. The overall system architecture is illustrated in Figure 1. The framework operates as a local MCP server and utilizes the open-source IfcOpenShell library (IfcOpenShell, 2025) together with the Bonsai add-on (Bonsai, 2025) in Blender. The MCP is an open standard that provides a single protocol that any LLM client can use (Hou et al., 2025).",
+            "es": "Para abordar esta limitación, presentamos MCP4IFC, un marco que aprovecha el Model Context Protocol (MCP) (Model Context Protocol, 2025) para permitir que los LLMs lean, creen y editen modelos IFC directamente mediante llamadas a herramientas de alto nivel. La arquitectura general del sistema se ilustra en la Figura 1. El marco opera como un servidor MCP local y utiliza la biblioteca de código abierto IfcOpenShell (IfcOpenShell, 2025) junto con el complemento Bonsai (Bonsai, 2025) en Blender. El MCP es un estándar abierto que ofrece un único protocolo que cualquier cliente de LLM puede usar (Hou et al., 2025)."
+          }
+        },
+        {
+          "id": "s1-p10",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Some projects have already explored connecting MCP with 3D modeling environments. For instance, the Blender MCP integration (Ahujasid, 2025) generates Blender API code through a code execution tool, and a Bonsai MCP plugin (Juan David Rodriguez, 2025) exposing a few BIM operations to query IFC models and place objects. Our framework introduces a complete and standardized solution that uses IfcOpenShell as the main toolkit for working with IFC data and supports full query, create, and edit operations. All functionalities are implemented via IfcOpenShell API calls, with Bonsai acting only as a wrapper to interact with Blender. As all components are open source, we are not constrained by closed APIs or automation limits of commercial BIM software. This modular design makes it straightforward to adapt the tools to proprietary environments.",
+            "es": "Algunos proyectos ya han explorado conectar MCP con entornos de modelado 3D. Por ejemplo, la integración Blender MCP (Ahujasid, 2025) genera código de la API de Blender mediante una herramienta de ejecución de código, y un complemento Bonsai MCP (Juan David Rodriguez, 2025) expone unas pocas operaciones BIM para consultar modelos IFC y colocar objetos. Nuestro marco introduce una solución completa y estandarizada que usa IfcOpenShell como la herramienta principal para trabajar con datos IFC y admite operaciones completas de consulta, creación y edición. Todas las funcionalidades se implementan mediante llamadas a la API de IfcOpenShell, y Bonsai actúa únicamente como envoltorio (wrapper) para interactuar con Blender. Como todos los componentes son de código abierto, no estamos limitados por API cerradas ni por restricciones de automatización del software BIM comercial. Este diseño modular facilita adaptar las herramientas a entornos propietarios."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 2,
+          "text": {
+            "en": "Figure 1: Overall system architecture of our MCP4IFC framework",
+            "es": "Figura 1: Arquitectura general del sistema de nuestro marco MCP4IFC"
+          },
+          "image": "fig/fig-1.png"
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "A key innovation of our framework is combining In-Context Learning (ICL) (Brown et al., 2020) with Retrieval-Augmented Generation (RAG) (Lewis et al., 2020) to dynamically generate Python code for IFC-specific tasks. ICL refers to the model’s ability to learn new tasks or patterns during inference by simply showing examples in the prompt. ICL is the core of our framework, which guides the model to generate a specific tool by providing detailed steps. This allows the model to go beyond the provided fixed toolset. When the model’s prior knowledge is insufficient (e.g., with the IfcOpenShell API), the LLM can invoke an optional RAG tool. This module retrieves relevant documentation and code examples from a local vector store and injects them into the prompt. The retrieved information provides additional context for ICL to generate accurate code. This design follows the retrieval-augmented code generation approach, where LLMs search large codebases or external documentation to produce accurate and context-aware code (Zhou et al., 2022; Yang et al., 2025b; Wang et al., 2024b).",
+            "es": "Una innovación clave de nuestro marco es combinar el aprendizaje en contexto (ICL) (Brown et al., 2020) con la generación aumentada por recuperación (RAG) (Lewis et al., 2020) para generar dinámicamente código Python para tareas específicas de IFC. El ICL se refiere a la capacidad del modelo de aprender nuevas tareas o patrones durante la inferencia (inference) con solo mostrar ejemplos en la indicación (prompt). El ICL es el núcleo de nuestro marco, que guía al modelo a generar una herramienta específica proporcionando pasos detallados. Esto permite que el modelo vaya más allá del conjunto fijo de herramientas proporcionado. Cuando el conocimiento previo del modelo es insuficiente (p. ej., con la API de IfcOpenShell), el LLM puede invocar una herramienta RAG opcional. Este módulo recupera documentación relevante y ejemplos de código de un almacén vectorial (vector store) local y los inyecta en la indicación. La información recuperada aporta contexto adicional para que el ICL genere código preciso. Este diseño sigue el enfoque de generación de código aumentada por recuperación, en el que los LLMs buscan en grandes bases de código o en documentación externa para producir código preciso y consciente del contexto (Zhou et al., 2022; Yang et al., 2025b; Wang et al., 2024b)."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We demonstrate that LLMs can design and modify IFC models by following step-by-step natural-language instructions. For example, an LLM can incrementally construct a small house using only standardized tool calls and achieve scene-query performance competitive with state-of-the-art methods (Hellin et al., 2025). These indicate that standardized tool use enables LLMs to work effectively across the BIM lifecycle. To our knowledge, our framework is the first comprehensive MCP server that allows LLMs to create, edit, and query IFC models while also supporting dynamic tool generation.",
+            "es": "Demostramos que los LLMs pueden diseñar y modificar modelos IFC siguiendo instrucciones paso a paso en lenguaje natural. Por ejemplo, un LLM puede construir incrementalmente una casa pequeña usando únicamente llamadas a herramientas estandarizadas y lograr un desempeño en consultas de escena competitivo con los métodos de vanguardia (Hellin et al., 2025). Esto indica que el uso estandarizado de herramientas permite a los LLMs trabajar con eficacia a lo largo del ciclo de vida BIM. Hasta donde sabemos, nuestro marco es el primer servidor MCP integral que permite a los LLMs crear, editar y consultar modelos IFC, además de admitir la generación dinámica de herramientas."
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our main contributions are:",
+            "es": "Nuestras principales contribuciones son:"
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "1. An open-source MCP framework for IFC: Our framework offers a comprehensive set of more than 50 BIM tools, enabling LLMs to create, modify, and query IFC models through standardized MCP tool calls.",
+            "es": "1. Un marco MCP de código abierto para IFC: Nuestro marco ofrece un conjunto integral de más de 50 herramientas BIM, que permite a los LLMs crear, modificar y consultar modelos IFC mediante llamadas a herramientas MCP estandarizadas."
+          }
+        },
+        {
+          "id": "s1-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "2. Dynamic tool expansion through ICL and RAG: Our framework combines ICL with a RAG system to support on-the-fly code generation for IFC-specific tasks beyond a predefined toolset.",
+            "es": "2. Expansión dinámica de herramientas mediante ICL y RAG: Nuestro marco combina el ICL con un sistema RAG para admitir la generación de código sobre la marcha para tareas específicas de IFC que van más allá de un conjunto de herramientas predefinido."
+          }
+        },
+        {
+          "id": "s1-p9",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "3. End-to-end BIM manipulation: We show that existing multimodal LLMs can successfully perform IFC querying, editing, and generation tasks using only natural language and tool calls, without direct user interaction with BIM software.",
+            "es": "3. Manipulación BIM de extremo a extremo: Mostramos que los LLMs multimodales (multimodal) existentes pueden realizar con éxito tareas de consulta, edición y generación de IFC usando solo lenguaje natural y llamadas a herramientas, sin interacción directa del usuario con el software BIM."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 RELATED WORK",
+        "es": "2 TRABAJOS RELACIONADOS"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Applying LLMs in the AEC field is an active, rapidly growing area of research. Our work focuses on tool-augmented LLMs, where models can invoke external tools to create and modify IFC-based BIM data. This section reviews related studies on LLMs for tool use, their application to BIM and 3D design workflows, and their ability to understand spatial information.",
+            "es": "La aplicación de los LLMs en el campo AEC es un área de investigación activa y en rápido crecimiento. Nuestro trabajo se centra en los LLMs aumentados con herramientas (tool-augmented), en los que los modelos pueden invocar herramientas externas para crear y modificar datos BIM basados en IFC. Esta sección revisa estudios relacionados sobre los LLMs para el uso de herramientas, su aplicación a los flujos de trabajo de BIM y diseño 3D, y su capacidad para comprender información espacial."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "2.1 LLMS AS TOOL-USING AGENTS",
+            "es": "2.1 LOS LLM COMO AGENTES QUE USAN HERRAMIENTAS"
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Augmenting LLMs with external tools has become an active area of research in recent years. This line of work focuses on enabling models to take actions in the external world via tool calls. ReAct (Yao et al., 2023) introduced a framework where an LLM iteratively plans actions, calls external tools, observes the results, and then uses that feedback to decide the next step. Toolformer (Schick et al., 2023) showed that LLMs can learn when and how to use APIs without requiring task-specific labels. Approaches such as Gorilla (Patil et al., 2023) train LLMs on large, diverse API specifications and use retrieval to select the appropriate function. Datasets like ToolBench (Qin et al., 2023) provide thousands of tool-use instructions for model training.",
+            "es": "Aumentar los LLMs con herramientas externas se ha convertido en un área de investigación activa en los últimos años. Esta línea de trabajo se centra en permitir que los modelos realicen acciones en el mundo externo mediante llamadas a herramientas. ReAct (Yao et al., 2023) introdujo un marco en el que un LLM planifica acciones de forma iterativa, llama a herramientas externas, observa los resultados y luego usa esa retroalimentación para decidir el siguiente paso. Toolformer (Schick et al., 2023) mostró que los LLMs pueden aprender cuándo y cómo usar API sin requerir etiquetas específicas de la tarea. Enfoques como Gorilla (Patil et al., 2023) entrenan LLMs con especificaciones de API grandes y diversas, y usan la recuperación para seleccionar la función adecuada. Conjuntos de datos como ToolBench (Qin et al., 2023) proporcionan miles de instrucciones de uso de herramientas para el entrenamiento de modelos."
+          }
+        },
+        {
+          "id": "s2-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "As tool-use capabilities become more common, major LLM providers expose APIs that allow models to call external functions or tools directly. However, these interfaces are not compatible across providers, leading to integration and scalability challenges. The MCP (Model Context Protocol, 2025) addresses this issue by defining a standardized interface for tool discovery and invocation of these tools over HTTP or local IPC. MCP consists of two main components: an AI Client (typically the LLM application) and an MCP Server, which exposes tools, along with their descriptions and input/output formats using JSON Schema. Because the protocol is standardized, any AI Client can connect to the MCP Server without requiring custom integration code. In our work, we adopt MCP for IFC-based BIM tasks.",
+            "es": "A medida que las capacidades de uso de herramientas se vuelven más comunes, los principales proveedores de LLM exponen API que permiten a los modelos llamar directamente a funciones o herramientas externas. Sin embargo, estas interfaces no son compatibles entre proveedores, lo que genera desafíos de integración y escalabilidad. El MCP (Model Context Protocol, 2025) aborda este problema al definir una interfaz estandarizada para el descubrimiento e invocación de estas herramientas mediante HTTP o IPC local. El MCP consta de dos componentes principales: un cliente de IA (AI Client) (normalmente la aplicación del LLM) y un servidor MCP (MCP Server), que expone herramientas, junto con sus descripciones y formatos de entrada/salida usando JSON Schema. Debido a que el protocolo está estandarizado, cualquier cliente de IA puede conectarse al servidor MCP sin requerir código de integración personalizado. En nuestro trabajo, adoptamos MCP para tareas BIM basadas en IFC."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "2.2 LLMS FOR BIM AND 3D DESIGN",
+            "es": "2.2 LOS LLM PARA BIM Y DISEÑO 3D"
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Recent work has explored how LLMs can assist in the design of buildings and 3D structures. This refers to tasks such as creating and modifying elements, and retrieving information from models for question answering or more advanced tasks, such as clash detection. Most systems are designed to work on either generation/editing (Deng et al., 2025; Jang et al., 2024; Duggempudi et al., 2025; Du et al., 2024b; Fernandes et al., 2024; Yuan et al., 2024) or information retrieval (Zheng & Fischer, 2023; Hellin et al., 2025; Li et al., 2025a; Guo et al., 2025; Liu & Chen, 2025). We refer to Table 1 for a categorical overview.",
+            "es": "Trabajos recientes han explorado cómo los LLMs pueden asistir en el diseño de edificios y estructuras 3D. Esto se refiere a tareas como crear y modificar elementos, y recuperar información de los modelos para responder preguntas o realizar tareas más avanzadas, como la detección de colisiones (clash detection). La mayoría de los sistemas están diseñados para trabajar en la generación/edición (Deng et al., 2025; Jang et al., 2024; Duggempudi et al., 2025; Du et al., 2024b; Fernandes et al., 2024; Yuan et al., 2024) o en la recuperación de información (Zheng & Fischer, 2023; Hellin et al., 2025; Li et al., 2025a; Guo et al., 2025; Liu & Chen, 2025). Remitimos a la Tabla 1 para una visión general categórica."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 4,
+          "text": {
+            "en": "Table 1: Comparison of LLM-based frameworks for BIM and 3D design tasks. Checkboxes (✓, ×) indicate whether the system supports BIM generation (Gen.), editing (Edit.), or information retrieval (Retr.). ∗indicates partial or limited support.",
+            "es": "Tabla 1: Comparación de marcos basados en LLM para tareas de BIM y diseño 3D. Las casillas (✓, ×) indican si el sistema admite la generación (Gen.), la edición (Edit.) o la recuperación de información (Retr.) de BIM. ∗indica soporte parcial o limitado."
+          },
+          "image": "fig/tab-1.png"
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "BIM Creation and Modification Several systems let LLMs generate code that interacts directly with proprietary BIM software APIs. Text2BIM (Du et al., 2024a) and previous work (Du et al., 2024b) employ multiple LLM agents to call custom tools built on the Vectorworks API to construct BIM models from textual descriptions. NADIA (Jang et al., 2024) and Text-to-Layout (Duggempudi et al., 2025) translate user instructions into intermediate JSON actions (e.g., create, modify, retrieve, delete) that are then converted into executable Revit API calls. Dong et al. (2025) uses the AutoGen framework (Wu et al., 2024) with the Revit API to coordinate specialized agents for wall generation, clash detection, and information retrieval, while Fernandes et al. (2024) takes a simpler approach by representing BIM data as CSV files and exposing a fixed set of operations (e.g., hiding or coloring elements). Although these systems enable fine-grained model manipulation, they remain tightly coupled to closed-source platforms, limiting portability and extensibility.",
+            "es": "Creación y modificación de BIM Varios sistemas permiten que los LLMs generen código que interactúa directamente con las API de software BIM propietario. Text2BIM (Du et al., 2024a) y un trabajo previo (Du et al., 2024b) emplean múltiples agentes LLM para llamar a herramientas personalizadas construidas sobre la API de Vectorworks para construir modelos BIM a partir de descripciones textuales. NADIA (Jang et al., 2024) y Text-to-Layout (Duggempudi et al., 2025) traducen las instrucciones del usuario en acciones JSON intermedias (p. ej., crear, modificar, recuperar, eliminar) que luego se convierten en llamadas ejecutables a la API de Revit. Dong et al. (2025) usa el marco AutoGen (Wu et al., 2024) con la API de Revit para coordinar agentes especializados en generación de muros, detección de colisiones y recuperación de información, mientras que Fernandes et al. (2024) adopta un enfoque más simple al representar los datos BIM como archivos CSV y exponer un conjunto fijo de operaciones (p. ej., ocultar o colorear elementos). Aunque estos sistemas permiten una manipulación detallada de los modelos, permanecen estrechamente acoplados a plataformas de código cerrado, lo que limita la portabilidad y la extensibilidad."
+          }
+        },
+        {
+          "id": "s2-p12",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "A different direction extends beyond APIs by simulating user interactions through the software’s graphical interface. BIMgent (Deng et al., 2025) enables an LLM to control BIM software via mouse clicks and keystrokes, using screenshots of the current model state as visual feedback for iterative refinement. Similarly, 3D-PreMise (Yuan et al., 2024) integrates rendered images of generated 3D shapes to help the model construct and improve them within Blender. Inspired by these works, our system also incorporates tools for visual feedback, allowing the LLM to assess and respond to the current state of model generation.",
+            "es": "Una dirección distinta va más allá de las API al simular interacciones del usuario a través de la interfaz gráfica del software. BIMgent (Deng et al., 2025) permite que un LLM controle software BIM mediante clics del ratón y pulsaciones de teclas, usando capturas de pantalla del estado actual del modelo como retroalimentación visual para un refinamiento iterativo. De manera similar, 3D-PreMise (Yuan et al., 2024) integra imágenes renderizadas de formas 3D generadas para ayudar al modelo a construirlas y mejorarlas dentro de Blender. Inspirado en estos trabajos, nuestro sistema también incorpora herramientas de retroalimentación visual, que permiten al LLM evaluar y responder al estado actual de la generación del modelo."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "BIM Scene Querying Beyond generative workflows, LLMs have also been employed to retrieve information from existing BIM models. For instance, Zheng & Fischer (2023) builds a framework that preprocesses data into a MongoDB database, enabling an LLM to retrieve information by iteratively translating natural-language prompts into database queries. Hellin et al. (2025) performs agentic information retrieval, using a fixed library of functions to retrieve data directly from an IFC file. Li et al. (2025a) integrates a tree-based spatial indexing method with a multi-agent LLM framework, enabling the decomposition of spatial queries into geometric reasoning subtasks for efficient retrieval of 3D spatial relationships. Guo et al. (2025) presents ARCBIM, which uses multiple specialized LLMs and an alignment-refinement coder to convert natural language into executable code for BIM databases. Similarly, BIMCoder (Liu & Chen, 2025) translates natural language queries into SQL-like or IFCQL statements.",
+            "es": "Consulta de escenas BIM Más allá de los flujos de trabajo generativos, los LLMs también se han empleado para recuperar información de modelos BIM existentes. Por ejemplo, Zheng & Fischer (2023) construye un marco que preprocesa los datos en una base de datos MongoDB, lo que permite a un LLM recuperar información traduciendo iterativamente indicaciones en lenguaje natural en consultas a la base de datos. Hellin et al. (2025) realiza recuperación de información agéntica (agentic), usando una biblioteca fija de funciones para recuperar datos directamente de un archivo IFC. Li et al. (2025a) integra un método de indexación espacial basado en árboles con un marco LLM multiagente, lo que permite descomponer consultas espaciales en subtareas de razonamiento geométrico para una recuperación eficiente de relaciones espaciales 3D. Guo et al. (2025) presenta ARCBIM, que usa múltiples LLMs especializados y un codificador de alineación y refinamiento (alignment-refinement coder) para convertir lenguaje natural en código ejecutable para bases de datos BIM. De manera similar, BIMCoder (Liu & Chen, 2025) traduce consultas en lenguaje natural en sentencias de tipo SQL o IFCQL."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The main limitation of existing generative systems is their tight coupling to a specific platform, such as Revit (Jang et al., 2024; Duggempudi et al., 2025; Dong et al., 2025; Fernandes et al., 2024) or Vectorworks (Du et al., 2024a;b). This approach lacks portability and requires significant development to support other platforms. Our MCP4IFC framework addresses this challenge by building directly on the IFC standard (ISO 16739-1:2024, 2024). By operating on this neutral, open-standard data representation, our server can be easily extended to other platforms that support IFC. This allows a single set of tools to be developed once and used anywhere in the BIM ecosystem.",
+            "es": "La principal limitación de los sistemas generativos existentes es su estrecho acoplamiento a una plataforma específica, como Revit (Jang et al., 2024; Duggempudi et al., 2025; Dong et al., 2025; Fernandes et al., 2024) o Vectorworks (Du et al., 2024a;b). Este enfoque carece de portabilidad y requiere un desarrollo considerable para admitir otras plataformas. Nuestro marco MCP4IFC aborda este desafío al construirse directamente sobre el estándar IFC (ISO 16739-1:2024, 2024). Al operar sobre esta representación de datos neutral y de estándar abierto, nuestro servidor puede extenderse fácilmente a otras plataformas que admitan IFC. Esto permite desarrollar un único conjunto de herramientas una sola vez y usarlo en cualquier parte del ecosistema BIM."
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "2.3 LLMS FOR SPATIAL UNDERSTANDING",
+            "es": "2.3 LOS LLM PARA LA COMPRENSIÓN ESPACIAL"
+          }
+        },
+        {
+          "id": "s2-p10",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Working with BIM data requires models to understand complex 3D spatial structures, including geometry, topology, and the relationships between building components. However, while language models excel at sequential text processing, they lack a native grounding in geometry, topology, and spatial relationships. To bridge this gap, current research has focused on vision-language grounding, connecting textual inputs to structured and unstructured 3D data for end-to-end spatial reasoning (Li et al., 2025b; Yang et al., 2025a; Jia et al., 2024; Zhang et al., 2025b).",
+            "es": "Trabajar con datos BIM exige que los modelos comprendan estructuras espaciales 3D complejas, incluidas la geometría, la topología y las relaciones entre los componentes del edificio. Sin embargo, aunque los modelos de lenguaje destacan en el procesamiento secuencial de texto, carecen de un anclaje nativo en la geometría, la topología y las relaciones espaciales. Para cerrar esta brecha, la investigación actual se ha centrado en el anclaje visión-lenguaje (vision-language grounding), que conecta entradas textuales con datos 3D estructurados y no estructurados para el razonamiento espacial de extremo a extremo (Li et al., 2025b; Yang et al., 2025a; Jia et al., 2024; Zhang et al., 2025b)."
+          }
+        },
+        {
+          "id": "s2-p13",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "A major line of work leverages structured representations, such as 3D scene graphs, to encode object semantics, functions, and spatial relations. Advances include open-vocabulary relational reasoning (Zhang et al., 2025a), affordance detection (Engelbracht et al., 2024), and enrichment with LLM common-sense knowledge (Chen et al., 2022). In AEC contexts, real-time integration between BIM and scene graphs is being explored (Longo et al., 2025; Schulz et al., 2023). Nevertheless, these graphs struggle with geometric fidelity, scalability to large BIM models, and dynamic updates, limiting their utility for tasks such as clash detection or compliance checking.",
+            "es": "Una línea de trabajo importante aprovecha representaciones estructuradas, como los grafos de escena 3D, para codificar la semántica, las funciones y las relaciones espaciales de los objetos. Entre los avances están el razonamiento relacional de vocabulario abierto (Zhang et al., 2025a), la detección de affordances (Engelbracht et al., 2024) y el enriquecimiento con conocimiento de sentido común de los LLM (Chen et al., 2022). En contextos AEC se está explorando la integración en tiempo real entre BIM y grafos de escena (Longo et al., 2025; Schulz et al., 2023). Sin embargo, estos grafos tienen dificultades con la fidelidad geométrica, la escalabilidad a modelos BIM grandes y las actualizaciones dinámicas, lo que limita su utilidad en tareas como la detección de colisiones o la verificación de cumplimiento normativo."
+          }
+        },
+        {
+          "id": "s2-p14",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To address these limitations, other works adopt implicit neural representations, such as NeRFs (Mildenhall et al., 2020), capturing continuous geometry at higher resolution. Hybrid approaches are emerging that embed spatial knowledge directly into the LLM, through spatial tokenization or 3D-informed architectures (Mao et al., 2025; Ma et al., 2025), or by projecting point-cloud features into the language embedding space for unified training (Hong et al., 2023). These shift 3D information from an external structure into a first-class element of the generative reasoning process. A complementary direction uses LLMs for text-to-simulation, generating executable scene construction code (e.g., Blender or Unreal scripts) to evaluate physical interaction capabilities (Hu et al., 2024; Lu et al., 2025).",
+            "es": "Para abordar estas limitaciones, otros trabajos adoptan representaciones neuronales implícitas (implicit neural representations), como los NeRFs (Mildenhall et al., 2020), que capturan geometría continua con mayor resolución. Están surgiendo enfoques híbridos que incorporan el conocimiento espacial directamente en el LLM, mediante tokenización espacial (spatial tokenization) o arquitecturas informadas por 3D (Mao et al., 2025; Ma et al., 2025), o proyectando características de nubes de puntos (point-cloud) en el espacio de incrustación del lenguaje para un entrenamiento unificado (Hong et al., 2023). Estos enfoques trasladan la información 3D de una estructura externa a un elemento de primera clase del proceso de razonamiento generativo. Una dirección complementaria usa LLMs para texto a simulación (text-to-simulation), generando código ejecutable de construcción de escenas (p. ej., scripts de Blender o Unreal) para evaluar capacidades de interacción física (Hu et al., 2024; Lu et al., 2025)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 METHODOLOGY",
+        "es": "3 METODOLOGÍA"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The MCP4IFC framework connects LLMs with IFC-based BIM workflows via the Model Context Protocol. The framework offers a structured interface that allows LLMs to query, create, and edit IFC elements in a standardized way. This section explains the overall system architecture and the toolset that allows LLMs to interact directly with IFC data.",
+            "es": "El marco MCP4IFC conecta los LLM con flujos de trabajo BIM basados en IFC mediante el Model Context Protocol. El marco ofrece una interfaz estructurada que permite a los LLM consultar, crear y editar elementos IFC de manera estandarizada. Esta sección explica la arquitectura general del sistema y el conjunto de herramientas (toolset) que permite a los LLM interactuar directamente con los datos IFC."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "3.1 SYSTEM ARCHITECTURE AND WORKFLOW",
+            "es": "3.1 ARQUITECTURA DEL SISTEMA Y FLUJO DE TRABAJO"
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The MCP4IFC framework consists of three main components, as shown in Figure 1: the AI Client, the MCP Server, and the Blender add-on. The AI Client is an LLM interface that interacts with the user and displays the output. The MCP Server is a Python program that implements the MCP standard and manages all communication between the AI Client and the Blender add-on. It exposes a structured list of BIM tools, each defined as a JSON object that specifies its name, description, and input/output schemas. These tool definitions act as high-level wrappers, while the actual BIM operations are executed inside the Blender add-on. The add-on uses the IfcOpenShell library to manipulate IFC data and the Bonsai extension to update geometry in Blender’s 3D scene. Two communication links connect these components: the AI Client sends JSON-RPC messages to the MCP Server, and the server forwards commands to the Blender add-on through a socket connection.",
+            "es": "El marco MCP4IFC consta de tres componentes principales, como se muestra en la Figura 1: el Cliente de IA (AI Client), el Servidor MCP (MCP Server) y el complemento (add-on) de Blender. El Cliente de IA es una interfaz de LLM que interactúa con el usuario y muestra la salida. El Servidor MCP es un programa en Python que implementa el estándar MCP y gestiona toda la comunicación entre el Cliente de IA y el complemento de Blender. Expone una lista estructurada de herramientas BIM, cada una definida como un objeto JSON que especifica su nombre, su descripción y sus esquemas de entrada y salida. Estas definiciones de herramientas actúan como envoltorios (wrappers) de alto nivel, mientras que las operaciones BIM reales se ejecutan dentro del complemento de Blender. El complemento utiliza la biblioteca IfcOpenShell para manipular los datos IFC y la extensión Bonsai para actualizar la geometría en la escena 3D de Blender. Dos enlaces de comunicación conectan estos componentes: el Cliente de IA envía mensajes JSON-RPC al Servidor MCP, y el servidor reenvía los comandos al complemento de Blender mediante una conexión por socket (socket connection)."
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "A detailed workflow is shown in Figure 2. When the AI Client connects to the MCP Server, it requests the available tools. After receiving the tool list in JSON format, the client adds it to the system prompt, so the model can understand the available functions through in-context learning. When a user provides a prompt, such as add a 5-meter wall, the LLM selects an appropriate tool, generates structured parameters, and sends a JSON-RPC request to the MCP server. The server validates this request and forwards it via the socket connection to the Blender add-on. The add-on executes the action and returns a structured result to the server, such as a success message or an error. The LLM analyzes it, determines the next step, and continues the loop until the task is completed.",
+            "es": "En la Figura 2 se muestra un flujo de trabajo detallado. Cuando el Cliente de IA se conecta al Servidor MCP, solicita las herramientas disponibles. Tras recibir la lista de herramientas en formato JSON, el cliente la agrega al prompt del sistema (system prompt), de modo que el modelo pueda comprender las funciones disponibles mediante aprendizaje en contexto (in-context learning). Cuando un usuario proporciona una instrucción, como agrega un muro de 5 metros, el LLM selecciona una herramienta adecuada, genera parámetros estructurados y envía una solicitud JSON-RPC al servidor MCP. El servidor valida esta solicitud y la reenvía, a través de la conexión por socket, al complemento de Blender. El complemento ejecuta la acción y devuelve al servidor un resultado estructurado, como un mensaje de éxito o un error. El LLM lo analiza, determina el siguiente paso y continúa el ciclo hasta que la tarea se completa."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 6,
+          "text": {
+            "en": "Figure 2: Workflow of a simple wall creation request through the MCP4IFC framework.",
+            "es": "Figura 2: Flujo de trabajo de una solicitud sencilla de creación de un muro a través del marco MCP4IFC."
+          },
+          "image": "fig/fig-2.png"
+        },
+        {
+          "id": "s3-p5",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.2 TOOLSET IMPLEMENTATION",
+            "es": "3.2 IMPLEMENTACIÓN DEL CONJUNTO DE HERRAMIENTAS"
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The MCP server includes a comprehensive list of tools. Each tool is defined with a clear name, description, input parameters, and expected outputs. The following sections describe the main tool categories and how they are implemented within the MCP4IFC framework.",
+            "es": "El servidor MCP incluye una lista completa de herramientas. Cada herramienta se define con un nombre claro, una descripción, parámetros de entrada y salidas esperadas. Las siguientes secciones describen las principales categorías de herramientas y cómo se implementan dentro del marco MCP4IFC."
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.2.1 SCENE QUERY AND CONTEXT TOOLS",
+            "es": "3.2.1 HERRAMIENTAS DE CONSULTA DE LA ESCENA Y DE CONTEXTO"
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Before an LLM can modify a BIM model, it needs to understand the existing elements in the scene. MCP4IFC provides scene and data querying tools for this purpose. These tools return a compact, structured summary of the model instead of exposing the entire IFC file. The summary lists each top-level element, including important fields such as the element’s GUID, IFC type, and basic properties, such as name, type, and location. This gives the LLM a high-level view of the scene that is easy to parse and reason about. Using this information, the model can answer questions like How many walls exist and what are their lengths? or select the correct object to change based on a given identifier. This design offers several advantages over directly exposing IFC or related formats such as ifcXML or ifcJSON. Raw IFC data is long, highly detailed, and not efficient for LLMs to process. In contrast, the structured JSON summary retains only the information needed for LLM reasoning, laying the groundwork for future extensions that explore even more efficient LLM-oriented scene representations.",
+            "es": "Antes de que un LLM pueda modificar un modelo BIM, necesita comprender los elementos existentes en la escena. MCP4IFC proporciona herramientas de consulta de la escena y de los datos con este fin. Estas herramientas devuelven un resumen compacto y estructurado del modelo en lugar de exponer el archivo IFC completo. El resumen enumera cada elemento de nivel superior (top-level element), e incluye campos importantes como el GUID del elemento, su tipo IFC y propiedades básicas, como nombre, tipo y ubicación. Esto le da al LLM una visión de alto nivel de la escena que es fácil de analizar y sobre la cual razonar. Con esta información, el modelo puede responder preguntas como ¿Cuántos muros existen y cuáles son sus longitudes? o seleccionar el objeto correcto que debe cambiarse a partir de un identificador dado. Este diseño ofrece varias ventajas frente a exponer directamente IFC o formatos afines como ifcXML o ifcJSON. Los datos IFC en bruto son largos, muy detallados y poco eficientes de procesar para los LLM. En cambio, el resumen estructurado en JSON conserva únicamente la información necesaria para el razonamiento del LLM, y sienta las bases para futuras extensiones que exploren representaciones de la escena orientadas a LLM aún más eficientes."
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "In addition to structured data, MCP4IFC supports multimodal inputs to provide spatial context. These tools capture screenshots of the modeling environment, either the full application window or only the 3D view, to show the model’s current state. This helps the model verify changes visually, similar to how human designers work by observing the scene and refining results iteratively.",
+            "es": "Además de los datos estructurados, MCP4IFC admite entradas multimodales para proporcionar contexto espacial. Estas herramientas capturan imágenes de pantalla del entorno de modelado, ya sea de la ventana completa de la aplicación o solo de la vista 3D, para mostrar el estado actual del modelo. Esto ayuda al modelo a verificar visualmente los cambios, de forma similar a como trabajan los diseñadores humanos al observar la escena y refinar los resultados de manera iterativa."
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "3.2.2 PREDEFINED IFC ELEMENT CREATION TOOLS",
+            "es": "3.2.2 HERRAMIENTAS PREDEFINIDAS DE CREACIÓN DE ELEMENTOS IFC"
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The LLM can use predefined tools to create, modify, or delete elements in the IFC model. These tools perform standard IFC operations on core building components, including walls, slabs, roofs, doors, windows, and stairs, as demonstrated in Figure 3. Each tool has a set of well-defined input parameters that specify the properties and placement of the element. For example, the wall creation tool accepts a start and end point along with height and thickness values to generate an IFC wall element. Another variant of this tool takes a list of points and makes a chain of walls to outline a room. Slabs are created from closed polygon outlines and a thickness parameter, while roofs can be generated from a 2D outline or by referencing supporting walls. Doors and windows are inserted into existing walls by providing the wall GUID along with size and position.",
+            "es": "El LLM puede usar herramientas predefinidas para crear, modificar o eliminar elementos en el modelo IFC. Estas herramientas realizan operaciones IFC estándar sobre componentes centrales de un edificio, entre ellos muros, losas, techos, puertas, ventanas y escaleras, como se demuestra en la Figura 3. Cada herramienta tiene un conjunto de parámetros de entrada bien definidos que especifican las propiedades y la colocación del elemento. Por ejemplo, la herramienta de creación de muros acepta un punto inicial y uno final junto con valores de altura y espesor para generar un elemento de muro IFC. Otra variante de esta herramienta toma una lista de puntos y forma una cadena de muros para delimitar una habitación. Las losas se crean a partir de contornos poligonales cerrados y un parámetro de espesor, mientras que los techos pueden generarse a partir de un contorno 2D o haciendo referencia a los muros de soporte. Las puertas y ventanas se insertan en muros existentes proporcionando el GUID del muro junto con el tamaño y la posición."
+          }
+        },
+        {
+          "id": "s3-p17",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Every newly created element will have a unique IFC GUID, which is returned to the AI Client for continued reference in the next operations. In addition, the framework provides editing and deletion tools that enable an iterative workflow in which the model builds, checks, and refines the design step by step. The quality of the final design depends on how effectively the LLM selects the appropriate tools and configures their parameters. In practice, the LLM usually begins by creating a basic layout, then adds and refines elements using the predefined tools until the desired configuration is achieved.",
+            "es": "Cada elemento recién creado tendrá un GUID de IFC único, que se devuelve al Cliente de IA para seguir haciendo referencia a él en las siguientes operaciones. Además, el marco proporciona herramientas de edición y eliminación que permiten un flujo de trabajo iterativo en el que el modelo construye, revisa y refina el diseño paso a paso. La calidad del diseño final depende de qué tan eficazmente el LLM seleccione las herramientas apropiadas y configure sus parámetros. En la práctica, el LLM suele comenzar creando una distribución básica y luego agrega y refina elementos con las herramientas predefinidas hasta alcanzar la configuración deseada."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 7,
+          "text": {
+            "en": "Figure 3: Example IFC building elements generated through predefined tool functions. These functions also support a variety of parametric input arguments. (a) create_wall() (b) create_slab() (c) create_roof() (d) create_window() (e) create_door() (f) create_stairs()",
+            "es": "Figura 3: Ejemplos de elementos de edificio IFC generados mediante funciones de herramientas predefinidas. Estas funciones también admiten una variedad de argumentos de entrada paramétricos. (a) create_wall() (b) create_slab() (c) create_roof() (d) create_window() (e) create_door() (f) create_stairs()"
+          },
+          "image": "fig/fig-3.png"
+        },
+        {
+          "id": "s3-p12",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "3.3 DYNAMIC CODE GENERATION TOOLS",
+            "es": "3.3 HERRAMIENTAS DE GENERACIÓN DINÁMICA DE CÓDIGO"
+          }
+        },
+        {
+          "id": "s3-p13",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Predefined tools cover most of the common BIM operations, but they cannot represent every possible task. Real building models often require custom shapes, specific IFC manipulations, or unique design logic that goes beyond the fixed toolset. To support these cases, MCP4IFC includes dynamic code generation tools, which allow the LLM to write and execute Python scripts during inference. Each script runs inside a secure Blender environment and returns structured feedback to the AI Client. This enables handling new element types, advanced geometry generation, and specialized workflows without requiring manual development of new predefined tools.",
+            "es": "Las herramientas predefinidas cubren la mayoría de las operaciones BIM comunes, pero no pueden representar todas las tareas posibles. Los modelos de edificios reales a menudo requieren formas personalizadas, manipulaciones IFC específicas o una lógica de diseño singular que va más allá del conjunto fijo de herramientas. Para dar soporte a estos casos, MCP4IFC incluye herramientas de generación dinámica de código, que permiten al LLM escribir y ejecutar scripts de Python durante la inferencia. Cada script se ejecuta dentro de un entorno seguro de Blender y devuelve retroalimentación estructurada al Cliente de IA. Esto permite manejar nuevos tipos de elementos, generación de geometría avanzada y flujos de trabajo especializados sin requerir el desarrollo manual de nuevas herramientas predefinidas."
+          }
+        },
+        {
+          "id": "s3-p15",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Dynamic tool usage falls into two main categories: IFC code generation and mesh generation. For operations involving IFC data that are not covered by existing tools, the LLM can directly generate Python code using the IfcOpenShell API. Since these libraries are publicly available online, LLMs have typically seen them during pretraining. This enables them to generate valid Python scripts that can manipulate IFC data directly. The code is executed in a sandboxed environment that blocks system access and restricts modules to approved libraries. After execution, the system returns logs, error messages, and object identifiers, which the LLM can analyze to refine and verify its operations. To further improve reliability, the MCP Server integrates a retrieval-augmented generation (RAG) system. It stores IfcOpenShell documentation, IFC schema definitions, and example scripts in a local vector store database. When needed, the LLM can retrieve relevant context using semantic search tools. This ensures the generated code uses the correct and up-to-date APIs.",
+            "es": "El uso dinámico de herramientas se divide en dos categorías principales: la generación de código IFC y la generación de mallas (mesh generation). Para las operaciones que involucran datos IFC no cubiertas por las herramientas existentes, el LLM puede generar directamente código Python usando la API de IfcOpenShell. Dado que estas bibliotecas están disponibles públicamente en línea, los LLM típicamente las han visto durante el preentrenamiento (pretraining). Esto les permite generar scripts de Python válidos que pueden manipular directamente los datos IFC. El código se ejecuta en un entorno aislado (sandboxed environment) que bloquea el acceso al sistema y restringe los módulos a bibliotecas aprobadas. Tras la ejecución, el sistema devuelve registros, mensajes de error e identificadores de objetos, que el LLM puede analizar para refinar y verificar sus operaciones. Para mejorar aún más la fiabilidad, el Servidor MCP integra un sistema de generación aumentada por recuperación (retrieval-augmented generation, RAG). Este almacena la documentación de IfcOpenShell, las definiciones del esquema IFC y scripts de ejemplo en una base de datos local de almacén de vectores (vector store). Cuando es necesario, el LLM puede recuperar el contexto relevante mediante herramientas de búsqueda semántica (semantic search). Esto garantiza que el código generado utilice las API correctas y actualizadas."
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Dynamic code generation also extends to direct geometry creation. Predefined IFC creation tools cannot easily represent complex elements such as curved ramps, bridges, or freeform structures. In such cases, the framework allows the LLM to generate Python code using external 3D geometry libraries. In principle, any compatible Python library can be used, as long as the LLM has sufficient knowledge of it from pretraining to generate correct API calls. The framework uses trimesh (Dawson-Haggerty et al., 2019) for its simplicity, but other libraries can also be integrated (Khan et al., 2024). The LLM determines the appropriate IFC class and a few semantic properties for the generated mesh, though it may not fully generate the IFC Space or the relationships between objects and this could be future work. This enables open-ended design where the LLM can create complex geometry procedurally. Future versions of the framework can incorporate more advanced parametric modeling libraries to further enhance complex and advanced design.",
+            "es": "La generación dinámica de código también se extiende a la creación directa de geometría. Las herramientas predefinidas de creación de IFC no pueden representar fácilmente elementos complejos como rampas curvas, puentes o estructuras de forma libre. En tales casos, el marco permite que el LLM genere código Python utilizando bibliotecas externas de geometría 3D. En principio, puede usarse cualquier biblioteca de Python compatible, siempre que el LLM tenga conocimiento suficiente de ella a partir del preentrenamiento para generar llamadas a la API correctas. El marco utiliza trimesh (Dawson-Haggerty et al., 2019) por su simplicidad, pero también pueden integrarse otras bibliotecas (Khan et al., 2024). El LLM determina la clase IFC apropiada y algunas propiedades semánticas para la malla generada, aunque es posible que no genere por completo el IFC Space ni las relaciones entre los objetos, y esto podría ser trabajo futuro. Esto permite un diseño abierto en el que el LLM puede crear geometría compleja de forma procedimental. Las versiones futuras del marco pueden incorporar bibliotecas de modelado paramétrico más avanzadas para potenciar aún más el diseño complejo y avanzado."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 EXPERIMENTS AND RESULTS",
+        "es": "4 EXPERIMENTOS Y RESULTADOS"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The following experiments aim to demonstrate the feasibility and practical functioning of the MCP4IFC framework. Rather than providing an exhaustive quantitative benchmark, our goal is to illustrate that the proposed system can perform key BIM operations, i.e., querying, editing, and generation, through standardized tool use and dynamic code generation. The experiments serve as a proof of concept to validate the end-to-end workflow and to highlight potential research directions.",
+            "es": "Los siguientes experimentos tienen como objetivo demostrar la viabilidad y el funcionamiento práctico del marco de trabajo MCP4IFC. En lugar de ofrecer una evaluación comparativa cuantitativa exhaustiva, nuestra meta es ilustrar que el sistema propuesto puede realizar operaciones BIM clave, es decir, consulta (querying), edición y generación, mediante el uso estandarizado de herramientas (tool use) y la generación dinámica de código (dynamic code generation). Los experimentos sirven como una prueba de concepto (proof of concept) para validar el flujo de trabajo de extremo a extremo (end-to-end) y para destacar posibles líneas de investigación."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "4.1 SCENE QUERYING",
+            "es": "4.1 CONSULTA DE ESCENAS (SCENE QUERYING)"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "This section evaluates the performance of the MCP4IFC system on scene querying tasks. For this, we use a subset of the IFC-bench-v1 dataset (Hellin et al., 2025) of 65 questions associated with the Duplex project’s architectural (ARC) and mechanical, electrical and plumbing (MEP) models. A visualization of the Duplex house can be seen in Figure 4. Following Hellin et al. (2025), the dataset can be divided into three categories of questions:",
+            "es": "Esta sección evalúa el desempeño del sistema MCP4IFC en tareas de consulta de escenas. Para ello, utilizamos un subconjunto del conjunto de datos IFC-bench-v1 (Hellin et al., 2025) de 65 preguntas asociadas con los modelos arquitectónico (ARC) y de mecánica, electricidad y plomería (MEP, mechanical, electrical and plumbing) del proyecto Duplex. Una visualización de la casa Duplex puede verse en la Figura 4. Siguiendo a Hellin et al. (2025), el conjunto de datos puede dividirse en tres categorías de preguntas:"
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "• Direct (27 tasks): Queries solvable by directly extracting information from the IFC model (e.g., retrieving a specific object’s GUID).",
+            "es": "• Directas (27 tareas): Consultas que se resuelven extrayendo directamente información del modelo IFC (p. ej., obtener el GUID de un objeto específico)."
+          }
+        },
+        {
+          "id": "s4-p34",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "• Indirect (16 tasks): Queries requiring aggregation or computation (e.g., counting all radiators or calculating a total area).",
+            "es": "• Indirectas (16 tareas): Consultas que requieren agregación o cálculo (p. ej., contar todos los radiadores o calcular un área total)."
+          }
+        },
+        {
+          "id": "s4-p35",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "• Insufficient (22 tasks): Queries where the necessary information is not present in the IFC model, potentially requiring the LLM to make assumptions or use its own expertise to solve the question (e.g., estimating how much of the materials can be recycled at the end-of-life).",
+            "es": "• Insuficientes (22 tareas): Consultas en las que la información necesaria no está presente en el modelo IFC, por lo que posiblemente se requiera que el modelo de lenguaje grande (LLM, large language model) haga suposiciones o utilice su propia experiencia para resolver la pregunta (p. ej., estimar qué proporción de los materiales puede reciclarse al final de su vida útil)."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 9,
+          "text": {
+            "en": "Figure 4: Duplex House",
+            "es": "Figura 4: Casa Duplex"
+          },
+          "image": "fig/fig-4.png"
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 9,
+          "text": {
+            "en": "Figure 5: Questions and correctly given IFC-based answers by Sonnet 4.5 on the ARC Duplex using MCP4IFC.",
+            "es": "Figura 5: Preguntas y respuestas basadas en IFC dadas correctamente por Sonnet 4.5 sobre el ARC Duplex usando MCP4IFC."
+          },
+          "image": "fig/fig-5.png"
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We conduct the experiment on two LLMs, Claude Sonnet 4.5 and GPT-5 mini, and manually check answers for correctness, i.e. without using the LLM-as-Judge evaluation framework as conducted by Hellin et al. (2025). As shown in Table 2, GPT-5 mini works best achieving an accuracy of 83.1%, compared to 75.4% accuracy of Sonnet 4.5. Hereby the benefit of the gpt model primarily stems from a better performance on direct retrieval questions, solving 26 tasks correctly compared to Claude’s 21. In general, both models peform well on tasks with directly available information (92.6%/77.8%) and in reasoning on tasks for which the model contains insufficient information (100%/95.5%), showing that determining if information is stored inside the IFC model and reading it works well for current LLMs. As expected, tasks with indirectly available information are most difficult as they require the model to retrieve and aggregate specific results.",
+            "es": "Realizamos el experimento con dos LLM, Claude Sonnet 4.5 y GPT-5 mini, y verificamos manualmente la corrección de las respuestas, es decir, sin usar el marco de evaluación LLM-as-Judge (LLM como juez) empleado por Hellin et al. (2025). Como se muestra en la Tabla 2, GPT-5 mini funciona mejor, con una exactitud (accuracy) de 83.1%, frente a la exactitud de 75.4% de Sonnet 4.5. La ventaja del modelo GPT proviene principalmente de un mejor desempeño en las preguntas de recuperación directa, al resolver correctamente 26 tareas frente a las 21 de Claude. En general, ambos modelos se desempeñan bien en las tareas con información directamente disponible (92.6%/77.8%) y en el razonamiento sobre tareas para las cuales el modelo no contiene información suficiente (100%/95.5%), lo que muestra que determinar si la información está almacenada dentro del modelo IFC y leerla funciona bien en los LLM actuales. Como era de esperarse, las tareas con información disponible de forma indirecta son las más difíciles, ya que exigen que el modelo recupere y agregue resultados específicos."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 9,
+          "text": {
+            "en": "Table 2: Comparison of scene querying results between GPT-5 mini, Sonnet 4.5, and Sonnet 3.5. *Results for Sonnet 3.5 are reported by Hellin et al. (2025), evaluated on a larger dataset and therefore not directly comparable.",
+            "es": "Tabla 2: Comparación de los resultados de consulta de escenas entre GPT-5 mini, Sonnet 4.5 y Sonnet 3.5. *Los resultados de Sonnet 3.5 son los reportados por Hellin et al. (2025), evaluados sobre un conjunto de datos más grande y, por lo tanto, no directamente comparables."
+          },
+          "image": "fig/tab-2.png"
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "We further compare the performance against the results reported by Hellin et al. (2025) on Sonnet 3.5. Note that the results are not directly comparable, because our system was only evaluated on a subset of IFC-Bench-v1, whereas Hellin et al. (2025) evaluate on the whole dataset. Although the functions of our MCP4IFC system are not adapted on the IFC-bench-v1 dataset tasks, the performance is similar to their system, which achieved an accuracy of 80%.",
+            "es": "Además, comparamos el desempeño con los resultados reportados por Hellin et al. (2025) para Sonnet 3.5. Cabe señalar que los resultados no son directamente comparables, porque nuestro sistema se evaluó únicamente sobre un subconjunto de IFC-Bench-v1, mientras que Hellin et al. (2025) evalúan sobre el conjunto de datos completo. Aunque las funciones de nuestro sistema MCP4IFC no están adaptadas a las tareas del conjunto de datos IFC-bench-v1, el desempeño es similar al de su sistema, que alcanzó una exactitud de 80%."
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The tools mostly used by Sonnet 4.5 on correctly solved tasks can be seen in Table 3. Notably, the execute_ifc_code_tool function is called most often, which allows the model to write its own code. This is often necessary to aggregate information, e.g. when requiring spatial relationships, counting or selecting objects of a distinct type. Furthermore, this presents an important benefit over the tools defined by Hellin et al. (2025), as it allows the system to create its own task-specific tools to answer a query.",
+            "es": "Las herramientas más utilizadas por Sonnet 4.5 en las tareas resueltas correctamente se muestran en la Tabla 3. Cabe destacar que la función execute_ifc_code_tool es la que se llama con mayor frecuencia, la cual permite al modelo escribir su propio código. Esto suele ser necesario para agregar información, p. ej., cuando se requieren relaciones espaciales, contar objetos o seleccionar objetos de un tipo determinado. Además, esto representa una ventaja importante frente a las herramientas definidas por Hellin et al. (2025), ya que permite al sistema crear sus propias herramientas específicas para la tarea con el fin de responder una consulta."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 10,
+          "text": {
+            "en": "Table 3: Distribution of tool usage among the correct solutions.",
+            "es": "Tabla 3: Distribución del uso de herramientas entre las soluciones correctas."
+          },
+          "image": "fig/tab-3.png"
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Our evaluation comes with important limitations. First, the binary correct/incorrect metric can be insufficient for certain ambiguous questions where an answer might be partially correct. In our evaluation, we optimistically marked such cases as correct, suggesting our reported accuracies represents an upper bound. A more nuanced evaluation scheme may be necessary for future work. Second, grouping tasks into the proposed categories by Hellin et al. (2025) led to difficulties, as, e.g., tasks with indirectly available information often contain to a high proportion of subtasks where direct retrieval is required, and vice versa, making a clean categorization difficult. However, we grouped tasks to the best of our knowledge and, given similar performance to Hellin et al. (2025), think that our assessment is close to the unreleased ground truth. Lastly, as the MCP4IFC system offers a variety of different tools to query and generate BIM structures, the system currently requires a large context size in the input prompt. As this directly represents a higher cost and less than 10 of the tools were actually required to successfully solve tasks in scene querying (see Table 3), it is advisable to generally disable generative tools for such a task and vice versa.",
+            "es": "Nuestra evaluación tiene limitaciones importantes. En primer lugar, la métrica binaria correcta/incorrecta puede ser insuficiente para ciertas preguntas ambiguas en las que una respuesta podría ser parcialmente correcta. En nuestra evaluación, marcamos de manera optimista esos casos como correctos, lo que sugiere que las exactitudes que reportamos representan una cota superior (upper bound). Podría ser necesario un esquema de evaluación más matizado en trabajos futuros. En segundo lugar, agrupar las tareas en las categorías propuestas por Hellin et al. (2025) trajo dificultades, ya que, por ejemplo, las tareas con información disponible de forma indirecta suelen contener una alta proporción de subtareas en las que se requiere recuperación directa, y viceversa, lo que dificulta una categorización clara. Sin embargo, agrupamos las tareas lo mejor que pudimos y, dado el desempeño similar al de Hellin et al. (2025), consideramos que nuestra evaluación se aproxima a la verdad de referencia (ground truth) no publicada. Por último, dado que el sistema MCP4IFC ofrece una variedad de herramientas distintas para consultar y generar estructuras BIM, actualmente requiere un tamaño de contexto (context size) grande en el prompt de entrada. Como esto representa directamente un mayor costo y menos de 10 de las herramientas fueron realmente necesarias para resolver con éxito las tareas de consulta de escenas (véase la Tabla 3), es recomendable deshabilitar en general las herramientas generativas para una tarea de este tipo, y viceversa."
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "4.2 EDITING AND GENERATION EXPERIMENTS",
+            "es": "4.2 EXPERIMENTOS DE EDICIÓN Y GENERACIÓN"
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "In addition to the querying benchmark, we evaluated how MCP4IFC performs on editing and generation tasks. These experiments test whether the system can follow high-level instructions and perform modeling operations without manual GUI interaction. The experiments cover two main tasks: (1) semantic IFC editing via code generation, where the LLM writes and executes Python code to modify IFC data, and (2) IFC geometry generation, where natural language prompts are translated into full 3D building elements. All experiments were conducted using the Claude Sonnet 4.5 model in the Claude Desktop interface.",
+            "es": "Además del banco de pruebas de consulta, evaluamos cómo se desempeña MCP4IFC en tareas de edición y generación. Estos experimentos ponen a prueba si el sistema puede seguir instrucciones de alto nivel y realizar operaciones de modelado sin interacción manual con una interfaz gráfica (GUI). Los experimentos abarcan dos tareas principales: (1) la edición semántica de IFC mediante generación de código, en la que el LLM escribe y ejecuta código Python para modificar los datos IFC, y (2) la generación de geometría IFC, en la que se traducen indicaciones en lenguaje natural a elementos de edificación 3D completos. Todos los experimentos se realizaron con el modelo Claude Sonnet 4.5 en la interfaz de Claude Desktop."
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "4.2.1 IFC EDITING VIA CODE GENERATION (SEMANTIC/NON-GEOMETRIC)",
+            "es": "4.2.1 EDICIÓN DE IFC MEDIANTE GENERACIÓN DE CÓDIGO (SEMÁNTICA/NO GEOMÉTRICA)"
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "When predefined tools cannot complete a request, the LLM generates new Python code to perform the task (as described in Section 3.3). This experiment focuses on semantic and non-geometric IFC modifications, for which there are no specialized tools. We designed eight editing tasks (Table 4) that included batch renaming, creating property sets, classifying elements, and performing custom calculations. We prompted the LLM to perform these operations using our MCP framework and analyzed whether it could complete the task.",
+            "es": "Cuando las herramientas predefinidas no pueden completar una solicitud, el LLM genera código Python nuevo para realizar la tarea (como se describe en la Sección 3.3). Este experimento se centra en modificaciones de IFC semánticas y no geométricas, para las cuales no existen herramientas especializadas. Diseñamos ocho tareas de edición (Tabla 4) que incluían el renombrado por lotes, la creación de conjuntos de propiedades (property sets), la clasificación de elementos y la realización de cálculos personalizados. Pedimos al LLM que realizara estas operaciones usando nuestro marco MCP y analizamos si podía completar la tarea."
+          }
+        },
+        {
+          "id": "tab-4",
+          "type": "table",
+          "page": 11,
+          "text": {
+            "en": "Table 4: The eight prompts used for the IFC editing experiments via dynamic code generation. Claude Sonnet 4.5 completed all tasks using the MCP server. The RAG column indicates whether the LLM invoked the retrieval tool.",
+            "es": "Tabla 4: Los ocho prompts utilizados para los experimentos de edición de IFC mediante generación dinámica de código. Claude Sonnet 4.5 completó todas las tareas usando el servidor MCP. La columna RAG indica si el LLM invocó la herramienta de recuperación."
+          },
+          "image": "fig/tab-4.png"
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "All experiments were performed on the BasicHouse.ifc model from the BIM-Whale repository (Wisén, 2020). Claude Sonnet 4.5 completed all eight editing tasks via dynamic code generation. Each result was manually verified by comparing the IFC file before and after execution. Although the task set is limited, the results show that the LLM can reliably execute semantic edits and generate valid IFC-compatible code. More complex cases may fail when geometry, spatial context, or element dependencies are required. Overall, these experiments demonstrate that direct IFC editing via LLM-driven code generation is feasible for a range of semantic operations.",
+            "es": "Todos los experimentos se realizaron sobre el modelo BasicHouse.ifc del repositorio BIM-Whale (Wisén, 2020). Claude Sonnet 4.5 completó las ocho tareas de edición mediante generación dinámica de código. Cada resultado se verificó manualmente comparando el archivo IFC antes y después de la ejecución. Aunque el conjunto de tareas es limitado, los resultados muestran que el LLM puede ejecutar de manera confiable ediciones semánticas y generar código válido compatible con IFC. Los casos más complejos pueden fallar cuando se requieren geometría, contexto espacial o dependencias entre elementos. En general, estos experimentos demuestran que la edición directa de IFC mediante generación de código impulsada por un LLM es viable para una gama de operaciones semánticas."
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "4.2.2 IFC GEOMETRY GENERATION",
+            "es": "4.2.2 GENERACIÓN DE GEOMETRÍA IFC"
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "We evaluated the model’s ability to generate IFC geometry both from single prompts and through multi-turn interactive workflows. Geometry creation in MCP4IFC is supported by predefined high-level tools 3.2.2 and by dynamic code generation 3.3. As shown in Figure 6, the system can create a variety of structures from textual descriptions, demonstrating that the model can interpret high-level design intent and translate it into valid IFC geometry. We further analyzed sequential design workflows in which the LLM iteratively refined a single IFC model across multiple user instructions. Figure 7 shows an example where the model preserved spatial context over six consecutive prompts to produce a coherent layout. This indicates strong potential for conversational BIM workflows where users can iteratively shape a design through natural language instead of manual GUI operations.",
+            "es": "Evaluamos la capacidad del modelo para generar geometría IFC tanto a partir de prompts individuales como mediante flujos de trabajo interactivos de múltiples turnos. La creación de geometría en MCP4IFC se apoya en herramientas predefinidas de alto nivel (Sección 3.2.2) y en la generación dinámica de código (Sección 3.3). Como se muestra en la Figura 6, el sistema puede crear una variedad de estructuras a partir de descripciones textuales, lo que demuestra que el modelo puede interpretar la intención de diseño de alto nivel y traducirla en geometría IFC válida. Analizamos además flujos de diseño secuenciales en los que el LLM refinó iterativamente un único modelo IFC a lo largo de varias instrucciones del usuario. La Figura 7 muestra un ejemplo en el que el modelo conservó el contexto espacial a lo largo de seis prompts consecutivos para producir una distribución coherente. Esto indica un gran potencial para flujos de trabajo BIM conversacionales en los que los usuarios pueden dar forma a un diseño de manera iterativa mediante lenguaje natural en lugar de operaciones manuales en una GUI."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 12,
+          "text": {
+            "en": "Figure 6: IFC object generation from textual prompts. Examples (a-f) are generated using the tools available in the MCP server. Here are the detailed prompts: (a) Build a two-story structure: ground floor slab 10 m × 8 m, four perimeter walls 3 m high, second floor slab at 3 m, another set of walls 3 m high, and a gable roof. (b) Create a curved wall approximation with 8 segments forming a semicircle, radius 5 m, height 3 m. (c) Create a three-storey residential apartment block with two flats per floor, each flat having a living room, kitchen, bedroom, and bathroom. (d) Create a university campus with three buildings: a main lecture block, a library, and a sports hall connected by covered walkways. (e) Generate a landmark bridge structure with arch supports and pedestrian deck. (f) Generate a single-floor house with ten rooms, each furnished with appropriate interior objects (e.g., bed, table, or sofa).",
+            "es": "Figura 6: Generación de objetos IFC a partir de prompts textuales. Los ejemplos (a-f) se generan con las herramientas disponibles en el servidor MCP. Estos son los prompts detallados: (a) Construye una estructura de dos plantas: losa de planta baja de 10 m × 8 m, cuatro muros perimetrales de 3 m de altura, losa del segundo piso a 3 m, otro conjunto de muros de 3 m de altura y un techo a dos aguas. (b) Crea una aproximación de un muro curvo con 8 segmentos que formen un semicírculo, de 5 m de radio y 3 m de altura. (c) Crea un edificio de departamentos residencial de tres plantas con dos departamentos por piso, cada uno con sala, cocina, recámara y baño. (d) Crea un campus universitario con tres edificios: un bloque principal de aulas, una biblioteca y un gimnasio deportivo conectados por pasillos techados. (e) Genera una estructura de puente emblemática con soportes en arco y plataforma peatonal. (f) Genera una casa de un solo piso con diez habitaciones, cada una amueblada con objetos interiores apropiados (p. ej., cama, mesa o sofá)."
+          },
+          "image": "fig/fig-6.png"
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 12,
+          "text": {
+            "en": "Figure 7: Step-by-step generation of an L-shaped building through sequential instructions. Here are the detailed prompts: (a) Create an L-shaped floor slab using polyline: vertices at (0,0), (10,0), (10,5), (5,5), (5,10), (0,10), thickness 0.25m at height 0. (b) Create walls along this L-shaped perimeter: height 3.5m, thickness 0.25m, following the slab outline. (c) Add a door at position (2, 0, 0) - entrance on the south side. (d) Create another L-shaped slab at height 3.5m matching the ground floor shape. (e) Add a hip roof covering the entire L-shaped building with 30-degree slope.Generate a landmark bridge structure with arch supports and pedestrian deck. (f) Can you style the house.Generate a single-floor house with ten rooms, each furnished with appropriate interior objects (e.g., bed, table, or sofa).",
+            "es": "Figura 7: Generación paso a paso de un edificio en forma de L mediante instrucciones secuenciales. Estos son los prompts detallados: (a) Crea una losa de piso en forma de L usando una polilínea: vértices en (0,0), (10,0), (10,5), (5,5), (5,10), (0,10), con espesor de 0.25m a altura 0. (b) Crea muros a lo largo de este perímetro en forma de L: altura de 3.5m, espesor de 0.25m, siguiendo el contorno de la losa. (c) Agrega una puerta en la posición (2, 0, 0): entrada en el lado sur. (d) Crea otra losa en forma de L a una altura de 3.5m que coincida con la forma de la planta baja. (e) Agrega un techo a cuatro aguas que cubra todo el edificio en forma de L con una pendiente de 30 grados. Genera una estructura de puente emblemática con soportes en arco y plataforma peatonal. (f) ¿Puedes darle estilo a la casa? Genera una casa de un solo piso con diez habitaciones, cada una amueblada con objetos interiores apropiados (p. ej., cama, mesa o sofá)."
+          },
+          "image": "fig/fig-7.png"
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "However, a closer review of the generated IFC files reveals some issues. In the example (f) shown in Figure 7, the geometry appears structurally valid, but the underlying IFC semantics were not fully specified. Walls did not connect properly at intersections, openings for windows and doors were not properly added, and rooms lacked IfcSpace definitions. Elements often lacked property sets and material assignments, and furniture lacked spatial containment relationships. These issues show that current models can generate geometric elements but struggle to maintain the relational and semantic structure required for reliable BIM workflows.",
+            "es": "Sin embargo, una revisión más detallada de los archivos IFC generados revela algunos problemas. En el ejemplo (f) mostrado en la Figura 7, la geometría parece estructuralmente válida, pero la semántica IFC subyacente no se especificó por completo. Los muros no se conectaban correctamente en las intersecciones, los vanos para ventanas y puertas no se agregaron de manera adecuada y los espacios carecían de definiciones IfcSpace. A los elementos con frecuencia les faltaban conjuntos de propiedades y asignaciones de materiales, y al mobiliario le faltaban relaciones de contención espacial. Estos problemas muestran que los modelos actuales pueden generar elementos geométricos, pero tienen dificultades para mantener la estructura relacional y semántica necesaria para flujos de trabajo BIM confiables."
+          }
+        },
+        {
+          "id": "s4-p33",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Overall, the results demonstrate that LLM-driven IFC generation is feasible but not yet semantically robust. Improving spatial reasoning, semantic consistency, and dependency handling remains essential. Future work should focus on fixing incomplete IFC structures and training models with better exposure to well-structured IFC data so they can learn to create better BIM models.",
+            "es": "En general, los resultados demuestran que la generación de IFC impulsada por LLM es viable, pero todavía no es semánticamente robusta. Mejorar el razonamiento espacial, la consistencia semántica y el manejo de dependencias sigue siendo esencial. El trabajo futuro debería centrarse en corregir las estructuras IFC incompletas y en entrenar modelos con mayor exposición a datos IFC bien estructurados, de modo que puedan aprender a crear mejores modelos BIM."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 CONCLUSION & FUTURE WORK",
+        "es": "5 CONCLUSIONES Y TRABAJO FUTURO"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "In this work, we presented MCP4IFC, an MCP server for generating, editing, and querying IFC models built on top of the IfcOpenShell API. The framework connects LLMs to BIM workflows through standardized MCP tool calls, enabling direct interaction with IFC data in an interoperable and transparent way. By combining predefined tool interfaces with dynamic code generation and retrieval-augmented learning, the system allows LLMs to perform a wide range of modeling and information retrieval tasks without depending on proprietary software APIs. Our experiments demonstrate that the proposed framework is capable of performing realistic BIM operations, from IFC querying to semantic editing and procedural geometry generation. While these experiments are not intended as comprehensive benchmarks, they demonstrate that the MCP4IFC framework effectively enables LLMs to perform end-to-end IFC manipulation through a standardized, extensible tool interface. MCP4IFC is released as open source to support further research in AI-assisted BIM design. We believe it provides a solid foundation for developing and evaluating future systems that integrate language models, spatial reasoning, and open standards to advance automation in the built environment. Concretely, various research directions can be derived from this:",
+            "es": "En este trabajo presentamos MCP4IFC, un servidor MCP para generar, editar y consultar modelos IFC construido sobre la API de IfcOpenShell. El marco de trabajo conecta los LLM con los flujos de trabajo BIM mediante llamadas estandarizadas a herramientas MCP, lo que permite una interacción directa con los datos IFC de manera interoperable y transparente. Al combinar interfaces de herramientas predefinidas con generación dinámica de código y aprendizaje aumentado con recuperación (retrieval-augmented learning), el sistema permite a los LLM realizar una amplia gama de tareas de modelado y recuperación de información sin depender de API de software propietario. Nuestros experimentos demuestran que el marco propuesto es capaz de realizar operaciones BIM realistas, desde la consulta de IFC hasta la edición semántica y la generación procedural de geometría. Si bien estos experimentos no pretenden ser evaluaciones comparativas exhaustivas, demuestran que el marco MCP4IFC permite de manera efectiva que los LLM realicen una manipulación de IFC de extremo a extremo mediante una interfaz de herramientas estandarizada y extensible. MCP4IFC se publica como código abierto para apoyar la investigación futura en el diseño BIM asistido por IA. Creemos que ofrece una base sólida para desarrollar y evaluar futuros sistemas que integren modelos de lenguaje, razonamiento espacial y estándares abiertos para impulsar la automatización en el entorno construido. En concreto, de aquí pueden derivarse diversas líneas de investigación:"
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Expanded and Efficient Tool Library: The current toolset can be further extended to support higher-level modeling operations. New tools for common building components, such as staircases, elevators, and facades, would allow AI agents to complete complex design actions with a single tool call. In addition, community experts could contribute their own extensions, which would become immediately accessible to any connected AI client through the standardized MCP interface.",
+            "es": "Biblioteca de herramientas ampliada y eficiente: El conjunto de herramientas actual puede extenderse aún más para admitir operaciones de modelado de más alto nivel. Nuevas herramientas para componentes comunes de edificación, como escaleras, elevadores y fachadas, permitirían a los agentes de IA (AI agents) completar acciones de diseño complejas con una sola llamada a una herramienta. Además, expertos de la comunidad podrían aportar sus propias extensiones, que quedarían de inmediato accesibles para cualquier cliente de IA conectado a través de la interfaz MCP estandarizada."
+          }
+        },
+        {
+          "id": "s5-p12",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Beyond predefined modeling tools, generative design capabilities can also be integrated. For instance, a floor-plan understanding model (Wei et al., 2025; Fan et al., 2022) could transform images or sketches into room layouts, while advanced mesh-generation algorithms (Wang et al., 2024a; Hao et al., 2024) could be combined with an LLM to convert complex geometries into structured IFC elements. Together, these additions would enable model-based design exploration within IFC-compliant workflows. At the same time, improving efficiency is essential: mechanisms that dynamically preselect which tools are exposed to the LLM, depending on the current task, could significantly reduce computational overhead (e.g., information retrieval tasks may not require generative modeling tools). Further research should also investigate more compact prompting strategies, such as minimizing redundant tool descriptions or providing only the most relevant tokens. Currently, the full toolset definitions already occupy around 40k tokens, and the context grows further for complex models, underscoring the need for lightweight and adaptive prompt representations. Together, these additions would enable model-based design exploration within IFC-compliant workflows.",
+            "es": "Más allá de las herramientas de modelado predefinidas, también pueden integrarse capacidades de diseño generativo. Por ejemplo, un modelo de comprensión de planos de planta (Wei et al., 2025; Fan et al., 2022) podría transformar imágenes o bocetos en distribuciones de espacios, mientras que algoritmos avanzados de generación de mallas (Wang et al., 2024a; Hao et al., 2024) podrían combinarse con un LLM para convertir geometrías complejas en elementos IFC estructurados. En conjunto, estas adiciones permitirían la exploración de diseño basada en modelos dentro de flujos de trabajo compatibles con IFC. Al mismo tiempo, mejorar la eficiencia es esencial: los mecanismos que preseleccionan dinámicamente qué herramientas se exponen al LLM, según la tarea en curso, podrían reducir de manera significativa la sobrecarga computacional (p. ej., las tareas de recuperación de información pueden no requerir herramientas de modelado generativo). La investigación futura también debería explorar estrategias de prompting más compactas, como minimizar las descripciones redundantes de las herramientas o proporcionar únicamente los tokens más relevantes. Actualmente, las definiciones completas del conjunto de herramientas ya ocupan alrededor de 40k tokens, y el contexto crece aún más en el caso de modelos complejos, lo que subraya la necesidad de representaciones de prompt ligeras y adaptativas. En conjunto, estas adiciones permitirían la exploración de diseño basada en modelos dentro de flujos de trabajo compatibles con IFC."
+          }
+        },
+        {
+          "id": "s5-p10",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Agentic BIM Workflows and AI Model Improvement The current framework supports individual modeling actions, but full automation requires higher-level planning and decision-making. Future research could develop BIM-specific agents that can plan complete tasks, monitor progress, and react to feedback. Improving the underlying LLMs is also essential. A model fine-tuned on BIM data, tool-call traces, and code execution logs could reason more effectively about geometry and semantics. Such a domain-specialized model could run locally to reduce cost and latency. Together, these advances would allow the agent to autonomously design, check, and refine IFC models through long-horizon reasoning. In addition, current LLMs and VLMs still face fundamental limitations in geometric and topological understanding (Yin et al., 2025; Mao et al., 2025). Future research could explore multi-modal spatial feedback mechanisms, allowing models to reason about geometry through structured representations such as graphs, point clouds, and visual embeddings (Bolya et al., 2025; Assran et al., 2025; Zhou et al., 2024). Integrating these world-model concepts from robotics could enhance spatial awareness and enable more reliable generative design, collision detection, and geometric reasoning in BIM workflows.",
+            "es": "Flujos de trabajo BIM agénticos (agentic BIM workflows) y mejora de los modelos de IA: El marco actual admite acciones de modelado individuales, pero la automatización completa requiere planificación y toma de decisiones de más alto nivel. La investigación futura podría desarrollar agentes específicos para BIM que puedan planificar tareas completas, supervisar el progreso y reaccionar ante la retroalimentación. Mejorar los LLM subyacentes también es esencial. Un modelo ajustado (fine-tuned) con datos BIM, trazas de llamadas a herramientas y registros de ejecución de código podría razonar con mayor eficacia sobre geometría y semántica. Un modelo especializado en el dominio de este tipo podría ejecutarse localmente para reducir el costo y la latencia. En conjunto, estos avances permitirían que el agente diseñe, verifique y refine de manera autónoma modelos IFC mediante razonamiento de horizonte largo (long-horizon reasoning). Además, los LLM y los modelos de visión y lenguaje (VLM, vision-language models) actuales aún enfrentan limitaciones fundamentales en la comprensión geométrica y topológica (Yin et al., 2025; Mao et al., 2025). La investigación futura podría explorar mecanismos de retroalimentación espacial multimodal, que permitan a los modelos razonar sobre la geometría mediante representaciones estructuradas como grafos, nubes de puntos y embeddings visuales (Bolya et al., 2025; Assran et al., 2025; Zhou et al., 2024). Integrar estos conceptos de modelos del mundo (world models) provenientes de la robótica podría mejorar la conciencia espacial y permitir un diseño generativo, una detección de colisiones y un razonamiento geométrico más confiables en los flujos de trabajo BIM."
+          }
+        },
+        {
+          "id": "s5-p11",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Extending to other BIM software: Most tools in the current framework are implemented through IfcOpenShell, with Bonsai and Blender serving as lightweight interfaces that provide a 3D modeling workspace and interactive editing capabilities. Because the core functionality is built on IfcOpenShell, these tools can be easily adapted to any BIM software environment that supports IFC import, modification, or visualization. This design makes the framework highly flexible and straightforward to integrate into diverse BIM platforms.",
+            "es": "Extensión a otro software BIM: La mayoría de las herramientas del marco actual se implementan mediante IfcOpenShell, con Bonsai y Blender como interfaces ligeras que proporcionan un espacio de trabajo de modelado 3D y capacidades de edición interactiva. Dado que la funcionalidad central está construida sobre IfcOpenShell, estas herramientas pueden adaptarse fácilmente a cualquier entorno de software BIM que admita la importación, modificación o visualización de IFC. Este diseño hace que el marco sea muy flexible y fácil de integrar en diversas plataformas BIM."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6 ACKNOWLEDGEMENTS",
+        "es": "6 AGRADECIMIENTOS"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "We would like to thank Juan David Rodriguez for valuable discussions and support regarding the MCP server integration, and Sylvain Hellin for providing the IFC-Bench-v1 dataset and for the insightful exchange. We also acknowledge the IfcOpenShell community for developing and maintaining the open platform on which this work builds. This research was supported by the Federal Ministry of Research, Technology and Space via the Show2Instruct project (Grant No. 01MK25008D).",
+            "es": "Agradecemos a Juan David Rodriguez por las valiosas discusiones y el apoyo con respecto a la integración del servidor MCP, y a Sylvain Hellin por proporcionar el conjunto de datos IFC-Bench-v1 y por el enriquecedor intercambio de ideas. También reconocemos a la comunidad de IfcOpenShell por desarrollar y mantener la plataforma abierta sobre la que se construye este trabajo. Esta investigación fue apoyada por el Ministerio Federal de Investigación, Tecnología y Espacio a través del proyecto Show2Instruct (Grant No. 01MK25008D)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-a",
+      "title": {
+        "en": "A APPENDIX",
+        "es": "A APÉNDICE"
+      },
+      "blocks": [
+        {
+          "id": "app-a-p1",
+          "type": "heading",
+          "page": 18,
+          "text": {
+            "en": "A.1 DYNAMIC CODE GENERATION EXAMPLE",
+            "es": "A.1 EJEMPLO DE GENERACIÓN DINÁMICA DE CÓDIGO (DYNAMIC CODE GENERATION)"
+          }
+        },
+        {
+          "id": "app-a-p2",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "This section provides an example of a script generated by the LLM during the semantic (non-geometric) IFC editing experiments described in Section 4.2.1. When a required operation is not covered by predefined tools, the LLM writes Python code that is executed inside the secure Blender sandbox. Listing 1 shows a script generated by Claude Sonnet 4.5 to update the description of the building entity. Before writing the code, the model may call scene-query tools. These tools provide additional context, such as the ID of selected objects and the scene overview. After it has enough information, the model generates the code and uses the execute_ifc_code_tool() to execute the generated script. The script first loads the current IFC file that is already open in the Bonsai Blender environment using the get_ifc_file() function. Then it performs the operation and uses the save_and_load_ifc() function to write the changes back to the IFC file and refreshes the model. This shows how the system can edit IFC data through code without any GUI actions.",
+            "es": "Esta sección presenta un ejemplo de un script generado por el LLM durante los experimentos de edición semántica (no geométrica) de IFC descritos en la Sección 4.2.1. Cuando una operación requerida no está cubierta por las herramientas predefinidas, el LLM escribe código Python que se ejecuta dentro del entorno aislado (sandbox) seguro de Blender. El Listado 1 muestra un script generado por Claude Sonnet 4.5 para actualizar la descripción de la entidad edificio. Antes de escribir el código, el modelo puede llamar a herramientas de consulta de escena (scene-query tools). Estas herramientas proporcionan contexto adicional, como el ID de los objetos seleccionados y la visión general de la escena. Una vez que tiene suficiente información, el modelo genera el código y usa execute_ifc_code_tool() para ejecutar el script generado. El script primero carga el archivo IFC actual que ya está abierto en el entorno Bonsai de Blender mediante la función get_ifc_file(). Luego realiza la operación y usa la función save_and_load_ifc() para escribir los cambios de vuelta en el archivo IFC y actualizar el modelo. Esto muestra cómo el sistema puede editar datos IFC mediante código sin ninguna acción en la interfaz gráfica de usuario (GUI, graphical user interface)."
+          }
+        },
+        {
+          "id": "app-a-p27",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "import ifcopenshell import ifcopenshell.api from blender_addon.api.ifc_utils import get_ifc_file, save_and_load_ifc # Get the IFC file ifc_file = get_ifc_file() # Find the building by GUID building_guid = \"3UdjywU2L4v9tTcFvuqwGm\" building = ifc_file.by_guid(building_guid) # Check current description print(f\"Building name: {building.Name}\") print(f\"Current description: {building.Description}\") # Edit the building’s description attribute ifcopenshell.api.run( \"attribute.edit_attributes\", ifc_file, product=building, attributes={\"Description\": \"High-rise residential tower\"} ) # Verify the change print(f\"New description: {building.Description}\") # Save the changes save_and_load_ifc() print(\"Building description successfully updated!\")",
+            "es": "import ifcopenshell import ifcopenshell.api from blender_addon.api.ifc_utils import get_ifc_file, save_and_load_ifc # Get the IFC file ifc_file = get_ifc_file() # Find the building by GUID building_guid = \"3UdjywU2L4v9tTcFvuqwGm\" building = ifc_file.by_guid(building_guid) # Check current description print(f\"Building name: {building.Name}\") print(f\"Current description: {building.Description}\") # Edit the building’s description attribute ifcopenshell.api.run( \"attribute.edit_attributes\", ifc_file, product=building, attributes={\"Description\": \"High-rise residential tower\"} ) # Verify the change print(f\"New description: {building.Description}\") # Save the changes save_and_load_ifc() print(\"Building description successfully updated!\")"
+          }
+        },
+        {
+          "id": "app-a-p5",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "Listing 1: LLM-generated script to change the description of the building to ’High-rise residential tower’ (executed in Blender sandbox).",
+            "es": "Listado 1: Script generado por el LLM para cambiar la descripción del edificio a ’High-rise residential tower’ (ejecutado en el entorno aislado de Blender)."
+          }
+        },
+        {
+          "id": "app-a-p6",
+          "type": "heading",
+          "page": 18,
+          "text": {
+            "en": "A.2 SCENE QUERY OUTPUT EXAMPLE",
+            "es": "A.2 EJEMPLO DE SALIDA DE CONSULTA DE ESCENA"
+          }
+        },
+        {
+          "id": "app-a-p7",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "To demonstrate the LLM’s scene-understanding capability, we created a simple test scene in an IFC file containing four walls in a 10x10m grid. The LLM was then prompted to summarize this scene. Listing 2 shows the LLM output and Listing 3 shows the raw JSON data retrieved by the LLM’s tool call.",
+            "es": "Para demostrar la capacidad de comprensión de escenas del LLM, creamos una escena de prueba sencilla en un archivo IFC que contiene cuatro muros en una cuadrícula de 10x10m. Después se le pidió al LLM que resumiera esta escena. El Listado 2 muestra la salida del LLM y el Listado 3 muestra los datos JSON sin procesar que el LLM obtuvo mediante su llamada a herramienta (tool call)."
+          }
+        },
+        {
+          "id": "app-a-p10",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "I will get the current scene information for you. <<tool_call: get_scene_info>> Scene Summary The current Blender scene contains a basic IFC project structure with 9 objects total: IFC Spatial Structure - IfcProject - My Project (root container) - IfcSite - My Site - IfcBuilding - My Building - IfcBuildingStorey - My Storey (active floor level) Building Elements - 4 Walls forming a rectangular enclosure: - Wall_001 at origin (0, 0, 0) - Wall_002 at (10, 0, 0) - Wall_003 at (10, 10, 0) - Wall_004 at (0, 10, 0) These appear to create a 10m x 10m room layout. Type Objects - IfcWallType - wall (template/type definition, currently hidden) All objects are currently visible except for the wall type definition. No objects are currently selected. The scene represents a simple rectangular room structure within a standard IFC hierarchical organization.",
+            "es": "Voy a obtener la información de la escena actual para ti. <<tool_call: get_scene_info>> Resumen de la escena La escena actual de Blender contiene una estructura básica de proyecto IFC con 9 objetos en total: Estructura espacial IFC - IfcProject - My Project (contenedor raíz) - IfcSite - My Site - IfcBuilding - My Building - IfcBuildingStorey - My Storey (nivel de piso activo) Elementos de construcción - 4 muros que forman un recinto rectangular: - Wall_001 en el origen (0, 0, 0) - Wall_002 en (10, 0, 0) - Wall_003 en (10, 10, 0) - Wall_004 en (0, 10, 0) Estos parecen crear la distribución de una habitación de 10m x 10m. Objetos de tipo - IfcWallType - wall (plantilla/definición de tipo, actualmente oculta) Todos los objetos están actualmente visibles, excepto la definición de tipo de muro. Actualmente no hay ningún objeto seleccionado. La escena representa una estructura de habitación rectangular sencilla dentro de una organización jerárquica IFC estándar."
+          }
+        },
+        {
+          "id": "app-a-p14",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Listing 2: The LLM generated output for the prompt - can you give a summary of the existing scene, use the get_scene_info function. The model calls the tool (« tool_call») and then summarizes the tool’s raw JSON output.",
+            "es": "Listado 2: Salida generada por el LLM para la instrucción: ¿puedes dar un resumen de la escena existente? usa la función get_scene_info. El modelo llama a la herramienta (« tool_call») y luego resume la salida JSON sin procesar de la herramienta."
+          }
+        },
+        {
+          "id": "app-a-p19",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "\"count\": 9, \"total\": 9, \"offset\": 0, \"limit\": 9, \"objects\": [ \"name\": \"IfcProject/My Project\", \"type\": \"EMPTY\", \"location\": [0.0,0.0,0.0], \"visible\": true, \"selected\": false, \"guid\": \"0CsEa6q1jESwVHd0H5grPl\", \"ifc_class\": \"IfcProject\" }, { \"name\": \"IfcBuildingStorey/My Storey\", \"type\": \"EMPTY\", \"location\": [0.0,0.0,0.0], \"visible\": true, \"selected\": false, \"guid\": \"3POxSr5YnFlhRhdFQxAINX\", \"ifc_class\": \"IfcBuildingStorey\" }, { \"name\": \"IfcWall/Wall_001\", \"type\": \"MESH\", \"location\": [0.0,0.0,0.0], \"visible\": true, \"selected\": false, \"guid\": \"3Cqrj0WO5Erf3j77QECM8D\", \"ifc_class\": \"IfcWall\" }, { \"name\": \"IfcWall/Wall_002\", \"type\": \"MESH\", \"location\": [10.0,0.0,0.0], \"visible\": true, \"selected\": false, \"guid\": \"23EPa7DQvF2foQfEeTNPD_\", \"ifc_class\": \"IfcWall\" }, ....",
+            "es": "\"count\": 9, \"total\": 9, \"offset\": 0, \"limit\": 9, \"objects\": [ \"name\": \"IfcProject/My Project\", \"type\": \"EMPTY\", \"location\": [0.0,0.0,0.0], \"visible\": true, \"selected\": false, \"guid\": \"0CsEa6q1jESwVHd0H5grPl\", \"ifc_class\": \"IfcProject\" }, { \"name\": \"IfcBuildingStorey/My Storey\", \"type\": \"EMPTY\", \"location\": [0.0,0.0,0.0], \"visible\": true, \"selected\": false, \"guid\": \"3POxSr5YnFlhRhdFQxAINX\", \"ifc_class\": \"IfcBuildingStorey\" }, { \"name\": \"IfcWall/Wall_001\", \"type\": \"MESH\", \"location\": [0.0,0.0,0.0], \"visible\": true, \"selected\": false, \"guid\": \"3Cqrj0WO5Erf3j77QECM8D\", \"ifc_class\": \"IfcWall\" }, { \"name\": \"IfcWall/Wall_002\", \"type\": \"MESH\", \"location\": [10.0,0.0,0.0], \"visible\": true, \"selected\": false, \"guid\": \"23EPa7DQvF2foQfEeTNPD_\", \"ifc_class\": \"IfcWall\" }, ...."
+          }
+        },
+        {
+          "id": "app-a-p24",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "Listing 3: Raw JSON output from the get_scene_info tool call. This data structure lists all scene objects, including their properties and unique GUIDs. Note that even in a simple 4-wall scene, the output includes hierarchical elements (e.g., IfcProject, IfcBuildingStorey) as separate objects, since they have their own GUIDs. The output is truncated here.",
+            "es": "Listado 3: Salida JSON sin procesar de la llamada a la herramienta get_scene_info. Esta estructura de datos enumera todos los objetos de la escena, incluidas sus propiedades y sus GUID únicos. Observe que, incluso en una escena sencilla de 4 muros, la salida incluye elementos jerárquicos (p. ej., IfcProject, IfcBuildingStorey) como objetos separados, ya que tienen sus propios GUID. Aquí la salida está truncada."
+          }
+        },
+        {
+          "id": "app-a-p8",
+          "type": "heading",
+          "page": 18,
+          "text": {
+            "en": "A.3 FLOOR PLAN GENERATION FROM IMAGES",
+            "es": "A.3 GENERACIÓN DE PLANOS DE PLANTA (FLOOR PLAN) A PARTIR DE IMÁGENES"
+          }
+        },
+        {
+          "id": "app-a-p9",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "This experiment explores whether the multimodal abilities of LLMs could be used for floor plan understanding. Three floor-plan images from the Tell2Design dataset (Leng et al., 2023) were provided separately, and the LLM (Claude Sonnet 4.5) was prompted to generate the corresponding wall layouts. The input and output are shown in Figure 8. The LLM captured the overall structure but struggled with the spatial organization. Fine-grained geometry and more intricate layout features were often missing or incorrectly interpreted. These suggest that while multimodal LLMs can extract high-level spatial features from architectural drawings, they currently lack the precision needed for accurate reconstruction. Integrating a specialized floor-plan recognition model (Fan et al., 2022; Wei et al., 2025) could improve performance by providing a more reliable extraction of boundaries and room structures.",
+            "es": "Este experimento explora si las capacidades multimodales (multimodal abilities) de los LLM podrían utilizarse para la comprensión de planos de planta. Se proporcionaron por separado tres imágenes de planos de planta del conjunto de datos Tell2Design (Leng et al., 2023), y se le pidió al LLM (Claude Sonnet 4.5) que generara las distribuciones de muros correspondientes. La entrada y la salida se muestran en la Figura 8. El LLM captó la estructura general, pero tuvo dificultades con la organización espacial. A menudo faltaban la geometría de detalle fino y las características de distribución más intrincadas, o estaban mal interpretadas. Esto sugiere que, si bien los LLM multimodales pueden extraer características espaciales de alto nivel de dibujos arquitectónicos, actualmente carecen de la precisión necesaria para una reconstrucción exacta. Integrar un modelo especializado de reconocimiento de planos de planta (Fan et al., 2022; Wei et al., 2025) podría mejorar el desempeño al proporcionar una extracción más confiable de los límites y las estructuras de las habitaciones."
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 21,
+          "text": {
+            "en": "Figure 8: Floor plan generation using a multimodal LLM. The top row shows input floor plans from the Tell2Design dataset Leng et al. (2023), and the bottom row shows the corresponding wall layouts generated by the MCP server.",
+            "es": "Figura 8: Generación de planos de planta con un LLM multimodal. La fila superior muestra los planos de planta de entrada del conjunto de datos Tell2Design Leng et al. (2023), y la fila inferior muestra las distribuciones de muros correspondientes generadas por el servidor MCP."
+          },
+          "image": "fig/fig-8.png"
+        },
+        {
+          "id": "app-a-p15",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "A.4 VISUAL FEEDBACK CHECK USING SCREENSHOT TOOLS",
+            "es": "A.4 VERIFICACIÓN DE RETROALIMENTACIÓN VISUAL (VISUAL FEEDBACK) MEDIANTE HERRAMIENTAS DE CAPTURA DE PANTALLA (SCREENSHOT)"
+          }
+        },
+        {
+          "id": "app-a-p16",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "To explore whether a multimodal LLM can interpret BIM scenes directly from images, we ran a small experiment. The goal of this experiment was to assess whether the model could understand the 3D scene shown in each image and support basic visual reasoning tasks. We captured screenshots from different IFC models and asked the model a set of questions about visible elements. These questions can be categorized into three common types:",
+            "es": "Para explorar si un LLM multimodal puede interpretar escenas BIM directamente a partir de imágenes, realizamos un pequeño experimento. El objetivo de este experimento era evaluar si el modelo podía comprender la escena 3D mostrada en cada imagen y apoyar tareas básicas de razonamiento visual. Tomamos capturas de pantalla de distintos modelos IFC y le hicimos al modelo un conjunto de preguntas sobre los elementos visibles. Estas preguntas pueden clasificarse en tres tipos comunes:"
+          }
+        },
+        {
+          "id": "app-a-p17",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "• Counting (25 questions): Questions regarding the number of elements, such as walls, chairs, windows, or other elements, found in BIM.",
+            "es": "• Conteo (25 preguntas): Preguntas sobre el número de elementos, como muros, sillas, ventanas u otros elementos, que se encuentran en BIM."
+          }
+        },
+        {
+          "id": "app-a-p28",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "• Spatial Relationships (9 questions): Questions about the relative positioning of objects, e.g., \"Where is the TV located relative to the sofa?\"",
+            "es": "• Relaciones espaciales (9 preguntas): Preguntas sobre el posicionamiento relativo de los objetos, p. ej., \"¿Dónde está ubicada la TV con respecto al sofá?\""
+          }
+        },
+        {
+          "id": "app-a-p29",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "• Attribute Queries (5 questions): Questions regarding object attributes like color, material, or location.",
+            "es": "• Consultas de atributos (5 preguntas): Preguntas sobre atributos de los objetos, como el color, el material o la ubicación."
+          }
+        },
+        {
+          "id": "app-a-p18",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "In total, 40 questions were evaluated. Table 5 shows a few examples of the image-based questions, and the corresponding screenshots are presented in Figure 10. For evaluation, we used a three-level scoring system: 1.0 for correct answers, 0.5 for partially correct answers, and 0 for incorrect answers. Using this metric, Claude Sonnet 4.5 achieved an overall score of 73%. The model was often able to recognize major objects and answer attribute questions correctly. However, its performance on counting was less consistent, and some spatial relationships were incorrect. These results suggest that while the model can extract high-level visual information from BIM images, its understanding of scene geometry and the quantity of objects remains limited. Nonetheless, this simple experiment shows that screenshot-based visual feedback can already support certain interactions, and motivates stronger vision-language integration for future BIM applications.",
+            "es": "En total, se evaluaron 40 preguntas. La Tabla 5 muestra algunos ejemplos de las preguntas basadas en imágenes, y las capturas de pantalla correspondientes se presentan en la Figura 10. Para la evaluación, usamos un sistema de puntuación de tres niveles: 1.0 para las respuestas correctas, 0.5 para las parcialmente correctas y 0 para las incorrectas. Con esta métrica, Claude Sonnet 4.5 obtuvo una puntuación global de 73%. El modelo a menudo pudo reconocer los objetos principales y responder correctamente las preguntas sobre atributos. Sin embargo, su desempeño en el conteo fue menos consistente, y algunas relaciones espaciales fueron incorrectas. Estos resultados sugieren que, si bien el modelo puede extraer información visual de alto nivel de imágenes BIM, su comprensión de la geometría de la escena y de la cantidad de objetos sigue siendo limitada. No obstante, este sencillo experimento muestra que la retroalimentación visual basada en capturas de pantalla ya puede apoyar ciertas interacciones, y motiva una integración más sólida de visión y lenguaje para futuras aplicaciones BIM."
+          }
+        },
+        {
+          "id": "tab-5",
+          "type": "table",
+          "page": 23,
+          "text": {
+            "en": "Table 5: A few example questions for different building scenes.",
+            "es": "Tabla 5: Algunas preguntas de ejemplo para distintas escenas de edificios."
+          },
+          "image": "fig/tab-5.png"
+        },
+        {
+          "id": "fig-10",
+          "type": "figure",
+          "page": 22,
+          "text": {
+            "en": "Figure 10: Screenshots used for the visual question answering experiment. The first four images are shown in a 2×2 layout (top-left: P1, top-right: P2, bottom-left: P3, bottom-right: P4), followed by P5 and P6).",
+            "es": "Figura 10: Capturas de pantalla utilizadas en el experimento de respuesta a preguntas visuales (visual question answering). Las primeras cuatro imágenes se muestran en una disposición de 2×2 (superior izquierda: P1, superior derecha: P2, inferior izquierda: P3, inferior derecha: P4), seguidas de P5 y P6)."
+          },
+          "image": "fig/fig-10.png"
+        },
+        {
+          "id": "app-a-p25",
+          "type": "heading",
+          "page": 21,
+          "text": {
+            "en": "A.4.1 COMPARATIVE MODEL ANALYSIS",
+            "es": "A.4.1 ANÁLISIS COMPARATIVO DE MODELOS"
+          }
+        },
+        {
+          "id": "app-a-p26",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "To better contextualize Claude Sonnet 4.5 performance, we compared its performance against four other multimodal models (GPT 5, GPT 5 mini, Gemini 2.5 Flash, and Gemini 2.5 pro) on the same 40-question dataset. While the overall scores were closely clustered, a categorical breakdown revealed distinct and contrasting performance profiles for each model, as shown in Figure 9. This comparative analysis suggests that no single model currently excels at all forms of visual reasoning for BIM. Claude Sonnet 4.5, for instance, demonstrates a better understanding of spatial geometry but struggles with simple attribute identification, a task other models find trivial. However, as these observations are curently based on a limited set of experiments and a single seed run, they should therefore be interpreted as preliminary trends rather than definitive conclusions about model suitability for specific BIM tasks.",
+            "es": "Para contextualizar mejor el desempeño de Claude Sonnet 4.5, comparamos su desempeño con el de otros cuatro modelos multimodales (GPT 5, GPT 5 mini, Gemini 2.5 Flash y Gemini 2.5 pro) en el mismo conjunto de 40 preguntas. Aunque las puntuaciones globales quedaron muy agrupadas, un desglose por categorías reveló perfiles de desempeño distintos y contrastantes para cada modelo, como se muestra en la Figura 9. Este análisis comparativo sugiere que actualmente ningún modelo sobresale en todas las formas de razonamiento visual para BIM. Claude Sonnet 4.5, por ejemplo, demuestra una mejor comprensión de la geometría espacial, pero tiene dificultades con la identificación de atributos simples, una tarea que otros modelos consideran trivial. Sin embargo, dado que estas observaciones se basan actualmente en un conjunto limitado de experimentos y en una ejecución con una sola semilla (seed), deben interpretarse como tendencias preliminares y no como conclusiones definitivas sobre la idoneidad de los modelos para tareas BIM específicas."
+          }
+        },
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 22,
+          "text": {
+            "en": "Figure 9: Results of the Spatial Benchmark",
+            "es": "Figura 9: Resultados del Spatial Benchmark"
+          },
+          "image": "fig/fig-9.png"
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Ahujasid. blender-mcp: Blender model context protocol integration. https://github.com/ahujasid/blender-mcp, 2025. Accessed: 2025-10-10."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Mido Assran, Adrien Bardes, David Fan, Quentin Garrido, Russell Howes, Mojtaba, Komeili, Matthew Muckley, Ammar Rizvi, Claire Roberts, Koustuv Sinha, Artem Zholus, Sergio Arnaud, Abha Gejji, Ada Martin, Francois Robert Hogan, Daniel Dugas, Piotr Bojanowski, Vasil Khalidov, Patrick Labatut, Francisco Massa, Marc Szafraniec, Kapil Krishnakumar, Yong Li, Xiaodong Ma, Sarath Chandar, Franziska Meier, Yann LeCun, Michael Rabbat, and Nicolas Ballas. V-jepa 2: Self-supervised video models enable understanding, prediction and planning, 2025. URL https://arxiv.org/abs/2506.09985."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Autodesk Revit. Bim software overview. https://www.autodesk.com/de/products/revit/overview, 2025. Accessed: 2025-10-21."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Daniel Bolya, Po-Yao Huang, Peize Sun, Jang Hyun Cho, Andrea Madotto, Chen Wei, Tengyu Ma, Jiale Zhi, Jathushan Rajasegaran, Hanoona Rasheed, Junke Wang, Marco Monteiro, Hu Xu, Shiyu Dong, Nikhila Ravi, Daniel Li, Piotr Dollár, and Christoph Feichtenhofer. Perception encoder: The best visual embeddings are not at the output of the network, 2025. URL https://arxiv.org/abs/2504.13181."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Bonsai. Ifcopenshell / bonsai - beautiful, detailed, and data-rich openbim. https://bonsaibim.org/, 2025. Accessed: 2025-10-10."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Tom B. Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, Sandhini Agarwal, Ariel Herbert-Voss, Gretchen Krueger, Tom Henighan, Rewon Child, Aditya Ramesh, Daniel M. Ziegler, Jeffrey Wu, Clemens Winter, Christopher Hesse, Mark Chen, Eric Sigler, Mateusz Litwin, Scott Gray, Benjamin Chess, Jack Clark, Christopher Berner, Sam McCandlish, Alec Radford, Ilya Sutskever, and Dario Amodei. Language models are few-shot learners. In Proceedings of the 34th International Conference on Neural Information Processing Systems, NIPS ’20, Red Hook, NY, USA, 2020. Curran Associates Inc. ISBN 9781713829546."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "William Chen, Siyi Hu, Rajat Talak, and Luca Carlone. Extracting zero-shot common sense from large language models for robot 3d scene understanding, 2022. URL https://arxiv.org/abs/2206.04585."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "M. Dawson-Haggerty, J. Bacher, A. Brown-Bivins, C. Forest, and J. O’Kane. trimesh: Load and analyze triangular meshes (version 3.2.0) [computer software]. https://trimesh.org/, 2019. Version 3.2.0."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Zihan Deng, Changyu Du, Stavros Nousias, and André Borrmann. Bimgent: Towards autonomous building modeling via computer-use agents. arXiv preprint arXiv:2506.07217, 2025."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Yaxian Dong, Zijun Zhan, Yuqing Hu, Daniel Mawunyo Doe, and Zhu Han. Ai bim coordinator for non-expert interaction in building design using llm-driven multi-agent systems. Automation in Construction, 180:106563, 2025."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Changyu Du, Sebastian Esser, Stavros Nousias, and André Borrmann. Text2bim: Generating building models using a large language model-based multi-agent framework. arXiv preprint arXiv:2408.08054, 2024a."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Changyu Du, Stavros Nousias, and André Borrmann. Towards a copilot in bim authoring tool using a large language model-based agent for intelligent human-machine interaction. arXiv preprint arXiv:2406.16903, 2024b."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Jayakrishna Duggempudi, Lu Gao, Ahmed Senouci, Zhe Han, and Yunpeng Zhang. Text-to-layout: A generative workflow for drafting architectural floor plans using llms. arXiv preprint arXiv:2509.00543, 2025."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Tim Engelbracht, René Zurbrügg, Marc Pollefeys, Hermann Blum, and Zuria Bauer. Spotlight: Robotic scene understanding through interaction and affordance detection, 2024. URL https://arxiv.org/abs/2409.11870."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Zhiwen Fan, Tianlong Chen, Peihao Wang, and Zhangyang Wang. Cadtransformer: Panoptic symbol spotting transformer for cad drawings. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 10986–10996, June 2022."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "David Fernandes, Sahej Garg, Matthew Nikkel, and Gursans Guven. A gpt-powered assistant for real-time interaction with building information models. Buildings, 14(8):2499, 2024."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Peizhuo Guo, Huiyuan Xue, Jun Ma, and Jack CP Cheng. Arcbim: Low-prerequisite, high-flexible, and cost-effective bim information retrieval with condensed multi-llm agent-based dsl code generation. High-Flexible, and Cost-Effective Bim Information Retrieval with Condensed Multi-Llm Agent-Based Dsl Code Generation, 2025."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Zekun Hao, David W. Romero, Tsung-Yi Lin, and Ming-Yu Liu. Meshtron: High-fidelity, artist-like 3d mesh generation at scale. ArXiv, abs/2412.09548, 2024. URL https://api.semanticscholar.org/CorpusID:274656066."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Sylvain Hellin, Stavros Nousias, and André Borrmann. Natural language information retrieval from bim models: An llm-based agentic workflow approach. In 2025 European Conference on Computing in Construction (CIB W78 Conference on IT in Construction), Porto, Portugal, 2025."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Yining Hong, Haoyu Zhen, Peihao Chen, Shuhong Zheng, Yilun Du, Zhenfang Chen, and Chuang Gan. 3d-llm: Injecting the 3d world into large language models, 2023. URL https://arxiv.org/abs/2307.12981."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Xinyi Hou, Yanjie Zhao, Shenao Wang, and Haoyu Wang. Model context protocol (mcp): Landscape, security threats, and future research directions. arXiv preprint arXiv:2503.23278, 2025."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Ziniu Hu, Ahmet Iscen, Aashi Jain, Thomas Kipf, Yisong Yue, David A Ross, Cordelia Schmid, and Alireza Fathi. Scenecraft: An llm agent for synthesizing 3d scenes as blender code. In Forty-first International Conference on Machine Learning, 2024."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "IfcOpenShell. Open-source toolkit for working with ifc data. https://ifcopenshell.org/, 2025. Accessed: 2025-10-10."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "ISO 16739-1:2024. Industry foundation classes (ifc) for data sharing in the construction and facility management industries — part 1: Data schema, March 2024. URL https://www.iso.org/standard/84123.html. Accessed: 2025-10-10."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Suhyung Jang, Ghang Lee, Jiseok Oh, Junghun Lee, and Bonsang Koo. Automated detailing of exterior walls using nadia: Natural-language-based architectural detailing through interaction with ai. Advanced Engineering Informatics, 61:102532, 2024."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Baoxiong Jia, Yixin Chen, Huangyue Yu, Yan Wang, Xuesong Niu, Tengyu Liu, Qing Li, and Siyuan Huang. Sceneverse: Scaling 3d vision-language learning for grounded scene understanding, 2024. URL https://arxiv.org/abs/2401.09340."
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Juan David Rodriguez. Bonsai_mcp: Model context protocol integration for ifc via bonsai and blender. https://github.com/JotaDeRodriguez/Bonsai_mcp, 2025. Accessed: 2025-10-10."
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Mohammad Sadil Khan, Sankalp Sinha, Talha Uddin, Didier Stricker, Sk Aziz Ali, and Muhammad Zeshan Afzal. Text2cad: Generating sequential cad designs from beginner-to-expert level text prompts. Advances in Neural Information Processing Systems, 37:7552–7579, 2024."
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Sicong Leng, Yangqiaoyu Zhou, Mohammed Haroon Dupty, Wee Sun Lee, Sam Joyce, and Wei Lu. Tell2design: A dataset for language-guided floor plan generation. ArXiv, abs/2311.15941, 2023. URL https://api.semanticscholar.org/CorpusID:259370678."
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, and Douwe Kiela. Retrieval-augmented generation for knowledge-intensive nlp tasks. In Proceedings of the 34th International Conference on Neural Information Processing Systems, NIPS ’20, Red Hook, NY, USA, 2020. Curran Associates Inc. ISBN 9781713829546."
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Ang Li, Peter Kok-Yiu Wong, Xingyu Tao, Jun Ma, and Jack CP Cheng. An interactive system for 3d spatial relationship query by integrating tree-based element indexing and llm-based agent. Advanced Engineering Informatics, 66:103375, 2025a."
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Rong Li, Shijie Li, Lingdong Kong, Xulei Yang, and Junwei Liang. Zero-shot 3d visual grounding from vision-language models, 2025b. URL https://arxiv.org/abs/2505.22429."
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Bingru Liu and Hainan Chen. Bimcoder: A comprehensive large language model fusion framework for natural language-based bim information retrieval. Applied Sciences, 15(14):7647, 2025."
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Antonello Longo, Chanyoung Chung, Matteo Palieri, Sung-Kyun Kim, Ali Agha, Cataldo Guaragnella, and Shehryar Khattak. Pixels-to-graph: Real-time integration of building information models and scene graphs for semantic-geometric human-robot understanding, 2025. URL https://arxiv.org/abs/2506.22593."
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Sining Lu, Guan Chen, Nam Anh Dinh, Itai Lang, Ari Holtzman, and Rana Hanocka. Ll3m: Large language 3d modelers. arXiv preprint arXiv:2508.08228, 2025."
+          }
+        },
+        {
+          "id": "refs-36",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Wufei Ma, Luoxin Ye, Celso M de Melo, Jieneng Chen, and Alan Yuille. Spatialllm: A compound 3d-informed design towards spatially-intelligent large multimodal models, 2025. URL https://arxiv.org/abs/2505.00788."
+          }
+        },
+        {
+          "id": "refs-37",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Yongsen Mao, Junhao Zhong, Chuan Fang, Jia Zheng, Rui Tang, Hao Zhu, Ping Tan, and Zihan Zhou. Spatiallm: Training large language models for structured indoor modeling, 2025. URL https://arxiv.org/abs/2506.07491."
+          }
+        },
+        {
+          "id": "refs-38",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Ben Mildenhall, Pratul P. Srinivasan, Matthew Tancik, Jonathan T. Barron, Ravi Ramamoorthi, and Ren Ng. Nerf: Representing scenes as neural radiance fields for view synthesis, 2020. URL https://arxiv.org/abs/2003.08934."
+          }
+        },
+        {
+          "id": "refs-39",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Model Context Protocol. Introduction. https://modelcontextprotocol.io/docs/getting-started/intro, 2025. Accessed: 2025-10-10."
+          }
+        },
+        {
+          "id": "refs-40",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Shishir G. Patil, Tianjun Zhang, Xin Wang, and Joseph E. Gonzalez. Gorilla: Large language model connected with massive apis. ArXiv, abs/2305.15334, 2023. URL https://api.semanticscholar.org/CorpusID:258865184."
+          }
+        },
+        {
+          "id": "refs-41",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Yujia Qin, Shihao Liang, Yining Ye, Kunlun Zhu, Lan Yan, Yaxi Lu, Yankai Lin, Xin Cong, Xiangru Tang, Bill Qian, et al. Toolllm: Facilitating large language models to master 16000+ real-world apis. arXiv preprint arXiv:2307.16789, 2023."
+          }
+        },
+        {
+          "id": "refs-42",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Timo Schick, Jane Dwivedi-Yu, Roberto Dessí, Roberta Raileanu, Maria Lomeli, Eric Hambro, Luke Zettlemoyer, Nicola Cancedda, and Thomas Scialom. Toolformer: language models can teach themselves to use tools. In Proceedings of the 37th International Conference on Neural Information Processing Systems, NIPS ’23, Red Hook, NY, USA, 2023. Curran Associates Inc."
+          }
+        },
+        {
+          "id": "refs-43",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Oliver Schulz, Jeroen Werbrouck, and Jakob Beetz. Towards scene graph descriptions for spatial representations in the built environment. In 30th International Workshop on Intelligent Computing in Engineering, EG-ICE, volume 2023, 2023."
+          }
+        },
+        {
+          "id": "refs-44",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Bilal Succar. Building information modelling framework: A research and delivery foundation for industry stakeholders. Automation in Construction, 18(3):357–375, 2009. ISSN 0926-5805. doi: https://doi.org/10.1016/j.autcon.2008.10.003. URL https://www.sciencedirect.com/science/article/pii/S0926580508001568."
+          }
+        },
+        {
+          "id": "refs-45",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Vectorworks. 3d design software for bim, cad & modelling. https://www.vectorworks.net/, 2025. Accessed: 2025-10-21."
+          }
+        },
+        {
+          "id": "refs-46",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Guanzhi Wang, Yuqi Xie, Yunfan Jiang, Ajay Mandlekar, Chaowei Xiao, Yuke Zhu, Linxi Fan, and Anima Anandkumar. Voyager: An open-ended embodied agent with large language models. arXiv preprint arXiv:2305.16291, 2023."
+          }
+        },
+        {
+          "id": "refs-47",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Zhengyi Wang, Jonathan Lorraine, Yikai Wang, Hang Su, Jun Zhu, Sanja Fidler, and Xiaohui Zeng. Llama-mesh: Unifying 3d mesh generation with language models. ArXiv, abs/2411.09595, 2024a. URL https://api.semanticscholar.org/CorpusID:274023341."
+          }
+        },
+        {
+          "id": "refs-48",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Zora Zhiruo Wang, Akari Asai, Xinyan Velocity Yu, Frank F. Xu, Yiqing Xie, Graham Neubig, and Daniel Fried. Coderag-bench: Can retrieval augment code generation? In North American Chapter of the Association for Computational Linguistics, 2024b. URL https://api.semanticscholar.org/CorpusID:270620678."
+          }
+        },
+        {
+          "id": "refs-49",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Xingguang Wei, Haomin Wang, Shenglong Ye, Ruifeng Luo, Yanting Zhang, Lixin Gu, Jifeng Dai, Yu Qiao, Wenhai Wang, and Hongjie Zhang. Point or line? using line-based representation for panoptic symbol spotting in cad drawings. ArXiv, abs/2505.23395, 2025. URL https://api.semanticscholar.org/CorpusID:278996383."
+          }
+        },
+        {
+          "id": "refs-50",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "André Wisén. bim-whale-ifc-samples: Ifc sample files for the bim whale project. GitHub repository, 2020. URL https://github.com/andrewisen/bim-whale-ifc-samples/tree/main. Accessed: 2025-10-23."
+          }
+        },
+        {
+          "id": "refs-51",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Beibin Li, Erkang Zhu, Li Jiang, Xiaoyun Zhang, Shaokun Zhang, Jiale Liu, et al. Autogen: Enabling next-gen llm applications via multi-agent conversations. In First Conference on Language Modeling, 2024."
+          }
+        },
+        {
+          "id": "refs-52",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Jianing Yang, Xuweiyi Chen, Nikhil Madaan, Madhavan Iyengar, Shengyi Qian, David F. Fouhey, and Joyce Chai. 3d-grand: A million-scale dataset for 3d-llms with better grounding and less hallucination. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 29501–29512, June 2025a."
+          }
+        },
+        {
+          "id": "refs-53",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "John Yang, Carlos E. Jimenez, Alexander Wettig, Kilian Lieret, Shunyu Yao, Karthik Narasimhan, and Ofir Press. Swe-agent: agent-computer interfaces enable automated software engineering. In Proceedings of the 38th International Conference on Neural Information Processing Systems, NIPS ’24, Red Hook, NY, USA, 2025b. Curran Associates Inc. ISBN 9798331314385."
+          }
+        },
+        {
+          "id": "refs-54",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. React: Synergizing reasoning and acting in language models. In International Conference on Learning Representations (ICLR), 2023."
+          }
+        },
+        {
+          "id": "refs-55",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Baiqiao Yin, Qineng Wang, Pingyue Zhang, Jianshu Zhang, Kangrui Wang, Zihan Wang, Jieyu Zhang, Keshigeyan Chandrasegaran, Han Liu, Ranjay Krishna, Saining Xie, Manling Li, Jiajun Wu, and Li Fei-Fei. Spatial mental modeling from limited views, 2025. URL https://arxiv.org/abs/2506.21458."
+          }
+        },
+        {
+          "id": "refs-56",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Zeqing Yuan, Haoxuan Lan, Qiang Zou, and Junbo Zhao. 3d-premise: Can large language models generate 3d shapes with sharp features and parametric control? arXiv preprint arXiv:2401.06437, 2024."
+          }
+        },
+        {
+          "id": "refs-57",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Chenyangguang Zhang, Alexandros Delitzas, Fangjinhua Wang, Ruida Zhang, Xiangyang Ji, Marc Pollefeys, and Francis Engelmann. Open-vocabulary functional 3d scene graphs for real-world indoor spaces, 2025a. URL https://arxiv.org/abs/2503.19199."
+          }
+        },
+        {
+          "id": "refs-58",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Jiahui Zhang, Yurui Chen, Yanpeng Zhou, Yueming Xu, Ze Huang, Jilin Mei, Junhui Chen, Yu-Jie Yuan, Xinyue Cai, Guowei Huang, Xingyue Quan, Hang Xu, and Li Zhang. From flatland to space: Teaching vision-language models to perceive and reason in 3d. ArXiv, abs/2503.22976, 2025b. URL https://api.semanticscholar.org/CorpusID:277510935."
+          }
+        },
+        {
+          "id": "refs-59",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Junwen Zheng and Martin Fischer. Dynamic prompt-based virtual assistant framework for bim information search. Automation in Construction, 155:105067, 2023."
+          }
+        },
+        {
+          "id": "refs-60",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Gaoyue Zhou, Hengkai Pan, Yann LeCun, and Lerrel Pinto. Dino-wm: World models on pre-trained visual features enable zero-shot planning. arXiv preprint arXiv:2411.04983, 2024."
+          }
+        },
+        {
+          "id": "refs-61",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Shuyan Zhou, Uri Alon, Frank F. Xu, Zhiruo Wang, Zhengbao Jiang, and Graham Neubig. Docprompting: Generating code by retrieving the docs. In International Conference on Learning Representations, 2022. URL https://api.semanticscholar.org/CorpusID:252734952."
+          }
+        }
+      ]
+    }
+  ]
+}

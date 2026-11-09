@@ -1,0 +1,1251 @@
+{
+  "version": 1,
+  "node": "kalogerakis-2012",
+  "title": "A Probabilistic Model for Component-Based Shape Synthesis",
+  "source": "files/A Probabilistic Model for Component-Based Shape Synthesis.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "A Probabilistic Model for Component-Based Shape Synthesis",
+            "es": "Un modelo probabilístico para la síntesis de formas basada en componentes"
+          }
+        },
+        {
+          "id": "s0-p7",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Evangelos Kalogerakis, Siddhartha Chaudhuri, Daphne Koller, Vladlen Koltun",
+            "es": "Evangelos Kalogerakis, Siddhartha Chaudhuri, Daphne Koller, Vladlen Koltun"
+          }
+        },
+        {
+          "id": "s0-p8",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Stanford University",
+            "es": "Stanford University"
+          }
+        }
+      ]
+    },
+    {
+      "id": "abs",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "We present an approach to synthesizing shapes from complex domains, by identifying new plausible combinations of components from existing shapes. Our primary contribution is a new generative model of component-based shape structure. The model represents probabilistic relationships between properties of shape components, and relates them to learned underlying causes of structural variability within the domain. These causes are treated as latent variables, leading to a compact representation that can be effectively learned without supervision from a set of compatibly segmented shapes. We evaluate the model on a number of shape datasets with complex structural variability and demonstrate its application to amplification of shape databases and to interactive shape synthesis.",
+            "es": "Presentamos un enfoque para sintetizar formas de dominios complejos mediante la identificación de nuevas combinaciones plausibles de componentes de formas existentes. Nuestra contribución principal es un nuevo modelo generativo (generative model) de la estructura de formas basada en componentes. El modelo representa las relaciones probabilísticas entre las propiedades de los componentes de las formas y las relaciona con causas subyacentes aprendidas de la variabilidad estructural dentro del dominio. Estas causas se tratan como variables latentes (latent variables), lo que da lugar a una representación compacta que puede aprenderse de manera eficaz y sin supervisión a partir de un conjunto de formas segmentadas de manera compatible. Evaluamos el modelo en varios conjuntos de datos de formas con variabilidad estructural compleja y demostramos su aplicación a la amplificación de bases de datos de formas y a la síntesis interactiva de formas."
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "CR Categories: I.3.5 [Computing Methodologies]: Computer Graphics—Computational Geometry and Object Modeling;",
+            "es": "Categorías CR: I.3.5 [Computing Methodologies]: Gráficos por computadora—Geometría computacional y modelado de objetos;"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Keywords: shape synthesis, shape structure, probabilistic graphical models, machine learning, data-driven 3D modeling",
+            "es": "Palabras clave: síntesis de formas, estructura de formas, modelos gráficos probabilísticos (probabilistic graphical models), aprendizaje automático (machine learning), modelado 3D basado en datos"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 Introduction",
+        "es": "1 Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The creation of compelling three-dimensional content is a central problem in computer graphics. Many applications such as games and virtual worlds require large collections of three-dimensional shapes for populating environments, and modeling each shape individually can be tedious even with the best interactive tools. This is particularly true for small development teams that lack 3D modeling expertise and resources. Such users can benefit from tools that automatically synthesize a variety of new, distinct shapes from a given domain.",
+            "es": "La creación de contenido tridimensional atractivo es un problema central en los gráficos por computadora. Muchas aplicaciones, como los videojuegos y los mundos virtuales, requieren grandes colecciones de formas tridimensionales para poblar los entornos, y modelar cada forma de manera individual puede ser tedioso incluso con las mejores herramientas interactivas. Esto es particularmente cierto para los equipos de desarrollo pequeños que carecen de experiencia y recursos de modelado 3D. Estos usuarios pueden beneficiarse de herramientas que sinteticen automáticamente una variedad de formas nuevas y distintas a partir de un dominio dado."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Tools for automatic synthesis of shapes from complex real-world domains must understand what characterizes the structure of shapes within such domains. Developing formal models of this structure is challenging, since shapes in many real-world domains exhibit complex relationships between their components. Consider sailing ships. Sailing ships vary in the size and type of hull, keel and masts, as well as in the number and configuration of masts. Different types of sailing ships constrain these factors differently. For example, yawls are small crafts with a shallow hull that supports two masts with large, triangular sails. Caravels are small, highly maneuverable ships carrying two or three masts with triangular sails. Galleons are multi-decked vessels with much larger hulls and primarily square sails on three or more masts. Various geometric, stylistic and functional relationships influence the selection and placement of individual components to ensure that the final shape forms a coherent whole. Similarly complex networks of relationships characterize other domains such as airplanes, automobiles, furniture, and various biological forms.",
+            "es": "Las herramientas para la síntesis automática de formas de dominios complejos del mundo real deben comprender qué caracteriza la estructura de las formas dentro de dichos dominios. Desarrollar modelos formales de esta estructura es un reto, ya que las formas de muchos dominios del mundo real exhiben relaciones complejas entre sus componentes. Consideremos los veleros. Los veleros varían en el tamaño y el tipo de casco, quilla y mástiles, así como en el número y la configuración de los mástiles. Los distintos tipos de veleros restringen estos factores de manera diferente. Por ejemplo, los yawls son embarcaciones pequeñas con un casco poco profundo que sostiene dos mástiles con velas grandes y triangulares. Las carabelas son barcos pequeños y muy maniobrables que llevan dos o tres mástiles con velas triangulares. Los galeones son embarcaciones de varias cubiertas con cascos mucho más grandes y velas principalmente cuadradas en tres o más mástiles. Diversas relaciones geométricas, estilísticas y funcionales influyen en la selección y la colocación de los componentes individuales para asegurar que la forma final constituya un todo coherente. Redes de relaciones igualmente complejas caracterizan otros dominios, como los aviones, los automóviles, los muebles y diversas formas biológicas."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The focus of our work is on designing a compact representation of these relationships that can be learned without supervision from a limited number of examples. Our primary contribution is a generative probabilistic model of shape structure that can be trained on a set of compatibly segmented shapes from a particular domain. The model compactly represents the structural variability within the domain, without manual tuning or any additional specification of the domain. Given a trained model, plausible new shapes from the domain can be automatically synthesized by combining existing components, subject to optional high-level constraints. The key idea in the design of the model is to relate probabilistic relationships between geometric and semantic properties of shape components to learned latent causes of structural variability, both at the level of individual component categories and at the level of the complete shape.",
+            "es": "El enfoque de nuestro trabajo es diseñar una representación compacta de estas relaciones que pueda aprenderse sin supervisión a partir de un número limitado de ejemplos. Nuestra contribución principal es un modelo probabilístico generativo de la estructura de las formas que puede entrenarse con un conjunto de formas de un dominio particular segmentadas de manera compatible. El modelo representa de forma compacta la variabilidad estructural dentro del dominio, sin ajuste manual ni ninguna especificación adicional del dominio. Dado un modelo entrenado, pueden sintetizarse automáticamente nuevas formas plausibles del dominio combinando componentes existentes, sujetas a restricciones opcionales de alto nivel. La idea clave en el diseño del modelo es relacionar las relaciones probabilísticas entre las propiedades geométricas y semánticas de los componentes de las formas con causas latentes aprendidas de la variabilidad estructural, tanto a nivel de las categorías individuales de componentes como a nivel de la forma completa."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We demonstrate two applications of the presented model. First, it can be used to amplify an existing shape database. Given a limited number of example shapes, the model can synthesize a large number of new shapes, expanding the size of the database by an order of magnitude. For example, given a hundred airplanes, the model can automatically synthesize over a thousand new airplanes, each distinct from those in the input set (Figure 1). Second, the model enables interactive shape synthesis interfaces that allow rapid creation of plausible shapes subject to high-level constraints.",
+            "es": "Demostramos dos aplicaciones del modelo presentado. En primer lugar, puede usarse para amplificar una base de datos de formas existente. Dado un número limitado de formas de ejemplo, el modelo puede sintetizar una gran cantidad de formas nuevas y ampliar el tamaño de la base de datos en un orden de magnitud. Por ejemplo, a partir de cien aviones, el modelo puede sintetizar automáticamente más de mil aviones nuevos, cada uno distinto de los del conjunto de entrada (Figura 1). En segundo lugar, el modelo permite crear interfaces interactivas de síntesis de formas que posibilitan la creación rápida de formas plausibles sujetas a restricciones de alto nivel."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 1,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: Given 100 training airplanes (green), our probabilistic model synthesizes 1267 new airplanes (blue).",
+            "es": "Figura 1: A partir de 100 aviones de entrenamiento (verde), nuestro modelo probabilístico sintetiza 1267 aviones nuevos (azul)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 Related Work",
+        "es": "2 Trabajo relacionado"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our work is closely related to research on assembly-based 3D modeling, which aims to facilitate interactive composition of shapes from components. The pioneering Modeling by Example system by Funkhouser et al. [2004] used a database of segmented shapes to enable interactive assembly of new shapes from retrieved components. A follow-up project extended this approach to sketch-based retrieval of components [Lee and Funkhouser 2008]. The Shuffler system of Kraevoy et al. [2007] allows interchanging components between shapes in order to interactively create new shapes. Chaudhuri and Koltun [2010] describe an approach to retrieving compatible components for incomplete shapes during assembly-based modeling. Xu et al. [2011] describe a system that fits components from a retrieved database shape to the silhouette of an object extracted from a photograph. Jain et al. [2012] describe a method that interpolates between two shapes by combining components from these shapes. None of these techniques allow automatic synthesis of plausible new shapes with novel structure from a complex domain described only by a set of examples.",
+            "es": "Nuestro trabajo está estrechamente relacionado con la investigación sobre modelado 3D basado en ensamblaje, que busca facilitar la composición interactiva de formas a partir de componentes. El pionero sistema Modeling by Example de Funkhouser et al. [2004] utilizó una base de datos de formas segmentadas para permitir el ensamblaje interactivo de formas nuevas a partir de componentes recuperados. Un proyecto posterior extendió este enfoque a la recuperación de componentes mediante bocetos [Lee and Funkhouser 2008]. El sistema Shuffler de Kraevoy et al. [2007] permite intercambiar componentes entre formas para crear formas nuevas de manera interactiva. Chaudhuri and Koltun [2010] describen un enfoque para recuperar componentes compatibles para formas incompletas durante el modelado basado en ensamblaje. Xu et al. [2011] describen un sistema que ajusta componentes de una forma recuperada de una base de datos a la silueta de un objeto extraído de una fotografía. Jain et al. [2012] describen un método que interpola entre dos formas combinando componentes de ellas. Ninguna de estas técnicas permite la síntesis automática de formas nuevas plausibles con estructura novedosa a partir de un dominio complejo descrito únicamente por un conjunto de ejemplos."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The most related assembly-based modeling technique is by Chaudhuri et al. [2011], who develop a probabilistic representation of shape structure that can be used to suggest relevant components during an interactive assembly-based modeling session. While their probabilistic model can be used to assemble complete novel shapes, the plausibility of the synthesized shapes is severely limited. This is due to a number of factors, including the use of probability tables, the use of the Bayesian Information Criterion, and, most notably, the flat nature of the model, which does not account for latent causes of structural variability. The model is thus sufficient for suggesting individual components, but is unsatisfactory for synthesizing complete shapes. We evaluate the performance of this model against ours in Section 7.",
+            "es": "La técnica de modelado basado en ensamblaje más relacionada es la de Chaudhuri et al. [2011], quienes desarrollan una representación probabilística de la estructura de las formas que puede utilizarse para sugerir componentes relevantes durante una sesión interactiva de modelado basado en ensamblaje. Si bien su modelo probabilístico puede utilizarse para ensamblar formas novedosas completas, la plausibilidad de las formas sintetizadas está severamente limitada. Esto se debe a varios factores, entre ellos el uso de tablas de probabilidad, el uso del Criterio de Información Bayesiano (Bayesian Information Criterion) y, sobre todo, la naturaleza plana del modelo, que no tiene en cuenta las causas latentes de la variabilidad estructural. Por lo tanto, el modelo es suficiente para sugerir componentes individuales, pero resulta insatisfactorio para sintetizar formas completas. Evaluamos el desempeño de este modelo frente al nuestro en la Sección 7."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our work is also related to techniques that analyze a single input shape and generate larger shapes by exploiting adjacencies and repeated patterns within the input, akin to texture synthesis [Merrell 2007; Merrell and Manocha 2011; Bokeloh et al. 2010]. However, these previous techniques produce shapes that are only locally similar to the input and do not represent the global structure of shapes within a complex domain.",
+            "es": "Nuestro trabajo también está relacionado con técnicas que analizan una sola forma de entrada y generan formas más grandes aprovechando las adyacencias y los patrones repetidos dentro de la entrada, de manera similar a la síntesis de texturas (texture synthesis) [Merrell 2007; Merrell and Manocha 2011; Bokeloh et al. 2010]. Sin embargo, estas técnicas previas producen formas que solo son localmente similares a la entrada y no representan la estructura global de las formas dentro de un dominio complejo."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Prior works on learning models of variability in collections of shapes have primarily focused on continuous variability. These include SCAPE [Anguelov et al. 2005], a learned model of variation in human shape and pose, and the earlier works of Blanz and Vetter [1999] and Allen et al. [2003]. A related recent work by Ovsjanikov et al. [2011] enables exploration of continuous variability in collections of shapes by means of a deformable template. Our work can be seen as a limited generalization of SCAPE to domains in which shapes differ significantly in their component structure.",
+            "es": "Los trabajos previos sobre el aprendizaje de modelos de variabilidad en colecciones de formas se han centrado principalmente en la variabilidad continua. Entre ellos se encuentra SCAPE [Anguelov et al. 2005], un modelo aprendido de la variación en la forma y la postura humanas, y los trabajos anteriores de Blanz and Vetter [1999] y Allen et al. [2003]. Un trabajo reciente relacionado, de Ovsjanikov et al. [2011], permite explorar la variabilidad continua en colecciones de formas por medio de una plantilla deformable. Nuestro trabajo puede verse como una generalización limitada de SCAPE a dominios en los que las formas difieren significativamente en su estructura de componentes."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our work can also be viewed as a generalization of inverse procedural modeling [Aliaga et al. 2007; Stava et al. 2010; Bokeloh et al. 2010], which aims to reconstruct a procedural representation from a given exemplar shape. Prior inverse procedural modeling techniques analyzed single example shapes in isolation. In contrast, we model structural variability in complex domains exemplified by a set of shapes.",
+            "es": "Nuestro trabajo también puede verse como una generalización del modelado procedural inverso (inverse procedural modeling) [Aliaga et al. 2007; Stava et al. 2010; Bokeloh et al. 2010], que busca reconstruir una representación procedural a partir de una forma ejemplar dada. Las técnicas previas de modelado procedural inverso analizaban formas de ejemplo individuales de manera aislada. En contraste, nosotros modelamos la variabilidad estructural en dominios complejos ejemplificados por un conjunto de formas."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our probabilistic model is related to a number of hierarchical generative models for object recognition in images [Bouchard and Triggs 2005; Tu et al. 2005; Jin and Geman 2006; Fidler and Leonardis 2007; Todorovic and Ahuja 2008; Zhu et al. 2008; Ommer and Buhmann 2010; Roux et al. 2011; Ranzato et al. 2011]. Like many of these models, we employ latent variables to represent higher-level concepts, and learn both the content of the latent variables and some of the structure of the model from data. However, our model operates not on image pixels or patches, but on geometric and semantic features of three-dimensional shape components. It is specifically designed to have a compact parameterization so as to synthesize complete plausible novel shapes after training on only a small number (of up to a hundred) examples.",
+            "es": "Nuestro modelo probabilístico está relacionado con varios modelos generativos jerárquicos para el reconocimiento de objetos en imágenes [Bouchard and Triggs 2005; Tu et al. 2005; Jin and Geman 2006; Fidler and Leonardis 2007; Todorovic and Ahuja 2008; Zhu et al. 2008; Ommer and Buhmann 2010; Roux et al. 2011; Ranzato et al. 2011]. Al igual que muchos de estos modelos, empleamos variables latentes para representar conceptos de más alto nivel, y aprendemos a partir de los datos tanto el contenido de las variables latentes como parte de la estructura del modelo. Sin embargo, nuestro modelo no opera sobre píxeles o parches de imagen, sino sobre características geométricas y semánticas de componentes de formas tridimensionales. Está diseñado específicamente para tener una parametrización compacta, de modo que pueda sintetizar formas novedosas completas y plausibles tras entrenarse con solo un pequeño número (de hasta cien) de ejemplos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 Probabilistic Model",
+        "es": "3 Modelo probabilístico"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our probabilistic model is designed to represent the component-based structure of shapes in complex domains such as furniture, aircraft, vehicles, etc. Our key observation is that the structural variability in such domains is often characterized by the presence of multiple underlying types of shapes and their components. For example, the expected set of components present in a chair—as well as their geometry—differs markedly between office chairs, dining chairs, and cantilever chairs. This observation allows us to design a compact hierarchical model that can be effectively trained on small datasets. Our model incorporates latent variables that parameterize the types of shapes in the domain as well as the styles of individual components. The latent variables and their probabilistic relationships to other variables in the model are learned from data.",
+            "es": "Nuestro modelo probabilístico (probabilistic model) está diseñado para representar la estructura basada en componentes de formas en dominios complejos como muebles, aeronaves, vehículos, etc. Nuestra observación clave es que la variabilidad estructural en tales dominios suele caracterizarse por la presencia de múltiples tipos subyacentes de formas y de sus componentes. Por ejemplo, el conjunto esperado de componentes presentes en una silla, así como su geometría, difiere notablemente entre sillas de oficina, sillas de comedor y sillas en voladizo. Esta observación nos permite diseñar un modelo jerárquico compacto que puede entrenarse eficazmente con conjuntos de datos pequeños. Nuestro modelo incorpora variables latentes (latent variables) que parametrizan los tipos de formas en el dominio, así como los estilos de los componentes individuales. Las variables latentes y sus relaciones probabilísticas con otras variables del modelo se aprenden a partir de los datos."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The model is trained on a set of compatibly segmented shapes. We do not require that the set of components in the examples be consistent: some airplanes have horizontal stabilizers and some do not, some have landing gear while others don’t, etc. Our requirement from the input segmentation is rather that compatible components be identified as such; thus horizontal stabilizers on all example airplanes should be labeled as belonging to the same category. In our implementation, we use the compatible segmentation and labeling technique of Kalogerakis et al. [2010], assisted by manual segmentation and labeling. The component categories were labeled with semantically meaningful labels, but this is not a requirement for our approach and an unsupervised compatible segmentation technique could have been used instead [Huang et al. 2011; Sidi et al. 2011].",
+            "es": "El modelo se entrena con un conjunto de formas segmentadas de manera compatible. No exigimos que el conjunto de componentes en los ejemplos sea consistente: algunos aviones tienen estabilizadores horizontales y otros no, algunos tienen tren de aterrizaje y otros no, etc. Lo que exigimos a la segmentación de entrada es más bien que los componentes compatibles se identifiquen como tales; por lo tanto, los estabilizadores horizontales de todos los aviones de ejemplo deben etiquetarse como pertenecientes a la misma categoría. En nuestra implementación utilizamos la técnica de segmentación y etiquetado compatibles de Kalogerakis et al. [2010], asistida por segmentación y etiquetado manuales. Las categorías de componentes se etiquetaron con rótulos semánticamente significativos, pero esto no es un requisito de nuestro enfoque, y en su lugar se podría haber utilizado una técnica de segmentación compatible no supervisada [Huang et al. 2011; Sidi et al. 2011]."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Random variables. Our model is illustrated in Figure 2. It is a hierarchical mixture of distributions over attributes of shape components, with a single latent variable R at the root. This variable can be interpreted as the overall type of the shape. For each component category l, there is also a latent variable Sl that aims to represent the styles of components from l. The latent variables are not directly observed from the training data and are learned as described in Section 4.",
+            "es": "Variables aleatorias (random variables). Nuestro modelo se ilustra en la Figura 2. Es una mezcla jerárquica de distribuciones sobre atributos de los componentes de la forma, con una única variable latente R en la raíz. Esta variable puede interpretarse como el tipo general de la forma. Para cada categoría de componentes l, existe también una variable latente Sl que busca representar los estilos de los componentes de l. Las variables latentes no se observan directamente en los datos de entrenamiento y se aprenden como se describe en la Sección 4."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: Probabilistic model for component-based shape synthesis. Top: Visualization of the model’s structure. Each node represents a random variable. Shaded nodes correspond to observed variables, non-shaded nodes correspond to latent variables. The visualization uses plate notation: the variables of the larger rectangle are replicated L times, where L is the number of component categories. Bottom: The random variables used in the model.",
+            "es": "Figura 2: Modelo probabilístico para la síntesis de formas basada en componentes. Arriba: visualización de la estructura del modelo. Cada nodo representa una variable aleatoria. Los nodos sombreados corresponden a variables observadas; los nodos sin sombrear corresponden a variables latentes. La visualización usa notación de placas (plate notation): las variables del rectángulo más grande se replican L veces, donde L es el número de categorías de componentes. Abajo: las variables aleatorias utilizadas en el modelo."
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Observed random variables describe attributes that can be unambiguously extracted from the data. These include Nl, the number of components from category l, Cl, a vector of continuous geometric features of components from category l, and Dl, a vector of discrete geometric features of components from category l. In our implementation, the continuous features include curvature histograms, shape diameter histograms, scale parameters, spin images, PCA-based descriptors, and lightfield descriptors. These features are described further in Appendix A. The discrete features encode adjacency information. Specifically, these features specify the number of components from each category l′ that are adjacent to components from category l. The discrete features help ensure that components selected for a synthesized shape have compatible numbers of adjacent components of each type, so that they can be assembled into a coherent shape using the optimization procedure described in Section 5.2.",
+            "es": "Las variables aleatorias observadas describen atributos que pueden extraerse de los datos sin ambigüedad. Estas incluyen Nl, el número de componentes de la categoría l; Cl, un vector de características geométricas continuas de los componentes de la categoría l; y Dl, un vector de características geométricas discretas de los componentes de la categoría l. En nuestra implementación, las características continuas incluyen histogramas de curvatura (curvature histograms), histogramas de diámetro de la forma (shape diameter histograms), parámetros de escala, imágenes de giro (spin images), descriptores basados en PCA y descriptores de campo de luz (lightfield descriptors). Estas características se describen con más detalle en el Apéndice A. Las características discretas codifican información de adyacencia. En concreto, estas características especifican el número de componentes de cada categoría l′ que son adyacentes a componentes de la categoría l. Las características discretas ayudan a asegurar que los componentes seleccionados para una forma sintetizada tengan números compatibles de componentes adyacentes de cada tipo, de modo que puedan ensamblarse en una forma coherente mediante el procedimiento de optimización descrito en la Sección 5.2."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Model structure. The random variables are organized hierarchically, as shown in Figure 2, so that the latent variables produce a hierarchical clustering effect: the values of the random variables Sl represent clusters of similar components in terms of their geometric and adjacency features, while the values of the root variable R represent clusters of similar shapes in terms of the style and numbers of their components. In addition, the model includes lateral conditional dependencies between the observed random variables, which are not shown in Figure 2. For example, variables Cl and Cl′ can be connected by an edge. Such lateral connections represent strong relationships between attributes of different components.",
+            "es": "Estructura del modelo. Las variables aleatorias se organizan jerárquicamente, como se muestra en la Figura 2, de modo que las variables latentes producen un efecto de agrupamiento jerárquico (hierarchical clustering): los valores de las variables aleatorias Sl representan grupos de componentes similares en términos de sus características geométricas y de adyacencia, mientras que los valores de la variable raíz R representan grupos de formas similares en términos del estilo y del número de sus componentes. Además, el modelo incluye dependencias condicionales laterales entre las variables aleatorias observadas, que no se muestran en la Figura 2. Por ejemplo, las variables Cl y Cl′ pueden estar conectadas por una arista. Tales conexiones laterales representan relaciones fuertes entre los atributos de distintos componentes."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: Illustrative example. A small dataset of tables (top) and the probabilistic model learned for this dataset (bottom).",
+            "es": "Figura 3: Ejemplo ilustrativo. Un conjunto de datos pequeño de mesas (arriba) y el modelo probabilístico aprendido para este conjunto de datos (abajo)."
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Illustrative example. Figure 3 shows a small dataset of compatibly segmented tables and a probabilistic model learned for this dataset. The input shapes have two component categories: legs and tabletops. The random variable R represents the styles of tables in the dataset. Our model learned that there the two dominant styles: one-legged tables and four-legged tables. For each style, the model represents the conditional distribution over the number of components from each category: specifically, the number of tabletops (Ntop) and the number of legs (Nleg). For example, in the four-legged table style, the number of tabletops is either one or, less commonly, two. The model also represents the styles of components from each category (Stop and Sleg). In this example, the model learned that there are two dominant tabletop styles: rectangular tabletops and roughly circular tabletops. The model also learned that there are two leg styles: narrow column-like legs and legs with a split base. The probability distributions in the model represent the tendency of rectangular tabletops and narrow column-like legs to be commonly associated with four-legged tables, and the tendency of roughly circular tabletops and split legs to be commonly associated with one-legged tables.",
+            "es": "Ejemplo ilustrativo. La Figura 3 muestra un conjunto de datos pequeño de mesas segmentadas de manera compatible y un modelo probabilístico aprendido para este conjunto de datos. Las formas de entrada tienen dos categorías de componentes: patas y tableros. La variable aleatoria R representa los estilos de las mesas en el conjunto de datos. Nuestro modelo aprendió que hay dos estilos dominantes: mesas de una pata y mesas de cuatro patas. Para cada estilo, el modelo representa la distribución condicional sobre el número de componentes de cada categoría: en concreto, el número de tableros (Ntop) y el número de patas (Nleg). Por ejemplo, en el estilo de mesa de cuatro patas, el número de tableros es uno o, menos comúnmente, dos. El modelo también representa los estilos de los componentes de cada categoría (Stop y Sleg). En este ejemplo, el modelo aprendió que hay dos estilos dominantes de tablero: tableros rectangulares y tableros aproximadamente circulares. El modelo también aprendió que hay dos estilos de pata: patas angostas en forma de columna y patas con base dividida. Las distribuciones de probabilidad del modelo representan la tendencia de los tableros rectangulares y de las patas angostas en forma de columna a asociarse comúnmente con mesas de cuatro patas, y la tendencia de los tableros aproximadamente circulares y de las patas divididas a asociarse comúnmente con mesas de una pata."
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The variables Ctop and Cleg represent continuous geometric features for the respective component categories, while Dtop and Dleg represent discrete geometric features. For example, the conditional probability distribution associated with the variable Dleg encodes that legs in four-legged tables can be adjacent to either one or two tabletops. There is also a learned lateral edge that represents a strong relationship between the continuous geometric features Ctop and Cleg. For one-legged tables, the conditional probability distribution associated with Cleg indicates that the horizontal extent of the base of the leg is positively correlated with the horizontal extent of the tabletop. This prevents the composition of narrow bases with wide tabletops: such shapes were never observed in the data and would be unstable and visually implausible.",
+            "es": "Las variables Ctop y Cleg representan características geométricas continuas de las respectivas categorías de componentes, mientras que Dtop y Dleg representan características geométricas discretas. Por ejemplo, la distribución de probabilidad condicional asociada con la variable Dleg codifica que las patas de las mesas de cuatro patas pueden ser adyacentes a uno o a dos tableros. También hay una arista lateral aprendida que representa una relación fuerte entre las características geométricas continuas Ctop y Cleg. Para las mesas de una pata, la distribución de probabilidad condicional asociada con Cleg indica que la extensión horizontal de la base de la pata está correlacionada positivamente con la extensión horizontal del tablero. Esto impide la composición de bases angostas con tableros anchos: tales formas nunca se observaron en los datos y serían inestables y visualmente inverosímiles."
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Probability distribution represented by the model. The model represents a joint probability distribution p(X) over all random variables X = {R, S, N, C, D}. This distribution is factorized as a product of conditional probability distributions (CPDs) as follows:",
+            "es": "Distribución de probabilidad representada por el modelo. El modelo representa una distribución de probabilidad conjunta (joint probability distribution) p(X) sobre todas las variables aleatorias X = {R, S, N, C, D}. Esta distribución se factoriza como un producto de distribuciones de probabilidad condicional (conditional probability distributions, CPDs) de la siguiente manera:"
+          }
+        },
+        {
+          "id": "s3-e1",
+          "type": "equation",
+          "page": 3,
+          "text": {
+            "en": "p(X) = P(R) ∏_{l∈L} [P(S_l | R) P(N_l | R, π(N_l)) P(C_l | S_l, π(C_l)) P(D_l | S_l, π(D_l))],"
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "where π(Nl), π(Cl), π(Dl) are the sets of observed random variables that are linked to Nl, Cl and Dl by lateral edges.",
+            "es": "donde π(Nl), π(Cl), π(Dl) son los conjuntos de variables aleatorias observadas que están vinculadas a Nl, Cl y Dl mediante aristas laterales."
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Parametrization of CPDs for discrete variables. The CPDs for the discrete random variables T = {Sl, Nl, Dl} of the model can be represented as conditional probability tables (CPTs). Consider a discrete random variable T with a single parent discrete variable U. For every assignment t to T and u to U, the CPT at T stores the entry",
+            "es": "Parametrización de las CPDs para variables discretas. Las CPDs de las variables aleatorias discretas T = {Sl, Nl, Dl} del modelo pueden representarse como tablas de probabilidad condicional (conditional probability tables, CPTs). Considérese una variable aleatoria discreta T con una única variable discreta padre U. Para cada asignación t a T y u a U, la CPT de T almacena la entrada"
+          }
+        },
+        {
+          "id": "s3-e2",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "P(T = t | U = u) = q_{t|u}."
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The values Q = {qt|u} comprise the parameters of the CPT. For the random variable R, which has no parents, we simply store the probability table P(R = r) = qr.",
+            "es": "Los valores Q = {qt|u} constituyen los parámetros de la CPT. Para la variable aleatoria R, que no tiene padres, simplemente almacenamos la tabla de probabilidad P(R = r) = qr."
+          }
+        },
+        {
+          "id": "s3-p15",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "When a discrete random variable has a set of multiple parents U = {U1, U2, . . . , Um}, we use sigmoid functions instead of a CPT to parametrize its CPD. Sigmoid functions reduce the complexity of the model and improve generalization, since the number of parameters in a sigmoid CPD increases linearly with the number and domain size of the parent random variables, while the number of parameters of CPTs increases exponentially. Models with a large number of parameters are more prone to overfitting the training data. The sigmoid CPD is expressed as follows:",
+            "es": "Cuando una variable aleatoria discreta tiene un conjunto de múltiples padres U = {U1, U2, . . . , Um}, usamos funciones sigmoides (sigmoid functions) en lugar de una CPT para parametrizar su CPD. Las funciones sigmoides reducen la complejidad del modelo y mejoran la generalización, ya que el número de parámetros de una CPD sigmoide aumenta linealmente con el número y el tamaño de dominio de las variables aleatorias padre, mientras que el número de parámetros de las CPTs aumenta exponencialmente. Los modelos con un gran número de parámetros son más propensos al sobreajuste (overfitting) de los datos de entrenamiento. La CPD sigmoide se expresa de la siguiente manera:"
+          }
+        },
+        {
+          "id": "s3-e3",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "P(T = t | U = u) = exp(w_{t,0} + Σ_{j=1..m} w_{t,j} · I_j(u_j)) / Σ_{t′∈T} exp(w_{t′,0} + Σ_{j=1..m} w_{t′,j} · I_j(u_j)),"
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "where u = {u1, u2, . . . , um} is the assignment to the parent variables, W = {wt,0, wt,∗}t∈T are the parameters of the sigmoids, and Ij(uj) = {I(Uj = uj)} is a vector-valued binary indicator function for each of the parent variables Uj.",
+            "es": "donde u = {u1, u2, . . . , um} es la asignación a las variables padre, W = {wt,0, wt,∗}t∈T son los parámetros de las sigmoides, e Ij(uj) = {I(Uj = uj)} es una función indicadora binaria de valores vectoriales para cada una de las variables padre Uj."
+          }
+        },
+        {
+          "id": "s3-p17",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Parametrization of CPDs for continuous variables. The CPD for each continuous random variable C is expressed as a conditional linear multivariate Gaussian. Let U = {U1, U2, . . . , Um} be the discrete and Z = {z1, z2, . . . , zn} the continuous parents of C. The conditional linear Gaussian for C is defined as",
+            "es": "Parametrización de las CPDs para variables continuas. La CPD de cada variable aleatoria continua C se expresa como una gaussiana multivariada lineal condicional (conditional linear multivariate Gaussian). Sea U = {U1, U2, . . . , Um} el conjunto de padres discretos y Z = {z1, z2, . . . , zn} el de padres continuos de C. La gaussiana lineal condicional de C se define como"
+          }
+        },
+        {
+          "id": "s3-e4",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "P(C | u, v) = N(φ_{u,0} + Σ_{j=1..n} φ_{u,j} · v_j ; Σ_u),"
+          }
+        },
+        {
+          "id": "s3-p18",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "where Φ = {φu,∗} and Σ = {Σu} are the parameters of the conditional Gaussian for each u in the value space U of U, and v is the vector of assignments to the continuous parents Z. Specifically, the parameters φu,0 and Σu are the conditional mean and the covariance matrix, respectively, while the remaining parameters Φ are regression coefficients. If C has no continuous parents, the CPD becomes",
+            "es": "donde Φ = {φu,∗} y Σ = {Σu} son los parámetros de la gaussiana condicional para cada u en el espacio de valores U de U, y v es el vector de asignaciones a los padres continuos Z. En concreto, los parámetros φu,0 y Σu son la media condicional y la matriz de covarianza, respectivamente, mientras que los parámetros restantes de Φ son coeficientes de regresión. Si C no tiene padres continuos, la CPD se convierte en"
+          }
+        },
+        {
+          "id": "s3-e5",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "P(C | u) = N(φ_{u,0}; Σ_u) for each u ∈ U."
+          }
+        },
+        {
+          "id": "s3-p20",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The parameters Θ = {Φ, Σ, Q, W}, the value spaces of the hidden random variables, and the edges between the observed random variables are learned as described in the next section.",
+            "es": "Los parámetros Θ = {Φ, Σ, Q, W}, los espacios de valores de las variables aleatorias ocultas y las aristas entre las variables aleatorias observadas se aprenden como se describe en la siguiente sección."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 Learning",
+        "es": "4 Aprendizaje"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We now describe the offline procedure for learning the structure and parameters of the probabilistic model. The input is a set of K compatibly segmented shapes. For each component, we compute its geometric attributes as described in Appendix A. Our training data is thus a set of feature vectors O = {O1, O2, . . . , OK}, where Ok = {Nk, Dk, Ck}. Our goal is to learn the structure of the model (domain sizes of latent variables and lateral edges between observed variables) and the parameters of all CPDs in the model.",
+            "es": "Describimos ahora el procedimiento fuera de línea para aprender la estructura y los parámetros del modelo probabilístico. La entrada es un conjunto de K formas segmentadas de manera compatible. Para cada componente, calculamos sus atributos geométricos como se describe en el Apéndice A. Nuestros datos de entrenamiento son, por lo tanto, un conjunto de vectores de características O = {O1, O2, . . . , OK}, donde Ok = {Nk, Dk, Ck}. Nuestro objetivo es aprender la estructura del modelo (los tamaños de dominio de las variables latentes y las aristas laterales entre las variables observadas) y los parámetros de todas las CPDs del modelo."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The desired structure G is the one that has highest probability given input data O [Koller and Friedman 2009]. By Bayes’ rule, this probability can be expressed as",
+            "es": "La estructura deseada G es la que tiene la mayor probabilidad dados los datos de entrada O [Koller and Friedman 2009]. Por la regla de Bayes (Bayes’ rule), esta probabilidad puede expresarse como"
+          }
+        },
+        {
+          "id": "s4-e1",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "P(G | O) = P(O | G) P(G) / P(O),"
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "where the denominator is a normalizing factor that does not distinguish between different structures. Assuming a uniform prior P(G) over possible structures, maximizing P(G | O) reduces to maximizing the marginal likelihood P(O | G). In order to avoid overfitting and achieve better generalization, we assume prior distributions over the parameters Θ of the model. Integrating over the parameters, the marginal likelihood can be expressed as",
+            "es": "donde el denominador es un factor de normalización que no distingue entre diferentes estructuras. Suponiendo una distribución a priori (prior) uniforme P(G) sobre las posibles estructuras, maximizar P(G | O) se reduce a maximizar la verosimilitud marginal (marginal likelihood) P(O | G). Para evitar el sobreajuste y lograr una mejor generalización, suponemos distribuciones a priori sobre los parámetros Θ del modelo. Al integrar sobre los parámetros, la verosimilitud marginal puede expresarse como"
+          }
+        },
+        {
+          "id": "s4-e2",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "P(O | G) = Σ_{R,S} ∫ P(O, R, S | Θ, G) P(Θ | G) dΘ,"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "where P(Θ | G) are the parameter priors. Our choice of priors is discussed in the supplementary material. In the above expression, the marginal likelihood involves summing over all possible assignments to the latent variables R and S, thus the number of integrals is exponentially large. To make the learning procedure computationally tractable, we use an effective approximation of the marginal likelihood known as the Cheeseman-Stutz score [Cheeseman and Stutz 1996]:",
+            "es": "donde P(Θ | G) son las distribuciones a priori de los parámetros. Nuestra elección de distribuciones a priori se discute en el material suplementario. En la expresión anterior, la verosimilitud marginal implica sumar sobre todas las posibles asignaciones a las variables latentes R y S, por lo que el número de integrales es exponencialmente grande. Para hacer que el procedimiento de aprendizaje sea computacionalmente tratable, utilizamos una aproximación eficaz de la verosimilitud marginal conocida como la puntuación de Cheeseman-Stutz (Cheeseman-Stutz score) [Cheeseman and Stutz 1996]:"
+          }
+        },
+        {
+          "id": "s4-e3",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "P(O | G) ≈ P(O*| G) · P(O | G, Θ̃_G) / P(O*| G, Θ̃_G) (1)"
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Here Θ̃_G are the parameters estimated for a given G, and O* is a fictitious dataset that comprises the training data O and approximate statistics for the values of the latent variables. The computation of this score for a given structure is described in detail in supplementary material.",
+            "es": "Aquí Θ̃_G son los parámetros estimados para una G dada, y O* es un conjunto de datos ficticio que comprende los datos de entrenamiento O y estadísticas aproximadas para los valores de las variables latentes. El cálculo de esta puntuación para una estructura dada se describe en detalle en el material suplementario."
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Structure search. The Cheeseman-Stutz score is maximized by greedily searching over different structures G. We resort to greedy search in order to decrease the computational costs associated with the score evaluation for each candidate structure. The search proceeds as follows: we start with a domain size of 1 for R, corresponding to a single shape style. Then, for each component style Sl in each category l, we evaluate the score with a domain size of 2. This corresponds to a single component style, since the value 0 for Sl denotes the absence of components from this category. We then gradually increase the domain size of Sl, evaluating the score at each step. If the score decreases, the previous value (a local maximum) is retained as the domain size for Sl and the search moves to the next component category. After the search iterates over all variables in S, we increase the domain size of R and repeat the procedure. The search terminates when the score reaches a local maximum that does not improve over 10 subsequent iterations; the domain size for R is set to the value that yielded the highest score, and the domain sizes for all variables in S are set to the corresponding locally maximal values.",
+            "es": "Búsqueda de la estructura. La puntuación de Cheeseman-Stutz se maximiza mediante una búsqueda voraz (greedy search) sobre diferentes estructuras G. Recurrimos a la búsqueda voraz para reducir los costos computacionales asociados con la evaluación de la puntuación de cada estructura candidata. La búsqueda procede de la siguiente manera: comenzamos con un tamaño de dominio de 1 para R, lo que corresponde a un único estilo de forma. Luego, para cada estilo de componente Sl en cada categoría l, evaluamos la puntuación con un tamaño de dominio de 2. Esto corresponde a un único estilo de componente, ya que el valor 0 de Sl denota la ausencia de componentes de esta categoría. Después aumentamos gradualmente el tamaño de dominio de Sl, evaluando la puntuación en cada paso. Si la puntuación disminuye, se conserva el valor anterior (un máximo local) como tamaño de dominio de Sl y la búsqueda pasa a la siguiente categoría de componentes. Después de que la búsqueda itera sobre todas las variables de S, aumentamos el tamaño de dominio de R y repetimos el procedimiento. La búsqueda termina cuando la puntuación alcanza un máximo local que no mejora a lo largo de 10 iteraciones posteriores; el tamaño de dominio de R se fija en el valor que produjo la puntuación más alta, y los tamaños de dominio de todas las variables de S se fijan en los valores máximos locales correspondientes."
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Once the domain sizes for the latent variables have been determined, we search over possible sets of lateral edges between observed random variables, by locally adding, removing, and flipping possible edges, and evaluating the Cheeseman-Stutz score for each attempted structure. We retain the graph structure that yields the highest score, along with the corresponding parameters for all the CPDs in the model, computed as described below.",
+            "es": "Una vez determinados los tamaños de dominio de las variables latentes, buscamos entre los posibles conjuntos de aristas laterales entre variables aleatorias observadas, agregando, eliminando e invirtiendo localmente posibles aristas, y evaluando la puntuación de Cheeseman-Stutz para cada estructura intentada. Conservamos la estructura del grafo que produce la puntuación más alta, junto con los parámetros correspondientes de todas las CPDs del modelo, calculados como se describe a continuación."
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Parameter estimation. For a given structure G, we perform maximum a posteriori (MAP) estimation of the parameters. The parameters cannot be optimized in closed form, since the content of the latent random variables is unknown. Thus, MAP estimates are found with the expectation-maximization (EM) algorithm. The details of the EM algorithm are discussed in the supplementary material, along with the computation of the three terms in (1). All computations involving probabilities are performed in log-space to avoid numerical errors.",
+            "es": "Estimación de parámetros. Para una estructura G dada, realizamos una estimación máxima a posteriori (maximum a posteriori, MAP) de los parámetros. Los parámetros no pueden optimizarse en forma cerrada, ya que el contenido de las variables aleatorias latentes es desconocido. Por lo tanto, las estimaciones MAP se obtienen con el algoritmo de esperanza-maximización (expectation-maximization, EM). Los detalles del algoritmo EM se discuten en el material suplementario, junto con el cálculo de los tres términos en (1). Todos los cálculos que involucran probabilidades se realizan en el espacio logarítmico (log-space) para evitar errores numéricos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 Shape Synthesis",
+        "es": "5 Síntesis de formas"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "A model trained on a set of shapes as described in Section 4 can be used to synthesize new shapes. The synthesis proceeds in two stages. In the first stage, we enumerate high-probability instantiations of the model. Each instantiation specifies a set of components. In the second stage, we optimize the placement of these components to produce a cohesive shape.",
+            "es": "Un modelo entrenado con un conjunto de formas, como se describe en la Sección 4, puede utilizarse para sintetizar formas nuevas. La síntesis se lleva a cabo en dos etapas. En la primera etapa, enumeramos las instanciaciones (instantiations) del modelo con alta probabilidad. Cada instanciación especifica un conjunto de componentes. En la segunda etapa, optimizamos la colocación de estos componentes para producir una forma cohesiva."
+          }
+        },
+        {
+          "id": "s5-h1",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "5.1 Synthesizing a set of components",
+            "es": "5.1 Síntesis de un conjunto de componentes"
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Instantiations of the model, corresponding to sets of components, can be found through forward sampling. However, this random sampling process is biased towards higher-probability assignments to the random variables. As a result, valid lower-probability assignments can take an exponentially long time to be discovered. Forward sampling is thus unsuitable for efficiently enumerating all instantiations that have non-negligible probability.",
+            "es": "Las instanciaciones del modelo, que corresponden a conjuntos de componentes, pueden encontrarse mediante muestreo directo (forward sampling). Sin embargo, este proceso de muestreo aleatorio está sesgado hacia las asignaciones de mayor probabilidad a las variables aleatorias. Como resultado, descubrir asignaciones válidas de menor probabilidad puede tomar un tiempo exponencialmente largo. Por lo tanto, el muestreo directo no es adecuado para enumerar de manera eficiente todas las instanciaciones que tienen una probabilidad no despreciable."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Instead, we use a simple deterministic procedure. First, we topologically sort the nodes in the model. Note that the style variables R and S always appear before other variables, but the complete ordering depends on the learned graph structure. Next, we create a tree whose nodes correspond to partial assignments to the random variables. The tree is initialized with an empty root node. The children of the root are all possible assignments to R. The tree continues to expand by creating nodes for the next partial assignment based on the values of the next random variable in the sorted list.",
+            "es": "En su lugar, usamos un procedimiento determinista sencillo. Primero, ordenamos topológicamente (topologically sort) los nodos del modelo. Cabe señalar que las variables de estilo R y S siempre aparecen antes que las demás variables, pero el orden completo depende de la estructura del grafo aprendida. Después, creamos un árbol cuyos nodos corresponden a asignaciones parciales (partial assignments) de las variables aleatorias. El árbol se inicializa con un nodo raíz vacío. Los hijos de la raíz son todas las asignaciones posibles a R. El árbol continúa expandiéndose al crear nodos para la siguiente asignación parcial con base en los valores de la siguiente variable aleatoria de la lista ordenada."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "When the algorithm reaches the continuous variables Cl, the partial assignments could in principle take any value in Rdim(Cl), which would make the search infeasible. However, only specific values of these variables correspond to geometric features of components extracted from the training set. Therefore, we expand the partial assignments only to those values of Cl that correspond to existing components from category l. Branches that contain assignments that have extremely low probability density (less than 10−12 in our implementation) are pruned from the tree. Each complete assignment obtained in this way corresponds to a set of components that can be combined to form a new shape.",
+            "es": "Cuando el algoritmo llega a las variables continuas Cl, las asignaciones parciales podrían, en principio, tomar cualquier valor en Rdim(Cl), lo que haría inviable la búsqueda. Sin embargo, solo ciertos valores específicos de estas variables corresponden a características geométricas de componentes extraídos del conjunto de entrenamiento. Por lo tanto, expandimos las asignaciones parciales únicamente hacia aquellos valores de Cl que corresponden a componentes existentes de la categoría l. Las ramas que contienen asignaciones con una densidad de probabilidad (probability density) extremadamente baja (menor que 10−12 en nuestra implementación) se podan del árbol. Cada asignación completa obtenida de esta manera corresponde a un conjunto de componentes que pueden combinarse para formar una forma nueva."
+          }
+        },
+        {
+          "id": "s5-h2",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "5.2 Optimizing component placement",
+            "es": "5.2 Optimización de la colocación de los componentes"
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Given a set of components selected by the model, we need to place them relative to each other to form a cohesive shape. To assist this placement, certain regions on each component are marked as “slots” that specify where this component can be attached to other components. These slots, shown in red in Figure 4(a), are extracted automatically from the training data, as described in Appendix A. The discrete features D in the model encode the number of adjacent components for each component category, which ensures that the set of components synthesized by the model has compatible sets of slots.",
+            "es": "Dado un conjunto de componentes seleccionados por el modelo, necesitamos colocarlos unos respecto de otros para formar una forma cohesiva. Para facilitar esta colocación, ciertas regiones de cada componente se marcan como “ranuras” (slots), que especifican dónde puede unirse ese componente a otros componentes. Estas ranuras, mostradas en rojo en la Figura 4(a), se extraen automáticamente de los datos de entrenamiento, como se describe en el Apéndice A. Las características discretas D del modelo codifican el número de componentes adyacentes para cada categoría de componente, lo que asegura que el conjunto de componentes sintetizado por el modelo tenga conjuntos de ranuras compatibles."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4: Optimizing component placement. (a) Three source shapes from the chair database. “Slots” are highlighted in red. (b) A set of components for a new chair synthesized by the probabilistic model. The components are drawn from the source shapes shown on the left. Initially, the legs and the back are placed relative to the seat according to transformations stored in the seat’s slots. (c) The final synthesized chair, with components placed and scaled by the least-squares optimization that aligns all pairs of adjacent components at their corresponding slots.",
+            "es": "Figura 4: Optimización de la colocación de los componentes. (a) Tres formas fuente de la base de datos de sillas. Las “ranuras” están resaltadas en rojo. (b) Un conjunto de componentes para una silla nueva sintetizada por el modelo probabilístico. Los componentes provienen de las formas fuente mostradas a la izquierda. Inicialmente, las patas y el respaldo se colocan respecto del asiento de acuerdo con las transformaciones almacenadas en las ranuras del asiento. (c) La silla sintetizada final, con los componentes colocados y escalados mediante la optimización por mínimos cuadrados (least-squares) que alinea todos los pares de componentes adyacentes en sus ranuras correspondientes."
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Each slot stores the category label of components it can be attached to. It also stores simple automatically extracted symmetry relationships that allow correct relative placement of symmetric groups of adjacent components. In the example shown in Figure 4, the chair seat has two slots for front legs and two slots for back legs. The symmetry information stored in the seat slots specifies that the leg placed in the front right slot of the seat is a symmetric counterpart of the leg placed in the front left slot, reflected by one of the symmetry planes of the seat. Note that these relationships are a property of the seat and not of the legs, thus different legs in a new chair can be placed consistently around the same seat. This gives us a deterministic procedure for placing each component vis-a-vis its adjacent components by matching slots and applying the stored symmetry transforms. If a component has multiple adjacent components, its placement at this initial stage is determined by the largest adjacent component.",
+            "es": "Cada ranura almacena la etiqueta de categoría de los componentes a los que puede unirse. También almacena relaciones de simetría sencillas, extraídas automáticamente, que permiten la colocación relativa correcta de grupos simétricos de componentes adyacentes. En el ejemplo mostrado en la Figura 4, el asiento de la silla tiene dos ranuras para las patas delanteras y dos ranuras para las patas traseras. La información de simetría almacenada en las ranuras del asiento especifica que la pata colocada en la ranura delantera derecha del asiento es la contraparte simétrica de la pata colocada en la ranura delantera izquierda, reflejada por uno de los planos de simetría del asiento. Cabe señalar que estas relaciones son una propiedad del asiento y no de las patas, por lo que distintas patas en una silla nueva pueden colocarse de manera consistente alrededor del mismo asiento. Esto nos da un procedimiento determinista para colocar cada componente con respecto a sus componentes adyacentes, haciendo coincidir las ranuras y aplicando las transformaciones de simetría almacenadas. Si un componente tiene varios componentes adyacentes, su colocación en esta etapa inicial se determina por el componente adyacente más grande."
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "This initial placement is further refined by an optimization step that aligns all pairs of adjacent components at their points of contact. The optimization minimizes a squared error term over the slots, which penalizes discrepancies of position and relative size between each pair of adjacent slots, expressed as a function of the translation and scaling parameters of the corresponding components. To ensure that components are not drastically distorted in scale, the optimization penalizes deviation from the original component scales, weighting the error in each parameter by a learned variance in scale. Finally, the error term also penalizes deviations from symmetry and ground contact. (Ground contact points are extracted as described in Appendix A.) We used the same objective term weights for all domains in our evaluation. A linear least-squares solver, with non-negativity constraints for the scaling parameters, is used to minimize the error. To enhance the visual appearance of synthesized shapes, we glue adjacent components of organic shapes by matching adjacent edge loops, shifting local neighborhoods with a smooth falloff, and applying a final Laplacian smoothing filter. A more sophisticated implementation could benefit from more advanced gluing techniques [Sharf et al. 2006].",
+            "es": "Esta colocación inicial se refina mediante un paso de optimización que alinea todos los pares de componentes adyacentes en sus puntos de contacto. La optimización minimiza un término de error cuadrático sobre las ranuras, que penaliza las discrepancias de posición y de tamaño relativo entre cada par de ranuras adyacentes, expresadas como una función de los parámetros de traslación y de escala de los componentes correspondientes. Para asegurar que los componentes no se distorsionen drásticamente en escala, la optimización penaliza la desviación respecto de las escalas originales de los componentes, ponderando el error de cada parámetro por una varianza de escala aprendida. Finalmente, el término de error también penaliza las desviaciones de la simetría y del contacto con el suelo (ground contact). (Los puntos de contacto con el suelo se extraen como se describe en el Apéndice A.) Utilizamos los mismos pesos de los términos del objetivo para todos los dominios en nuestra evaluación. Para minimizar el error se usa un solucionador lineal de mínimos cuadrados, con restricciones de no negatividad para los parámetros de escala. Para mejorar la apariencia visual de las formas sintetizadas, pegamos los componentes adyacentes de las formas orgánicas haciendo coincidir bucles de aristas (edge loops) adyacentes, desplazando las vecindades locales con una atenuación suave y aplicando un filtro de suavizado laplaciano (Laplacian smoothing filter) final. Una implementación más sofisticada podría beneficiarse de técnicas de pegado más avanzadas [Sharf et al. 2006]."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6 Applications",
+        "es": "6 Aplicaciones"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We describe two applications of the presented model. The first is amplification of an input shape database and the second is constrained shape synthesis based on high-level specifications provided interactively by a user.",
+            "es": "Describimos dos aplicaciones del modelo presentado. La primera es la amplificación de una base de datos de formas de entrada y la segunda es la síntesis de formas con restricciones, basada en especificaciones de alto nivel proporcionadas de manera interactiva por un usuario."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Shape database amplification. The first application is a direct result of applying the learning and inference procedures described in the preceding sections. Given an input dataset of compatibly segmented and labeled shapes, we train the model as described in Section 4. We then synthesize all instantiations of the model that have non-negligible probability and optimize the resulting shapes, as described in Section 5. We identify and reject instantiations that are very similar to shapes in the input dataset or to previous instantiations. This is achieved by summing over the distances of the geometric feature vectors of the corresponding components in the respective shapes, weighted by the sum of the component areas, and rejecting new instantiations that have a below-threshold distance to an input shape or to previous instantiations. Note that this pruning is optional, since these instantiations still correspond to plausible shapes in our experiments; we simply seek to avoid visually redundant shapes generated by shuffling very similar components around. We also reject synthesized shapes for which the component placement optimization fails.",
+            "es": "Amplificación de bases de datos de formas. La primera aplicación es un resultado directo de aplicar los procedimientos de aprendizaje e inferencia descritos en las secciones anteriores. Dado un conjunto de datos de entrada de formas segmentadas y etiquetadas de manera compatible, entrenamos el modelo como se describe en la Sección 4. Luego sintetizamos todas las instanciaciones del modelo que tienen una probabilidad no despreciable y optimizamos las formas resultantes, como se describe en la Sección 5. Identificamos y rechazamos las instanciaciones que son muy similares a formas del conjunto de datos de entrada o a instanciaciones previas. Esto se logra sumando las distancias entre los vectores de características geométricas de los componentes correspondientes en las respectivas formas, ponderadas por la suma de las áreas de los componentes, y rechazando las nuevas instanciaciones que tienen una distancia por debajo de un umbral respecto de una forma de entrada o de instanciaciones previas. Cabe señalar que esta poda es opcional, ya que, en nuestros experimentos, estas instanciaciones siguen correspondiendo a formas plausibles; simplemente buscamos evitar formas visualmente redundantes generadas al reacomodar componentes muy similares. También rechazamos las formas sintetizadas para las cuales falla la optimización de la colocación de los componentes."
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Constrained shape synthesis. Our model can also be used to synthesize shapes subject to interactively specified constraints. For example, the user may want to synthesize shapes that have specific components, or components from particular categories, or components from some of the learned latent styles; or she may want to synthesize shapes that belong to some of the learned latent shape styles. To this end, we have created an interactive interface for visually specifying such constraints. The interface allows combining multiple types of constraints and is demonstrated in the accompanying video. To synthesize shapes subject to the provided constraints, we perform the deterministic search procedure described in Section 5.1 with the modification that partial assignments to constrained random variables assume values only from the range corresponding to the specified constraints. For example, if the user wishes to synthesize animal shapes with torsos from particular styles, the deterministic search will consider only the corresponding values for the torso style variable during the tree expansion.",
+            "es": "Síntesis de formas con restricciones. Nuestro modelo también puede usarse para sintetizar formas sujetas a restricciones especificadas de manera interactiva. Por ejemplo, el usuario puede querer sintetizar formas que tengan componentes específicos, o componentes de categorías particulares, o componentes de algunos de los estilos latentes (latent styles) aprendidos; o bien puede querer sintetizar formas que pertenezcan a algunos de los estilos latentes de forma aprendidos. Con este fin, hemos creado una interfaz interactiva para especificar visualmente dichas restricciones. La interfaz permite combinar múltiples tipos de restricciones y se muestra en el video que acompaña este trabajo. Para sintetizar formas sujetas a las restricciones proporcionadas, realizamos el procedimiento de búsqueda determinista descrito en la Sección 5.1 con la modificación de que las asignaciones parciales a las variables aleatorias restringidas toman valores únicamente del rango correspondiente a las restricciones especificadas. Por ejemplo, si el usuario desea sintetizar formas de animales con torsos de estilos particulares, la búsqueda determinista considerará únicamente los valores correspondientes de la variable de estilo del torso durante la expansión del árbol."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "title": {
+        "en": "7 Evaluation",
+        "es": "7 Evaluación"
+      },
+      "blocks": [
+        {
+          "id": "s7-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We evaluated the presented model on five shape datasets obtained from publicly available 3D model libraries (Digimation Model Bank, Dosch 3D, and the furniture database of Wessel et al. [2009]). The datasets were compatibly segmented and labeled using the technique of Kalogerakis et al. [2010], assisted by manual segmentation and labeling. Table 1 gives the number of shapes in each dataset, the number of component categories, the number of individual components extracted from each dataset, and the number of new shapes synthesized for each dataset by our model. These synthesized shapes are shown alongside the training shapes in Figures 1, 14, 15, 16, and 17, as well as in the accompanying video. Figure 5 shows a histogram of the number of components used per synthesized shape and a histogram of the number of source shapes that contributed components per synthesized shape.",
+            "es": "Evaluamos el modelo presentado en cinco conjuntos de datos de formas (shape datasets) obtenidos de bibliotecas de modelos 3D de acceso público (Digimation Model Bank, Dosch 3D y la base de datos de muebles de Wessel et al. [2009]). Los conjuntos de datos fueron segmentados y etiquetados de forma compatible mediante la técnica de Kalogerakis et al. [2010], con apoyo de segmentación y etiquetado manuales. La Tabla 1 indica el número de formas de cada conjunto de datos, el número de categorías de componentes, el número de componentes individuales extraídos de cada conjunto de datos y el número de formas nuevas sintetizadas para cada conjunto de datos por nuestro modelo. Estas formas sintetizadas se muestran junto con las formas de entrenamiento en las Figuras 1, 14, 15, 16 y 17, así como en el video que acompaña al artículo. La Figura 5 muestra un histograma (histogram) del número de componentes utilizados por forma sintetizada y un histograma del número de formas de origen que aportaron componentes por forma sintetizada."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 6,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: Datasets used in the evaluation.",
+            "es": "Tabla 1: Conjuntos de datos utilizados en la evaluación."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5: Left: histogram of number of components used per synthesized shape. Right: histogram of number of source shapes contributing components per synthesized shape.",
+            "es": "Figura 5: Izquierda: histograma del número de componentes utilizados por forma sintetizada. Derecha: histograma del número de formas de origen que aportan componentes por forma sintetizada."
+          }
+        },
+        {
+          "id": "fig-14",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-14.png",
+          "text": {
+            "en": "Figure 14: Given 88 training chairs (green), our probabilistic model synthesizes 870 new chairs (blue).",
+            "es": "Figura 14: Dadas 88 sillas de entrenamiento (verde), nuestro modelo probabilístico (probabilistic model) sintetiza 870 sillas nuevas (azul)."
+          }
+        },
+        {
+          "id": "fig-15",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-15.png",
+          "text": {
+            "en": "Figure 15: Given 22 construction vehicles (green), our probabilistic model synthesizes 253 new vehicles (blue).",
+            "es": "Figura 15: Dados 22 vehículos de construcción (verde), nuestro modelo probabilístico sintetiza 253 vehículos nuevos (azul)."
+          }
+        },
+        {
+          "id": "fig-16",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-16.png",
+          "text": {
+            "en": "Figure 16: Given 42 training ships (green), our probabilistic model synthesizes 199 new ships (blue).",
+            "es": "Figura 16: Dados 42 barcos de entrenamiento (verde), nuestro modelo probabilístico sintetiza 199 barcos nuevos (azul)."
+          }
+        },
+        {
+          "id": "fig-17",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-17.png",
+          "text": {
+            "en": "Figure 17: Given 69 training creatures (green), our probabilistic model synthesizes 563 new creatures (blue).",
+            "es": "Figura 17: Dadas 69 criaturas de entrenamiento (verde), nuestro modelo probabilístico sintetiza 563 criaturas nuevas (azul)."
+          }
+        },
+        {
+          "id": "s7-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Generalization performance. A key question in the evaluation of a probabilistic model is how well it generalizes from the training data. A successful generative model will be able to not only reproduce instances from the training data, but synthesize genuinely novel plausible instances from the domain exemplified by the dataset. A standard technique for evaluating generalization performance is holdout validation, where the dataset is randomly split into a training set and a test set. The test set is withheld and only the training set is used for training the model. The trained model is then evaluated on the test set, by computing the probability assigned by the model to instances in the test set. Higher probability on the test set corresponds to better generalization performance. We repeat the procedure with three random 80-20 training-test splits of the dataset, and take the geometric mean of the resulting probabilities. We compare the presented model to weaker models in which some of the components of the presented model are disabled. The results are shown in Figure 6. Each bar in the figure corresponds to the negative logarithm of the probability assigned to the test data by our model or a weaker variant; a lower value corresponds to better generalization performance.",
+            "es": "Desempeño de generalización (generalization performance). Una pregunta clave en la evaluación de un modelo probabilístico es qué tan bien generaliza a partir de los datos de entrenamiento. Un modelo generativo exitoso podrá no solo reproducir instancias de los datos de entrenamiento, sino también sintetizar instancias genuinamente nuevas y plausibles del dominio ejemplificado por el conjunto de datos. Una técnica estándar para evaluar el desempeño de generalización es la validación de reserva (holdout validation), en la que el conjunto de datos se divide aleatoriamente en un conjunto de entrenamiento (training set) y un conjunto de prueba (test set). El conjunto de prueba se reserva y solo se usa el conjunto de entrenamiento para entrenar el modelo. Después, el modelo entrenado se evalúa sobre el conjunto de prueba, calculando la probabilidad que el modelo asigna a las instancias del conjunto de prueba. Una probabilidad más alta sobre el conjunto de prueba corresponde a un mejor desempeño de generalización. Repetimos el procedimiento con tres particiones aleatorias 80-20 del conjunto de datos en entrenamiento y prueba, y tomamos la media geométrica de las probabilidades resultantes. Comparamos el modelo presentado con modelos más débiles en los que se desactivan algunos de los componentes del modelo presentado. Los resultados se muestran en la Figura 6. Cada barra de la figura corresponde al logaritmo negativo de la probabilidad asignada a los datos de prueba por nuestro modelo o por una variante más débil; un valor más bajo corresponde a un mejor desempeño de generalización."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6: Quantitative evaluation of generalization performance. Negative log-likelihood of our model (Model A) compared to weaker versions of the model. Lower negative log-likelihood indicates better generalization performance. Model B uses CPTs instead of sigmoid functions. Model C is trained with maximum likelihood instead of MAP. Model D does not use lateral edges between observed variables. Model E does not use latent variables, akin to Chaudhuri et al. [2011]. Our model achieves the best generalization across all datasets.",
+            "es": "Figura 6: Evaluación cuantitativa del desempeño de generalización. Log-verosimilitud negativa (negative log-likelihood) de nuestro modelo (Modelo A) en comparación con versiones más débiles del modelo. Una log-verosimilitud negativa más baja indica un mejor desempeño de generalización. El Modelo B usa CPTs en lugar de funciones sigmoides (sigmoid functions). El Modelo C se entrena con máxima verosimilitud (maximum likelihood) en lugar de MAP. El Modelo D no usa aristas laterales (lateral edges) entre variables observadas. El Modelo E no usa variables latentes (latent variables), de manera similar a Chaudhuri et al. [2011]. Nuestro modelo logra la mejor generalización en todos los conjuntos de datos."
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Figure 8: Qualitative demonstration of generalization. Components from multiple source shapes (right) are combined by the probabilistic model to yield plausible new shapes (left, blue). Utilized components are highlighted in color in the source shapes.",
+            "es": "Figura 8: Demostración cualitativa de la generalización. El modelo probabilístico combina componentes de múltiples formas de origen (derecha) para obtener nuevas formas plausibles (izquierda, azul). Los componentes utilizados se resaltan en color en las formas de origen."
+          }
+        },
+        {
+          "id": "s7-p3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "We have also evaluated the performance of the model with impoverished datasets. To this end, we gradually changed the split ratios from 80-20 (train on 80% of the data, test on the remaining 20%) to 20-80 (train on 20% of the data, test on the remaining 80%). The results are plotted in Figure 7. Generalization performance degraded when the dataset made available for training became less representative of the overall domain. The rapid degradation for construction vehicles is due to the small size of the dataset: 20% of the data in this case corresponds to having only four examples.",
+            "es": "También evaluamos el desempeño del modelo con conjuntos de datos empobrecidos. Para ello, cambiamos gradualmente las proporciones de partición de 80-20 (entrenar con el 80% de los datos y probar con el 20% restante) a 20-80 (entrenar con el 20% de los datos y probar con el 80% restante). Los resultados se grafican en la Figura 7. El desempeño de generalización se degradó cuando el conjunto de datos disponible para el entrenamiento se volvió menos representativo del dominio en su conjunto. La rápida degradación en el caso de los vehículos de construcción se debe al reducido tamaño del conjunto de datos: el 20% de los datos en este caso equivale a tener solo cuatro ejemplos."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7: Generalization performance with impoverished training sets. Performance decreases as the training set becomes less representative of the domain.",
+            "es": "Figura 7: Desempeño de generalización con conjuntos de entrenamiento empobrecidos. El desempeño disminuye a medida que el conjunto de entrenamiento se vuelve menos representativo del dominio."
+          }
+        },
+        {
+          "id": "s7-p4",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Comparison to prior work. The probabilistic model developed by Chaudhuri et al. [2011] can also be used to synthesize complete novel shapes, although it was not designed for this purpose and in our experiments generally produced shapes of low plausibility (Figure 9). For quantitative evaluation against this prior model, we could not use holdout validation, since the model of Chaudhuri et al. has a different parameterization from ours and the log-probabilities of their model and ours are not directly comparable.",
+            "es": "Comparación con trabajos previos. El modelo probabilístico desarrollado por Chaudhuri et al. [2011] también puede usarse para sintetizar formas nuevas completas, aunque no fue diseñado para este propósito y en nuestros experimentos generalmente produjo formas de baja plausibilidad (Figura 9). Para la evaluación cuantitativa frente a este modelo previo no pudimos usar la validación de reserva, ya que el modelo de Chaudhuri et al. tiene una parametrización distinta a la nuestra y las log-probabilidades de su modelo y del nuestro no son directamente comparables."
+          }
+        },
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-9.png",
+          "text": {
+            "en": "Figure 9: Examples of shapes synthesized with alternative probabilistic models. (a) Shapes generated by the model of Chaudhuri et al. (b) Shapes generated by a variant of our model that has the same observed random variables and learning procedure but no latent variables. (c) Shapes generated by a variant of our model that has no lateral edges between observed random variables. The shapes have missing components or implausible combinations of components.",
+            "es": "Figura 9: Ejemplos de formas sintetizadas con modelos probabilísticos alternativos. (a) Formas generadas por el modelo de Chaudhuri et al. (b) Formas generadas por una variante de nuestro modelo que tiene las mismas variables aleatorias observadas y el mismo procedimiento de aprendizaje, pero no tiene variables latentes. (c) Formas generadas por una variante de nuestro modelo que no tiene aristas laterales entre variables aleatorias observadas. Las formas tienen componentes faltantes o combinaciones implausibles de componentes."
+          }
+        },
+        {
+          "id": "s7-p5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Instead, we conducted an informal perceptual evaluation with 107 student volunteers recruited through a university mailing list. Each volunteer performed 30 pairwise comparisons in a Web-based survey. Each comparison was between images of two shapes from the same randomly chosen domain. The shapes were randomly sampled from three sets: original training shapes, shapes synthesized by our model and optimized by the procedure described in Section 5.2, and shapes synthesized by the model of Chaudhuri et al. and optimized by the same procedure. Each comparison involved images of shapes from two of these three sets. The images were sampled from the complete set of 321 images of training shapes, the complete set of 3152 images of shapes synthesized by our model, and 672 images of shapes synthesized by the model of Chaudhuri et al. The participants were asked to choose which of the two presented objects was more plausible, or indicate lack of preference. A total of 3210 pairwise comparisons were performed. The results are visualized in Figure 10. Shapes produced by our model were seen as more plausible than shapes produced by the prior model, with strong statistical significance.",
+            "es": "En su lugar, realizamos una evaluación perceptual informal con 107 estudiantes voluntarios reclutados mediante una lista de correo universitaria. Cada voluntario realizó 30 comparaciones por pares en una encuesta en línea. Cada comparación se hizo entre imágenes de dos formas del mismo dominio, elegido al azar. Las formas se muestrearon aleatoriamente de tres conjuntos: las formas originales de entrenamiento, las formas sintetizadas por nuestro modelo y optimizadas con el procedimiento descrito en la Sección 5.2, y las formas sintetizadas por el modelo de Chaudhuri et al. y optimizadas con el mismo procedimiento. Cada comparación involucró imágenes de formas de dos de estos tres conjuntos. Las imágenes se muestrearon del conjunto completo de 321 imágenes de formas de entrenamiento, del conjunto completo de 3152 imágenes de formas sintetizadas por nuestro modelo y de 672 imágenes de formas sintetizadas por el modelo de Chaudhuri et al. A los participantes se les pidió elegir cuál de los dos objetos presentados era más plausible, o indicar que no tenían preferencia. Se realizaron en total 3210 comparaciones por pares. Los resultados se visualizan en la Figura 10. Las formas producidas por nuestro modelo fueron consideradas más plausibles que las formas producidas por el modelo previo, con una fuerte significancia estadística."
+          }
+        },
+        {
+          "id": "fig-10",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-10.png",
+          "text": {
+            "en": "Figure 10: Evaluation against prior work. 107 volunteers performed pairwise comparisons to evaluate the plausibility of shapes produced by our model against original training shapes and the shapes produced by the prior model of Chaudhuri et al. Results marked with a ⋆ are strongly statistically significant (p < 10−7), according to a two-tailed single sample t-test.",
+            "es": "Figura 10: Evaluación frente a trabajos previos. 107 voluntarios realizaron comparaciones por pares para evaluar la plausibilidad de las formas producidas por nuestro modelo frente a las formas originales de entrenamiento y a las formas producidas por el modelo previo de Chaudhuri et al. Los resultados marcados con ⋆ tienen una fuerte significancia estadística (p < 10−7), según una prueba t de una muestra de dos colas."
+          }
+        },
+        {
+          "id": "s7-p6",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Content of learned latent variables. Our model is distinguished by its use of latent variables to compactly parameterize the underlying causes of structural variability in complex domains. The domains of these variables are learned from data and different values of the variables are intended to represent different underlying styles of shapes and shape components. We visualize the styles learned by two of the variables for the set of chairs in Figures 12 and 13. Figure 12 shows high-probability shapes sampled by fixing the root variable in the learned model to each of its possible values. Figure 13 shows high-probability components sampled by fixing one of the lower-level latent variables (corresponding to backs of chairs) to each of its values.",
+            "es": "Contenido de las variables latentes aprendidas. Nuestro modelo se distingue por su uso de variables latentes para parametrizar de forma compacta las causas subyacentes de la variabilidad estructural en dominios complejos. Los dominios de estas variables se aprenden a partir de los datos y los distintos valores de las variables pretenden representar distintos estilos subyacentes de formas y de componentes de formas. Visualizamos los estilos aprendidos por dos de las variables para el conjunto de sillas en las Figuras 12 y 13. La Figura 12 muestra formas de alta probabilidad muestreadas al fijar la variable raíz del modelo aprendido en cada uno de sus valores posibles. La Figura 13 muestra componentes de alta probabilidad muestreados al fijar una de las variables latentes de nivel inferior (correspondiente a los respaldos de las sillas) en cada uno de sus valores."
+          }
+        },
+        {
+          "id": "fig-12",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-12.png",
+          "text": {
+            "en": "Figure 12: Content of root latent variable for a model trained on the chair dataset. Different values of the variable correspond to learned styles of chair shapes. Four high-probability synthesized shapes are shown for each value.",
+            "es": "Figura 12: Contenido de la variable latente raíz para un modelo entrenado con el conjunto de datos de sillas. Los distintos valores de la variable corresponden a estilos aprendidos de formas de sillas. Se muestran cuatro formas sintetizadas de alta probabilidad para cada valor."
+          }
+        },
+        {
+          "id": "fig-13",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-13.png",
+          "text": {
+            "en": "Figure 13: Content of learned latent style variable for a specific component category (chair backs) in the chair dataset. Four high-probability components are shown for each value of the variable.",
+            "es": "Figura 13: Contenido de la variable latente de estilo aprendida para una categoría específica de componentes (respaldos de sillas) en el conjunto de datos de sillas. Se muestran cuatro componentes de alta probabilidad para cada valor de la variable."
+          }
+        },
+        {
+          "id": "s7-p8",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Lateral edges. Lateral edges capture strong correlations between features of different component categories. For example, in the case of construction vehicles, one of the learned lateral edges connects geometric features of the front tool with geometric features of the cabin. The construction vehicle shown in Figure 9(c) was synthesized by a model without lateral edges and has a bumper instead of a front scoop or another appropriate front tool. Likewise, for the chairs dataset, a learned lateral edge connects geometric features of the front legs with geometric features of the back legs. The chair in Figure 9(c) was synthesized by a model without lateral edges and has incompatible front and back legs. Overall, the number of lateral edges learned by the full model correlates with the number of component categories and the complexity of the domain. There are 9 learned edges for vehicles, 24 for creatures, 35 for chairs, 36 for planes, and 89 for ships.",
+            "es": "Aristas laterales. Las aristas laterales capturan fuertes correlaciones entre características de distintas categorías de componentes. Por ejemplo, en el caso de los vehículos de construcción, una de las aristas laterales aprendidas conecta características geométricas de la herramienta frontal con características geométricas de la cabina. El vehículo de construcción mostrado en la Figura 9(c) fue sintetizado por un modelo sin aristas laterales y tiene una defensa en lugar de una pala frontal u otra herramienta frontal apropiada. Asimismo, en el conjunto de datos de sillas, una arista lateral aprendida conecta características geométricas de las patas delanteras con características geométricas de las patas traseras. La silla de la Figura 9(c) fue sintetizada por un modelo sin aristas laterales y tiene patas delanteras y traseras incompatibles. En general, el número de aristas laterales aprendidas por el modelo completo se correlaciona con el número de categorías de componentes y con la complejidad del dominio. Hay 9 aristas aprendidas para los vehículos, 24 para las criaturas, 35 para las sillas, 36 para los aviones y 89 para los barcos."
+          }
+        },
+        {
+          "id": "s7-p9",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Computational complexity and running times. The score evaluation (including parameter estimation) has complexity O(LK), where L is the number of component categories and K is the number of input shapes. The total complexity of learning is O(L3K), taking into account the greedy search for the domain sizes of the hidden variables and the lateral edges. Our implementation is not parallelized, and was executed on a single core of an Intel i7-740 CPU. Learning took about 0.5 hours for construction vehicles, 3 hours for creatures, 8 hours for chairs, 20 hours for planes, and 70 hours for ships. For shape synthesis, enumerating all possible instantiations of a learned model takes less than an hour in all cases, and final assembly of each shape takes a few seconds.",
+            "es": "Complejidad computacional y tiempos de ejecución. La evaluación de la puntuación (incluida la estimación de parámetros) tiene complejidad O(LK), donde L es el número de categorías de componentes y K es el número de formas de entrada. La complejidad total del aprendizaje es O(L3K), teniendo en cuenta la búsqueda voraz (greedy search) de los tamaños de dominio de las variables ocultas y de las aristas laterales. Nuestra implementación no está paralelizada y se ejecutó en un solo núcleo de una CPU Intel i7-740. El aprendizaje tomó aproximadamente 0.5 horas para los vehículos de construcción, 3 horas para las criaturas, 8 horas para las sillas, 20 horas para los aviones y 70 horas para los barcos. Para la síntesis de formas, enumerar todas las posibles instanciaciones de un modelo aprendido toma menos de una hora en todos los casos, y el ensamblaje final de cada forma toma unos cuantos segundos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s8",
+      "title": {
+        "en": "8 Discussion",
+        "es": "8 Discusión"
+      },
+      "blocks": [
+        {
+          "id": "s8-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We presented a probabilistic model of component-based shape structure that can be used to synthesize new shapes from a domain demonstrated by a set of example shapes. Our processing pipeline assumes that the training shapes are compatibly segmented. Furthermore, the extraction of geometric features used for training assumes that the shapes are upright-oriented and front-facing. We employed semi-automatic procedures to segment and orient shapes, but the preprocessing stage still required manual effort. Advances upon current compatible shape segmentation and orientation techniques would be broadly beneficial [Fu et al. 2008; Kalogerakis et al. 2010; Huang et al. 2011; Sidi et al. 2011].",
+            "es": "Presentamos un modelo probabilístico de la estructura de formas basada en componentes que puede usarse para sintetizar formas nuevas de un dominio demostrado por un conjunto de formas de ejemplo. Nuestro flujo de procesamiento supone que las formas de entrenamiento están segmentadas de manera compatible. Además, la extracción de características geométricas utilizadas para el entrenamiento supone que las formas están orientadas en posición vertical y de frente. Empleamos procedimientos semiautomáticos para segmentar y orientar las formas, pero la etapa de preprocesamiento aún requirió esfuerzo manual. Los avances sobre las técnicas actuales de segmentación y orientación compatible de formas serían ampliamente benéficos [Fu et al. 2008; Kalogerakis et al. 2010; Huang et al. 2011; Sidi et al. 2011]."
+          }
+        },
+        {
+          "id": "s8-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Our model also uses the simplifying assumption that the geometric features of components are normally distributed. This simplifies the learning procedure, but does not capture more complex variability of geometric features. Further, the model only learns linear correlations between component features. In addition, the component placement approach described in Section 5.2 is heuristic and can fail to produce visually pleasing results. Specifically, it does not optimize the orientation of components and does not prevent intersections between components, as shown in Figure 11. The development of more sophisticated approaches to component placement is thus an interesting avenue for future work. Analysis of the function of shapes is likewise an interesting direction that can enhance shape synthesis.",
+            "es": "Nuestro modelo también utiliza el supuesto simplificador de que las características geométricas de los componentes siguen una distribución normal. Esto simplifica el procedimiento de aprendizaje, pero no captura variabilidad más compleja de las características geométricas. Además, el modelo solo aprende correlaciones lineales entre las características de los componentes. Asimismo, el enfoque de colocación de componentes descrito en la Sección 5.2 es heurístico y puede no producir resultados visualmente agradables. En concreto, no optimiza la orientación de los componentes y no evita las intersecciones entre componentes, como se muestra en la Figura 11. Por tanto, el desarrollo de enfoques más sofisticados para la colocación de componentes es una vía interesante para trabajo futuro. El análisis de la función de las formas es igualmente una dirección interesante que puede mejorar la síntesis de formas."
+          }
+        },
+        {
+          "id": "fig-11",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-11.png",
+          "text": {
+            "en": "Figure 11: The optimization procedure described in Section 5.2 may fail to yield plausible configurations of components. Some ropes on the left ship are misaligned because they are treated as a single component, and some components on the right ship intersect inappropriately.",
+            "es": "Figura 11: El procedimiento de optimización descrito en la Sección 5.2 puede no producir configuraciones plausibles de componentes. Algunas cuerdas del barco de la izquierda están desalineadas porque se tratan como un solo componente, y algunos componentes del barco de la derecha se intersecan de manera inapropiada."
+          }
+        },
+        {
+          "id": "s8-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Finally, a significant avenue for future work is joint modeling of discrete structural variability together with continuous variability at the level of individual components. This can lead to learned models of continuous shape variability in increasingly complex real-world domains, which can enable new capabilities for shape reconstruction.",
+            "es": "Por último, una vía importante para trabajo futuro es el modelado conjunto de la variabilidad estructural discreta junto con la variabilidad continua a nivel de componentes individuales. Esto puede conducir a modelos aprendidos de variabilidad continua de formas en dominios del mundo real cada vez más complejos, lo que puede habilitar nuevas capacidades para la reconstrucción de formas."
+          }
+        },
+        {
+          "id": "s8-h1",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "Acknowledgements",
+            "es": "Agradecimientos"
+          }
+        },
+        {
+          "id": "s8-p4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We are grateful to Aaron Hertzmann, Sergey Levine, and Philipp Krähenbühl for their comments on this paper, and to Tom Funkhouser for helpful discussions. This research was conducted in conjunction with the Intel Science and Technology Center for Visual Computing, and was supported in part by KAUST Global Collaborative Research and by NSF grants SES-0835601 and CCF-0641402.",
+            "es": "Agradecemos a Aaron Hertzmann, Sergey Levine y Philipp Krähenbühl por sus comentarios sobre este artículo, y a Tom Funkhouser por las útiles discusiones. Esta investigación se llevó a cabo en conjunto con el Intel Science and Technology Center for Visual Computing, y recibió apoyo en parte de KAUST Global Collaborative Research y de las subvenciones SES-0835601 y CCF-0641402 de la NSF."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "ALIAGA, D. G., ROSEN, P. A., AND BEKINS, D. R. 2007. Style grammars for interactive visualization of architecture. IEEE Transactions on Visualization and Computer Graphics 13, 4."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "ALLEN, B., CURLESS, B., AND POPOVIĆ, Z. 2003. The space of human body shapes: reconstruction and parameterization from range scans. ACM Transactions on Graphics 22, 3."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "ANGUELOV, D., SRINIVASAN, P., KOLLER, D., THRUN, S., RODGERS, J., AND DAVIS, J. 2005. SCAPE: shape completion and animation of people. ACM Transactions on Graphics 24, 3."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "BLANZ, V., AND VETTER, T. 1999. A morphable model for the synthesis of 3D faces. In Proc. SIGGRAPH, ACM."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "BOKELOH, M., WAND, M., AND SEIDEL, H.-P. 2010. A connection between partial symmetry and inverse procedural modeling. ACM Transactions on Graphics 29, 4."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "BOUCHARD, G., AND TRIGGS, B. 2005. Hierarchical part-based visual object categorization. In Proc. IEEE Conference on Computer Vision and Pattern Recognition."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "CHAUDHURI, S., AND KOLTUN, V. 2010. Data-driven suggestions for creativity support in 3D modeling. ACM Transactions on Graphics 29, 6."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "CHAUDHURI, S., KALOGERAKIS, E., GUIBAS, L., AND KOLTUN, V. 2011. Probabilistic reasoning for assembly-based 3D modeling. ACM Transactions on Graphics 30, 4."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "CHEESEMAN, P., AND STUTZ, J. 1996. Bayesian classification (autoclass): Theory and results. Advances in Knowledge Discovery and Data Mining."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "CHEN, D.-Y., TIAN, X.-P., SHEN, Y.-T., AND OUHYOUNG, M. 2003. On visual similarity based 3D model retrieval. Computer Graphics Forum 22, 3."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "CHENNUBHOTLA, C., AND JEPSON, A. 2001. S-PCA: Extracting multi-scale structure from data. In Proc. International Conference on Computer Vision."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "FIDLER, S., AND LEONARDIS, A. 2007. Towards scalable representations of object categories: Learning a hierarchy of parts. In Proc. IEEE Conference on Computer Vision and Pattern Recognition."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "FU, H., COHEN-OR, D., DROR, G., AND SHEFFER, A. 2008. Upright orientation of man-made objects. ACM Transactions on Graphics 27, 3."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "FUNKHOUSER, T., KAZHDAN, M., SHILANE, P., MIN, P., KIEFER, W., TAL, A., RUSINKIEWICZ, S., AND DOBKIN, D. 2004. Modeling by example. ACM Transactions on Graphics 23, 3."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "HUANG, Q., KOLTUN, V., AND GUIBAS, L. 2011. Joint shape segmentation with linear programming. ACM Transactions on Graphics 30, 6."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "JAIN, A., THORMAHLEN, T., RITSCHEL, T., AND SEIDEL, H.-P. 2012. Exploring shape variations by 3D-model decomposition and part-based recombination. Computer Graphics Forum 31, 2."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "JIN, Y., AND GEMAN, S. 2006. Context and hierarchy in a probabilistic image model. In Proc. IEEE Conference on Computer Vision and Pattern Recognition."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "KALOGERAKIS, E., HERTZMANN, A., AND SINGH, K. 2010. Learning 3D mesh segmentation and labeling. ACM Transactions on Graphics 29, 4."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "KOLLER, D., AND FRIEDMAN, N. 2009. Probabilistic Graphical Models: Principles and Techniques. The MIT Press."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "KRAEVOY, V., JULIUS, D., AND SHEFFER, A. 2007. Model composition from interchangeable components. In Proc. Pacific Graphics, IEEE Computer Society."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "LEE, J., AND FUNKHOUSER, T. 2008. Sketch-based search and composition of 3D models. In Proc. Eurographics Workshop on Sketch-Based Interfaces and Modeling."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "MERRELL, P., AND MANOCHA, D. 2011. Model synthesis: A general procedural modeling algorithm. IEEE Transactions on Visualization and Computer Graphics 17, 6."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "MERRELL, P. 2007. Example-based model synthesis. In Proc. Symposium on Interactive 3D Graphics, ACM."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "OMMER, B., AND BUHMANN, J. 2010. Learning the compositional nature of visual object categories for recognition. IEEE Transactions on Pattern Analysis and Machine Intelligence 32, 3."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "OVSJANIKOV, M., LI, W., GUIBAS, L., AND MITRA, N. J. 2011. Exploration of continuous variability in collections of 3D shapes. ACM Transactions on Graphics 30, 4."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "RANZATO, M. A., SUSSKIND, J., MNIH, V., AND HINTON, G. 2011. On deep generative models with applications to recognition. In Proc. IEEE Conference on Computer Vision and Pattern Recognition."
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "ROUX, N. L., HEESS, N., SHOTTON, J., AND WINN, J. 2011. Learning a generative model of images by factoring appearance and shape. Neural Computation, 23."
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "SHARF, A., BLUMENKRANTS, M., SHAMIR, A., AND COHEN- OR, D. 2006. SnapPaste: an interactive technique for easy mesh composition. Visual Computer 22, 9."
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "SIDI, O., VAN KAICK, O., KLEIMAN, Y., ZHANG, H., AND COHEN-OR, D. 2011. Unsupervised co-segmentation of a set of shapes via descriptor-space spectral clustering. ACM Transactions on Graphics 30, 6."
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "STAVA, O., BENEŠ, B., MĚCH, R., ALIAGA, D., AND KRISTOF, P. 2010. Inverse procedural modeling by automatic generation of L-systems. Computer Graphics Forum 29, 2."
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "TODOROVIC, S., AND AHUJA, N. 2008. Unsupervised category modeling, recognition, and segmentation in images. IEEE Transactions on Pattern Analysis and Machine Intelligence 30, 12."
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "TU, Z., CHEN, X., YUILLE, A. L., AND ZHU, S.-C. 2005. Image parsing: Unifying segmentation, detection, and recognition. International Journal of Computer Vision 63, 2."
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "WESSEL, R., BLÜMEL, I., AND KLEIN, R. 2009. A 3d shape benchmark for retrieval and automatic classification of architectural data. In Eurographics 2009 Workshop on 3D Object Retrieval."
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "XU, K., ZHENG, H., ZHANG, H., COHEN-OR, D., LIU, L., AND XIONG, Y. 2011. Photo-inspired model-driven 3D object modeling. ACM Transactions on Graphics 30, 4."
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "ZHU, L. L., LIN, C., HUANG, H., CHEN, Y., AND YUILLE, A. L. 2008. Unsupervised structure learning: Hierarchical recursive composition, suspicious coincidence and competitive exclusion. In Proc. European Conference on Computer Vision."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-a",
+      "title": {
+        "en": "A Geometric Preprocessing for Components",
+        "es": "A Preprocesamiento geométrico de los componentes"
+      },
+      "blocks": [
+        {
+          "id": "app-a-p1",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "First, the meshes are oriented so that +Z is the upward direction and +Y is the front-facing direction. Sparse-PCA [Chennubhotla and Jepson 2001] on surface samples of a specified component is used to extract principal axes of each mesh. Sparse-PCA tends to choose axes that align with the latent XY Z frame, which is appropriate since the meshes are usually already oriented to some permutation of the latent axes. Specified principal axes are aligned to +Z and +Y . For example, the upward direction of chairs is determined by the SPCA axis that corresponds to the smallest variance in the points of the seats and for which the center of mass of backs has positive y-axis value. If this process fails, the meshes are oriented manually.",
+            "es": "Primero, las mallas (meshes) se orientan de modo que +Z sea la dirección hacia arriba y +Y sea la dirección frontal. Se utiliza Sparse-PCA [Chennubhotla and Jepson 2001] sobre muestras de la superficie de un componente específico para extraer los ejes principales de cada malla. Sparse-PCA tiende a elegir ejes que se alinean con el marco XY Z latente, lo cual es apropiado puesto que las mallas ya suelen estar orientadas según alguna permutación de los ejes latentes. Los ejes principales especificados se alinean con +Z y +Y . Por ejemplo, la dirección hacia arriba de las sillas se determina por el eje de SPCA que corresponde a la menor varianza en los puntos de los asientos y para el cual el centro de masa de los respaldos tiene un valor positivo en el eje y. Si este proceso falla, las mallas se orientan manualmente."
+          }
+        },
+        {
+          "id": "app-a-p2",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Then, for each shape component c from each source mesh m in the repository, we extract a high-dimensional feature vector containing: a) the 3D scale vector of the oriented bounding box of the component; b) histograms of 4, 8 and 16 uniform bins for principal curvatures κ1 and κ2 (the curvatures are estimated at multiple scales over neighborhoods of point samples of increasing radii: 1%, 2%, 5% and 10% relative to the median geodesic distance between all pairs of point samples on the surface of m); c) histograms of 4, 8 and 16 uniform bins of the shape diameter over the surface of c, and of its logarithmized versions w.r.t. normalizing parameters 1, 2, 4 and 8; d) the following entries, derived from the singular values {s1, s2, s3} of the covariance matrix of sample positions on the surface of c: s1/ P i si, s2/ P i si, s3/ P i si, (s1+s2)/ P i si, (s1+s3)/ P i si, (s2+s3)/ P i si, s1/s2, s1/s3, s2/s3, s1/s2 + s1/s3, s1/s2 + s2/s3, s1/s3 + s2/s3; e) lightfield descriptor values computed as in [Chen et al. 2003] (since the meshes are oriented consistently, these descriptors can be compared without searching over aligning transforms). We perform PCA on the matrix of lightfield features per component, and also on the matrix containing the descriptors (b-d) to reduce the overall dimensionality of the features. The final feature vector Cl contains the 3D scale vector and the projected low-dimensional features.",
+            "es": "Luego, para cada componente de forma c de cada malla de origen m en el repositorio, extraemos un vector de características de alta dimensión que contiene: a) el vector de escala 3D de la caja delimitadora orientada (oriented bounding box) del componente; b) histogramas de 4, 8 y 16 contenedores uniformes para las curvaturas principales (principal curvatures) κ1 y κ2 (las curvaturas se estiman a múltiples escalas sobre vecindarios de muestras de puntos de radios crecientes: 1%, 2%, 5% y 10% con respecto a la distancia geodésica mediana entre todos los pares de muestras de puntos sobre la superficie de m); c) histogramas de 4, 8 y 16 contenedores uniformes del diámetro de la forma (shape diameter) sobre la superficie de c, y de sus versiones logaritmizadas con respecto a los parámetros de normalización 1, 2, 4 y 8; d) las siguientes entradas, derivadas de los valores singulares {s1, s2, s3} de la matriz de covarianza de las posiciones de las muestras sobre la superficie de c: s1/ P i si, s2/ P i si, s3/ P i si, (s1+s2)/ P i si, (s1+s3)/ P i si, (s2+s3)/ P i si, s1/s2, s1/s3, s2/s3, s1/s2 + s1/s3, s1/s2 + s2/s3, s1/s3 + s2/s3; e) valores del descriptor de campo de luz (lightfield descriptor) calculados como en [Chen et al. 2003] (dado que las mallas están orientadas de manera consistente, estos descriptores pueden compararse sin buscar transformaciones de alineación). Realizamos PCA sobre la matriz de características de campo de luz por componente, y también sobre la matriz que contiene los descriptores (b-d), para reducir la dimensionalidad total de las características. El vector de características final Cl contiene el vector de escala 3D y las características proyectadas de baja dimensión."
+          }
+        },
+        {
+          "id": "app-a-p3",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Finally, for each component we detect slots that connect them to other components (Figure 4(a)). For components obtained by cutting topologically manifold meshes along edge loops, the slots are simply these edge loops. For all other components, we mark vertices close to a component of a different category as slot vertices, using a threshold equal to 1/64 of the radius of the bounding sphere of the mesh. If no such vertices are found, the threshold is doubled until at least ten slot vertices are found. We also automatically extract ground contacts for each component, if these exist. These contacts are extracted by finding the vertices whose distance to the ground plane is below the threshold used to detect slot vertices.",
+            "es": "Por último, para cada componente detectamos las ranuras (slots) que lo conectan con otros componentes (Figura 4(a)). Para los componentes obtenidos al cortar mallas topológicamente variedad a lo largo de bucles de aristas, las ranuras son simplemente esos bucles de aristas. Para todos los demás componentes, marcamos como vértices de ranura los vértices cercanos a un componente de una categoría distinta, usando un umbral igual a 1/64 del radio de la esfera delimitadora de la malla. Si no se encuentran tales vértices, el umbral se duplica hasta encontrar al menos diez vértices de ranura. También extraemos automáticamente los contactos con el suelo de cada componente, si existen. Estos contactos se extraen encontrando los vértices cuya distancia al plano del suelo es inferior al umbral utilizado para detectar los vértices de ranura."
+          }
+        }
+      ]
+    }
+  ]
+}

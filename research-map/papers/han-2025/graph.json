@@ -1,0 +1,628 @@
+{
+  "version": 1,
+  "node": "han-2025",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can a pretrained graph neural network learn the semantic, spatial and topological design features of BIM models and transfer them to several BIM design-checking tasks with little labeled data?",
+      "es": "¿Puede una red neuronal de grafos preentrenada aprender las características de diseño semánticas, espaciales y topológicas de los modelos BIM y transferirlas a varias tareas de revisión de diseño con pocos datos etiquetados?",
+      "blocks": [
+        "s2-p16",
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Earlier BIM representations were built for one task each, so there is no unified method to represent and reuse the design features in historical BIM data.",
+      "es": "Las representaciones de BIM anteriores se construyeron cada una para una tarea, así que no hay un método unificado para representar y reutilizar las características de diseño de los datos históricos de BIM.",
+      "blocks": [
+        "s2-p13",
+        "s2-p7",
+        "s1-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Prior work turns BIM into tensors of component properties, which ignore spatial and topological relations, or into graphs where components are nodes and relations are edges, but these graphs are task-specific and the relations they capture are simple.",
+      "es": "Los trabajos previos convierten BIM en tensores de propiedades de componentes, que ignoran las relaciones espaciales y topológicas, o en grafos con componentes como nodos y relaciones como aristas, pero esos grafos son específicos de cada tarea y capturan relaciones simples.",
+      "blocks": [
+        "s2-p5",
+        "s2-p6",
+        "s2-p7",
+        "s1-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "Labeled BIM data is scarce and costly to prepare, so the paper turns to self-supervised pretraining on unlabeled data followed by transfer to specific tasks with a small labeled set.",
+      "es": "Los datos BIM etiquetados son escasos y costosos de preparar, por lo que el artículo recurre al preentrenamiento autosupervisado con datos sin etiquetar y a su transferencia a tareas específicas con pocos datos etiquetados.",
+      "blocks": [
+        "s2-p9",
+        "s1-p4",
+        "s2-p14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "Each BIM floor is encoded as a graph that carries semantic, spatial and topological features of components, extending the authors' earlier unified network representation (Han et al., 2025).",
+      "es": "Cada planta de un modelo BIM se codifica como un grafo que lleva características semánticas, espaciales y topológicas de los componentes, extendiendo la representación de red unificada previa de los autores (Han et al., 2025).",
+      "blocks": [
+        "s3-p2",
+        "s3-p6",
+        "s3-p19"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Semantic features are shape (cuboid, cylinder, irregular), dimensions, structural purpose, family name and family type; shape and dimensions are counted as semantic rather than spatial.",
+      "es": "Las características semánticas son la forma (prisma, cilindro, irregular), las dimensiones, el propósito estructural, la familia y el tipo de familia; la forma y las dimensiones se cuentan como semánticas y no como espaciales.",
+      "blocks": [
+        "s3-p9",
+        "s3-p10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "Topological features are three relations between components: Connection, Touch floor and Host.",
+      "es": "Las características topológicas son tres relaciones entre componentes: Conexión, Toca el piso y Anfitrión (Host).",
+      "blocks": [
+        "s3-p13",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Spatial features are positioning coordinates and offsets, plus local spatial relationships between components whose bounding boxes lie within a distance threshold (for example 0.3 m): angle, shortest-distance vector, shortest distance and angle with the horizontal plane.",
+      "es": "Las características espaciales son las coordenadas de posición y los desfases, más las relaciones espaciales locales entre componentes cuyas cajas envolventes están dentro de un umbral de distancia (por ejemplo 0.3 m): ángulo, vector de distancia mínima, distancia mínima y ángulo con el plano horizontal.",
+      "blocks": [
+        "s3-p15",
+        "s3-p16",
+        "s3-p17",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "Components become semantic nodes, and their spatial and topological relations become nodes too, so that checking a model turns into node classification; the spatial node is dropped when a topological one exists, and the graph can be homogeneous (one node type) or heterogeneous (three).",
+      "es": "Los componentes se vuelven nodos semánticos y sus relaciones espaciales y topológicas también se vuelven nodos, de modo que revisar un modelo se convierte en clasificación de nodos; el nodo espacial se omite cuando existe uno topológico, y el grafo puede ser homogéneo (un tipo de nodo) o heterogéneo (tres).",
+      "blocks": [
+        "s3-p21",
+        "s3-p22",
+        "s3-p28",
+        "tab-4",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Features are encoded by one-hot for shape, purpose and topological type, millimeters for dimensions, and 64-dimensional M3E text embeddings for family names; missing values are padded with 0 and values are normalized per floor to the range -1 to 1.",
+      "es": "Las características se codifican con one-hot para forma, propósito y tipo topológico, milímetros para dimensiones y embeddings de texto M3E de 64 dimensiones para los nombres de familia; los valores faltantes se rellenan con 0 y se normalizan por planta al rango de -1 a 1.",
+      "blocks": [
+        "s3-p24",
+        "s3-p25",
+        "s3-p26",
+        "s3-e1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "Revit models are converted with Python and the Revit API in about five minutes per floor, and models that give too many nodes are split into non-overlapping regions.",
+      "es": "Los modelos de Revit se convierten con Python y la API de Revit en unos cinco minutos por planta, y los modelos que generan demasiados nodos se dividen en regiones sin traslape.",
+      "blocks": [
+        "s3-p31",
+        "s3-p30"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "dataset",
+      "en": "The pretraining dataset holds 176 graphs with 974,991 nodes and 3,414,280 edges, taken from BIM models of hospitals, residential and industrial buildings.",
+      "es": "El conjunto de preentrenamiento tiene 176 grafos con 974,991 nodos y 3,414,280 aristas, tomados de modelos BIM de hospitales, edificios residenciales e industriales.",
+      "blocks": [
+        "s3-p30",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "BIGNet extends GraphMAE2: it masks 50% of node features, reconstructs them with a decoder using three random re-mask views and a scaled cosine error, adds latent representation prediction, and uses 2-layer GAT as encoder and decoder.",
+      "es": "BIGNet extiende GraphMAE2: enmascara el 50% de las características de los nodos, las reconstruye con un decodificador que usa tres vistas de re-enmascarado aleatorio y un error coseno escalado, agrega predicción de representación latente y usa GAT de 2 capas como codificador y decodificador.",
+      "blocks": [
+        "s3-p33",
+        "s3-p35",
+        "s3-p36",
+        "s3-p38",
+        "s3-p41",
+        "s3-e7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "For heterogeneous graphs the paper uses a masking rate of 0.6 for spatial and topological nodes and 0.5 for semantic nodes, with dedicated attention heads and weights for each node and meta-path type.",
+      "es": "Para los grafos heterogéneos el artículo usa una tasa de enmascarado de 0.6 en los nodos espaciales y topológicos y de 0.5 en los semánticos, con cabezas de atención y pesos propios para cada tipo de nodo y metarruta.",
+      "blocks": [
+        "s3-p43",
+        "s3-p44",
+        "fig-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "dataset",
+      "en": "The transfer dataset is 16 real Revit models of hospitals, residential and industrial buildings, in which 30% of wall types, door heights and MEP-to-fitting connections were modified and labeled as errors; at a 30% training share, five regions train, five validate and six test.",
+      "es": "El conjunto de transferencia son 16 modelos reales de Revit de hospitales, vivienda e industria, en los que se modificó y etiquetó como error el 30% de los tipos de muro, alturas de puerta y conexiones entre componentes MEP y sus accesorios; con 30% de entrenamiento, cinco regiones entrenan, cinco validan y seis prueban.",
+      "blocks": [
+        "s3-p54",
+        "s3-p55",
+        "fig-12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "concept",
+      "en": "Three error types are checked as node classification into four classes (correct plus the three errors): semantic conflicts (such as a wall made with a beam family), data range errors (such as a door height outside 200 to 240 cm) and topological errors (lost connections between MEP components).",
+      "es": "Se revisan tres tipos de error como clasificación de nodos en cuatro clases (correcto más los tres errores): conflictos semánticos (como un muro creado con una familia de viga), errores de rango de datos (como una altura de puerta fuera de 200 a 240 cm) y errores topológicos (conexiones perdidas entre componentes MEP).",
+      "blocks": [
+        "s3-p50",
+        "s3-p51",
+        "s3-p52",
+        "s3-p53",
+        "s3-p60",
+        "fig-11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "Three transfer strategies are compared: feature extraction with an MLP classifier, feature extraction with a GAT classifier, and fine-tuning with an MLP classifier; local spatial ranges of 0.2 to 0.6 m and homogeneous versus heterogeneous graphs are also varied.",
+      "es": "Se comparan tres estrategias de transferencia: extracción de características con clasificador MLP, extracción de características con clasificador GAT y ajuste fino con clasificador MLP; también se varían rangos espaciales locales de 0.2 a 0.6 m y grafos homogéneos contra heterogéneos.",
+      "blocks": [
+        "s3-p58",
+        "s3-p59",
+        "fig-13"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Training uses a weighted cross-entropy loss whose class weights grow with each class's error rate, and performance is reported as Average F1-score over the error classes because weighted F1 is above 0.97 for most models.",
+      "es": "El entrenamiento usa una entropía cruzada ponderada cuyos pesos de clase crecen con la tasa de error de cada clase, y el desempeño se reporta como F1 promedio sobre las clases de error porque el F1 ponderado es mayor a 0.97 en la mayoría de los modelos.",
+      "blocks": [
+        "s3-p60",
+        "s3-p63",
+        "s3-p65",
+        "s3-e8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "Homogeneous graphs reach higher accuracy than heterogeneous graphs under the same training data, and heterogeneous training takes about five times longer.",
+      "es": "Los grafos homogéneos alcanzan mayor exactitud que los heterogéneos con los mismos datos de entrenamiento, y el entrenamiento heterogéneo tarda aproximadamente cinco veces más.",
+      "blocks": [
+        "s4-p9",
+        "s4-p10",
+        "fig-14",
+        "fig-15"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "A 0.3 m local spatial range gave the best design checking (Ho_S0.3), even though pretraining loss kept falling as the range grew.",
+      "es": "Un rango espacial local de 0.3 m dio la mejor revisión de diseño (Ho_S0.3), aunque la pérdida de preentrenamiento seguía bajando al crecer el rango.",
+      "blocks": [
+        "s4-p12",
+        "s4-p13",
+        "fig-16",
+        "fig-17"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "Ho_BIGNet_GAT, which uses the BIGNet encoder as a frozen feature extractor with a new GAT classifier, performed best; GAT consistently beat MLP, and fine-tuning was best only on heterogeneous graphs.",
+      "es": "Ho_BIGNet_GAT, que usa el codificador de BIGNet como extractor de características congelado con un nuevo clasificador GAT, tuvo el mejor desempeño; GAT superó consistentemente a MLP y el ajuste fino fue mejor solo en grafos heterogéneos.",
+      "blocks": [
+        "s4-p15",
+        "s4-p16",
+        "s4-p17",
+        "fig-18",
+        "fig-19"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "Compared with non-pretrained models, BIGNet improves the Average F1-score by 59.5% with an MLP classifier and 72.7% with a GAT classifier.",
+      "es": "En comparación con los modelos sin preentrenamiento, BIGNet mejora el F1 promedio en 59.5% con un clasificador MLP y en 72.7% con un clasificador GAT.",
+      "blocks": [
+        "s4-p19",
+        "s5-p4",
+        "abs-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "All models do well on semantic conflicts and data range errors, but accuracy drops on topological errors, where BIGNet is still substantially more accurate than non-pretrained models.",
+      "es": "Todos los modelos funcionan bien en conflictos semánticos y errores de rango de datos, pero la exactitud baja en los errores topológicos, donde BIGNet aun así es sustancialmente más exacto que los modelos sin preentrenamiento.",
+      "blocks": [
+        "s4-p20",
+        "s4-p21",
+        "fig-19"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "In most cases the method misclassifies correct nodes as erroneous rather than erroneous nodes as correct.",
+      "es": "En la mayoría de los casos el método clasifica como erróneos nodos correctos y no al revés.",
+      "blocks": [
+        "s4-p18",
+        "s6-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "claim",
+      "en": "BIGNet is presented as the first large-scale pretrained GNN for BIM graphs; the authors say the novelty lies in the pretrained GNN framework, not in the BIM-to-graph conversion, and that the model is task-agnostic.",
+      "es": "BIGNet se presenta como la primera GNN preentrenada a gran escala para grafos de BIM; los autores dicen que la novedad está en el marco de la GNN preentrenada y no en la conversión de BIM a grafo, y que el modelo es agnóstico a la tarea.",
+      "blocks": [
+        "s1-p6",
+        "s3-p33",
+        "s5-p3",
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "claim",
+      "en": "The paper concludes that the framework reaches high performance with minimal labeled data: a 30% training share is considered optimal, and engineers would annotate only a small part of the drawings.",
+      "es": "El artículo concluye que el marco alcanza alto desempeño con datos etiquetados mínimos: se considera óptimo un 30% de entrenamiento y los ingenieros solo anotarían una parte pequeña de los planos.",
+      "blocks": [
+        "s4-p10",
+        "s4-p22",
+        "s5-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "The error classes are imbalanced because topological errors far outnumber the other two, since the same share of each component type was modified and MEP connections are far more numerous than walls and doors.",
+      "es": "Las clases de error están desbalanceadas porque los errores topológicos superan por mucho a los otros dos, ya que se modificó la misma proporción de cada tipo de componente y las conexiones MEP son mucho más numerosas que los muros y las puertas.",
+      "blocks": [
+        "s3-p56",
+        "fig-12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "Data-driven checking cannot find every possible error; it detects implicit and conventional design rules, so the authors propose combining it with machine-readable rules from standards.",
+      "es": "La revisión basada en datos no puede encontrar todos los errores posibles; detecta reglas de diseño implícitas y convencionales, por lo que los autores proponen combinarla con reglas legibles por máquina tomadas de las normas.",
+      "blocks": [
+        "s5-p10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "limitation",
+      "en": "Heterogeneous graphs underperformed with limited data and cost more to train, though their F1 kept rising with more training data; the authors suggest parameter sharing, modular networks and hybrid homogeneous-heterogeneous models.",
+      "es": "Los grafos heterogéneos tuvieron menor desempeño con pocos datos y cuestan más de entrenar, aunque su F1 seguía subiendo con más datos de entrenamiento; los autores sugieren compartir parámetros, redes modulares y modelos híbridos homogéneo-heterogéneo.",
+      "blocks": [
+        "s4-p10",
+        "s5-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "limitation",
+      "en": "The study uses a single GNN architecture and pretraining method, and the authors want to test other ones to get higher recall.",
+      "es": "El estudio usa una sola arquitectura de GNN y un solo método de preentrenamiento, y los autores quieren probar otros para lograr mayor recall.",
+      "blocks": [
+        "s5-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "future",
+      "en": "Future work includes adding features such as time or design phase, integrating the GNN with graph databases, and linking 2D structural layout generation to BIM-based 3D modeling and checking.",
+      "es": "El trabajo futuro incluye agregar características como el tiempo o la fase de diseño, integrar la GNN con bases de datos de grafos y vincular la generación de distribuciones estructurales en 2D con el modelado 3D basado en BIM y su revisión.",
+      "blocks": [
+        "s5-p9",
+        "s5-p13",
+        "s5-p14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "future",
+      "en": "The authors say the approach could support design recommendation from patterns learned in historical models, semantic enrichment of incomplete models and design optimization, but they do not test these.",
+      "es": "Los autores dicen que el enfoque podría apoyar la recomendación de diseño a partir de patrones aprendidos de modelos históricos, el enriquecimiento semántico de modelos incompletos y la optimización de diseño, pero no lo prueban.",
+      "blocks": [
+        "s5-p7",
+        "s5-p6"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "The lack of a unified representation is one of the gaps that motivates the question."
+    },
+    {
+      "from": "i3",
+      "to": "i2",
+      "type": "supports",
+      "why": "The survey of tensor and graph methods shows each is tailored to one task."
+    },
+    {
+      "from": "i4",
+      "to": "i1",
+      "type": "supports",
+      "why": "Label scarcity motivates pretraining before transfer."
+    },
+    {
+      "from": "i5",
+      "to": "i2",
+      "type": "supports",
+      "why": "The unified semantic-spatial-topological graph answers the representation gap."
+    },
+    {
+      "from": "i6",
+      "to": "i5",
+      "type": "part-of",
+      "why": "Semantic features are one of the three feature groups."
+    },
+    {
+      "from": "i7",
+      "to": "i5",
+      "type": "part-of",
+      "why": "Topological relations are one of the three feature groups."
+    },
+    {
+      "from": "i8",
+      "to": "i5",
+      "type": "part-of",
+      "why": "Spatial features are one of the three feature groups."
+    },
+    {
+      "from": "i9",
+      "to": "i5",
+      "type": "part-of",
+      "why": "Turning relations into nodes is the graph-building step."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Embedding and normalizing fill the node feature vectors."
+    },
+    {
+      "from": "i11",
+      "to": "i12",
+      "type": "supports",
+      "why": "The conversion pipeline produces the pretraining graphs."
+    },
+    {
+      "from": "i12",
+      "to": "i13",
+      "type": "supports",
+      "why": "BIGNet is pretrained on these graphs."
+    },
+    {
+      "from": "i13",
+      "to": "i4",
+      "type": "uses",
+      "why": "Masked node reconstruction is the self-supervised pretraining."
+    },
+    {
+      "from": "i14",
+      "to": "i13",
+      "type": "part-of",
+      "why": "The heterogeneous variant extends the masking and message passing."
+    },
+    {
+      "from": "i9",
+      "to": "i14",
+      "type": "supports",
+      "why": "The heterogeneous graph needs per-type masking and attention."
+    },
+    {
+      "from": "i16",
+      "to": "i9",
+      "type": "uses",
+      "why": "Relation nodes make connection errors classifiable as nodes."
+    },
+    {
+      "from": "i15",
+      "to": "i16",
+      "type": "supports",
+      "why": "The labeled errors are the three types in the transfer dataset."
+    },
+    {
+      "from": "i17",
+      "to": "i13",
+      "type": "uses",
+      "why": "Transfer strategies reuse the pretrained encoder."
+    },
+    {
+      "from": "i18",
+      "to": "i22",
+      "type": "measures",
+      "why": "Average F1-score is the metric behind the reported gains."
+    },
+    {
+      "from": "i19",
+      "to": "i9",
+      "type": "measures",
+      "why": "The result compares the two graph structures."
+    },
+    {
+      "from": "i20",
+      "to": "i8",
+      "type": "measures",
+      "why": "The result tests the local spatial range threshold."
+    },
+    {
+      "from": "i21",
+      "to": "i17",
+      "type": "measures",
+      "why": "The result compares the three transfer strategies."
+    },
+    {
+      "from": "i22",
+      "to": "i25",
+      "type": "supports",
+      "why": "The gain over non-pretrained models backs the value of pretraining."
+    },
+    {
+      "from": "i22",
+      "to": "i26",
+      "type": "supports",
+      "why": "The gain was obtained with a 30% training share."
+    },
+    {
+      "from": "i23",
+      "to": "i16",
+      "type": "measures",
+      "why": "The result breaks down performance by error type."
+    },
+    {
+      "from": "i24",
+      "to": "i23",
+      "type": "supports",
+      "why": "The confusion matrices show the direction of the errors."
+    },
+    {
+      "from": "i27",
+      "to": "i15",
+      "type": "contradicts",
+      "why": "Class imbalance and injected errors qualify how general the transfer results are."
+    },
+    {
+      "from": "i29",
+      "to": "i19",
+      "type": "supports",
+      "why": "The limitation qualifies the homogeneous-graph advantage as tied to scarce data."
+    },
+    {
+      "from": "i28",
+      "to": "i23",
+      "type": "supports",
+      "why": "Missed errors, especially topological, show data-driven checking is incomplete."
+    },
+    {
+      "from": "i32",
+      "to": "i25",
+      "type": "supports",
+      "why": "Task-agnostic pretraining is the basis for the proposed uses."
+    },
+    {
+      "from": "i31",
+      "to": "i30",
+      "type": "supports",
+      "why": "Future directions address the stated limits."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i5",
+      "to": "hypothesis",
+      "why": "Supports the hypothesis in part: a model broken into elements and relations as a graph lets a network learn patterns, but only for checking, not for building new models."
+    },
+    {
+      "idea": "i9",
+      "to": "ifc-to-graph-recipe",
+      "why": "A Revit-to-graph recipe to borrow: elements as nodes, and Host, Connection, Touch floor and spatial links within 0.3 m as relation nodes."
+    },
+    {
+      "idea": "i19",
+      "to": "ifc-to-graph-recipe",
+      "why": "With limited data a single homogeneous node type beat typed nodes, which bears on how detailed the graph schema should be."
+    },
+    {
+      "idea": "i13",
+      "to": "deconstruct-for-training",
+      "why": "Masking node features turns each model into many self-supervised training examples without labels."
+    },
+    {
+      "idea": "i22",
+      "to": "question",
+      "why": "Shows a decomposed model transfers well for detecting errors, but the paper never generates a model, which is the gap for the thesis question."
+    },
+    {
+      "idea": "i12",
+      "to": "real-or-synthetic-data",
+      "why": "Gets scale from real Revit models split into regions (176 graphs) and gets labels by modifying 30% of real elements as errors."
+    },
+    {
+      "idea": "i28",
+      "to": "explicit-vs-learned",
+      "why": "Learned patterns catch implicit conventions while explicit rules cover stated standards, and the authors propose combining both."
+    },
+    {
+      "idea": "i11",
+      "to": "building-graph-ai-2025",
+      "why": "Another Revit-to-graph route through the Revit API, with per-floor conversion and region splitting."
+    },
+    {
+      "idea": "i32",
+      "to": "question",
+      "why": "Design recommendation and semantic enrichment are proposed as future uses of the learned patterns, but they are not tested, so generation remains open."
+    }
+  ]
+}

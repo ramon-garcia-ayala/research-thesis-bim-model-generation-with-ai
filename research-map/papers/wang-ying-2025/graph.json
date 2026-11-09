@@ -1,0 +1,613 @@
+{
+  "version": 1,
+  "node": "wang-ying-2025",
+  "built": {
+    "date": "2026-11-09",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can graph representation learning effectively embed complex and multimodal building information into high-dimensional vector spaces?",
+      "es": "¿Puede el aprendizaje de representaciones en grafos incrustar de forma efectiva información de edificios compleja y multimodal en espacios vectoriales de alta dimensión?",
+      "blocks": [
+        "s2-p11"
+      ],
+      "key": "grl-bim-embedding",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "claim",
+      "en": "The paper identifies a research gap: representation learning on BIM, which would turn diverse BIM data into a high-dimensional vector space to support learning, has hardly been explored.",
+      "es": "El artículo identifica un vacío de investigación: casi no se ha explorado el aprendizaje de representaciones en BIM, que convertiría datos BIM diversos en un espacio vectorial de alta dimensión para apoyar el aprendizaje.",
+      "blocks": [
+        "s2-p10",
+        "s2-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "claim",
+      "en": "AI studies in BIM have followed an inverse approach: a mature AI technique is chosen first, and building information is sampled and formatted to fit it, which overlooks the richness and multimodality of building data.",
+      "es": "Los estudios de IA en BIM han seguido un enfoque inverso: primero se elige una técnica de IA madura y luego se muestrea y da formato a la información del edificio para que encaje, lo que ignora la riqueza y multimodalidad de los datos.",
+      "blocks": [
+        "s2-p9",
+        "s2-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "Representation learning turns raw symbolic data into structured numerical formats that capture relationships and meaning, as Word2Vec does for words and early CNN layers do for images.",
+      "es": "El aprendizaje de representaciones convierte datos simbólicos crudos en formatos numéricos estructurados que capturan relaciones y significado, como Word2Vec con las palabras y las primeras capas de las CNN con las imágenes.",
+      "blocks": [
+        "s2-p6",
+        "s2-p7",
+        "s2-p8"
+      ],
+      "key": "representation-learning",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "concept",
+      "en": "BIM data is heterogeneous: it has at least 3D geometry, object properties and object relationships. Earlier systems that use several of these are task-specific, not end-to-end learnable, and combine subsystems by ensembles.",
+      "es": "Los datos BIM son heterogéneos: incluyen al menos geometría 3D, propiedades de los objetos y relaciones entre objetos. Los sistemas previos que usan varias de ellas son específicos de una tarea, no se aprenden de extremo a extremo y combinan subsistemas con ensambles.",
+      "blocks": [
+        "s2-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "concept",
+      "en": "Earlier BIM classification work used one modality each: tabular attributes with SVM, geometry as points or mesh graphs, rendered images with MVCNN (accuracy and F1 of 0.98), and room topology with a GNN (about 80% accuracy).",
+      "es": "Los trabajos previos de clasificación en BIM usaron una sola modalidad: atributos tabulares con SVM, geometría como puntos o grafos de malla, imágenes renderizadas con MVCNN (exactitud y F1 de 0.98) y topología de espacios con una GNN (cerca de 80% de exactitud).",
+      "blocks": [
+        "s2-p1",
+        "s2-p2",
+        "s2-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "The approach has three steps: restructure BIM data as a graph, embed each node's modalities separately and concatenate them, then update the node embeddings with a graph learning model that uses topology.",
+      "es": "El enfoque tiene tres pasos: reestructurar los datos BIM como grafo, incrustar por separado las modalidades de cada nodo y concatenarlas, y luego actualizar los embeddings de los nodos con un modelo de aprendizaje en grafos que use la topología.",
+      "blocks": [
+        "s3-p1",
+        "s3-p2",
+        "s3-p3",
+        "s3-p4",
+        "fig-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "claim",
+      "en": "IFC schemas are hierarchical, nested and very large (IFC 4.3 ADD2 has 876 entities and 2,513 properties), and IfcOWL keeps that structure while only changing the format, so neither suits AI; the authors propose a simpler graph structure instead.",
+      "es": "Los esquemas IFC son jerárquicos, anidados y muy grandes (IFC 4.3 ADD2 tiene 876 entidades y 2,513 propiedades), e IfcOWL conserva esa estructura y solo cambia el formato, así que ninguno es adecuado para IA; los autores proponen una estructura de grafo más simple.",
+      "blocks": [
+        "s3-p7",
+        "s3-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "In the BIM graph, each node is a physical element (wall, slab, column, roof) or a spatial element (site, building, story). Properties are a key-value dictionary with no unified terminology, and geometry is always a triangle mesh.",
+      "es": "En el grafo BIM, cada nodo es un elemento físico (muro, losa, columna, techo) o espacial (sitio, edificio, nivel). Las propiedades son un diccionario clave-valor sin terminología unificada y la geometría siempre es una malla de triángulos.",
+      "blocks": [
+        "s3-p10",
+        "s3-p11"
+      ],
+      "key": "bim-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Edges capture spatial and topological relations of four types: belonging (physical to spatial elements), host (openings and their hosts), touch (direct geometric contact) and intersect (geometric intersection).",
+      "es": "Las aristas capturan relaciones espaciales y topológicas de cuatro tipos: belonging (elementos físicos y espaciales), host (aberturas y sus anfitriones), touch (contacto geométrico directo) e intersect (intersección geométrica).",
+      "blocks": [
+        "s3-p12",
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "An IFC-to-BIMGraph converter, written in Python with IfcOpenShell, extracts IfcObject elements with their attributes, belonging edges from IfcRelContainedInSpatialStructure, host edges from IfcOpeningElement, and touch and intersect edges from geometric computation.",
+      "es": "Un convertidor IFC-a-BIMGraph, escrito en Python con IfcOpenShell, extrae los elementos IfcObject con sus atributos, aristas belonging de IfcRelContainedInSpatialStructure, aristas host de IfcOpeningElement y aristas touch e intersect por cálculo geométrico.",
+      "blocks": [
+        "s3-p13",
+        "s4-p3",
+        "s4-p4",
+        "s4-p5",
+        "s4-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Semantic attributes are embedded with OpenAI's text-embedding-3-small, with the output vector reduced from the default 1,536 to 1,000 dimensions, so properties with different names but similar meanings can be handled.",
+      "es": "Los atributos semánticos se incrustan con text-embedding-3-small de OpenAI, reduciendo el vector de salida de 1,536 (por defecto) a 1,000 dimensiones, de modo que propiedades con nombres distintos y significado similar puedan procesarse.",
+      "blocks": [
+        "s3-p15",
+        "s3-p16",
+        "s3-p10"
+      ],
+      "key": "text-embedding-3-small",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "Geometry is embedded as a point cloud: 1,024 points sampled by farthest point sampling, normalized to a unit sphere, then the center (3D) and scale (1D) are appended, giving a vector of length 3,076.",
+      "es": "La geometría se incrusta como nube de puntos: 1,024 puntos muestreados por muestreo del punto más lejano, normalizados a una esfera unitaria, y luego se añaden el centro (3D) y la escala (1D), lo que da un vector de longitud 3,076.",
+      "blocks": [
+        "s3-p17",
+        "s3-p18",
+        "s3-p19",
+        "s3-p20"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "The semantic and geometry embeddings are directly concatenated into one 4,076-dimensional vector per node.",
+      "es": "Los embeddings semántico y geométrico se concatenan directamente en un vector de 4,076 dimensiones por nodo.",
+      "blocks": [
+        "s3-p21",
+        "s5-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "GraphSAGE, an inductive GNN, updates each node's embedding by aggregating neighbors' features; the paper uses three levels of neighborhood with a mean aggregator, applied to object classification.",
+      "es": "GraphSAGE, una GNN inductiva, actualiza el embedding de cada nodo agregando las características de sus vecinos; el artículo usa tres niveles de vecindad con un agregador de media, aplicado a la clasificación de objetos.",
+      "blocks": [
+        "s3-p22",
+        "s3-p23",
+        "s3-p24"
+      ],
+      "key": "graphsage",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "dataset",
+      "en": "The graph dataset is built from five IFC models made with different software and covering different building scenarios; it has 15 IFC object classes, 21,083 nodes and 137,381 edges.",
+      "es": "El conjunto de datos de grafos se construye con cinco modelos IFC hechos con distintos programas y que cubren distintos escenarios de edificios; tiene 15 clases de objetos IFC, 21,083 nodos y 137,381 aristas.",
+      "blocks": [
+        "s4-p2",
+        "s4-p3",
+        "tab-1",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "Abstract classes (IfcBuilding, IfcStorey, IfcSite) have no geometry, so synthetic geometry was created: a bounding box for the building and a horizontal plane at the proper altitude for each storey and the site.",
+      "es": "Las clases abstractas (IfcBuilding, IfcStorey, IfcSite) no tienen geometría, así que se creó geometría sintética: una caja envolvente para el edificio y un plano horizontal a la altitud correspondiente para cada nivel y el sitio.",
+      "blocks": [
+        "s4-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Labels were checked by visually inspecting the geometries because object types were often misclassified in the original models (walls modeled as columns, for example); in the No.2 residential building, 566 objects were relabeled.",
+      "es": "Las etiquetas se verificaron inspeccionando visualmente las geometrías porque los tipos de objeto estaban mal clasificados con frecuencia en los modelos originales (por ejemplo, muros modelados como columnas); en el edificio residencial No.2 se reetiquetaron 566 objetos.",
+      "blocks": [
+        "s4-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "Seven experiments in two groups: No.1 to No.3 compare node embeddings (both, geometry only, text only) with all edges; No.4 to No.7 compare edge subsets with no node embeddings, using only whether nodes are connected.",
+      "es": "Siete experimentos en dos grupos: No.1 a No.3 comparan embeddings de nodo (ambos, solo geometría, solo texto) con todas las aristas; No.4 a No.7 comparan subconjuntos de aristas sin embeddings de nodo, usando solo si los nodos están conectados.",
+      "blocks": [
+        "s4-p9",
+        "s4-p10",
+        "s4-p11",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "method",
+      "en": "Training uses the Deep Graph Library with a three-layer GraphSAGE of hidden size 64, dropout 0.2, mini-batches and a random 60%, 20%, 20% split for training, validation and test; accuracy and F1-score are the metrics.",
+      "es": "El entrenamiento usa Deep Graph Library con un GraphSAGE de tres capas, tamaño oculto 64, dropout de 0.2, minilotes y una división aleatoria de 60%, 20% y 20% para entrenamiento, validación y prueba; las métricas son exactitud y F1.",
+      "blocks": [
+        "s4-p12",
+        "s4-p13",
+        "s4-p14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "Attribute (text) embeddings alone gave the best result in experiment No.3: 97.7% accuracy and an F1-score of 0.97.",
+      "es": "Los embeddings de atributos (texto) por sí solos dieron el mejor resultado en el experimento No.3: 97.7% de exactitud y un F1 de 0.97.",
+      "blocks": [
+        "s4-p15",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "Concatenating attribute and geometry embeddings (No.1) gave 86.6% accuracy and an F1-score of 0.83, which is 11% lower than attributes alone; geometry alone (No.2) gave 58.8% accuracy and an F1-score of 0.57.",
+      "es": "Concatenar embeddings de atributos y geometría (No.1) dio 86.6% de exactitud y un F1 de 0.83, 11% menos que solo atributos; la geometría sola (No.2) dio 58.8% de exactitud y un F1 de 0.57.",
+      "blocks": [
+        "s4-p16",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "With all edge types and no node embeddings (No.4), the graph topology alone reached 57.9% accuracy and an F1-score of 0.53.",
+      "es": "Con todos los tipos de arista y sin embeddings de nodo (No.4), la topología del grafo por sí sola alcanzó 57.9% de exactitud y un F1 de 0.53.",
+      "blocks": [
+        "s4-p17",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "The authors conclude that attribute embeddings contribute most to classification, while geometry embeddings can lower performance and need improvement; topology alone is a strong baseline when other modalities are incomplete or missing.",
+      "es": "Los autores concluyen que los embeddings de atributos contribuyen más a la clasificación, mientras que los de geometría pueden reducir el desempeño y necesitan mejorar; la topología sola es una línea base sólida cuando otras modalidades están incompletas o ausentes.",
+      "blocks": [
+        "s4-p18",
+        "s4-p20"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "GraphSAGE reaches accuracy and F1-scores close to traditional models such as decision trees and random forests, with training time comparable to or shorter than some of them, but not beyond them.",
+      "es": "GraphSAGE alcanza exactitud y F1 cercanos a los de modelos tradicionales como árboles de decisión y bosques aleatorios, con tiempo de entrenamiento comparable o menor que algunos de ellos, pero sin superarlos.",
+      "blocks": [
+        "s4-p19",
+        "s4-p21",
+        "tab-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "claim",
+      "en": "The authors conclude the experiments show it is feasible to use graphs to embed multimodal BIM data (attributes, building topology) for machine learning.",
+      "es": "Los autores concluyen que los experimentos muestran que es factible usar grafos para incrustar datos BIM multimodales (atributos, topología del edificio) para aprendizaje automático.",
+      "blocks": [
+        "s5-p4",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "The evaluation dataset is small (only five BIM models) and the task is simple (few, distinct object types), which may limit the validity of the results and may hide the advantages of the graph approach.",
+      "es": "El conjunto de evaluación es pequeño (solo cinco modelos BIM) y la tarea es simple (pocos tipos de objeto distintos), lo que puede limitar la validez de los resultados y ocultar las ventajas del enfoque de grafos.",
+      "blocks": [
+        "s5-p5",
+        "s4-p21"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "GraphSAGE ignores the semantic properties of edges and works in supervised mode, so its embeddings suit the task they were trained for and lack generality.",
+      "es": "GraphSAGE ignora las propiedades semánticas de las aristas y trabaja de forma supervisada, por lo que sus embeddings sirven para la tarea de entrenamiento y carecen de generalidad.",
+      "blocks": [
+        "s5-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "future",
+      "en": "Improve geometry embedding with learning-based methods such as PointNet and MeshNet instead of raw geometry as input features.",
+      "es": "Mejorar el embedding de geometría con métodos aprendidos como PointNet y MeshNet, en lugar de usar geometría cruda como características de entrada.",
+      "blocks": [
+        "s5-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "future",
+      "en": "Replace simple concatenation of semantic and geometric embeddings with attention mechanisms that fuse them adaptively according to the task.",
+      "es": "Reemplazar la concatenación simple de embeddings semánticos y geométricos con mecanismos de atención que los fusionen de forma adaptativa según la tarea.",
+      "blocks": [
+        "s5-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "future",
+      "en": "Explore more advanced graph learning methods that use edge attributes and learn unsupervised, to produce more general embeddings of BIM data.",
+      "es": "Explorar métodos de aprendizaje en grafos más avanzados que usen atributos de aristas y aprendan sin supervisión, para producir embeddings más generales de los datos BIM.",
+      "blocks": [
+        "s5-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "future",
+      "en": "Build large-scale, comprehensive datasets to support varied BIM tasks and a thorough, rigorous evaluation.",
+      "es": "Construir conjuntos de datos grandes y completos que apoyen tareas BIM variadas y una evaluación exhaustiva y rigurosa.",
+      "blocks": [
+        "s5-p10"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i2",
+      "type": "supports",
+      "why": "The research question is posed to address the identified gap."
+    },
+    {
+      "from": "i3",
+      "to": "i2",
+      "type": "supports",
+      "why": "The inverse approach is what leaves representation learning unexplored."
+    },
+    {
+      "from": "i4",
+      "to": "i2",
+      "type": "supports",
+      "why": "Successes of representation learning in NLP and vision motivate applying it to BIM."
+    },
+    {
+      "from": "i5",
+      "to": "i6",
+      "type": "contradicts",
+      "why": "Prior work uses one modality, while BIM data is inherently multimodal."
+    },
+    {
+      "from": "i7",
+      "to": "i1",
+      "type": "measures",
+      "why": "The three-step method is the proposed answer to the research question."
+    },
+    {
+      "from": "i9",
+      "to": "i7",
+      "type": "part-of",
+      "why": "The graph structure is step 1 of the workflow."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Edges are part of the BIM graph definition."
+    },
+    {
+      "from": "i8",
+      "to": "i9",
+      "type": "supports",
+      "why": "IFC and IfcOWL complexity motivates a simpler AI-suitable structure."
+    },
+    {
+      "from": "i11",
+      "to": "i9",
+      "type": "uses",
+      "why": "The converter turns IFC into the BIM graph structure."
+    },
+    {
+      "from": "i12",
+      "to": "i7",
+      "type": "part-of",
+      "why": "Text embedding is the semantic half of step 2."
+    },
+    {
+      "from": "i13",
+      "to": "i7",
+      "type": "part-of",
+      "why": "Point cloud embedding is the geometric half of step 2."
+    },
+    {
+      "from": "i14",
+      "to": "i12",
+      "type": "uses",
+      "why": "The concatenated vector includes the 1,000-dimension text embedding."
+    },
+    {
+      "from": "i14",
+      "to": "i13",
+      "type": "uses",
+      "why": "The concatenated vector includes the 3,076-dimension geometry embedding."
+    },
+    {
+      "from": "i15",
+      "to": "i14",
+      "type": "uses",
+      "why": "GraphSAGE updates the concatenated node embeddings with neighbor information."
+    },
+    {
+      "from": "i16",
+      "to": "i11",
+      "type": "uses",
+      "why": "The dataset was compiled with the IFC-to-graph compiler."
+    },
+    {
+      "from": "i17",
+      "to": "i16",
+      "type": "part-of",
+      "why": "Synthetic geometry makes abstract classes compatible with geometry embedding in the dataset."
+    },
+    {
+      "from": "i18",
+      "to": "i16",
+      "type": "part-of",
+      "why": "Relabeling improves the label accuracy of the dataset."
+    },
+    {
+      "from": "i19",
+      "to": "i16",
+      "type": "uses",
+      "why": "The experiments run on the five-model graph dataset."
+    },
+    {
+      "from": "i20",
+      "to": "i15",
+      "type": "uses",
+      "why": "Training configures the three-layer GraphSAGE."
+    },
+    {
+      "from": "i21",
+      "to": "i19",
+      "type": "example-of",
+      "why": "Result of experiment No.3 in the first group."
+    },
+    {
+      "from": "i22",
+      "to": "i19",
+      "type": "example-of",
+      "why": "Results of experiments No.1 and No.2 in the first group."
+    },
+    {
+      "from": "i23",
+      "to": "i19",
+      "type": "example-of",
+      "why": "Result of experiment No.4 in the second group."
+    },
+    {
+      "from": "i22",
+      "to": "i21",
+      "type": "contradicts",
+      "why": "Adding geometry to text lowered accuracy compared with text alone."
+    },
+    {
+      "from": "i21",
+      "to": "i24",
+      "type": "supports",
+      "why": "Text embeddings dominating performance underlies the conclusion."
+    },
+    {
+      "from": "i22",
+      "to": "i24",
+      "type": "supports",
+      "why": "Geometry hurting or not helping underlies the conclusion."
+    },
+    {
+      "from": "i23",
+      "to": "i24",
+      "type": "supports",
+      "why": "Topology-only performance supports calling it a viable baseline."
+    },
+    {
+      "from": "i25",
+      "to": "i26",
+      "type": "supports",
+      "why": "GraphSAGE matching classical models supports feasibility, not superiority."
+    },
+    {
+      "from": "i27",
+      "to": "i25",
+      "type": "supports",
+      "why": "The authors attribute GRL not surpassing other methods to the simple task and limited data."
+    },
+    {
+      "from": "i29",
+      "to": "i24",
+      "type": "supports",
+      "why": "The poor geometry result motivates learned geometry embeddings."
+    },
+    {
+      "from": "i30",
+      "to": "i14",
+      "type": "supports",
+      "why": "Attention fusion would replace the simple concatenation."
+    },
+    {
+      "from": "i31",
+      "to": "i28",
+      "type": "supports",
+      "why": "Edge-aware unsupervised methods would address GraphSAGE's limits."
+    },
+    {
+      "from": "i32",
+      "to": "i27",
+      "type": "supports",
+      "why": "A larger dataset responds to the small-dataset limitation."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i9",
+      "to": "ifc-to-graph-recipe",
+      "why": "A concrete recipe: elements as nodes carrying property dictionaries and a mesh, with belonging, host, touch and intersect edges."
+    },
+    {
+      "idea": "i8",
+      "to": "ifc",
+      "why": "Argues that the IFC schema's size and nesting make it unsuited to AI directly, motivating a simplified graph form."
+    },
+    {
+      "idea": "i18",
+      "to": "clean-real-models",
+      "why": "Real IFC models had misclassified objects; 566 objects in one building had to be relabeled before learning."
+    },
+    {
+      "idea": "i27",
+      "to": "real-or-synthetic-data",
+      "why": "Only five real models gave a small dataset, which the authors say limits their conclusions."
+    },
+    {
+      "idea": "i23",
+      "to": "hypothesis",
+      "why": "Topology alone, without attributes, reached 57.9% accuracy, which gives partial support that relations carry learnable pattern."
+    },
+    {
+      "idea": "i26",
+      "to": "question",
+      "why": "It shows decomposed elements and relations can be embedded for learning, but only for classification; generating new valid models is not addressed, which is a gap."
+    },
+    {
+      "idea": "i12",
+      "to": "fuchs-borrmann-2025",
+      "why": "Reads element attributes as text through a language-model embedding, which relates to the question of how text is best presented to a model."
+    },
+    {
+      "idea": "i22",
+      "to": "wang-ying-2025",
+      "why": "Geometry added through raw point clouds hurt results, a caution when geometry has to be part of what is generated."
+    }
+  ]
+}

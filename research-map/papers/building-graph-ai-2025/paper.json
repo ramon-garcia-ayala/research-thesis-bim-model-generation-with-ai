@@ -1,0 +1,873 @@
+{
+  "version": 1,
+  "node": "building-graph-ai-2025",
+  "title": "Building-Graph-AI: Graph Neural Networks Learning and Generating 3D Detailed and Layered Building Models",
+  "source": "files/Building-graph-AI.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Información preliminar"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 2,
+          "text": {
+            "en": "Building-Graph-AI: Graph Neural Networks Learning and Generating 3D Detailed and Layered Building Models",
+            "es": "Building-Graph-AI: redes neuronales de grafos (Graph Neural Networks) que aprenden y generan modelos 3D de edificios detallados y por capas"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Liang, Jiadong; Zhong, Ximing; Zhao, Shixin; Fricker, Pia; Koh, Immanuel",
+            "es": "Liang, Jiadong; Zhong, Ximing; Zhao, Shixin; Fricker, Pia; Koh, Immanuel"
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Published in: International Journal of Architectural Computing; DOI: 10.1177/14780771251352946; Published: 01/09/2025",
+            "es": "Publicado en: International Journal of Architectural Computing; DOI: 10.1177/14780771251352946; Fecha de publicación: 01/09/2025"
+          }
+        },
+        {
+          "id": "s0-p7",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Document Version Peer-reviewed accepted author manuscript, also known as Final accepted manuscript or Post-print; Published under the following license: CC BY-NC-ND",
+            "es": "Versión del documento: manuscrito de autor aceptado y revisado por pares, también conocido como manuscrito final aceptado o post-print; publicado bajo la siguiente licencia: CC BY-NC-ND"
+          }
+        },
+        {
+          "id": "s0-p9",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Please cite the original version: Liang, J., Zhong, X., Zhao, S., Fricker, P., & Koh, I. (2025). Building-graph-AI : Graph neural networks learning and generating 3D detailed and layered building models. International Journal of Architectural Computing, 23(3), 640-654. https://doi.org/10.1177/14780771251352946",
+            "es": "Cite la versión original: Liang, J., Zhong, X., Zhao, S., Fricker, P., & Koh, I. (2025). Building-graph-AI : Graph neural networks learning and generating 3D detailed and layered building models. International Journal of Architectural Computing, 23(3), 640-654. https://doi.org/10.1177/14780771251352946"
+          }
+        }
+      ]
+    },
+    {
+      "id": "abs",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s0-p12",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "This research introduces a three-dimensional (3D) building learning and generation framework based on graph theory and generative AI models, Building-Graph-AI. The framework aims to encode 3D building models into graph-structured data suitable for training graph neural networks (GNNs) and to generate layered 3D models at the detailed building component level. We test various encoding methods and neural networks, selecting the most effective method and defining it as Graph-BIM encoding. The results demonstrate that the Graph-BIM encoding method can reconstruct and generate detailed 3D building models from simple geometries and constraints. Compared to existing methods based on voxel, point cloud and 3D field, Building-Graph-AI excels in learning and generating detailed, hierarchical 3D models at the building component level, such as walls, columns and floors. By bridging the gap between geometric design and AI-based training and generation, this framework enhances the adaptability and efficiency of AI applications in architectural design.",
+            "es": "Esta investigación presenta un marco de aprendizaje y generación de edificios tridimensionales (3D) basado en la teoría de grafos y en modelos de IA generativa, Building-Graph-AI. El marco busca codificar modelos 3D de edificios en datos con estructura de grafo adecuados para entrenar redes neuronales de grafos (graph neural networks, GNNs) y generar modelos 3D por capas al nivel de detalle de los componentes del edificio. Probamos varios métodos de codificación y redes neuronales, seleccionamos el método más eficaz y lo definimos como codificación Graph-BIM. Los resultados demuestran que el método de codificación Graph-BIM puede reconstruir y generar modelos 3D detallados de edificios a partir de geometrías y restricciones simples. En comparación con los métodos existentes basados en vóxeles, nubes de puntos y campos 3D, Building-Graph-AI sobresale en el aprendizaje y la generación de modelos 3D detallados y jerárquicos al nivel de los componentes del edificio, como muros, columnas y pisos. Al tender un puente entre el diseño geométrico y el entrenamiento y la generación basados en IA, este marco mejora la adaptabilidad y la eficiencia de las aplicaciones de IA en el diseño arquitectónico."
+          }
+        },
+        {
+          "id": "s0-p13",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Keywords: Building-Graph-AI, Graph-BIM Encoding, 3D Spatial Grid Structure, Graph Neural Networks, 3D Model Learning and Generation, Detailed And Layered Generated Models",
+            "es": "Palabras clave: Building-Graph-AI, codificación Graph-BIM, estructura de malla espacial 3D, redes neuronales de grafos, aprendizaje y generación de modelos 3D, modelos generados detallados y por capas"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1. Introduction",
+        "es": "1. Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In the concept design phase of architecture projects, simple geometries are progressively refined under design constraints to create detailed building models. Recent progress in Artificial Intelligence (AI) attempts to replicate this design workflow [1, 2, 3]. Nevertheless, existing generative AI models in architecture design face challenges in learning complex three-dimensional (3D) building spatial layouts at a component level. This leads to a difficulty in generating highly detailed and layered building models- comprehensive representations that organise elements like walls, floors, and ceilings into distinct layers to illustrate their relationships, which are essential in the design phase.",
+            "es": "En la fase de diseño conceptual de los proyectos de arquitectura, las geometrías simples se refinan progresivamente bajo restricciones de diseño para crear modelos detallados de edificios. Los avances recientes en inteligencia artificial (IA) intentan replicar este flujo de trabajo de diseño [1, 2, 3]. Sin embargo, los modelos generativos de IA existentes en el diseño arquitectónico enfrentan dificultades para aprender distribuciones espaciales tridimensionales (3D) complejas de edificios a nivel de componente. Esto dificulta la generación de modelos de edificios muy detallados y por capas, es decir, representaciones integrales que organizan elementos como muros, pisos y techos en capas distintas para ilustrar sus relaciones, lo cual es esencial en la fase de diseño."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Chang et al. [4] use voxels, a volume element in 3D space used to analyse volumetric data, to represent building space and generate buildings at the voxel level, but the results demand manual detailing. Signed-distance field (SDF), on the other hand, is a method defining the shape of a 3D object by calculating the distance from any point in space to the object’s surface, focus on producing the outer structure of building models, making it challenging to capture the interactions among building components [5, 6]. Zhong et al. [7] use graph representations that replace room details with generated building space but cannot predict the components inside the room. A point cloud is a collection of points representing specific locations in 3D space, while a voxel is the volumetric pixel exhibited as a small cube, and neural fields are neural networks functions that assign values like color and density to spatial coordinates. The difficulty of generating high-detail models end-to-end from geometry is that deep learning models can hardly capture the spatial connections between the geometric properties of building volumes and the elements of complex layouts.",
+            "es": "Chang et al. [4] usan vóxeles, un elemento de volumen en el espacio 3D que sirve para analizar datos volumétricos, para representar el espacio del edificio y generar edificios a nivel de vóxel, pero los resultados requieren detallado manual. Por su parte, el campo de distancia con signo (signed-distance field, SDF) es un método que define la forma de un objeto 3D calculando la distancia desde cualquier punto del espacio hasta la superficie del objeto; se centra en producir la estructura exterior de los modelos de edificios, lo que dificulta capturar las interacciones entre los componentes del edificio [5, 6]. Zhong et al. [7] usan representaciones de grafos que reemplazan los detalles de las habitaciones con espacio de edificio generado, pero no pueden predecir los componentes dentro de la habitación. Una nube de puntos es un conjunto de puntos que representan ubicaciones específicas en el espacio 3D, mientras que un vóxel es el píxel volumétrico, que se muestra como un pequeño cubo, y los campos neuronales (neural fields) son funciones de redes neuronales que asignan valores como color y densidad a coordenadas espaciales. La dificultad de generar modelos de alto detalle de extremo a extremo a partir de la geometría es que los modelos de aprendizaje profundo difícilmente logran capturar las conexiones espaciales entre las propiedades geométricas de los volúmenes del edificio y los elementos de distribuciones complejas."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "A robust encoding method is needed to address this challenge so that AI can learn how detailed building components relate to each other. Encoding refers to mapping high-dimensional data to a low-dimensional space for data downscaling and feature learning [8]. In this work, encoding refers to translating 3D building models into data format that AI can understand. Point clouds [9, 10], voxels [11], and neural fields [5, 6, 12] are common 3D model representations that can be encoded for AI-based learning. These methods primarily concentrate on the spatial attributes of individual elements and have limited capacity to learn how these elements interrelate within a spatial layout.",
+            "es": "Se necesita un método de codificación robusto para abordar este desafío, de modo que la IA pueda aprender cómo se relacionan entre sí los componentes detallados del edificio. La codificación (encoding) se refiere a mapear datos de alta dimensión a un espacio de baja dimensión para reducir la dimensionalidad de los datos y aprender características [8]. En este trabajo, la codificación se refiere a traducir modelos 3D de edificios a un formato de datos que la IA pueda entender. Las nubes de puntos [9, 10], los vóxeles [11] y los campos neuronales [5, 6, 12] son representaciones de modelos 3D comunes que se pueden codificar para el aprendizaje basado en IA. Estos métodos se concentran principalmente en los atributos espaciales de elementos individuales y tienen una capacidad limitada para aprender cómo se interrelacionan estos elementos dentro de una distribución espacial."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "We introduce an encoding approach that automatically converts Building Information Modeling (BIM) data into graph-structured data. This encoding combines hierarchical BIM data with the strengths of graph-based representation for AI learning, which we call Graph-BIM encoding. Graph-based data, consisting of nodes and edges, represents relationships between entities [13]. BIM data includes detailed information on each building component, such as walls, doors, and windows, along with the spatial connections linking these elements [14]. These data types are compatible with each other. Building components are encoded as nodes by integrating BIM data and graph representations. Physical connections, spatial relations, or functional links are encoded as edges. This graph-based structure allows AI to capture the details of every building element and reflect the relationships that define the spatial layouts. Recent work has shown that graph representations can successfully learn to build spatial layouts [4, 7, 15-18]. However, they typically face two main challenges. First, they do not handle the data formats well, making it difficult to learn irregular architectural configurations. Second, they usually depend on room function bubble diagrams or space voxels, which limits the ability to directly control and generate components such as columns and walls. By contrast, Graph-BIM encoding helps AI learn from various BIM data types and reconstruct or produce detailed BIM models under direct control. To test the viability of Graph-BIM, we use Variational Graph Auto-Encoders (VGAE) within a Graph Neural Networks (GNNs) framework.",
+            "es": "Presentamos un enfoque de codificación que convierte automáticamente datos de Modelado de Información de Construcción (Building Information Modeling, BIM) en datos con estructura de grafo. Esta codificación combina los datos jerárquicos de BIM con las fortalezas de la representación basada en grafos para el aprendizaje de la IA, y la llamamos codificación Graph-BIM. Los datos basados en grafos, compuestos por nodos (nodes) y aristas (edges), representan relaciones entre entidades [13]. Los datos BIM incluyen información detallada sobre cada componente del edificio, como muros, puertas y ventanas, junto con las conexiones espaciales que vinculan estos elementos [14]. Estos tipos de datos son compatibles entre sí. Al integrar los datos BIM y las representaciones de grafos, los componentes del edificio se codifican como nodos. Las conexiones físicas, las relaciones espaciales o los vínculos funcionales se codifican como aristas. Esta estructura basada en grafos permite que la IA capture los detalles de cada elemento del edificio y refleje las relaciones que definen las distribuciones espaciales. Trabajos recientes han mostrado que las representaciones de grafos pueden aprender con éxito a construir distribuciones espaciales [4, 7, 15-18]. Sin embargo, por lo general enfrentan dos desafíos principales. Primero, no manejan bien los formatos de datos, lo que dificulta aprender configuraciones arquitectónicas irregulares. Segundo, suelen depender de diagramas de burbujas (bubble diagrams) de funciones de habitaciones o de vóxeles de espacio, lo que limita la capacidad de controlar y generar directamente componentes como columnas y muros. En contraste, la codificación Graph-BIM ayuda a la IA a aprender de diversos tipos de datos BIM y a reconstruir o producir modelos BIM detallados bajo control directo. Para probar la viabilidad de Graph-BIM, usamos autocodificadores variacionales de grafos (Variational Graph Auto-Encoders, VGAE) dentro de un marco de redes neuronales de grafos (GNNs)."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "GNNs are neural networks designed to process graph-structured data, enabling the graphs to model relationships between building entities, which can connect and influence each other. Therefore, it is well-suited for capturing complex interactions among nodes [13]. For instance, studies on shear wall analysis have shown the capacity of GNNs to work with graph-based data and interpret spatial layouts [17, 18]. Despite this strength, many GNN applications still require extensive labelling for training data. Consequently, we implement the VGAE model to improve learning efficiency from BIM data. VGAE is a type of neural networks that have the ability to learn and predict graph-structured data. It comprises an encoder and a decoder, allowing self-supervised learning of BIM data by recognising nodes’ features and their arrangement in the graph and creating a new graph [19]. Recent research has demonstrated how VGAE can represent molecular structures, learn edges and their attributes, and generate new molecular configurations [20]. The VGAE has also recently been widely used to learn floor plan layout generation in architecture [21]. This indicates that VGAE has the potential to learn 3D building spatial layouts encoded as graph-based data, capturing how different building components are positioned with one another. Therefore, we aim to identify effective Graph-BIM encoding strategies and predict building layouts by evaluating VGAE’s performance in spatial reconstruction.",
+            "es": "Las GNNs son redes neuronales diseñadas para procesar datos con estructura de grafo, lo que permite que los grafos modelen relaciones entre entidades del edificio, las cuales pueden conectarse e influirse mutuamente. Por lo tanto, son muy adecuadas para capturar interacciones complejas entre nodos [13]. Por ejemplo, estudios sobre el análisis de muros de cortante (shear wall) han mostrado la capacidad de las GNNs para trabajar con datos basados en grafos e interpretar distribuciones espaciales [17, 18]. A pesar de esta fortaleza, muchas aplicaciones de GNNs aún requieren un etiquetado extenso de los datos de entrenamiento. En consecuencia, implementamos el modelo VGAE para mejorar la eficiencia del aprendizaje a partir de datos BIM. VGAE es un tipo de red neuronal con capacidad para aprender y predecir datos con estructura de grafo. Consta de un codificador (encoder) y un decodificador (decoder), lo que permite el aprendizaje autosupervisado (self-supervised learning) de datos BIM al reconocer las características de los nodos y su disposición en el grafo, y crear un nuevo grafo [19]. Investigaciones recientes han demostrado cómo VGAE puede representar estructuras moleculares, aprender aristas y sus atributos, y generar nuevas configuraciones moleculares [20]. Además, VGAE se ha utilizado ampliamente en fechas recientes para aprender la generación de distribuciones de planos de planta en arquitectura [21]. Esto indica que VGAE tiene el potencial de aprender distribuciones espaciales 3D de edificios codificadas como datos basados en grafos, capturando cómo se posicionan entre sí los distintos componentes del edificio. Por lo tanto, nuestro objetivo es identificar estrategias eficaces de codificación Graph-BIM y predecir distribuciones de edificios evaluando el desempeño de VGAE en la reconstrucción espacial."
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Nevertheless, using Graph-BIM encoding and VGAE to produce detailed, layered 3D buildings directly from simple geometries remains challenging. Simple geometric volumes do not provide the internal spatial nodes and edges necessary for VGAE learning and generation. Some approaches use voxel-based methods for partitioning space into regular grids [22-24]. These grids can represent beams and columns [25] or approximate objects with variable quadrilaterals [6]. Using grid segmentation, new nodes and edges are obtained, providing extensive spatial information for GNNs. This grid-based approach lays the foundation for learning the generative relationship from building volumes to complex building layouts, facilitating the prediction of nodes and edges to fundamental building components such as walls, columns, doors, and windows. We define the spatial structure of building volumes divided by the 3D grid as the 3D spatial grid structure. Here, nodes represent points in space, such as an intersection or endpoint of a wall, while edges represent possible connections, such as walls, doors, or structural elements. The 3D spatial grid structure overcomes the limitations of geometrical empty inner spatial information by inserting richer spatial details into the graph representation, allowing the VGAE to learn and predict the classification of edges.",
+            "es": "Sin embargo, usar la codificación Graph-BIM y VGAE para producir edificios 3D detallados y por capas directamente a partir de geometrías simples sigue siendo un desafío. Los volúmenes geométricos simples no proporcionan los nodos y aristas espaciales internos necesarios para el aprendizaje y la generación con VGAE. Algunos enfoques usan métodos basados en vóxeles para dividir el espacio en mallas regulares [22-24]. Estas mallas pueden representar vigas y columnas [25] o aproximar objetos con cuadriláteros variables [6]. Con la segmentación de la malla se obtienen nuevos nodos y aristas, que aportan abundante información espacial a las GNNs. Este enfoque basado en mallas sienta las bases para aprender la relación generativa entre los volúmenes de un edificio y distribuciones complejas, y facilita la predicción de nodos y aristas para componentes fundamentales del edificio como muros, columnas, puertas y ventanas. Definimos la estructura espacial de los volúmenes de un edificio divididos por la malla 3D como la estructura de malla espacial 3D. Aquí, los nodos representan puntos en el espacio, como una intersección o un extremo de un muro, mientras que las aristas representan posibles conexiones, como muros, puertas o elementos estructurales. La estructura de malla espacial 3D supera las limitaciones de la falta de información espacial interior de la geometría al insertar detalles espaciales más ricos en la representación del grafo, lo que permite que el VGAE aprenda y prediga la clasificación de las aristas."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Graph-BIM encoding and the 3D Spatial Grid Structure and VGAE compose the Building-Graph-AI, an AI generative framework designed for learning and generating detailed, layered 3D building models (Figure 1). Compared to current AI generative models in architecture design, Building-Graph-AI can encode 3D building models into graph-structured data suitable for training GNNs and utilise the trained models for generating layered 3D models at the detailed building component level. This framework can learn spatial layout relationships between design constraints and building volumes, enabling the generated building models to retain precise control over design details at the same component layer. By bridging the gap between geometric design and AI-based training and generation, Building-Graph-AI enhances the adaptability and efficiency of AI applications in architecture design.",
+            "es": "La codificación Graph-BIM, la estructura de malla espacial 3D y VGAE componen Building-Graph-AI, un marco generativo de IA diseñado para aprender y generar modelos 3D de edificios detallados y por capas (Figura 1). En comparación con los modelos generativos de IA actuales en el diseño arquitectónico, Building-Graph-AI puede codificar modelos 3D de edificios en datos con estructura de grafo adecuados para entrenar GNNs y utilizar los modelos entrenados para generar modelos 3D por capas al nivel de detalle de los componentes del edificio. Este marco puede aprender las relaciones de distribución espacial entre las restricciones de diseño y los volúmenes del edificio, lo que permite que los modelos de edificios generados conserven un control preciso sobre los detalles de diseño dentro de una misma capa de componentes. Al cerrar la brecha entre el diseño geométrico y el entrenamiento y la generación basados en IA, Building-Graph-AI mejora la adaptabilidad y la eficiencia de las aplicaciones de IA en el diseño arquitectónico."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1, Building-Graph-AI Learning and Generation Framework",
+            "es": "Figura 1: Marco de aprendizaje y generación de Building-Graph-AI"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2. Related Work",
+        "es": "2. Trabajos relacionados"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "2.1. Graph-Structured Encoding Method",
+            "es": "2.1. Método de codificación con estructura de grafo"
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Nauata et al. [15, 16] develop the Housegan model, which generates housing layouts aligned with graph constraints. Housegan dataset contains approximately 117,000 real floorpans sourced from a Japanese real-estate information service, offering an extensive data about spatial properties in real-world architectural practice. It presents rooms as nodes, and their adjacencies are represented as edges. Its high-level abstraction, however, overlooks detailed elements such as columns, walls, and windows. Building-GNN encodes voxels as nodes and captures spatial interrelations through edges, thus supporting precise spatial semantics at the voxel level [7]. Despite this, existing methods have difficulty managing irregular architectural layouts and generating architectural components within voxel space. For instance, a shear wall layout approach using GNNs encodes walls and windows as edges, with component intersections serving as nodes [17, 18]. It successfully predicts shear wall layouts and demonstrates that GNNs can control and predict specific architectural elements. Nonetheless, it mainly concentrates on shear wall attributes and does not address the entire spatial layout. The limitations in these works involve predicting detailed building components, accommodating various data types, and handling overall spatial layouts. Graph-BIM Encoding tackles these issues by treating building components like columns and walls as graph nodes and edges, assigning them spatial coordinates and other positional properties such as component orientation and placement. In addition to capturing the relationships among architectural elements, we suggest adding room function connections as special attributes within our encoding implementation.",
+            "es": "Nauata et al. [15, 16] desarrollan el modelo Housegan, que genera distribuciones de viviendas alineadas con restricciones de grafo. El conjunto de datos de Housegan contiene aproximadamente 117,000 planos de planta reales obtenidos de un servicio japonés de información inmobiliaria, y ofrece abundantes datos sobre propiedades espaciales en la práctica arquitectónica real. Presenta las habitaciones como nodos y sus adyacencias se representan como aristas. Sin embargo, su alto nivel de abstracción pasa por alto elementos detallados como columnas, muros y ventanas. Building-GNN codifica los vóxeles como nodos y captura las interrelaciones espaciales mediante aristas, con lo que respalda una semántica espacial precisa a nivel de vóxel [7]. Pese a ello, los métodos existentes tienen dificultades para manejar distribuciones arquitectónicas irregulares y para generar componentes arquitectónicos dentro del espacio de vóxeles. Por ejemplo, un enfoque de distribución de muros de cortante que usa GNNs codifica muros y ventanas como aristas, y las intersecciones de componentes sirven como nodos [17, 18]. Predice con éxito distribuciones de muros de cortante y demuestra que las GNNs pueden controlar y predecir elementos arquitectónicos específicos. No obstante, se concentra principalmente en los atributos de los muros de cortante y no aborda la distribución espacial completa. Las limitaciones de estos trabajos tienen que ver con predecir componentes detallados del edificio, admitir diversos tipos de datos y manejar distribuciones espaciales globales. La codificación Graph-BIM aborda estos problemas al tratar los componentes del edificio, como columnas y muros, como nodos y aristas del grafo, asignándoles coordenadas espaciales y otras propiedades posicionales, como la orientación y la ubicación del componente. Además de capturar las relaciones entre los elementos arquitectónicos, sugerimos añadir las conexiones de función de las habitaciones como atributos especiales dentro de nuestra implementación de la codificación."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "2.2. VGAE Models",
+            "es": "2.2. Modelos VGAE"
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Simonovsky and Komodakis [26] articulate the use of GraphVAE to produce a predefined probabilistic, fully connected graph in one pass through its decoder. GraphVAE is a type of variational autoencoder generates graphs by creating a probabilistic, fully connected graph in a single pass through its decoder. Adjusting its probability thresholds controls the likelihood of the existence of nodes and edges, thereby creating molecular graphs. (graphical representations of molecules where atoms and chemical bonds are modelled as nodes and edges, respectively) This inspires us to test various threshold values to maintain more comprehensive reconstructions of spatial layouts. In another study, the Permutation-Invariant Variational Autoencoder addresses graph-level learning by resolving the graph reordering problem and clarifying how node sequence uncertainty can be handled [27]. This offers practical advice for managing node sequences in architectural layouts using VGAE. Additionally, Shi et al. [28] propose a masking label prediction approach, randomly hiding a segment of input label data before making predictions. Following this concept, we hide parts of the spatial layout data to examine the overall space, assessing how well the VGAE model can learn spatial layout properties when paired with Graph-BIM Encoding. Building on these theoretical and applied findings, we use VGAE’s graph reconstruction capacities to evaluate suitable Graph-BIM Encoding methods while examining VGAE’s capabilities for reasoning about building spatial layouts with encoded BIM data.",
+            "es": "Simonovsky y Komodakis [26] exponen el uso de GraphVAE para producir un grafo probabilístico predefinido y totalmente conectado en una sola pasada por su decodificador. GraphVAE es un tipo de autocodificador variacional que genera grafos creando un grafo probabilístico y totalmente conectado en una sola pasada por su decodificador. Ajustar sus umbrales de probabilidad controla la probabilidad de existencia de nodos y aristas, con lo que se crean grafos moleculares (representaciones gráficas de moléculas en las que los átomos y los enlaces químicos se modelan como nodos y aristas, respectivamente). Esto nos inspira a probar varios valores de umbral para mantener reconstrucciones más completas de las distribuciones espaciales. En otro estudio, el autocodificador variacional invariante a permutaciones (Permutation-Invariant Variational Autoencoder) aborda el aprendizaje a nivel de grafo al resolver el problema de reordenamiento de grafos y aclarar cómo se puede manejar la incertidumbre de la secuencia de nodos [27]. Esto ofrece orientación práctica para manejar secuencias de nodos en distribuciones arquitectónicas mediante VGAE. Además, Shi et al. [28] proponen un enfoque de predicción de etiquetas enmascaradas (masking label prediction), que oculta al azar un segmento de los datos de etiquetas de entrada antes de hacer predicciones. Siguiendo este concepto, ocultamos partes de los datos de distribución espacial para examinar el espacio en su conjunto y evaluar qué tan bien puede el modelo VGAE aprender las propiedades de la distribución espacial cuando se combina con la codificación Graph-BIM. Con base en estos hallazgos teóricos y aplicados, usamos las capacidades de reconstrucción de grafos de VGAE para evaluar métodos adecuados de codificación Graph-BIM, al tiempo que examinamos las capacidades de VGAE para razonar sobre distribuciones espaciales de edificios con datos BIM codificados."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "2.3. 3D Space Partitioning",
+            "es": "2.3. Partición del espacio 3D"
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The 3D Spatial Grid Structure is developed to resolve simple geometric empty interior spatial information limitations by embedding rich spatial detail into graph representations. It draws on previous work in spatial grid partitioning. For example, Hübner et al. [24] use regular voxel grids to reconstruct indoor models at the building component level from unstructured triangle meshes.",
+            "es": "La estructura de malla espacial 3D se desarrolla para resolver las limitaciones de la información espacial interior vacía de las geometrías simples, incorporando abundante detalle espacial en las representaciones de grafos. Se apoya en trabajos previos sobre partición espacial en mallas. Por ejemplo, Hübner et al. [24] usan mallas regulares de vóxeles para reconstruir modelos de interiores al nivel de los componentes del edificio a partir de mallas triangulares no estructuradas."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Chen et al. [22] apply binary space partitioning (BSP) to form structural grids, showing how partitioning strategies could represent architectural elements. Chang and Cheng [25] investigate using graphs to model structural grids, while Shen et al. [6] employ variable quadrilaterals to adapt to complex 3D objects. These studies highlight how grid-based methods captured spatial relationships between components, forming the basis for our proposed 3D Spatial Grid Structure.",
+            "es": "Chen et al. [22] aplican la partición binaria del espacio (binary space partitioning, BSP) para formar mallas estructurales, y muestran cómo las estrategias de partición podrían representar elementos arquitectónicos. Chang y Cheng [25] investigan el uso de grafos para modelar mallas estructurales, mientras que Shen et al. [6] emplean cuadriláteros variables para adaptarse a objetos 3D complejos. Estos estudios destacan cómo los métodos basados en mallas capturaron las relaciones espaciales entre componentes, y conforman la base de nuestra estructura de malla espacial 3D propuesta."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Based on these studies, the 3D Spatial Grid Structure partitions geometries into a uniform grid where nodes represent spatial points, wall intersections or endpoints, and edges represent connections, walls, doors, or structural elements. This method enhances spatial representation by generating latent nodes and edges, allowing the model to accurately predict edge class. By mapping a 3D grid onto building volumes, the 3D Spatial Grid Structure bridges the gap between abstract geometry and detailed architectural models. This approach enables the Building-Graph-AI framework to learn any BIM model based on linear wall layout through Graph-BIM encoding and to predict 3D building models with detailed layers directly from simple geometries.",
+            "es": "Con base en estos estudios, la estructura de malla espacial 3D divide las geometrías en una malla uniforme donde los nodos representan puntos espaciales, intersecciones o extremos de muros, y las aristas representan conexiones, muros, puertas o elementos estructurales. Este método mejora la representación espacial al generar nodos y aristas latentes, lo que permite que el modelo prediga con precisión la clase de las aristas. Al mapear una malla 3D sobre los volúmenes del edificio, la estructura de malla espacial 3D cierra la brecha entre la geometría abstracta y los modelos arquitectónicos detallados. Este enfoque permite que el marco Building-Graph-AI aprenda cualquier modelo BIM basado en una distribución de muros lineales mediante la codificación Graph-BIM, y que prediga modelos 3D de edificios con capas detalladas directamente a partir de geometrías simples."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3. Methods and Results",
+        "es": "3. Métodos y resultados"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.1. Graph-BIM Encoding Test",
+            "es": "3.1. Prueba de codificación Graph-BIM (Graph-BIM Encoding)"
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The workflow of the Graph-BIM encoding experiment is shown in Figure 2. We test three different encoding methods and compare the loss between the building models generated from trained VGAE and the original dataset to determine which encoding approach achieved the best learning performance. A higher loss indicates that the encoding method failed to effectively capture the spatial layout features present in the dataset. Conversely, a lower loss suggests that the encoding method successfully captures the spatial relationships between architectural components and can reconstruct the spatial layout more accurately(Figure 2 (a)). The tested encoding methods include three combinations of node features and edge attributes, examining how spatial and environmental information affected the GNN’s ability to learn the 3D building spatial layout (Figure 2 (b)). From the perspective of Graph-BIM encoding, the endpoints of walls are encoded as nodes, along with non-overlapping columns, including spatial positions and environmental data. Meanwhile, walls are encoded as edges, with edge attributes representing wall types.",
+            "es": "El flujo de trabajo del experimento de codificación Graph-BIM se muestra en la Figura 2. Probamos tres métodos de codificación (encoding) diferentes y comparamos la pérdida (loss) entre los modelos de edificios generados por el autocodificador variacional de grafos (Variational Graph Autoencoder, VGAE) entrenado y el conjunto de datos original, para determinar qué enfoque de codificación logró el mejor desempeño de aprendizaje. Una pérdida más alta indica que el método de codificación no logró capturar eficazmente las características de la distribución espacial (spatial layout) presentes en el conjunto de datos. A la inversa, una pérdida más baja sugiere que el método de codificación captura con éxito las relaciones espaciales entre los componentes arquitectónicos y puede reconstruir la distribución espacial con mayor precisión (Figura 2 (a)). Los métodos de codificación probados incluyen tres combinaciones de características de nodo (node features) y atributos de arista (edge attributes), y examinan cómo la información espacial y ambiental afectó la capacidad de la red neuronal de grafos (Graph Neural Network, GNN) para aprender la distribución espacial 3D del edificio (Figura 2 (b)). Desde la perspectiva de la codificación Graph-BIM, los extremos de los muros se codifican como nodos (nodes), junto con las columnas que no se superponen, e incluyen posiciones espaciales y datos ambientales. Por su parte, los muros se codifican como aristas (edges), y los atributos de arista representan los tipos de muro."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2, Graph-BIM Encoding Test Experiments Workflow",
+            "es": "Figura 2: Flujo de trabajo de los experimentos de prueba de codificación Graph-BIM"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "3.2. Graph-Structured Data",
+            "es": "3.2. Datos estructurados en grafos"
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "We implement the Graph-BIM Encoding method in Revit Dynamo, which is a visual programming platform that can automatically convert the Revit 3D models into graph-structured data stored in Microsoft Excel, as shown in Figure 3. We modify the housegan dataset and transform it into 3D BIM models in Revit. The 3D BIM models are saved in two Excel files, one for node features and another one including edge index and edge attribution. Revit’s built-in component IDs and essential attributes facilitate efficiently converting the 3D models into the graph-structured data required by GNNs. Thus, Graph-BIM Encoding enables data conversion and model training from BIM models to GNNs, improving the efficiency of the generative AI mode in learning from BIM data.",
+            "es": "Implementamos el método de codificación Graph-BIM en Revit Dynamo, una plataforma de programación visual (visual programming platform) que puede convertir automáticamente los modelos 3D de Revit en datos estructurados en grafos (graph-structured data) almacenados en Microsoft Excel, como se muestra en la Figura 3. Modificamos el conjunto de datos housegan y lo transformamos en modelos BIM 3D en Revit. Los modelos BIM 3D se guardan en dos archivos de Excel: uno para las características de nodo y otro que incluye el índice de aristas (edge index) y la atribución de aristas. Los ID de componentes integrados de Revit y sus atributos esenciales facilitan la conversión eficiente de los modelos 3D en los datos estructurados en grafos que requieren las GNN. Así, la codificación Graph-BIM permite la conversión de datos y el entrenamiento de modelos desde modelos BIM hacia las GNN, lo que mejora la eficiencia del modelo de IA generativa al aprender a partir de datos BIM."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3, Graph-BIM Encoding Transforming 3D BIM Dataset into Graph-Structured Data",
+            "es": "Figura 3: La codificación Graph-BIM transforma el conjunto de datos BIM 3D en datos estructurados en grafos"
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "3.3. VGAE 3D Building Models Learning",
+            "es": "3.3. Aprendizaje de modelos de edificios 3D con VGAE"
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The VGAE architecture for learning 3D building model workflow is shown in Figure 4. First, we transform the 3D BIM models into graph-structured data, including node features, edge index, edge class label and adjacency matrix, and input the graph data into the VGAE encoder. Then, the encoder learn the building spatial layouts and samples a feature vector(z) from the latent space, according to the input graph data information. The decoder receives the feature vector and decodes it into the reconstructed edge class matrix representing the building components class, which is then compared to the original 3D BIM models dataset to compute the loss. The lower loss means that the encoding method accurately learns the building spatial layout features. Finally, the predicted edge class can be rebuilt in Revit with detailed building components. We investigate three encoder neural networks, GCNConv [29], GINEConv [13] and TransformerConv [28], across the three encoding methods to identify the most suitable Graph-BIM encoding. Subsequently, we used Graph-BIM encoding to train the VGAE for spatial reasoning by masking some inner walls in the dataset and retaining only the boundary walls.",
+            "es": "El flujo de trabajo de la arquitectura VGAE para el aprendizaje de modelos de edificios 3D se muestra en la Figura 4. Primero, transformamos los modelos BIM 3D en datos estructurados en grafos, que incluyen las características de nodo, el índice de aristas, la etiqueta de clase de arista (edge class label) y la matriz de adyacencia (adjacency matrix), y alimentamos los datos del grafo al codificador (encoder) del VGAE. Luego, el codificador aprende las distribuciones espaciales del edificio y muestrea un vector de características (feature vector) (z) del espacio latente (latent space), de acuerdo con la información de los datos del grafo de entrada. El decodificador (decoder) recibe el vector de características y lo decodifica en la matriz de clases de arista reconstruida, que representa la clase de los componentes del edificio, la cual se compara después con el conjunto de datos original de modelos BIM 3D para calcular la pérdida. Una pérdida menor significa que el método de codificación aprende con precisión las características de la distribución espacial del edificio. Finalmente, la clase de arista predicha puede reconstruirse en Revit con componentes de edificio detallados. Investigamos tres redes neuronales codificadoras, GCNConv [29], GINEConv [13] y TransformerConv [28], a través de los tres métodos de codificación, para identificar la codificación Graph-BIM más adecuada. Posteriormente, utilizamos la codificación Graph-BIM para entrenar el VGAE en razonamiento espacial, enmascarando algunos muros interiores del conjunto de datos y conservando únicamente los muros del perímetro."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4, GNNs-VGAE 3D Building Models Learning Workflow",
+            "es": "Figura 4: Flujo de trabajo de aprendizaje de modelos de edificios 3D con GNN-VGAE"
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "3.4. Graph-BIM Encoding Test Results",
+            "es": "3.4. Resultados de la prueba de codificación Graph-BIM"
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The encoding test results show that encoding method 3 has the best learning performance for the building model (Figure 5(a)). Figure 5(b) illustrates the 3D model reconstruction corresponding to the loss of 3D model learning. Encoding Method 3 presents each neural network's lowest spatial layout reconstruction loss. We applied TransformerGCN for the test, which is a neural network integrating Graph Convolutional Networks (GCNs) with Transformer models. Transformer is a deep learning architecture-based on self-attention mechanisms, weighing the importance of different input data parts. Under the TransformerGCN, the predicted wall positions and types are almost identical to the original model, with a training loss of approximately 0.098, indicating that this method enables the VGAE to effectively capture architectural components and spatial layouts. Encoding Method 1 results are similar to Method 3, offering a comprehensive reconstruction of wall layouts and types. With TransformerGCN, it achieves a reconstruction loss of 0.184, missing only a few walls. In the GINE model, the reconstructed spatial layout is missing more walls, resulting in a loss of 0.574. By contrast, Encoding Method 2 is the least effective. It predicts irrelevant diagonal walls or misses wall information. In the GINE model experiment, the test dataset reconstruction loss reaches 0.756, suggesting that only relying on environmental information is insufficient for learning building spatial layouts. These results show that while spatial information is crucial, environmental information also captures local features. Ultimately, Encoding Method 3 is selected as the Graph-BIM Encoding.",
+            "es": "Los resultados de la prueba de codificación muestran que el método de codificación 3 tiene el mejor desempeño de aprendizaje para el modelo del edificio (Figura 5(a)). La Figura 5(b) ilustra la reconstrucción del modelo 3D correspondiente a la pérdida del aprendizaje del modelo 3D. El método de codificación 3 presenta la pérdida de reconstrucción de la distribución espacial más baja de cada red neuronal. Aplicamos TransformerGCN para la prueba, una red neuronal que integra redes convolucionales de grafos (Graph Convolutional Networks, GCN) con modelos Transformer. Transformer es una arquitectura de aprendizaje profundo (deep learning) basada en mecanismos de autoatención (self-attention), que ponderan la importancia de las distintas partes de los datos de entrada. Con TransformerGCN, las posiciones y los tipos de muro predichos son casi idénticos a los del modelo original, con una pérdida de entrenamiento de aproximadamente 0.098, lo que indica que este método permite al VGAE capturar eficazmente los componentes arquitectónicos y las distribuciones espaciales. Los resultados del método de codificación 1 son similares a los del método 3, y ofrecen una reconstrucción completa de las distribuciones y los tipos de muro. Con TransformerGCN alcanza una pérdida de reconstrucción de 0.184, y omite solo unos pocos muros. En el modelo GINE, la distribución espacial reconstruida omite más muros, lo que da como resultado una pérdida de 0.574. En contraste, el método de codificación 2 es el menos eficaz. Predice muros diagonales irrelevantes u omite información de los muros. En el experimento con el modelo GINE, la pérdida de reconstrucción del conjunto de datos de prueba alcanza 0.756, lo que sugiere que basarse únicamente en la información ambiental es insuficiente para aprender las distribuciones espaciales de los edificios. Estos resultados muestran que, si bien la información espacial es crucial, la información ambiental también captura características locales. Finalmente, se selecciona el método de codificación 3 como la codificación Graph-BIM."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5, GNNs-VGAE 3D Building Models Learning Results, Training Loss and 3D model",
+            "es": "Figura 5: Resultados del aprendizaje de modelos de edificios 3D con GNN-VGAE, pérdida de entrenamiento y modelo 3D"
+          }
+        },
+        {
+          "id": "s3-p13",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "3.5. 3D Spatial Grid and Graph-BIM Encoding",
+            "es": "3.5. Cuadrícula espacial 3D y codificación Graph-BIM"
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "After evaluating the learning capability of the Graph-BIM encoding method, we experiment with the 3D model generation ability of Building Graph AI. We integrate 3D spatial grid to convert the 3D BIM model dataset into graph-structured data, which is then used to train a VGAE model capable of reasoning from simple geometries and design constraints to generate detailed building models(Figure 6). The bounding box of the building is converted into a 3D spatial grid structure, with edges denoting different wall types and nodes representing wall or column endpoints. The external wall types among the edges also formed floors and roofs. In addition to the spatial attributes of nodes and edges, design constraints are involved, such as the location of the main entrance. This allows it to adjust the entrance orientation and assess whether the trained model could dynamically adapt to generate detailed building models based on the door location. Graph-BIM encoding transforms the dataset into graph-structured data, including node features, edge features and edge class.",
+            "es": "Tras evaluar la capacidad de aprendizaje del método de codificación Graph-BIM, experimentamos con la capacidad de generación de modelos 3D de Building Graph AI. Integramos la cuadrícula espacial 3D para convertir el conjunto de datos de modelos BIM 3D en datos con estructura de grafo, que luego se usan para entrenar un modelo VGAE capaz de razonar a partir de geometrías simples y restricciones de diseño (design constraints) para generar modelos detallados de edificios (Figura 6). La caja delimitadora (bounding box) del edificio se convierte en una estructura de cuadrícula espacial 3D, en la que las aristas denotan distintos tipos de muro y los nodos representan los extremos de muros o columnas. Los tipos de muro exterior entre las aristas también formaron los pisos y las cubiertas. Además de los atributos espaciales de los nodos y las aristas, se incorporan restricciones de diseño, como la ubicación de la entrada principal. Esto permite ajustar la orientación de la entrada y evaluar si el modelo entrenado podría adaptarse dinámicamente para generar modelos detallados de edificios con base en la ubicación de la puerta. La codificación Graph-BIM transforma el conjunto de datos en datos con estructura de grafo, que incluyen características de nodo (node features), características de arista (edge features) y clase de arista (edge class)."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6, Graph-BIM Encoding and 3D Spatial Grid Structure Applied In 3D BIM Dataset",
+            "es": "Figura 6: Codificación Graph-BIM y estructura de cuadrícula espacial 3D aplicadas al conjunto de datos BIM 3D"
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "heading",
+          "page": 11,
+          "text": {
+            "en": "3.6. Dataset Processing",
+            "es": "3.6. Procesamiento del conjunto de datos"
+          }
+        },
+        {
+          "id": "s3-p17",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "The dataset is derived from modifications to the Housegan dataset [15, 16]. Firstly, we filter and extract the 27,965 original Housegan dataset to select plan data, including the main functional rooms, entrance corridors, kitchens, living rooms, and bedrooms. Subsequently, the walls of these datasets are aligned onto the grid, which is in units of 1 meter. These two-dimensional grid plans are transformed into 3D Revit models that conform to the 3D spatial grid structure, as illustrated in Figure 7. These 3D BIM models are then further converted into graph-structured data within Revit through Graph-BIM Encoding.",
+            "es": "El conjunto de datos se deriva de modificaciones al conjunto de datos Housegan [15, 16]. En primer lugar, filtramos y extraemos del conjunto de datos original de Housegan, que contiene 27,965 elementos, los datos de planta que incluyen las habitaciones funcionales principales, los pasillos de entrada, las cocinas, las salas y las recámaras. Posteriormente, los muros de estos conjuntos de datos se alinean sobre la cuadrícula, cuya unidad es de 1 metro. Estas plantas en cuadrícula bidimensional se transforman en modelos 3D de Revit que se ajustan a la estructura de cuadrícula espacial 3D, como se ilustra en la Figura 7. Después, estos modelos BIM 3D se convierten en datos estructurados en grafos dentro de Revit mediante la codificación Graph-BIM."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7, Transforming 2D Housegan Dataset into 3D BIM Training Dataset",
+            "es": "Figura 7: Transformación del conjunto de datos 2D de Housegan en un conjunto de datos de entrenamiento BIM 3D"
+          }
+        },
+        {
+          "id": "s3-p19",
+          "type": "heading",
+          "page": 11,
+          "text": {
+            "en": "3.7. VGAE 3D Building Models Generation",
+            "es": "3.7. Generación de modelos de edificios 3D con VGAE"
+          }
+        },
+        {
+          "id": "s3-p20",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "For the generation component of Building Graph AI, we trained a VGAE model for spatial reasoning by utilizing the Graph-BIM encoding method combined with the 3D spatial grid. This model is capable of predicting detailed, hierarchical 3D building models based on the input of simple geometric shapes and entrance locations (Figure 8). During training, we intentionally mask the interior wall layouts of the 3d BIM models, removing part of the edge information, to encourage the model to infer the internal spatial wall arrangements based solely on the basic spatial geometry and the position of the main entrance. We encode the geometry and design constraints of door locations into the graph-structured data, node features, adjacency matrices, and input data to the model. To find the best building generation performance, we investigate various encoder neural networks, GCNConv [29], SAGEConv [30], GATConv [31] and TransformerConv [28]. The VGAE predicts specific classes of edges of the 3D spatial grid structure, modelled into 3D detailed building models. During model training, we use the predicted building models, generated from the masked internal spatial layout datasets, as targets and compare them with the original complete datasets to compute the loss. The trained VGAE model is evaluated through room accessibility assessments to verify its generalisation ability in generating detailed 3d architectural models under different geometric inputs.",
+            "es": "Para el componente de generación de Building Graph AI, entrenamos un modelo VGAE para el razonamiento espacial utilizando el método de codificación Graph-BIM combinado con la cuadrícula espacial 3D. Este modelo es capaz de predecir modelos de edificios 3D jerárquicos y detallados a partir de la entrada de formas geométricas simples y ubicaciones de entrada (Figura 8). Durante el entrenamiento, enmascaramos (masking) intencionalmente las distribuciones de muros interiores de los modelos BIM 3D, eliminando parte de la información de las aristas, para animar al modelo a inferir la disposición espacial interna de los muros basándose únicamente en la geometría espacial básica y la posición de la entrada principal. Codificamos la geometría y las restricciones de diseño de las ubicaciones de las puertas en los datos estructurados en grafos, las características de nodo, las matrices de adyacencia y los datos de entrada del modelo. Para encontrar el mejor desempeño en la generación de edificios, investigamos varias redes neuronales codificadoras, GCNConv [29], SAGEConv [30], GATConv [31] y TransformerConv [28]. El VGAE predice clases específicas de aristas de la estructura de cuadrícula espacial 3D, que se modelan como modelos de edificios 3D detallados. Durante el entrenamiento del modelo, utilizamos como objetivos los modelos de edificios predichos, generados a partir de los conjuntos de datos con la distribución espacial interna enmascarada, y los comparamos con los conjuntos de datos completos originales para calcular la pérdida. El modelo VGAE entrenado se evalúa mediante valoraciones de accesibilidad de las habitaciones (room accessibility) para verificar su capacidad de generalización (generalisation) al generar modelos arquitectónicos 3D detallados con diferentes entradas geométricas."
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Figure 8, GNNs-VGAE 3D Building Models Generation Workflow",
+            "es": "Figura 8: Flujo de trabajo de generación de modelos de edificios 3D con GNN-VGAE"
+          }
+        },
+        {
+          "id": "s3-p22",
+          "type": "heading",
+          "page": 12,
+          "text": {
+            "en": "3.8. 3D Building Models Generation Results",
+            "es": "3.8. Resultados de la generación de modelos de edificios 3D"
+          }
+        },
+        {
+          "id": "s3-p23",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "As shown in Figure 9(a), the VGAE model utilising the SAGEConv Encoder generated the best training results, improving notably as the data volume increased, with the model loss reaching 0.45. The SAGEConv Encoder is a part of Graph Sample and Aggregate (GraphSAGE) framework, a convolutional neural network designed to generate embeddings for nodes by aggregating features from local neighborhoods. In our test, it demonstrates a better understanding of the dataset's spatial relationships between building components. Figure 9(b) illustrates that the VGAE model can accurately predict building layouts and components based on simple geometries and design constraints. We define room accessibility as an evaluation metric. In Figure 9(b)(1), when the main entrance is placed on the west, east, or south sides, the generated room arrangements and component positions associated with the entrance have accessibility above 75%. Under irregular building volumes, it sometimes produced enclosed spaces without doors, such as in the first layout of Figure 9(b)(2), reducing accessibility to 45%. However, the other two layouts reached 100% accessibility, indicating robust generalisation. Figure 9(b)(3) demonstrates all the generated building layouts with accessibility above 80%. The VGAE using the SAGEConv network successfully transferred learned spatial layout features to new design tasks, improving the efficiency of creating final building models.",
+            "es": "Como se muestra en la Figura 9(a), el modelo VGAE que utiliza el codificador SAGEConv generó los mejores resultados de entrenamiento, y mejoró notablemente a medida que aumentó el volumen de datos, con una pérdida del modelo que alcanzó 0.45. El codificador SAGEConv forma parte del marco Graph Sample and Aggregate (GraphSAGE), una red neuronal convolucional diseñada para generar embeddings de nodos mediante la agregación de características de vecindarios locales. En nuestra prueba, demuestra una mejor comprensión de las relaciones espaciales entre los componentes del edificio en el conjunto de datos. La Figura 9(b) ilustra que el modelo VGAE puede predecir con precisión distribuciones y componentes de edificios a partir de geometrías simples y restricciones de diseño. Definimos la accesibilidad de las habitaciones como una métrica de evaluación. En la Figura 9(b)(1), cuando la entrada principal se coloca en los lados oeste, este o sur, las disposiciones de habitaciones generadas y las posiciones de los componentes asociados con la entrada tienen una accesibilidad superior al 75%. Con volúmenes de edificio irregulares, en ocasiones produjo espacios cerrados sin puertas, como en la primera distribución de la Figura 9(b)(2), lo que redujo la accesibilidad a 45%. Sin embargo, las otras dos distribuciones alcanzaron una accesibilidad de 100%, lo que indica una generalización robusta. La Figura 9(b)(3) muestra todas las distribuciones de edificios generadas con una accesibilidad superior al 80%. El VGAE que utiliza la red SAGEConv transfirió con éxito las características de distribución espacial aprendidas a nuevas tareas de diseño, lo que mejoró la eficiencia de la creación de los modelos finales de edificios."
+          }
+        },
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-9.png",
+          "text": {
+            "en": "Figure 9, GNNs-VGAE 3D Building Models Generation Results, Training Loss and 3D model",
+            "es": "Figura 9: Resultados de la generación de modelos de edificios 3D con GNN-VGAE, pérdida de entrenamiento y modelo 3D"
+          }
+        },
+        {
+          "id": "s3-p26",
+          "type": "heading",
+          "page": 14,
+          "text": {
+            "en": "3.9. Editable Building Components in Layered Structure",
+            "es": "3.9. Componentes de edificio editables en una estructura por capas"
+          }
+        },
+        {
+          "id": "s3-p27",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Our results show that modifying components of the same type could easily edit the generated building models. In Figure 10(a), exterior walls are replaced with glass curtain walls, or external and internal walls can be switched to different brick walls with various materials. Window components on these external walls are similarly replaceable with alternative types (Figure 10(c)). In design tasks, this layered structure significantly reduces the time architects spend adjusting detailed components, providing flexibility similar to manually created end models.",
+            "es": "Nuestros resultados muestran que modificar componentes del mismo tipo permite editar fácilmente los modelos de edificios generados. En la Figura 10(a), los muros exteriores se reemplazan por muros cortina de vidrio (glass curtain walls), o los muros exteriores e interiores pueden cambiarse a diferentes muros de ladrillo con diversos materiales. Los componentes de ventana de estos muros exteriores también pueden reemplazarse de forma similar por tipos alternativos (Figura 10(c)). En las tareas de diseño, esta estructura por capas (layered structure) reduce significativamente el tiempo que los arquitectos dedican a ajustar componentes detallados, y ofrece una flexibilidad similar a la de los modelos finales creados manualmente."
+          }
+        },
+        {
+          "id": "fig-10",
+          "type": "figure",
+          "page": 14,
+          "image": "fig/fig-10.png",
+          "text": {
+            "en": "Figure 10, Generated Layered 3D Building Models Replaced with Different Types of Building Components",
+            "es": "Figura 10: Modelos de edificios 3D generados por capas, con reemplazo por diferentes tipos de componentes de edificio"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4. Limitations and Future",
+        "es": "4. Limitaciones y trabajo futuro"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "The dataset utilised in this study primarily consists of spatial layouts defined by walls and columns, which are the foundations for modelling. However, these datasets lack representation of more detailed building components such as isolated windows, doors, and furniture. Incorporating these elements into the Graph-BIM encoding method would enhance the model’s ability to learn and generate more comprehensive 3D models. The dataset, derived from the Housegan dataset, also presents several shortcomings, including inaccuracies and a lack of diverse room functions. These issues pose challenges during model training, limiting the framework’s ability to comprehend spatial relationships between nodes and edges. Additionally, the constraints and applicablility of the Housegan dataset result in orthogonal layouts, limiting the ability to model irregular or non-orthogonal building components. The accuracy of generated spatial layouts depends on grid resolution: smaller grid units can improve layout precision but increase the computational cost, making high-resolution models computationally intensive.",
+            "es": "El conjunto de datos utilizado en este estudio consiste principalmente en distribuciones espaciales definidas por muros y columnas, que son la base del modelado. Sin embargo, estos conjuntos de datos carecen de representación de componentes de edificio más detallados, como ventanas, puertas y mobiliario aislados. Incorporar estos elementos al método de codificación Graph-BIM mejoraría la capacidad del modelo para aprender y generar modelos 3D más completos. El conjunto de datos, derivado del conjunto de datos Housegan, también presenta varias deficiencias, entre ellas imprecisiones y una falta de diversidad en las funciones de las habitaciones. Estos problemas plantean desafíos durante el entrenamiento del modelo y limitan la capacidad del marco para comprender las relaciones espaciales entre nodos y aristas. Además, las restricciones y la aplicabilidad del conjunto de datos Housegan dan como resultado distribuciones ortogonales, lo que limita la capacidad de modelar componentes de edificio irregulares o no ortogonales. La precisión de las distribuciones espaciales generadas depende de la resolución de la cuadrícula: unidades de cuadrícula más pequeñas pueden mejorar la precisión de la distribución, pero aumentan el costo computacional, lo que hace que los modelos de alta resolución requieran un cómputo intensivo."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Future work should prioritise improving dataset quality and diversity. We encourage researchers to explore the generation of non-orthogonal and curved shapes and achieve higher grid resolution while balancing computational efficiency. In the experiments, we employ different VGAE encoder neural networks to aggregate node information. However, integrating edge attributes into node features remained challenging. The neural network model capable of precisely aggregating node and edge attributes would deepen the framework’s understanding of spatial layouts, enhancing its graph reconstruction and generation capabilities. Future work could explore incorporating a transformer [32] or recurrent neural networks (RNNs) [33, 34] to infer and generate additional nodes and edges.",
+            "es": "El trabajo futuro debería priorizar la mejora de la calidad y la diversidad del conjunto de datos. Alentamos a los investigadores a explorar la generación de formas no ortogonales y curvas, y a lograr una mayor resolución de la cuadrícula equilibrando la eficiencia computacional. En los experimentos, empleamos diferentes redes neuronales codificadoras del VGAE para agregar la información de los nodos. Sin embargo, integrar los atributos de arista en las características de nodo siguió siendo un reto. Un modelo de red neuronal capaz de agregar con precisión los atributos de nodos y aristas profundizaría la comprensión de las distribuciones espaciales por parte del marco, y mejoraría sus capacidades de reconstrucción y generación de grafos. El trabajo futuro podría explorar la incorporación de un transformer [32] o de redes neuronales recurrentes (recurrent neural networks, RNN) [33, 34] para inferir y generar nodos y aristas adicionales."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "During the graph generation phase, the Building-Graph-AI framework predicts edge types based on the original graph’s node features. While effective, this process does not generate new nodes or infer overall spatial layouts from minimal input data. Training AI models to generate nodes autonomously could enable the inference of entire spatial layouts, enhancing the framework’s generative capabilities. The framework processes building volumes with straight edges into 3D spatial graph structures, making it well-suited for grid-based building layouts. Nevertheless, it is limited in representing and fitting complex volumes, such as those with intricate surfaces or curved geometries. Future research could integrate neural implicit fields [35] and topologically extendable quadrilateral networks, enabling the model to learn 3D structures of varying geometries more precisely.",
+            "es": "Durante la fase de generación del grafo, el marco Building-Graph-AI predice los tipos de arista con base en las características de nodo del grafo original. Si bien es eficaz, este proceso no genera nuevos nodos ni infiere distribuciones espaciales completas a partir de datos de entrada mínimos. Entrenar modelos de IA para generar nodos de forma autónoma podría permitir la inferencia de distribuciones espaciales completas y mejorar las capacidades generativas del marco. El marco procesa volúmenes de edificios con aristas rectas para convertirlos en estructuras de grafos espaciales 3D, por lo que resulta muy adecuado para distribuciones de edificios basadas en cuadrículas. No obstante, es limitado para representar y ajustar volúmenes complejos, como aquellos con superficies intrincadas o geometrías curvas. La investigación futura podría integrar campos implícitos neuronales (neural implicit fields) [35] y redes cuadriláteras topológicamente extensibles, lo que permitiría al modelo aprender con mayor precisión estructuras 3D de geometrías variadas."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "In the current study, we evaluate the encoding methods' ability to learn spatial layouts using loss metrics, and validate the effectiveness of the building models through room accessibily assessments. This approach partially simulates the evaluation process used in practical architectural design. However, to more closely align with real-world design practices, we plan to introduce more sophisticated evaluation strategies in future work, such as involving professional architects and industry stakeholders to assess the generated results. These assessments would focus on specific parameters such as accessibility, functional layout, and space utilization, helping to clearly define directions for model optimization and improvement.",
+            "es": "En el presente estudio, evaluamos la capacidad de los métodos de codificación para aprender distribuciones espaciales mediante métricas de pérdida, y validamos la eficacia de los modelos de edificios mediante valoraciones de accesibilidad de las habitaciones. Este enfoque simula parcialmente el proceso de evaluación utilizado en el diseño arquitectónico práctico. Sin embargo, para alinearnos más estrechamente con las prácticas de diseño del mundo real, planeamos introducir estrategias de evaluación más sofisticadas en trabajos futuros, como involucrar a arquitectos profesionales y a actores de la industria para evaluar los resultados generados. Estas evaluaciones se centrarían en parámetros específicos como la accesibilidad, la distribución funcional y el aprovechamiento del espacio, lo que ayudaría a definir con claridad las direcciones para la optimización y la mejora del modelo."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Moreover, the current training dataset, derived from the HouseGAN model based on Japanese residential layouts, incorporates extracted design constraints, specifically the orientation of the main entrance. By setting the main entrance location and geometric form, pretrained VGAE can predict detailed 3D spatial layouts. This has inevitably limited the trained model to the spatial characteristics of the current dataset. As more diverse architectural datasets become available through open-source initiatives, we plan to incorporate more complex design constraints and spatial considerations into future models, including ventilation, daylighting, surrounding green spaces, transportation access, and functional bubble diagrams. Integrating these multiple constraints into the Building-Graph-AI framework would allow a better simulation of practical architectural design tasks.",
+            "es": "Además, el conjunto de datos de entrenamiento actual, derivado del modelo HouseGAN basado en distribuciones residenciales japonesas, incorpora restricciones de diseño extraídas, específicamente la orientación de la entrada principal. Al fijar la ubicación de la entrada principal y la forma geométrica, el VGAE preentrenado puede predecir distribuciones espaciales 3D detalladas. Esto ha limitado inevitablemente al modelo entrenado a las características espaciales del conjunto de datos actual. A medida que haya disponibles conjuntos de datos arquitectónicos más diversos mediante iniciativas de código abierto, planeamos incorporar en modelos futuros restricciones de diseño y consideraciones espaciales más complejas, incluidas la ventilación, la iluminación natural, los espacios verdes circundantes, el acceso al transporte y los diagramas de burbujas funcionales. Integrar estas múltiples restricciones en el marco Building-Graph-AI permitiría simular mejor las tareas prácticas de diseño arquitectónico."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5. Conclusion",
+        "es": "5. Conclusión"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "This paper introduces a 3D AI building learning and generation framework, Building-Graph-AI, comprising a Graph-BIM Encoding method that automatically converts any BIM model based on straight wall layout into graph-structured data and a Variational Graph Autoencoder (VGAE) to learn and generate 3D building models. Graph-BIM Encoding can accurately and automatically learn spatial layouts from any BIM dataset based on straight wall layout. Utilising this encoding, the VGAE can generate high-detail, layered 3D building models from geometries, where the generated building models are based on components such as walls, windows, and columns. Furthermore, the layered models allow for component-level editing. Compared to existing AI generative models applied in architecture, Building-Graph-AI offers a novel 3D building learning and generating framework and better integration into the design workflows of human architects. By bridging the gap between geometric design and AI-based training and generation, this framework enhances the adaptability and efficiency of AI applications in architecture design. Allowing architects to obtain precise 3D models that meet design requirements rapidly, Building-Graph-AI establishes AI as a collaborative design partner in architectural workflows. In conclusion, Building-Graph-AI lays the groundwork for promoting automated architectural design and acquiring high-precision, detail-rich 3D models generated by artificial intelligence.",
+            "es": "Este artículo presenta un marco de aprendizaje y generación de edificios 3D con IA, Building-Graph-AI, que comprende un método de codificación Graph-BIM que convierte automáticamente cualquier modelo BIM basado en una distribución de muros rectos en datos estructurados en grafos, y un autocodificador variacional de grafos (VGAE) para aprender y generar modelos de edificios 3D. La codificación Graph-BIM puede aprender con precisión y de forma automática distribuciones espaciales a partir de cualquier conjunto de datos BIM basado en una distribución de muros rectos. Con esta codificación, el VGAE puede generar modelos de edificios 3D por capas y de alto detalle a partir de geometrías, donde los modelos de edificios generados se basan en componentes como muros, ventanas y columnas. Además, los modelos por capas permiten la edición a nivel de componente. En comparación con los modelos generativos de IA existentes aplicados a la arquitectura, Building-Graph-AI ofrece un marco novedoso de aprendizaje y generación de edificios 3D y una mejor integración en los flujos de trabajo de diseño de los arquitectos humanos. Al tender un puente entre el diseño geométrico y el entrenamiento y la generación basados en IA, este marco mejora la adaptabilidad y la eficiencia de las aplicaciones de IA en el diseño arquitectónico. Al permitir a los arquitectos obtener con rapidez modelos 3D precisos que cumplen los requisitos de diseño, Building-Graph-AI establece a la IA como un socio de diseño colaborativo en los flujos de trabajo arquitectónicos. En conclusión, Building-Graph-AI sienta las bases para promover el diseño arquitectónico automatizado y obtener modelos 3D de alta precisión y abundantes en detalle generados por inteligencia artificial."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[1] Enjellina, Beyan EVP, Anastasya Gisela Cinintya Rossy. Review of AI Image Generator: Influences, Challenges, and Future Prospects for Architectural Field. J Artif Intell Archit. 2023 Feb 26;2(1):53–65."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[2] Hegazy, M., & Saleh, A. Evolution of AI role in architectural design: between parametric exploration and machine hallucination. 2023 MSA Engineering Journal, 2(2), 262-288."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[3] Li C, Zhang T, Du X, Zhang Y, Xie H. Generative AI Models for Different Steps in Architectural Design: A Literature Review [Internet]. arXiv; 2024 [cited 2024 Nov 10]. Available from: http://arxiv.org/abs/2404.01335"
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[4] Chang KH, Cheng CY, et al. Building-GAN: Graph-conditioned architectural volumetric design generation. 2021 IEEE/CVF Int Conf Comput Vis (ICCV). Preprint. https://doi.org/10.1109/iccv48922.2021.01174. 2021."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[5] Park JJ, Florence P, Straub J, Newcombe R, Lovegrove S. DeepSDF: Learning Continuous Signed Distance Functions for Shape Representation [Internet]. arXiv; 2019 [cited 2025 Jan 31]. Available from: http://arxiv.org/abs/1901.05103"
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[6] Shen T, Gao J, Yin K, et al. Deep marching tetrahedra: A hybrid representation for high-resolution 3D shape synthesis. Adv Neural Inf Process Syst 2021; 34: 6087– 6101."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[7] Zhong X, Koh I, Fricker P. Building-GNN: Exploring a co-design framework for generating controllable 3D building prototypes by graph and recurrent neural networks. In: Int Conf Educ Res Comput-Aided Archit Design Eur, 2023, pp.431–440. eCAADe."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[8] Hinton GE, Salakhutdinov RR. Reducing the Dimensionality of Data with Neural Networks. Science. 2006 Jul 28;313(5786):504–7."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[9] Qi CR, Su H, Mo K, Guibas LJ. PointNet: Deep Learning on Point Sets for 3D Classification and Segmentation [Internet]. arXiv; 2017 [cited 2025 Jan 31]. Available from: http://arxiv.org/abs/1612.00593"
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[10] Huang Z, Wen Y, Wang Z, Ren J, Jia K. Surface Reconstruction from Point Clouds: A Survey and a Benchmark [Internet]. arXiv; 2022 [cited 2025 Jan 31]. Available from: http://arxiv.org/abs/2205.02413"
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[11] Wu Z, Song S, Khosla A, Yu F, Zhang L, Tang X, et al. 3D ShapeNets: A Deep Representation for Volumetric Shapes [Internet]. arXiv; 2015 [cited 2025 Jan 31]. Available from: http://arxiv.org/abs/1406.5670"
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[12] Mildenhall B, Srinivasan PP, Tancik M, et al. NeRF: Representing scenes as neural radiance fields for view synthesis. Commun ACM 2022; 65(1): 99–106. https://doi.org/10.1145/3503250."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[13] Xu K, Hu W, Leskovec J, et al. How powerful are graph neural networks? arXiv. Preprint arXiv:1810.00826. https://doi.org/10.48550/ARXIV.1810.00826. 2018."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[14] Sacks R, Eastman CM, Lee G, Teicholz PM. BIM handbook: a guide to building information modeling for owners, managers, designers, engineers and contractors. Third edition. Hoboken, New Jersey: Wiley; 2018. 659 p."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[15] Nauata N, Chang KH, Cheng CY, et al. Housegan: Relational generative adversarial networks for graph-constrained house layout generation. In: Computer Vision–ECCV 2020: 16th European Conference, Glasgow, UK, August 23–28, 2020, Proceedings, Part I 16, pp.162-177."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[16] Nauata N, Hosseini S, Chang KH, Chu H, Cheng CY, Furukawa Y. House-GAN++: Generative Adversarial Layout Refinement Networks. 2021 [cited 2024 Apr 1]; Available from: https://arxiv.org/abs/2103.02574"
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[17] Zhao P, Fei Y, Huang Y, et al. Design-condition-informed shear wall layout design based on graph neural networks. Adv Eng Inform 2023; 58: 102190. https://doi.org/10.1016/j.aei.2023.102190."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[18] Zhao P, Liao W, Huang Y, Lu X. Intelligent design of shear wall layout based on graph neural networks. Adv Eng Inform. 2023 Jan;55:101886."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[19] Kipf TN, Welling M. Variational graph auto-encoders. arXiv. Preprint"
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[20] Bresson X, Laurent T. A two-step graph convolutional decoder for molecule generation. arXiv. Preprint arXiv:1906.03412. 2019."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[21] Chen J, Stouffs R. SE-VGAE: Unsupervised Disentangled Representation Learning for Interpretable Architectural Layout Design Graph Generation [Internet]. arXiv; 2024 [cited 2025 Jan 31]. Available from: http://arxiv.org/abs/2406.17418"
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[22] Chen Z, Tagliasacchi A, Zhang H. BSP-Net: Generating compact meshes via binary space partitioning. In: Proc IEEE/CVF Conf Comput Vis Pattern Recognit, 2020, pp.45–54."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[23] Fang H, Lafarge F. Connect-and-slice: A hybrid approach for reconstructing 3D objects. In: Proc IEEE/CVF Conf Comput Vis Pattern Recognit, 2020, pp.13490– 13498."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[24] Hübner P, Weinmann M, Wursthorn S, et al. Automatic voxel-based 3D indoor reconstruction and room partitioning from triangle meshes. ISPRS J Photogramm Remote Sens 2021; 181: 254–278."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[25] Chang KH, Cheng CY. Learning to simulate and design for structural engineering. arXiv (Cornell Univ). Preprint. https://arxiv.org/pdf/2003.09103.pdf. 2020."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[26] Simonovsky M, Komodakis N. GraphVAE: Towards generation of small graphs using variational autoencoders. In: Artif Neural Netw Mach Learn–ICANN 2018: 27th Int Conf Artif Neural Netw, Rhodes, Greece, 4–7 October 2018, pp.412–422."
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[27] Winter R, Noé F, Clevert DA. Permutation-invariant variational autoencoder for graph-level representation learning. Adv Neural Inf Process Syst 2021; 34: 9559– 9573. http://arxiv.org/abs/2104.09856."
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[28] Shi Y, Huang Z, Feng S, et al. Masked label prediction: Unified message passing model for semi-supervised classification. arXiv. Preprint arXiv:2009.03509. https://doi.org/10.48550/ARXIV.2009.03509. 2020."
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[29] Kipf TN, Welling M. Semi-supervised classification with graph convolutional networks. arXiv. Preprint arXiv:1609.02907. 2016."
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[30] Hamilton WL, Ying R, Leskovec J. Inductive representation learning on large graphs. arXiv (Cornell Univ). Preprint. https://arxiv.org/pdf/1706.02216.pdf. 2017."
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[31] Veličković P, et al. Graph attention networks. arXiv (Cornell Univ). Preprint. https://doi.org/10.17863/cam.48429. 2018."
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[32] Vaswani A, Shazeer N, Parmar N, Uszkoreit J, Jones L, Gomez AN, et al. Attention Is All You Need [Internet]. arXiv; 2023 [cited 2025 Jan 31]. Available from: http://arxiv.org/abs/1706.03762"
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[33] Schuster M, Paliwal KK. Bidirectional recurrent neural networks. IEEE Trans Signal Process. 1997 Nov;45(11):2673–81."
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[34] Yu Y, Si X, Hu C, Zhang J. A Review of Recurrent Neural Networks: LSTM Cells and Network Architectures. Neural Comput. 2019 Jul;31(7):1235–70."
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[35] Mescheder L, Oechsle M, Niemeyer M, Nowozin S, Geiger A. Occupancy Networks: Learning 3D Reconstruction in Function Space [Internet]. arXiv; 2019 [cited 2025 Jan 31]. Available from: http://arxiv.org/abs/1812.03828"
+          }
+        }
+      ]
+    }
+  ]
+}

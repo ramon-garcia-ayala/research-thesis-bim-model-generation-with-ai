@@ -1,0 +1,1080 @@
+{
+  "version": 1,
+  "node": "buruzs-2022",
+  "title": "IFC BIM Model Enrichment with Space Function Information Using Graph Neural Networks",
+  "source": "files/IFC BIM Model Enrichment with Space Function Information Using Graph Neural Networks.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Información preliminar"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "IFC BIM Model Enrichment with Space Function Information Using Graph Neural Networks",
+            "es": "Enriquecimiento de modelos BIM en IFC con información de la función de los espacios mediante redes neuronales de grafos (Graph Neural Networks)"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Adam Buruzs *, Miloš Šipetić, Brigitte Blank-Landeshammer and Gerhard Zucker",
+            "es": "Adam Buruzs *, Miloš Šipetić, Brigitte Blank-Landeshammer and Gerhard Zucker"
+          }
+        },
+        {
+          "id": "s0-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Citation: Buruzs, A.; Šipetić, M.; Blank-Landeshammer, B.; Zucker, G. IFC BIM Model Enrichment with Space Function Information Using Graph Neural Networks. Energies 2022, 15, 2937. https://doi.org/10.3390/en15082937",
+            "es": "Cita: Buruzs, A.; Šipetić, M.; Blank-Landeshammer, B.; Zucker, G. IFC BIM Model Enrichment with Space Function Information Using Graph Neural Networks. Energies 2022, 15, 2937. https://doi.org/10.3390/en15082937"
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Academic Editor: Francesco Nocera. Received: 8 February 2022. Accepted: 14 April 2022. Published: 16 April 2022",
+            "es": "Editor académico: Francesco Nocera. Recibido: 8 de febrero de 2022. Aceptado: 14 de abril de 2022. Publicado: 16 de abril de 2022"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "AIT Austrian Institute of Technology, 1210 Vienna, Austria; milos.sipetic@ait.ac.at (M.Š.); brigitte.blank-landeshammer@ait.ac.at (B.B.-L.); gerhard.zucker@ait.ac.at (G.Z.)",
+            "es": "AIT Austrian Institute of Technology, 1210 Vienna, Austria; milos.sipetic@ait.ac.at (M.Š.); brigitte.blank-landeshammer@ait.ac.at (B.B.-L.); gerhard.zucker@ait.ac.at (G.Z.)"
+          }
+        },
+        {
+          "id": "s0-p11",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "* Correspondence: adam.buruzs@ait.ac.at; Tel.: +43-664-8890-4316",
+            "es": "* Correspondencia: adam.buruzs@ait.ac.at; Tel.: +43-664-8890-4316"
+          }
+        }
+      ]
+    },
+    {
+      "id": "abs",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The definition of room functions in Building Information Modeling (BIM) using IfcSpace entities is an important quality requirement that is often not fulfilled. This paper presents a three-step method for enriching open BIM representations based on Industry Foundation Classes (IFC) with room function information (e.g., kitchen, living room, foyer). In the first step, the geometric algorithm for detecting and defining IfcSpace entities and injecting them into IFC models is presented. After deriving the IfcSpaces, a geometric method for calculating the graph of connections between spaces based on accessibility is described; this information is not explicitly stored in IFC models. In the final step, a graph convolution-based neural network using the accessibility graph to classify the IfcSpace entities is described. Local node features are automatically extracted from the geometry and neighboring elements. With the help of a Graph Convolutional Network (GCN), the connection and spatial context information is utilized by the neural network for the classification decision, in addition to the local features of the spaces which are more commonly used. To evaluate the classification accuracy, the model was tested on a set of residential building IFC models. A weighted version of the common GCN was implemented and tested, resulting in a slight improvement in the classification accuracy.",
+            "es": "La definición de las funciones de las habitaciones en el modelado de información de construcción (Building Information Modeling, BIM) mediante entidades IfcSpace es un requisito de calidad importante que con frecuencia no se cumple. Este artículo presenta un método de tres pasos para enriquecer representaciones BIM abiertas basadas en Industry Foundation Classes (IFC) con información de la función de las habitaciones (p. ej., cocina, sala de estar, vestíbulo). En el primer paso se presenta el algoritmo geométrico para detectar y definir entidades IfcSpace e inyectarlas en los modelos IFC. Después de derivar los IfcSpaces, se describe un método geométrico para calcular el grafo (graph) de conexiones entre espacios con base en la accesibilidad; esta información no se almacena explícitamente en los modelos IFC. En el paso final, se describe una red neuronal (neural network) basada en convolución de grafos que utiliza el grafo de accesibilidad para clasificar las entidades IfcSpace. Las características locales de los nodos se extraen automáticamente de la geometría y de los elementos vecinos. Con la ayuda de una red convolucional de grafos (Graph Convolutional Network, GCN), la red neuronal aprovecha la información de conexión y de contexto espacial para la decisión de clasificación, además de las características locales de los espacios, que se usan con más frecuencia. Para evaluar la exactitud de clasificación (classification accuracy), el modelo se probó en un conjunto de modelos IFC de edificios residenciales. Se implementó y probó una versión ponderada de la GCN común, lo que dio como resultado una ligera mejora en la exactitud de clasificación."
+          }
+        },
+        {
+          "id": "s0-p6",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Keywords: BIM; IFC; architecture model enrichment; machine learning; IfcSpace",
+            "es": "Palabras clave: BIM; IFC; enriquecimiento de modelos de arquitectura; aprendizaje automático (machine learning); IfcSpace"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1. Introduction",
+        "es": "1. Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "BIM modelling is the de facto standard in architecture, engineering, and the construction (AEC) industry. Various proprietary closed software packages are used to create BIM models. For the sake of interoperability, the buildingSMART consortium created the IFC (Industry Foundation Classes) standard [1], which is the established open data format for the BIM industry. IFC provides a rich vocabulary for the specification and classification of building components, as well as the properties needed for alphanumeric information. Unfortunately, in practice, the IFC files are most often incomplete. There exist solutions for the automatic checking of building code compliance, such as the Solibri Model Checker, but these tools employ hard-coded rules that require exact and complete BIM model specifications. In practice, incorrect design, lack of information provided by the user in the design phase, or the use of various local languages for labelling elements strongly limits the applicability of these automatic model checkers. For the validation of models and for further calculations, planning, or for cost estimations, the semantic enrichment of the IFC models is needed to inject this missing information into the IFC model.",
+            "es": "El modelado BIM es el estándar de facto en la industria de la arquitectura, la ingeniería y la construcción (architecture, engineering, and construction, AEC). Para crear modelos BIM se utilizan diversos paquetes de software propietario y cerrado. En aras de la interoperabilidad, el consorcio buildingSMART creó el estándar IFC (Industry Foundation Classes) [1], que es el formato de datos abierto establecido para la industria BIM. IFC proporciona un vocabulario rico para la especificación y clasificación de los componentes de un edificio, así como las propiedades necesarias para la información alfanumérica. Lamentablemente, en la práctica, los archivos IFC suelen estar incompletos. Existen soluciones para la verificación automática del cumplimiento de la normativa de construcción, como Solibri Model Checker, pero estas herramientas emplean reglas codificadas de forma fija (hard-coded rules) que requieren especificaciones del modelo BIM exactas y completas. En la práctica, un diseño incorrecto, la falta de información proporcionada por el usuario en la fase de diseño o el uso de diversos idiomas locales para etiquetar los elementos limitan fuertemente la aplicabilidad de estos verificadores automáticos de modelos. Para la validación de los modelos y para cálculos posteriores, planificación o estimaciones de costos, se necesita el enriquecimiento semántico (semantic enrichment) de los modelos IFC, con el fin de inyectar en ellos esta información faltante."
+          }
+        },
+        {
+          "id": "s1-p11",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "In our work, we focus on the semantic enrichment of spaces (IfcSpace entities) with the function of the corresponding room. The exact spatial definition of the space is an important piece of information for stakeholders, for example, to quickly create a list of apartments with exact size information in residential buildings. Intended usage and occupancy of spaces is an important piece of information for facility managers: corridors, halls, and basement spaces require less ventilation and heating than office rooms or apartments. Construction companies benefit from correctly labelled spaces by being able to calculate various cost factors and procurement plans more precisely (for example, calculating the required amount of tiling from the aggregated surface area of toilets and bathrooms).",
+            "es": "En nuestro trabajo nos centramos en el enriquecimiento semántico de los espacios (entidades IfcSpace) con la función de la habitación correspondiente. La definición espacial exacta del espacio es una información importante para las partes interesadas, por ejemplo, para crear rápidamente una lista de departamentos con información exacta de su tamaño en edificios residenciales. El uso previsto y la ocupación de los espacios es una información importante para los administradores de instalaciones (facility managers): los pasillos, los vestíbulos y los espacios de sótano requieren menos ventilación y calefacción que las oficinas o los departamentos. Las empresas constructoras se benefician de que los espacios estén correctamente etiquetados, ya que pueden calcular con mayor precisión diversos factores de costo y planes de adquisición (por ejemplo, calcular la cantidad necesaria de azulejos a partir del área superficial agregada de los sanitarios y los baños)."
+          }
+        },
+        {
+          "id": "s1-p17",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "IfcSpace entities are graphically not visible when rendering the BIM model; our analysis showed that the IfcSpace entity for a room is often omitted in the modeling process. However, even in higher quality models—where IfcSpaces are defined and thus PropertySets could be defined—the PropertySets are often left blank, leaving IfcSpace entities with only the space boundaries and without the room function defined.",
+            "es": "Las entidades IfcSpace no son visibles gráficamente al renderizar el modelo BIM; nuestro análisis mostró que la entidad IfcSpace de una habitación con frecuencia se omite en el proceso de modelado. Sin embargo, incluso en modelos de mayor calidad —en los que los IfcSpaces están definidos y, por lo tanto, podrían definirse PropertySets— los PropertySets a menudo se dejan en blanco, de modo que las entidades IfcSpace conservan únicamente los límites del espacio, sin la función de la habitación definida."
+          }
+        },
+        {
+          "id": "s1-p18",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "IfcSpace entities are important elements that are required for HVAC simulations and control applications [2], and are needed for thermal zoning in thermal dynamic simulations [3]. The intended room function influences the different parameters that are used in the simulation, such as temperature, humidity, or air exchange setpoints and ranges (e.g., lower temperature setpoints in bedrooms). Similarly, storage rooms, corridors outside of apartments, and garages have lower or no heating requirements. Fine-grained control of related parameters of the building model in the design phase results in lower estimated energy needs, and, if those controls are correctly implemented in the commissioned building, also in a lower final energy consumption. Additionally, having the spaces automatically derived and their functions determined saves time and reduces the need for manual, error-prone work. Exact thermal simulations also require second-level space boundaries that can be derived from the defined spaces, as described in [4]. Room functionality is also an important information for facility managers throughout the lifecycle of the building.",
+            "es": "Las entidades IfcSpace son elementos importantes que se requieren para las simulaciones de HVAC y las aplicaciones de control [2], y son necesarias para la zonificación térmica (thermal zoning) en simulaciones térmicas dinámicas [3]. La función prevista de la habitación influye en los diferentes parámetros que se usan en la simulación, como los puntos de consigna y los rangos de temperatura, humedad o intercambio de aire (p. ej., puntos de consigna de temperatura más bajos en las recámaras). De manera similar, las bodegas, los pasillos fuera de los departamentos y los garajes tienen requisitos de calefacción menores o nulos. El control detallado de los parámetros relacionados del modelo del edificio en la fase de diseño da como resultado necesidades de energía estimadas más bajas y, si esos controles se implementan correctamente en el edificio puesto en servicio, también un consumo final de energía más bajo. Además, derivar automáticamente los espacios y determinar sus funciones ahorra tiempo y reduce la necesidad de trabajo manual, propenso a errores. Las simulaciones térmicas exactas también requieren límites de espacio de segundo nivel que pueden derivarse de los espacios definidos, como se describe en [4]. La función de las habitaciones también es una información importante para los administradores de instalaciones durante todo el ciclo de vida del edificio."
+          }
+        },
+        {
+          "id": "s1-p19",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our paper structure is as follows: In Section 2, the state of the art of machine learning-based automatic enrichment of BIM models is reviewed, especially with regards to room-function classification. In Section 3, a geometric method is presented to automatically detect spaces in BIM models, if they are missing. We present a method for extracting connections between spaces and for building a graph of accessibility. Furthermore, a Graph Neural Network (GNN)-based classification algorithm is described to classify these spaces. This classification is based on this accessibility graph and the calculated geometric features that are extracted from the raw BIM Models. We also present a modification of the Graph Convolutional Network to strive for higher accuracy. In Section 4, the results of the classification are presented as an accuracy analysis and a confusion matrix. The paper is closed with Section 5.",
+            "es": "La estructura de nuestro artículo es la siguiente: en la Sección 2 se revisa el estado del arte del enriquecimiento automático de modelos BIM basado en aprendizaje automático, en especial en lo que respecta a la clasificación de la función de las habitaciones. En la Sección 3 se presenta un método geométrico para detectar automáticamente los espacios en los modelos BIM, en caso de que falten. Presentamos un método para extraer las conexiones entre espacios y construir un grafo de accesibilidad. Además, se describe un algoritmo de clasificación basado en redes neuronales de grafos (GNN) para clasificar estos espacios. Esta clasificación se basa en dicho grafo de accesibilidad y en las características geométricas calculadas que se extraen de los modelos BIM sin procesar. También presentamos una modificación de la red convolucional de grafos con el fin de lograr una mayor exactitud. En la Sección 4 se presentan los resultados de la clasificación como un análisis de exactitud y una matriz de confusión (confusion matrix). El artículo concluye con la Sección 5."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2. Related Work",
+        "es": "2. Trabajos relacionados"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Machine learning methods have gained increasing popularity in recent years in the field of automated BIM processing. Krijnen and Tamke [5] used neural networks to classify buildings into residential and non-residential categories based on floor plans.",
+            "es": "Los métodos de aprendizaje automático han ganado popularidad en los últimos años en el campo del procesamiento automatizado de BIM. Krijnen y Tamke [5] usaron redes neuronales para clasificar edificios en las categorías residencial y no residencial con base en planos de planta (floor plans)."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The semantic enrichment of IFC BIM Models has been addressed in multiple studies; Sacks et. al. developed a rule-based system that evaluates IF–THEN types of rules based on prepared features [6,7]. To extract geometric relations that are not explicitly contained in IFC files, they used Query Language for 4D Building Information Models (QL4BIM [8]).",
+            "es": "El enriquecimiento semántico (semantic enrichment) de los modelos BIM IFC ha sido abordado en múltiples estudios; Sacks et. al. desarrollaron un sistema basado en reglas (rule-based system) que evalúa reglas de tipo IF–THEN con base en características preparadas [6,7]. Para extraer las relaciones geométricas que no están contenidas explícitamente en los archivos IFC, utilizaron el Query Language for 4D Building Information Models (QL4BIM [8])."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Bloch and Sacks [9] examined the use of semantic enrichment in BIM models; they compared neural network-based rules against hand-crafted rules for IfcSpace classification (building rooms) and concluded that the neural networks based on geometrical features and spatial connections strongly outperformed the rule-based method in terms of accuracy.",
+            "es": "Bloch y Sacks [9] examinaron el uso del enriquecimiento semántico en modelos BIM; compararon reglas basadas en redes neuronales con reglas elaboradas a mano para la clasificación de IfcSpace (habitaciones de edificios) y concluyeron que las redes neuronales basadas en características geométricas y conexiones espaciales superaron ampliamente al método basado en reglas en términos de exactitud."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Koo et al. [10] applied support vector machines (SVM) to classify building elements into eight of the most frequent IFC categories (Column, Beam, Slab, Wall, Covering, Door, Window, Railing). They used simple geometric features (bounding box size, volume, gyration, etc.) that were calculated using the opencascade geometry engine [11], as well as features derived from IfcRelations (number of related Walls/Windows). They trained their SVM classifier with six building IFC models and reached a classification accuracy of over 90%. The same team later used multi-view convolutional neural networks (MVCNN) to classify wall and door elements in BIM models [12]. The MVCNN [13] generates 2D renderings of objects, and practically transforms the 3D object recognition problem into the well-studied 2D recognition problem, which can be solved efficiently using convolutional neural networks [14].",
+            "es": "Koo et al. [10] aplicaron máquinas de vectores de soporte (support vector machines, SVM) para clasificar elementos de edificios en ocho de las categorías IFC más frecuentes (Column, Beam, Slab, Wall, Covering, Door, Window, Railing). Usaron características geométricas simples (tamaño de la caja delimitadora o bounding box, volumen, giro, etc.) calculadas con el motor de geometría opencascade [11], así como características derivadas de IfcRelations (número de Walls/Windows relacionados). Entrenaron su clasificador SVM con seis modelos IFC de edificios y alcanzaron una exactitud de clasificación de más de 90%. El mismo equipo utilizó posteriormente redes neuronales convolucionales multivista (multi-view convolutional neural networks, MVCNN) para clasificar elementos de muros y puertas en modelos BIM [12]. La MVCNN [13] genera representaciones en 2D de los objetos y, en la práctica, transforma el problema de reconocimiento de objetos 3D en el problema de reconocimiento 2D, ya bien estudiado, que puede resolverse de manera eficiente mediante redes neuronales convolucionales [14]."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Lumio [15] et al. used deep learning methods to classify images generated from BIM model external views into three categories (residential, industrial, and other buildings). Besides classical SVM classifiers, they also tried deep neural networks (ResNet, MobileNet), which are very successful in machine vision tasks. They found that these deep neural nets considerably outperformed SVMs for this task and reached over 90% accuracy in predicting the building type based on the generated 2D images.",
+            "es": "Lumio [15] et al. utilizaron métodos de aprendizaje profundo (deep learning) para clasificar imágenes generadas a partir de vistas externas de modelos BIM en tres categorías (edificios residenciales, industriales y otros). Además de los clasificadores SVM clásicos, también probaron redes neuronales profundas (ResNet, MobileNet), que tienen mucho éxito en tareas de visión artificial. Encontraron que estas redes neuronales profundas superaron considerablemente a las SVM en esta tarea y alcanzaron más de 90% de exactitud al predecir el tipo de edificio a partir de las imágenes 2D generadas."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Edmunds et al. [16] created the IFCNet benchmark dataset for IFC element classification. They also tested the MVCNN architecture for classifying these elements; it showed very good results (over 85% accuracy). However, in their method, the context information of the elements is not used, and the elements are classified based on their geometry alone.",
+            "es": "Edmunds et al. [16] crearon el conjunto de datos de referencia (benchmark dataset) IFCNet para la clasificación de elementos IFC. También probaron la arquitectura MVCNN para clasificar estos elementos; mostró muy buenos resultados (más de 85% de exactitud). Sin embargo, en su método no se utiliza la información de contexto de los elementos, y estos se clasifican únicamente con base en su geometría."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Many scientific and engineering datasets have an inherent structure that can be represented with a graph. Graph applications range from social networks, citation databases, molecular chemical datasets, recommendations, predicting infectious diseases, etc. Advanced neural network models for prediction and analysis tasks over graph data have attracted considerable research attention in recent years. Applications of deep learning methods on graph datasets include node classification, graph classification, link prediction, and graph generation tasks [17]. The methods applied on graph datasets include graph convolutional networks, recurrent networks, autoencoders, adversarial methods, and reinforcement learning. A common advantage of applying these methods to node classification is that they inherently incorporate graph network information into the node classification besides the single node information represented with the node features. A general mathematical framework for the application of deep learning on graphs is given by Bronstein et al. [18], where the analogy between graphs and manifolds is shown, and the extension of the successful Convolutional Networks to graphs is derived.",
+            "es": "Muchos conjuntos de datos científicos y de ingeniería tienen una estructura inherente que puede representarse con un grafo. Las aplicaciones de los grafos abarcan desde redes sociales, bases de datos de citas, conjuntos de datos de química molecular y recomendaciones hasta la predicción de enfermedades infecciosas, etc. Los modelos avanzados de redes neuronales para tareas de predicción y análisis sobre datos en forma de grafo han atraído una atención considerable de la investigación en los últimos años. Las aplicaciones de los métodos de aprendizaje profundo en conjuntos de datos de grafos incluyen las tareas de clasificación de nodos (node classification), clasificación de grafos, predicción de enlaces y generación de grafos [17]. Los métodos aplicados a conjuntos de datos de grafos incluyen redes convolucionales de grafos, redes recurrentes, autocodificadores, métodos adversariales y aprendizaje por refuerzo. Una ventaja común de aplicar estos métodos a la clasificación de nodos es que incorporan de manera inherente la información de la red de grafos en la clasificación de los nodos, además de la información de cada nodo individual representada con las características del nodo. Bronstein et al. [18] ofrecen un marco matemático general para la aplicación del aprendizaje profundo en grafos, en el que se muestra la analogía entre los grafos y las variedades (manifolds) y se deriva la extensión a los grafos de las exitosas redes convolucionales."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Kipf and Welling [19] proposed a graph based neural network model with a simple layer-wise propagation rule:",
+            "es": "Kipf y Welling [19] propusieron un modelo de red neuronal basado en grafos con una regla de propagación simple capa por capa:"
+          }
+        },
+        {
+          "id": "s2-e1",
+          "type": "equation",
+          "page": 3,
+          "text": {
+            "en": "H^(l+1) = σ(Ã H^l W^l) (1)"
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "where Hl is the input of the l-th layer, Wl are the weights of the layer, and the Ã matrix is calculated from the adjacency matrix, thereby establishing connections between adjacent nodes in one layer. It was shown how this formula can be interpreted as an approximation of a spectral graph convolution; therefore, the layer was named graph convolution. Additionally, the application of a graph convolutional network was demonstrated on a node classification task.",
+            "es": "donde Hl es la entrada de la capa l-ésima, Wl son los pesos de la capa, y la matriz Ã se calcula a partir de la matriz de adyacencia, con lo que se establecen conexiones entre nodos adyacentes en una capa. Se mostró cómo esta fórmula puede interpretarse como una aproximación de una convolución de grafos espectral; por ello, la capa se denominó convolución de grafos. Además, se demostró la aplicación de una red convolucional de grafos en una tarea de clasificación de nodos."
+          }
+        },
+        {
+          "id": "s2-p10",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "IFC BIM models contain numerous relations among their elements; thus, a graph of elements can be extracted with the IfcRelationships acting as edges. Additional relationships can be derived by applying different geometric reasoning methods. For example, using the calculated geometric distance between the extracted element shapes, a space adjacency graph structure can be derived by connecting spaces that are geometrically close to one another. After such graphs are derived, it becomes possible to apply graph neural networks to train models for inductive reasoning, such as element classification.",
+            "es": "Los modelos BIM en IFC contienen numerosas relaciones entre sus elementos; por lo tanto, puede extraerse un grafo de elementos en el que las IfcRelationships actúan como aristas. Pueden derivarse relaciones adicionales aplicando diferentes métodos de razonamiento geométrico. Por ejemplo, usando la distancia geométrica calculada entre las formas de los elementos extraídos, puede derivarse una estructura de grafo de adyacencia de espacios que conecta los espacios geométricamente cercanos entre sí. Una vez derivados estos grafos, es posible aplicar redes neuronales de grafos para entrenar modelos de razonamiento inductivo, como la clasificación de elementos."
+          }
+        },
+        {
+          "id": "s2-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Several recent studies have dealt with building elements classification based on floor plans: Su et al. classifies structural elements (walls, windows, doors, stairs) based on floor plans with graph neural networks [20]. A recent paper by Paudel et al. [21] solved room-type classification based on the floor plan data of single apartments using various graph neural networks. Hu et al. [22] presented room-type classification based on the floor plans of university buildings using random forest and graph convolutional networks. All these studies report high (around 80%) classification accuracy. However, one has to note two things:",
+            "es": "Varios estudios recientes han tratado la clasificación de elementos de edificios con base en planos de planta: Su et al. clasifican elementos estructurales (muros, ventanas, puertas, escaleras) con base en planos de planta mediante redes neuronales de grafos [20]. Un artículo reciente de Paudel et al. [21] resolvió la clasificación del tipo de habitación con base en los datos de planos de planta de departamentos individuales usando diversas redes neuronales de grafos. Hu et al. [22] presentaron la clasificación del tipo de habitación con base en los planos de planta de edificios universitarios usando bosque aleatorio (random forest) y redes convolucionales de grafos. Todos estos estudios reportan una exactitud de clasificación alta (alrededor de 80%). Sin embargo, hay que tener en cuenta dos cosas:"
+          }
+        },
+        {
+          "id": "s2-p12",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "1. By selecting the model training and test set, the information concerning the parent building of each apartment is not preserved; it is likely that one floor of a building is included into the training set, while another floor of the same building belongs to the test set. One can assume that there are considerable similarities between the floors of the same building.",
+            "es": "1. Al seleccionar el conjunto de entrenamiento y el de prueba del modelo, no se conserva la información sobre el edificio de origen de cada departamento; es probable que una planta de un edificio se incluya en el conjunto de entrenamiento, mientras que otra planta del mismo edificio pertenezca al conjunto de prueba. Se puede suponer que existen similitudes considerables entre las plantas de un mismo edificio."
+          }
+        },
+        {
+          "id": "s2-p13",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "2. The number of common room types is relatively low.",
+            "es": "2. El número de tipos de habitación comunes es relativamente bajo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3. Materials and Methods",
+        "es": "3. Materiales y métodos"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We present a method where two types of information are extracted from IFC files to serve as input for a neural network-based supervised classification trained on labelled data: First, numerical features calculated from the geometric shapes of IFC elements are extracted. Second, the accessibility between spaces is calculated. The spatial proximity and traversability of spaces can be best described by a graph. The spaces are represented as nodes and connected with an edge if a person can walk from one space to the other. This condition is satisfied if spaces touch without a boundary between them or are connected via a door or staircase. The proposed graph convolutional network merges both numerical features and graph structure to train the weights of a neural network to classify the nodes in this graph. This method is not only promising for spaces, but also for other kinds of classifications and automatic IFC model quality assessments.",
+            "es": "Presentamos un método en el que se extraen dos tipos de información de los archivos IFC para servir como entrada de una clasificación supervisada (supervised classification) basada en redes neuronales (neural networks) y entrenada con datos etiquetados: primero, se extraen características (features) numéricas calculadas a partir de las formas geométricas de los elementos IFC. Segundo, se calcula la accesibilidad entre espacios. La proximidad espacial y la transitabilidad de los espacios se pueden describir mejor mediante un grafo (graph). Los espacios se representan como nodos (nodes) y se conectan con una arista (edge) si una persona puede caminar de un espacio al otro. Esta condición se cumple si los espacios se tocan sin un límite entre ellos o si están conectados mediante una puerta o una escalera. La red convolucional de grafos (graph convolutional network) propuesta combina tanto las características numéricas como la estructura del grafo para entrenar los pesos de una red neuronal que clasifica los nodos de este grafo. Este método no solo es prometedor para espacios, sino también para otros tipos de clasificaciones y para evaluaciones automáticas de la calidad de modelos IFC."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "3.1. Space Extraction from IFC Elements",
+            "es": "3.1. Extracción de espacios a partir de elementos IFC"
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The IFC standard provided the IfcSpace (https://standards.buildingsmart.org/IFC/ RELEASE/IFC4/ADD2_TC1/HTML/link/ifcspace.htm, accessed on 15 January 2022) entity for defining spaces or rooms in BIM models. IfcSpace elements can be defined and exported from closed BIM software packages. The correct definition of the spaces is important for subsequent analyses such as area calculation or apartment size determination. Further quality checks can also leverage the properties of the IfcSpace entities.",
+            "es": "El estándar IFC proporcionó la entidad IfcSpace (https://standards.buildingsmart.org/IFC/ RELEASE/IFC4/ADD2_TC1/HTML/link/ifcspace.htm, consultado el 15 de enero de 2022) para definir espacios o habitaciones en los modelos BIM. Los elementos IfcSpace pueden definirse y exportarse desde paquetes de software BIM cerrados. La definición correcta de los espacios es importante para análisis posteriores, como el cálculo de áreas o la determinación del tamaño de los departamentos. Otras verificaciones de calidad también pueden aprovechar las propiedades de las entidades IfcSpace."
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In our approach we started from the walls, which we extracted separately from each floor. First, the Opencascade TopoDS [23] shape was extracted from each wall with the help of ifcOpenShell [24]. Then, the oriented bounding box for each wall and the projection of that bounding box onto a horizontal plane was calculated. With this projection, two-dimensional rectangles were obtained for each wall. Using the shapely python package, these two-dimensional shapes were processed; the convex hull was calculated from the polygons and then the geometric difference of the convex hull and the rectangles corresponding to the walls was calculated. This difference resulted in a list of polygons that were closed polygons encompassed by the wall-rectangles. Polygons that were touching the convex hull had to be removed from this list, because these polygons were not contained within the building bounding walls. The polygons were then extruded along the z-axis (resulting in IfcExtrudedAreaSolid objects), assuming vertical walls and using the height of the storey that we calculated as the median of the wall heights belonging to the given IfcStorey. The obtained IfcSpace entities could then be written back into the original IFC file with the ifcopenshell write function, thus augmenting the initial BIM model with IfcSpaces. This procedure is visualized on Figure 1. This method assumes vertical walls and horizontal slabs. The processing of slanted slabs and roofs was out of scope of this paper. A further limitation of the method is that incorrectly modelled walls can also lead to problems with space detection (for example, when small gaps exist between the walls).",
+            "es": "En nuestro enfoque partimos de los muros, que extrajimos por separado de cada piso. Primero, se extrajo la forma Opencascade TopoDS [23] de cada muro con la ayuda de ifcOpenShell [24]. Luego, se calculó el cuadro delimitador orientado (oriented bounding box) de cada muro y la proyección de ese cuadro delimitador sobre un plano horizontal. Con esta proyección se obtuvieron rectángulos bidimensionales para cada muro. Utilizando el paquete de python shapely, estas formas bidimensionales se procesaron; se calculó la envolvente convexa (convex hull) a partir de los polígonos y después se calculó la diferencia geométrica entre la envolvente convexa y los rectángulos correspondientes a los muros. Esta diferencia dio como resultado una lista de polígonos que eran polígonos cerrados rodeados por los rectángulos de los muros. Los polígonos que tocaban la envolvente convexa tuvieron que eliminarse de esta lista, porque dichos polígonos no estaban contenidos dentro de los muros delimitadores del edificio. Después, los polígonos se extruyeron (extruded) a lo largo del eje z (lo que dio como resultado objetos IfcExtrudedAreaSolid), suponiendo muros verticales y usando la altura del nivel que calculamos como la mediana de las alturas de los muros pertenecientes al IfcStorey en cuestión. Las entidades IfcSpace obtenidas se pudieron entonces escribir de nuevo en el archivo IFC original con la función de escritura de ifcopenshell, aumentando así el modelo BIM inicial con IfcSpaces. Este procedimiento se visualiza en la Figura 1. Este método supone muros verticales y losas horizontales. El procesamiento de losas inclinadas y techos quedó fuera del alcance de este artículo. Otra limitación del método es que los muros modelados incorrectamente también pueden causar problemas en la detección de espacios (por ejemplo, cuando existen pequeños huecos entre los muros)."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1. The visualization of the IfcSpace detection workflow.",
+            "es": "Figura 1. Visualización del flujo de trabajo de detección de IfcSpace."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "3.2. Accesssibility Graph Calculation",
+            "es": "3.2. Cálculo del grafo de accesibilidad"
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "An accessibility graph is used to encode relations among spaces in the building. Adjacent graphs are commonly used in different kinds of analysis of spatial layouts, e.g., using the space syntax theory [25]. In architecture, this is often done to analyze the layout, connectedness, and relations between the spaces of the building. Another application of accessibility graphs is the automated calculation of emergency exit pathways; the maximum distance from each room to a fire-safe room is regulated by the Austrian building code (https://www.oib.or.at/de/oib-richtlinien/richtlinien/2019/oib-richtlinie-2, accessed on 15 January 2022). Using the accessibility graph, the shortest route to reach a fire-safe place can be easily calculated utilizing standard graph algorithms (for example, implemented in the networkx python package [26]). Adding length measures to the space-graph edges (distance between rooms), the path length can be obtained in meters.",
+            "es": "Se utiliza un grafo de accesibilidad (accessibility graph) para codificar las relaciones entre los espacios del edificio. Los grafos de adyacencia se usan comúnmente en distintos tipos de análisis de distribuciones espaciales, por ejemplo, con la teoría de la sintaxis espacial (space syntax) [25]. En arquitectura, esto se hace con frecuencia para analizar la distribución, la conectividad y las relaciones entre los espacios del edificio. Otra aplicación de los grafos de accesibilidad es el cálculo automatizado de rutas de salida de emergencia; la distancia máxima desde cada habitación hasta un espacio seguro contra incendios está regulada por el código de construcción austriaco (https://www.oib.or.at/de/oib-richtlinien/richtlinien/2019/oib-richtlinie-2, consultado el 15 de enero de 2022). Con el grafo de accesibilidad, la ruta más corta para llegar a un lugar seguro contra incendios se puede calcular fácilmente utilizando algoritmos de grafos estándar (por ejemplo, implementados en el paquete de python networkx [26]). Al agregar medidas de longitud a las aristas del grafo de espacios (distancia entre habitaciones), se puede obtener la longitud de la ruta en metros."
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To classify spaces, we filtered the information that is available in the IFC BIM Model; only Spaces, Doors, and Stairs were extracted. In order to place the Space objects into context, we calculated which rooms were connected, i.e., directly traversable from one to another by humans. To create a graph of accessibility, we calculated which spaces were directly reachable from other spaces through doors, or were in direct spatial contact (spaces are touching). Here, we calculated the spatial proximity with the help of the open source Opencascade geometry library (pythonocc interface [23])—see Figure 2. There are four types of space–space connections that we checked:",
+            "es": "Para clasificar los espacios, filtramos la información disponible en el modelo BIM IFC; solo se extrajeron Spaces, Doors y Stairs. Para situar los objetos Space en contexto, calculamos qué habitaciones estaban conectadas, es decir, directamente transitables de una a otra por personas. Para crear un grafo de accesibilidad, calculamos qué espacios eran directamente alcanzables desde otros espacios a través de puertas, o estaban en contacto espacial directo (los espacios se tocan). Aquí calculamos la proximidad espacial con la ayuda de la biblioteca de geometría de código abierto Opencascade (interfaz pythonocc [23]); véase la Figura 2. Verificamos cuatro tipos de conexiones espacio–espacio:"
+          }
+        },
+        {
+          "id": "s3-p38",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "• two spaces are touching (zero distance); • two spaces are connected through a door (IfcDoor); • two spaces are connected through an opening (unpopulated IfcOpeningElement); • two spaces are connected through stairs (IfcStair).",
+            "es": "• dos espacios se tocan (distancia cero); • dos espacios están conectados mediante una puerta (IfcDoor); • dos espacios están conectados mediante una abertura (IfcOpeningElement sin ocupar); • dos espacios están conectados mediante escaleras (IfcStair)."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2. A building model and the corresponding calculated accessibility graph. Orphan doors were the doors with only one connected space (external or terrace doors).",
+            "es": "Figura 2. Un modelo de edificio y el grafo de accesibilidad calculado correspondiente. Las puertas huérfanas eran las puertas con un solo espacio conectado (puertas exteriores o de terraza)."
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "If any of these four connections existed between two spaces, we created an edge between the two spaces in the graph created from the spaces as nodes.",
+            "es": "Si existía cualquiera de estas cuatro conexiones entre dos espacios, creábamos una arista entre los dos espacios en el grafo creado con los espacios como nodos."
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.3. Extracting Features",
+            "es": "3.3. Extracción de características"
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "To perform the classification, certain geometric features were extracted from the shapes of the spaces and doors. These geometric properties were then used as features for supervised learning. Raw geometric features for the shapes of spaces were calculated using the the Opencascade G_prop package (https://dev.opencascade.org/doc/refman/html/ class_g_prop___g_props.html, accessed on 15 January 2022). These raw features included:",
+            "es": "Para realizar la clasificación, se extrajeron ciertas características geométricas de las formas de los espacios y las puertas. Estas propiedades geométricas se usaron después como características para el aprendizaje supervisado (supervised learning). Las características geométricas en bruto de las formas de los espacios se calcularon utilizando el paquete G_prop de Opencascade (https://dev.opencascade.org/doc/refman/html/ class_g_prop___g_props.html, consultado el 15 de enero de 2022). Estas características en bruto incluyeron:"
+          }
+        },
+        {
+          "id": "s3-p39",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "• Total Volume; • Principal moments of inertia; • Gyration radius in the 3 axes in the principal coordinate system; • Total Volume; • Static moments in x, y, z directions; • Height of the shape (in vertical z direction); • Dimensions of the oriented bounding box of the space shape.",
+            "es": "• Volumen total; • Momentos principales de inercia; • Radio de giro en los 3 ejes en el sistema de coordenadas principal; • Volumen total; • Momentos estáticos en las direcciones x, y, z; • Altura de la forma (en la dirección vertical z); • Dimensiones del cuadro delimitador orientado de la forma del espacio."
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Additionally, the number of windows, doors, openings, and stairs belonging to a space was calculated using geometric proximity. In order to speed up the relatively slow Opencascade distance calculation between shapes, we first calculated a distance lower limit with the help of bounding box corners—with much lower computation time and complexity—and only if the distance between the bounding boxes lied below a certain limit were the time-consuming exact geometric distances calculated between the Opencascade shapes. The shape representation type of the space (Brep, Surface Model, or Swept Solid) was added as a categorical feature.",
+            "es": "Adicionalmente, se calculó el número de ventanas, puertas, aberturas y escaleras que pertenecen a un espacio mediante proximidad geométrica. Para acelerar el cálculo de distancias entre formas de Opencascade, que es relativamente lento, primero calculamos un límite inferior de la distancia con la ayuda de las esquinas de los cuadros delimitadores (con un tiempo de cómputo y una complejidad mucho menores), y solo si la distancia entre los cuadros delimitadores estaba por debajo de cierto límite se calcularon las distancias geométricas exactas, que consumen mucho tiempo, entre las formas de Opencascade. El tipo de representación de la forma del espacio (Brep, Surface Model o Swept Solid) se agregó como una característica categórica."
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "As a next step, the normalized features were calculated from these raw features. These included volume/height as the area of the space (in case of horizontal upper slabs), the ratio of the maximum and minimum bounding box dimension, or the ratio of the volume of the bounding box divided by the volume of the space—giving only one for cuboid shaped spaces.",
+            "es": "Como siguiente paso, se calcularon las características normalizadas a partir de estas características en bruto. Estas incluyeron volumen/altura como el área del espacio (en el caso de losas superiores horizontales), la razón entre la dimensión máxima y la mínima del cuadro delimitador, o la razón entre el volumen del cuadro delimitador dividido entre el volumen del espacio, que da uno solo para espacios con forma de cuboide."
+          }
+        },
+        {
+          "id": "s3-p13",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Using these features, a classifier was trained to label each room with one of the following 15 labels: Bathroom, Toilet, Living Room, Kitchen, Bedroom, Corridor, Staircase, Foyer, Storage, Terrace, Office, Kitchen/LivingRoom, Living Room/Bedroom, Other, or Technical Room. Additionally, if the space definition was incorrect in the original file (for example whole floor was marked as one space), the space was labelled as “DELETE”. We also let the network predict such incorrect spaces.",
+            "es": "Con estas características se entrenó un clasificador (classifier) para etiquetar cada habitación con una de las siguientes 15 etiquetas: Bathroom, Toilet, Living Room, Kitchen, Bedroom, Corridor, Staircase, Foyer, Storage, Terrace, Office, Kitchen/LivingRoom, Living Room/Bedroom, Other o Technical Room. Además, si la definición del espacio era incorrecta en el archivo original (por ejemplo, un piso completo marcado como un solo espacio), el espacio se etiquetó como “DELETE”. También dejamos que la red predijera esos espacios incorrectos."
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.4. Neural Networks on Graphs",
+            "es": "3.4. Redes neuronales sobre grafos"
+          }
+        },
+        {
+          "id": "s3-p15",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "A multi-layer preceptor model (MLP) was implemented to serve as a baseline reference. MLP does not use the available graph information; it consists of two hidden layers and accepts all available numerical and categorical features as input, and outputs the predicted probabilities for each of the 16 room types.",
+            "es": "Se implementó un modelo de perceptrón multicapa (multi-layer preceptor model, MLP) para servir como referencia base. El MLP no usa la información del grafo disponible; consta de dos capas ocultas (hidden layers), acepta como entrada todas las características numéricas y categóricas disponibles y produce como salida las probabilidades predichas para cada uno de los 16 tipos de habitación."
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Our first graph-based reference neural network model was the Graph Convolutional Network from Kipf [19]. It operates on a matrix of N nodes, each with F number of features. The Activation in hidden layer l can be given as:",
+            "es": "Nuestro primer modelo de red neuronal de referencia basado en grafos fue la red convolucional de grafos de Kipf [19]. Opera sobre una matriz de N nodos, cada uno con F características. La activación en la capa oculta l se puede expresar como:"
+          }
+        },
+        {
+          "id": "s3-e1",
+          "type": "equation",
+          "page": 6,
+          "text": {
+            "en": "h^(l+1) = f(h^l, A) = σ(A h^l W^l) (2)"
+          }
+        },
+        {
+          "id": "s3-p17",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "where A is the normalized adjacency matrix (with the size of N × N); Aij is nonzero if and only if i and j nodes are connected. Wl is the trainable weight matrix in the hidden layer l. The size of Wl does not depend on the size of the graph, just on the number of features F and on the size of the hidden layers. These Wl weights are shared between the nodes, just like the convolution matrix is shared by convolutional networks. For the first layer, H0 is initialized with the input features. The activation function σ is usually implemented with the tanh function.",
+            "es": "donde A es la matriz de adyacencia normalizada (normalized adjacency matrix) (de tamaño N × N); Aij es distinta de cero si y solo si los nodos i y j están conectados. Wl es la matriz de pesos entrenable en la capa oculta l. El tamaño de Wl no depende del tamaño del grafo, sino solo del número de características F y del tamaño de las capas ocultas. Estos pesos Wl se comparten entre los nodos, al igual que la matriz de convolución es compartida en las redes convolucionales. Para la primera capa, H0 se inicializa con las características de entrada. La función de activación σ se implementa usualmente con la función tanh."
+          }
+        },
+        {
+          "id": "s3-p18",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "With these layers, the prediction for a two-layer GCN, as an example, can be written as:",
+            "es": "Con estas capas, la predicción de una GCN de dos capas, como ejemplo, se puede escribir como:"
+          }
+        },
+        {
+          "id": "s3-e2",
+          "type": "equation",
+          "page": 7,
+          "text": {
+            "en": "Z_iγ = softmax( Σ_κ σ( Σ_jβ A_ij σ( Σ_kα A_jk X_kα W^0_αβ + b_β ) W^1_βκ + b_κ ) W^D_κγ ) (3)"
+          }
+        },
+        {
+          "id": "s3-p25",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Here, we only get contributions to the output if i and j are indices of neighboring spaces and j and k are also neighbors, so k is second neighbor to i. The Greek indices run over the number of features. The trainable bias vectors are denoted by b. The formula shows that in case of two GCN layers for the prediction of the class of a given element, anything up to the second neighbors of this element contribute (for 1-layer GCN, only the first neighbors show a contribution). Xkα is the feature α for node k; this is the first layer input X = h0.",
+            "es": "Aquí solo obtenemos contribuciones a la salida si i y j son índices de espacios vecinos y j y k también son vecinos, de modo que k es segundo vecino de i. Los índices griegos recorren el número de características. Los vectores de sesgo entrenables se denotan por b. La fórmula muestra que, en el caso de dos capas GCN, para la predicción de la clase de un elemento dado contribuye todo lo que esté hasta los segundos vecinos de este elemento (para una GCN de 1 capa, solo los primeros vecinos muestran una contribución). Xkα es la característica α del nodo k; esta es la entrada de la primera capa X = h0."
+          }
+        },
+        {
+          "id": "s3-p26",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "WD κγ is the weight matrix of the last dense softmax layer. The softmax function returns a vector Ziγ for each space i with the size equaling the number of classes and sums up to 1 (so γ = 1 . . . 15 for the 15 room categories). The elements of this vector can be treated as probabilities of classes; the one with the highest “probability” is the predicted class.",
+            "es": "WD κγ es la matriz de pesos de la última capa densa softmax. La función softmax devuelve un vector Ziγ para cada espacio i cuyo tamaño es igual al número de clases y cuya suma es 1 (de modo que γ = 1 . . . 15 para las 15 categorías de habitación). Los elementos de este vector pueden tratarse como probabilidades de las clases; la que tiene la “probabilidad” más alta es la clase predicha."
+          }
+        },
+        {
+          "id": "s3-p27",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The GCN in the stellargraph [27] python package is implemented for transductive inference (classifying the unlabeled nodes in a known graph), which does not naturally generalize to unseen nodes. This problem of inductive inference (predicting labels of the nodes of a previously unseen graph) was solved by saving the learned weight matrices (Wl) and creating a new stellargraph GCN instance from these previously learned weights for an unseen graph without re-training.",
+            "es": "La GCN del paquete de python stellargraph [27] está implementada para inferencia transductiva (transductive inference) (clasificar los nodos sin etiqueta en un grafo conocido), la cual no se generaliza de forma natural a nodos no vistos. Este problema de la inferencia inductiva (inductive inference) (predecir las etiquetas de los nodos de un grafo previamente no visto) se resolvió guardando las matrices de pesos aprendidas (Wl) y creando una nueva instancia de GCN de stellargraph a partir de estos pesos aprendidos previamente para un grafo no visto, sin volver a entrenar."
+          }
+        },
+        {
+          "id": "s3-p28",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "In the course of training the GCN model we have realized that it often does not outperform the simple MLP network in the inductive setup. Combining the two predictions was attempted with the hope that an ensemble model would perform better. In order to merge the predictions of the two models, we calculated a joint prediction. For this, we simply summed up the output probability matrix of the two classifiers and determined the joint prediction as the argmax of the single lines of this averaged probability matrix. This method is often referred to as ensemble averaging.",
+            "es": "En el curso del entrenamiento del modelo GCN nos dimos cuenta de que con frecuencia no supera a la red MLP simple en el entorno inductivo. Se intentó combinar las dos predicciones con la esperanza de que un modelo de ensamble (ensemble) tuviera un mejor desempeño. Para fusionar las predicciones de los dos modelos, calculamos una predicción conjunta. Para ello, simplemente sumamos la matriz de probabilidades de salida de los dos clasificadores y determinamos la predicción conjunta como el argmax de cada una de las filas de esta matriz de probabilidades promediada. Este método se conoce con frecuencia como promedio de ensamble (ensemble averaging)."
+          }
+        },
+        {
+          "id": "s3-p29",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "3.5. Weighted Graph Convolutional Network Architecture",
+            "es": "3.5. Arquitectura de la red convolucional de grafos ponderada"
+          }
+        },
+        {
+          "id": "s3-p30",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "As the classification accuracy of the GCN for the inductive setup was not satisfactory, a modification of the GCN architecture was attempted.",
+            "es": "Como la exactitud de clasificación de la GCN en el entorno inductivo no fue satisfactoria, se intentó una modificación de la arquitectura de la GCN."
+          }
+        },
+        {
+          "id": "s3-p31",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "For the particular problem of assigning labels to IfcSpaces, the weakness of the GCN is that the importance of the single site vs. neighbor nodes features cannot be adjusted, i.e., they are simply averaged. In the original GCN, the l-th layer output hl+1 j is obtained from the layer input hlkα with the formula in Equation (2):",
+            "es": "Para el problema particular de asignar etiquetas a IfcSpaces, la debilidad de la GCN es que no se puede ajustar la importancia de las características del nodo individual frente a las de los nodos vecinos, es decir, simplemente se promedian. En la GCN original, la salida de la l-ésima capa hl+1 j se obtiene a partir de la entrada de la capa hlkα con la fórmula de la Ecuación (2):"
+          }
+        },
+        {
+          "id": "s3-e3",
+          "type": "equation",
+          "page": 7,
+          "text": {
+            "en": "h^(l+1)_jβ = σ( Σ_kα A_jk h^l_kα W^l_αβ ) (4)"
+          }
+        },
+        {
+          "id": "s3-p33",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "where j, k = (1 . . . N) are the node indices, the Greek letters are the feature indices, Ajk is the adjacency matrix that depends only on the graph structure, and Wlαβ are the trainable weights in layer l. We proposed an extended layer, with separate weight matrix for the single site elements (diagonal of the adjacency matrix) and separate weights for the offdiagonal elements, corresponding to the neighbors:",
+            "es": "donde j, k = (1 . . . N) son los índices de los nodos, las letras griegas son los índices de las características, Ajk es la matriz de adyacencia que depende únicamente de la estructura del grafo, y Wlαβ son los pesos entrenables en la capa l. Propusimos una capa extendida, con una matriz de pesos separada para los elementos del sitio individual (la diagonal de la matriz de adyacencia) y pesos separados para los elementos fuera de la diagonal, correspondientes a los vecinos:"
+          }
+        },
+        {
+          "id": "s3-e4",
+          "type": "equation",
+          "page": 7,
+          "text": {
+            "en": "h^(l+1)_jβ = σ( Σ_kα A_jj h^l_jα W^(l,diag)_αβ + A_jk h^l_kα W^(l,off-diag)_αβ ) (5)"
+          }
+        },
+        {
+          "id": "s3-p36",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Here, we have two matrices (W^diag_αβ, W^off-diag_αβ) instead of one, which were both separately trained on the data (to optimize the cross-entropy loss function).",
+            "es": "Aquí tenemos dos matrices (W^diag_αβ, W^off-diag_αβ) en lugar de una, que se entrenaron ambas por separado con los datos (para optimizar la función de pérdida de entropía cruzada)."
+          }
+        },
+        {
+          "id": "s3-p37",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "With this novel architecture, a higher accuracy for the transductive learning was achieved, and we also obtained higher inductive accuracy, as shown in the last column of Table 1.",
+            "es": "Con esta arquitectura novedosa se logró una mayor exactitud en el aprendizaje transductivo, y también obtuvimos una mayor exactitud inductiva, como se muestra en la última columna de la Tabla 1."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1. Inductive Inference evaluation of the Neural Network models: MLP = simple multi-layer preceptor neural network, GCN: Graph convolutional network of Kipf and Welling [11]. GCN_MLP_joint mixture of MLP and GCN classifier, WGCN = novel Weighted Graph Neural Network Model.",
+            "es": "Tabla 1: Evaluación de la inferencia inductiva de los modelos de redes neuronales: MLP = red neuronal simple de perceptrón multicapa (multi-layer preceptor), GCN: red convolucional de grafos de Kipf y Welling [11]. GCN_MLP_joint: mezcla de los clasificadores MLP y GCN, WGCN = nuevo modelo de red neuronal de grafos ponderada."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4. Results",
+        "es": "4. Resultados"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We created a labelled dataset of spaces for eight IFC models of residential buildings that were freely available on the internet. The source of the IFC files were archives of the Ghent University IFC repository and archives of the duraark repository (https://www.re3 data.org/repository/r3d100012506, accessed on 15 January 2022). For these BIM models, we used 13 room types.",
+            "es": "Creamos un conjunto de datos etiquetado (labelled dataset) de espacios para ocho modelos IFC de edificios residenciales que estaban disponibles libremente en internet. Los archivos IFC provinieron de archivos del repositorio IFC de Ghent University y de archivos del repositorio de duraark (https://www.re3 data.org/repository/r3d100012506, consultado el 15 de enero de 2022). Para estos modelos BIM utilizamos 13 tipos de habitación."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "For training and validation, we used the 320 spaces from the IFC models and randomly selected 80% of these rooms as a training set; the remaining 20% of the nodes we used as validation set. We optimized the neural network weights for 1500 iterations with the Adam optimizer using the stellargraph/tensorflow GCN implementation. The training time was under 1 min on an intel i9 CPU.",
+            "es": "Para el entrenamiento y la validación utilizamos los 320 espacios de los modelos IFC y seleccionamos aleatoriamente el 80% de estas habitaciones como conjunto de entrenamiento (training set); el 20% restante de los nodos lo utilizamos como conjunto de validación (validation set). Optimizamos los pesos de la red neuronal (neural network) durante 1500 iteraciones con el optimizador (optimizer) Adam, usando la implementación de GCN de stellargraph/tensorflow. El tiempo de entrenamiento fue de menos de 1 min en una CPU intel i9."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "In Figure 3, the resulting confusion matrix of the classification is shown. We can see that bedrooms, the most common room types, were also the most often misclassified room types. A 62% classification accuracy was reached on the validation dataset.",
+            "es": "En la Figura 3 se muestra la matriz de confusión (confusion matrix) resultante de la clasificación. Podemos ver que las recámaras, que son el tipo de habitación más común, fueron también el tipo de habitación clasificado erróneamente con mayor frecuencia. Se alcanzó una exactitud de clasificación (classification accuracy) del 62% en el conjunto de datos de validación."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3. Confusion matrix for classification (a) of all the training and validation data, for which we obtained an accuracy of 72%; (b) For the validation nodes alone (which were 20% of the total nodes), we obtained an accuracy of 62%.",
+            "es": "Figura 3. Matriz de confusión de la clasificación (a) de todos los datos de entrenamiento y validación, para los cuales obtuvimos una exactitud del 72%; (b) solo para los nodos de validación (que fueron el 20% del total de nodos), para los cuales obtuvimos una exactitud del 62%."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The models were tested in an inductive setup as well; the models were trained on 1500 spaces of nine proprietary IFC files, then they were tested on six other unrelated IFC files that were neither seen nor processed during the training. With this independence of the training and testing dataset we reached the most realistic accuracy assessment. The obtained accuracy for this test is shown in Table 1. With GCN, we reached an average classification accuracy of 50%, where the accuracy ratio strongly varied between the considered building models.",
+            "es": "Los modelos también se probaron en una configuración inductiva (inductive setup); los modelos se entrenaron con 1500 espacios de nueve archivos IFC propietarios y luego se probaron con otros seis archivos IFC no relacionados, que no se vieron ni se procesaron durante el entrenamiento. Con esta independencia entre el conjunto de datos de entrenamiento y el de prueba logramos la evaluación de exactitud más realista. La exactitud obtenida en esta prueba se muestra en la Tabla 1. Con GCN alcanzamos una exactitud de clasificación promedio del 50%, donde la proporción de exactitud varió considerablemente entre los modelos de edificios considerados."
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "One example space classification result can be seen on Figure 4.",
+            "es": "En la Figura 4 se puede ver un ejemplo del resultado de la clasificación de espacios."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4. (a) An IFC model visualized with BIMVision software (https://bimvision.eu/, accessed on 15 January 2022); (b) The output of our WGCN space classifier for the spaces on the two floors of the building model.",
+            "es": "Figura 4. (a) Un modelo IFC visualizado con el software BIMVision (https://bimvision.eu/, consultado el 15 de enero de 2022); (b) La salida de nuestro clasificador de espacios WGCN para los espacios de las dos plantas del modelo del edificio."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Figure 5 shows the confusion matrix for the inductive inference test. Some prediction errors are understandable; for example, the network often mistakes Corridors for Foyers (14 times). The IfcSanitaryTerminal elements (used to represent elements such as drains, water closets, or sinks) were not used as space features, as around half of the used models did not contain such elements. Without this feature, it was hard for the model to differentiate between bathrooms and storage rooms (21 cases).",
+            "es": "La Figura 5 muestra la matriz de confusión de la prueba de inferencia inductiva. Algunos errores de predicción son comprensibles; por ejemplo, la red confunde con frecuencia los pasillos (Corridors) con los vestíbulos (Foyers) (14 veces). Los elementos IfcSanitaryTerminal (utilizados para representar elementos como desagües, inodoros o lavabos) no se usaron como características (features) de los espacios, ya que alrededor de la mitad de los modelos utilizados no contenían tales elementos. Sin esta característica, fue difícil para el modelo diferenciar entre baños y bodegas (21 casos)."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5. Confusion matrix for the inductive inference test of the WGCN model. The model was trained on a proprietary set of IFC files with 1500 spaces and validated on 283 other spaces from other IFC models as a realistic inference test.",
+            "es": "Figura 5. Matriz de confusión de la prueba de inferencia inductiva del modelo WGCN. El modelo se entrenó con un conjunto propietario de archivos IFC con 1500 espacios y se validó con otros 283 espacios de otros modelos IFC como una prueba de inferencia realista."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The relatively low classification accuracy stemmed from the high number of room-types—some of them having just a few examples in the training set. Some room-types are hard to differentiate without additional information (like Storage rooms vs. Toilets); we also see that Foyers and Corridors are often confused by the neural model. They have a similar room function, although the difference is only that Foyers are within the apartments. Therefore, it made sense to merge some room types and recalculate both the confusion matrix and accuracy. We grouped the following room types to create the following three aggregate classes:",
+            "es": "La exactitud de clasificación relativamente baja se debió al elevado número de tipos de habitación, algunos de los cuales tenían solo unos pocos ejemplos en el conjunto de entrenamiento. Algunos tipos de habitación son difíciles de diferenciar sin información adicional (como las bodegas frente a los sanitarios); también vemos que el modelo neuronal confunde con frecuencia los vestíbulos y los pasillos. Tienen una función similar, aunque la única diferencia es que los vestíbulos están dentro de los departamentos. Por lo tanto, tenía sentido fusionar algunos tipos de habitación y volver a calcular tanto la matriz de confusión como la exactitud. Agrupamos los siguientes tipos de habitación para crear las siguientes tres clases agregadas:"
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "(“Corridor”, “Foyer”, “Staircase”, “Other”) (“Kitchen/Living Room”, “Living Room”, “Living Room/Bedroom”) (“Storage”, “Toilet”, “Technical room”)",
+            "es": "(“Pasillo”, “Vestíbulo”, “Escalera”, “Otro”) (“Cocina/Sala”, “Sala”, “Sala/Recámara”) (“Bodega”, “Sanitario”, “Cuarto técnico”)"
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "With this change, we reached an accuracy of 64%; the resulting confusion matrix is shown in Figure 6.",
+            "es": "Con este cambio alcanzamos una exactitud del 64%; la matriz de confusión resultante se muestra en la Figura 6."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6. Confusion Matrix of the WGN classification with layer size of two, after merging classes. The accuracy reached 64%.",
+            "es": "Figura 6. Matriz de confusión de la clasificación WGN con un tamaño de capa de dos, después de fusionar las clases. La exactitud alcanzó el 64%."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5. Conclusions and Outlook",
+        "es": "5. Conclusiones y perspectivas"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "A study for classifying IFC spaces with calculated geometrical features, accessibility graphs, and a graph-based machine learning model was presented here. The presented results demonstrate the operation of the workflow; however, there is still room for accuracy improvement before production deployment. For future work, the classification accuracy shall be improved by fine tuning the current workflow—there is an improvement potential that could be achieved by increasing the number of regarded features. Additionally, the inclusion of additional IFC elements such as IfcSanitaryTerminal would improve classification accuracy to differentiate spaces that have those elements (such as toilets, bathrooms, kitchens) from those which usually do not (living rooms, bedrooms, storage). We also did not use the information on whether a space was outside or inside the building, as this would require a time-consuming geometric calculation. However, having such information would be very useful to differentiate between, e.g., a terrace and a bedroom.",
+            "es": "Aquí se presentó un estudio para clasificar espacios IFC con características geométricas calculadas, grafos de accesibilidad (accessibility graphs) y un modelo de aprendizaje automático (machine learning) basado en grafos. Los resultados presentados demuestran el funcionamiento del flujo de trabajo; sin embargo, todavía hay margen para mejorar la exactitud antes de su despliegue en producción. Para trabajo futuro, la exactitud de clasificación deberá mejorarse mediante el ajuste fino del flujo de trabajo actual: existe un potencial de mejora que podría lograrse aumentando el número de características consideradas. Además, la inclusión de elementos IFC adicionales, como IfcSanitaryTerminal, mejoraría la exactitud de clasificación al diferenciar los espacios que tienen esos elementos (como sanitarios, baños, cocinas) de aquellos que normalmente no los tienen (salas, recámaras, bodegas). Tampoco utilizamos la información sobre si un espacio estaba fuera o dentro del edificio, ya que esto requeriría un cálculo geométrico que consume mucho tiempo. Sin embargo, contar con esa información sería muy útil para diferenciar, por ejemplo, una terraza de una recámara."
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Another huge quality improvement is expected by using higher quality labelled input data for training the neural networks. For this study, only a couple of IFC files were available, where the spaces within one IFC model were highly correlated (i.e., spaces in different floors or within one floor had very similar geometry). Even a data stock of several thousand spaces would yield only a limited number of independent samples compared to the variety in existing buildings. It also has to be noted that in low-detailed IFC models (e.g., with the duct system missing from the model), sometimes the labelling of the space type was not obvious for human experts either. For example, toilets and storage rooms have very similar features; they have similar geometry, are windowless, and are typically located towards the core of the building.",
+            "es": "Se espera otra mejora enorme de la calidad con el uso de datos de entrada etiquetados de mayor calidad para entrenar las redes neuronales. Para este estudio solo se disponía de un par de archivos IFC, en los que los espacios dentro de un mismo modelo IFC estaban muy correlacionados (es decir, los espacios de distintas plantas o dentro de una misma planta tenían una geometría muy similar). Incluso un acervo de datos de varios miles de espacios produciría solo un número limitado de muestras independientes en comparación con la variedad de los edificios existentes. También debe señalarse que, en los modelos IFC con poco nivel de detalle (por ejemplo, con el sistema de ductos ausente del modelo), a veces el etiquetado del tipo de espacio tampoco era evidente para los expertos humanos. Por ejemplo, los sanitarios y las bodegas tienen características muy similares; tienen una geometría parecida, no tienen ventanas y normalmente se ubican hacia el núcleo del edificio."
+          }
+        },
+        {
+          "id": "s5-p9",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Additionally, the present analysis does not involve parent apartment-related information (e.g., small apartments usually have only one bathroom, or living rooms are usually the biggest rooms of an apartment). To incorporate such knowledge rules in the classification decision, first the individual apartments would need to be detected. Based on the segmentation of the spaces into apartments and public areas, new features could be calculated, which could be very useful for the space classification. This apartment information inference and processing should be a subject of a follow-up research project. Still, the presented study shows that it is possible to achieve an automated classification of an incomplete BIM model (i.e., one that is missing the classification of rooms), and that the method has the potential to automate the room classification process. It is expected that a similar approach can be used whenever BIM models are handed over from one stakeholder to another, e.g., in the case of issuing a building permit based on the BIM model data.",
+            "es": "Además, el presente análisis no incluye información relacionada con el departamento padre (por ejemplo, los departamentos pequeños suelen tener un solo baño, o las salas suelen ser las habitaciones más grandes de un departamento). Para incorporar este tipo de reglas de conocimiento en la decisión de clasificación, primero habría que detectar los departamentos individuales. A partir de la segmentación de los espacios en departamentos y áreas públicas, se podrían calcular nuevas características que podrían ser muy útiles para la clasificación de espacios. Esta inferencia y procesamiento de la información de los departamentos debería ser objeto de un proyecto de investigación posterior. Aun así, el estudio presentado muestra que es posible lograr una clasificación automatizada de un modelo BIM incompleto (es decir, uno al que le falta la clasificación de las habitaciones) y que el método tiene el potencial de automatizar el proceso de clasificación de habitaciones. Se espera que un enfoque similar pueda utilizarse siempre que los modelos BIM se transfieran de una parte interesada a otra, por ejemplo, en el caso de la emisión de un permiso de construcción basado en los datos del modelo BIM."
+          }
+        }
+      ]
+    },
+    {
+      "id": "back",
+      "title": {
+        "en": "Declarations",
+        "es": "Declaraciones"
+      },
+      "blocks": [
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Author Contributions: Conceptualization, A.B. and G.Z.; methodology, A.B. and M.Š.; software development, A.B. and M.Š.; validation and software testing, B.B.-L.; data curation, B.B.-L. and M.Š.; writing—original draft preparation, A.B.; writing—review and editing, M.Š., B.B.-L. and G.Z.; visualization, A.B.; supervision, A.B. and G.Z.; project administration, A.B. and G.Z.; funding acquisition, A.B. and G.Z. All authors have read and agreed to the published version of the manuscript.",
+            "es": "Contribuciones de los autores: Conceptualización, A.B. y G.Z.; metodología, A.B. y M.Š.; desarrollo de software, A.B. y M.Š.; validación y pruebas de software, B.B.-L.; curaduría de datos, B.B.-L. y M.Š.; redacción: preparación del borrador original, A.B.; redacción: revisión y edición, M.Š., B.B.-L. y G.Z.; visualización, A.B.; supervisión, A.B. y G.Z.; administración del proyecto, A.B. y G.Z.; obtención de financiamiento, A.B. y G.Z. Todos los autores han leído y aceptado la versión publicada del manuscrito."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Funding: This research was funded by Forschungsförderungsgesellschaft (FFG), Austria, grant number 880874.",
+            "es": "Financiamiento: Esta investigación fue financiada por Forschungsförderungsgesellschaft (FFG), Austria, número de subvención 880874."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Institutional Review Board Statement: Not applicable.",
+            "es": "Declaración del Comité de Ética Institucional: No aplica."
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Informed Consent Statement: Not applicable.",
+            "es": "Declaración de consentimiento informado: No aplica."
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Data Availability Statement: Not applicable.",
+            "es": "Declaración de disponibilidad de datos: No aplica."
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Conflicts of Interest: The authors declare no conflict of interest.",
+            "es": "Conflictos de intereses: Los autores declaran no tener ningún conflicto de intereses."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[1] ISO International Organization for Standardization. Industry Foundation Classes (IFC) for Data Sharing in the Construction and Facility Management Industries. ISO. Available online: https://www.iso.org/standard/70303.html (accessed on 31 January 2022)."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[2] Sporr, A.; Zucker, G.; Hofmann, R. Automated HVAC Control Creation Based on Building Information Modeling (BIM): Ventilation System. IEEE Access 2019, 7, 74747–74758."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[3] Hitchcock, R.J.; Wong, J.; Consulting, H. Transforming ifc architectural view bims for energy simulation: 2011. In Proceedings of the Building Simulation 2011: 12th Conference of International Building Performance Simulation Association, Sydney, Australia, 14–16 November 2011; p. 7."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[4] Lilis, G.N.; Giannakis, G.I.; Rovas, D.V. Automatic generation of second-level space boundary topology from IFC geometry inputs. Autom. Constr. 2017, 76, 108–124."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[5] Krijnen, T.; Tamke, M. Assessing Implicit Knowledge in BIM Models with Machine Learning. In Modelling Behaviour: Design Modelling Symposium 2015; Thomsen, M.R., Tamke, M., Gengnagel, C., Faircloth, B., Scheurer, F., Eds.; Springer: Cham, Switzerland, 2015; pp. 397–406."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[6] Belsky, M.; Sacks, R.; Brilakis, I. Semantic Enrichment for Building Information Modeling. Comput.-Aided Civ. Infrastruct. Eng. 2016, 31, 261–274."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[7] Sacks, R.; Ma, L.; Yosef, R.; Borrmann, A.; Daum, S.; Kattel, U. Semantic Enrichment for Building Information Modeling: Procedure for Compiling Inference Rules and Operators for Complex Geometry. J. Comput. Civ. Eng. 2017, 31, 04017062."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[8] Daum, S. QL4BIM. 2021. Available online: https://github.com/SimonDaum/QL4BIM (accessed on 23 November 2021)."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[9] Bloch, T.; Sacks, R. Comparing machine learning and rule-based inferencing for semantic enrichment of BIM models. Autom. Constr. 2018, 91, 256–272."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[10] Koo, B.; La, S.; Cho, N.-W.; Yu, Y. Using support vector machines to classify building elements for checking the semantic integrity of building information models. Autom. Constr. 2019, 98, 183–194."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[11] Open CASCADE Technology|Collaborative Development Portal. Available online: https://dev.opencascade.org/ (accessed on 1 February 2022)."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[12] Koo, B.; Jung, R.; Yu, Y. Automatic classification of wall and door BIM element subtypes using 3D geometric deep neural networks. Adv. Eng. Inform. 2021, 47, 101200."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[13] Su, H.; Maji, S.; Kalogerakis, E.; Learned-Miller, E. Multi-view Convolutional Neural Networks for 3D Shape Recognition. arXiv 2015, arXiv:1505.00880."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[14] LeCun, Y.; Bengio, Y.; Hinton, G. Deep learning. Nature 2015, 521, 436–444."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[15] Lomio, F.; Farinha, R.; Laasonen, M.; Huttunen, H. Classification of Building Information Model (BIM) Structures with Deep Learning. In Proceedings of the 2018 7th European Workshop on Visual Information Processing (EUVIP), Tampere, Finland, 26–28 November 2018; pp. 1–6."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[16] Emunds, C.; Pauen, N.; Richter, V.; Frisch, J.; van Treeck, C. IFCNet: A Benchmark Dataset for IFC Entity Classification. arXiv 2021, arXiv:2106.09712."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[17] Zhang, Z.; Cui, P.; Zhu, W. Deep Learning on Graphs: A Survey. IEEE Trans. Knowl. Data Eng. 2020, 34, 249–270."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[18] Bronstein, M.M.; Bruna, J.; LeCun, Y.; Szlam, A.; Vandergheynst, P. Geometric deep learning: Going beyond Euclidean data. IEEE Signal Process. Mag. 2017, 34, 18–42."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[19] Kipf, T.N.; Welling, M. Semi-Supervised Classification with Graph Convolutional Networks. arXiv 2017, arXiv:1609.02907."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[20] Song, J.; Yu, K. Framework for Indoor Elements Classification via Inductive Learning on Floor Plan Graphs. ISPRS Int. J. Geo-Inf. 2021, 10, 97."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[21] Paudel, A.; Dhakal, R.; Bhattarai, S. Room Classification on Floor Plan Graphs using Graph Neural Networks. arXiv 2021, arXiv:2108.05947."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[22] Hu, X.; Fan, H.; Noskov, A.; Wang, Z.; Zipf, A.; Gu, F.; Shang, J. Room semantics inference using random forest and relational graph convolutional networks: A case study of research building. Trans. GIS 2021, 25, 71–111."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[23] PythonOCC|Open CASCADE Technology. Available online: https://dev.opencascade.org/project/pythonocc (accessed on 16 November 2021)."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[24] IfcOpenShell. Available online: http://ifcopenshell.org/ (accessed on 16 November 2021)."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[25] Kim, H.; Jun, C.; Cho, Y.; Kim, G. Indoor Spatial Analysis Using Space Syntax, The. Int. Arch. Photogramm. Remote Sens. Spat. Inf. Sci. 2008, 37, 1065–1070."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[26] Hagberg, A.A.; Schult, D.A.; Swart, P.J. Exploring Network Structure, Dynamics, and Function using NetworkX. In Proceedings of the 7th Python in Science Conference, Pasadena, CA, USA, 21–22 August 2008; pp. 11–15."
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[27] StellarGraph Machine Learning Library. CSIRO’s Data61. 2022. Available online: https://github.com/stellargraph/stellargraph (accessed on 2 February 2022)."
+          }
+        }
+      ]
+    }
+  ]
+}

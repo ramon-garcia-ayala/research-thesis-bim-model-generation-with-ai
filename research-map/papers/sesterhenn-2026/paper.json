@@ -1,0 +1,328 @@
+{
+  "version": 1,
+  "node": "sesterhenn-2026",
+  "title": "A Self-Verification Framework Toward Reliable Text-to-BIM Generation",
+  "source": "files/A Self-Verification Framework Toward Reliable Text-to-BIM Generation.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "A Self-Verification Framework Toward Reliable Text-to-BIM Generation",
+            "es": "Un marco de autoverificación (Self-Verification Framework) hacia una generación Text-to-BIM confiable"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Tobias Sesterhenn¹, Bharathi Kannan Nithyanantham², Stefan Lüdtke², and Christian Bartelt¹",
+            "es": "Tobias Sesterhenn¹, Bharathi Kannan Nithyanantham², Stefan Lüdtke² y Christian Bartelt¹"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "2026 European Conference on Computing in Construction, Corfu, Greece, July 12–15, 2026",
+            "es": "2026 European Conference on Computing in Construction, Corfú, Grecia, 12–15 de julio de 2026"
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "¹Institute for Software and Systems Engineering, TU Clausthal, Germany",
+            "es": "¹Institute for Software and Systems Engineering, TU Clausthal, Alemania"
+          }
+        },
+        {
+          "id": "s0-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "²Institute for Visual and Analytic Computing, University of Rostock, Germany",
+            "es": "²Institute for Visual and Analytic Computing, University of Rostock, Alemania"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Recent advances in generative AI have enabled Text-to-BIM systems that generate building models from natural-language prompts; however, these systems typically lack automated verification, requiring manual inspection and iterative error correction. To improve the reliability of LLM-generated BIM outputs, we propose a Text-to-BIM workflow with integrated self-verification. For each prompt, the system derives two complementary validations: an Information Delivery Specification (IDS) for rule-based checking, and LLM-driven code-based verification for requirements beyond IDS. The resulting feedback is used to refine the IFC model in a closed loop. The framework is implemented and evaluated through a case study, demonstrating improvements in model quality.",
+            "es": "Los avances recientes en la inteligencia artificial generativa (generative AI) han hecho posibles sistemas Text-to-BIM que generan modelos de edificios a partir de instrucciones (prompts) en lenguaje natural; sin embargo, estos sistemas por lo general carecen de verificación automatizada, lo que exige inspección manual y corrección iterativa de errores. Para mejorar la confiabilidad de las salidas BIM generadas por LLM, proponemos un flujo de trabajo (workflow) Text-to-BIM con autoverificación integrada. Para cada instrucción, el sistema deriva dos validaciones complementarias: una Especificación de Entrega de Información (Information Delivery Specification, IDS) para la verificación basada en reglas (rule-based checking), y una verificación basada en código (code-based verification) impulsada por LLM para los requisitos que van más allá de IDS. La retroalimentación resultante se usa para refinar el modelo IFC en un ciclo cerrado (closed loop). El marco se implementa y se evalúa mediante un estudio de caso, que demuestra mejoras en la calidad del modelo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "Introduction",
+        "es": "Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Text-to-BIM systems generate Building Information Models (BIM) from natural language instructions (Deng et al., 2025), but despite their capabilities, current approaches lack a task-specific self-verification component that ensures the final BIM model actually meets the request of the human user. For example, Text2BIM (Du et al., 2026) includes a rule-based model checker, but all checks are predefined and may lose task-specific requirements. Consequently, users must manually inspect IFC models and iteratively correct deviations, limiting reliability and scalability of such systems. To address this, inspired by self-verification (Gou et al., 2024), we propose a closed-loop, LLM-assisted Specification-Modification-Verification framework. For each prompt, a Specifier agent derives two complementary specifications: (i) an automatically checkable Information Delivery Specification (IDS) encoding all formally verifiable, schema-level constraints, and (ii) a higher-level specification capturing semantic and contextual requirements that are evaluated by a Verifier agent. This allows a Modifier agent creating a BIM model to iteratively receive automated feedback by the Verifier, to finally output a model that meets the given specification.",
+            "es": "Los sistemas Text-to-BIM generan modelos de información de construcción (Building Information Models, BIM) a partir de instrucciones en lenguaje natural (Deng et al., 2025), pero, a pesar de sus capacidades, los enfoques actuales carecen de un componente de autoverificación específico para la tarea que garantice que el modelo BIM final cumpla realmente con lo solicitado por el usuario humano. Por ejemplo, Text2BIM (Du et al., 2026) incluye un verificador de modelos basado en reglas, pero todas las comprobaciones están predefinidas y pueden perder requisitos específicos de la tarea. En consecuencia, los usuarios deben inspeccionar manualmente los modelos IFC y corregir las desviaciones de forma iterativa, lo que limita la confiabilidad y la escalabilidad de dichos sistemas. Para abordar esto, inspirados en la autoverificación (Gou et al., 2024), proponemos un marco de Especificación-Modificación-Verificación de ciclo cerrado asistido por LLM. Para cada instrucción, un agente Specifier deriva dos especificaciones complementarias: (i) una IDS verificable automáticamente que codifica todas las restricciones a nivel de esquema que se pueden verificar formalmente, y (ii) una especificación de nivel superior que captura los requisitos semánticos y contextuales, los cuales son evaluados por un agente Verifier. Esto permite que un agente Modifier que crea un modelo BIM reciba de forma iterativa retroalimentación automatizada del Verifier, para finalmente producir un modelo que cumpla con la especificación dada."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Our contributions are as follows:",
+            "es": "Nuestras contribuciones son las siguientes:"
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "• A fully automated Text-to-BIM framework with integrated self-verification.",
+            "es": "• Un marco Text-to-BIM totalmente automatizado con autoverificación integrada."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "• A novel Text-to-IDS module that turns natural-language requirements into valid IDS constraints.",
+            "es": "• Un novedoso módulo Text-to-IDS que convierte requisitos en lenguaje natural en restricciones IDS válidas."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "• A simple case study demonstrating the framework.",
+            "es": "• Un estudio de caso sencillo que demuestra el marco."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "Framework",
+        "es": "Marco"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "As shown in Figure 1, the framework coordinates three agents – the Specifier, Modifier, and Verifier – within a closed-loop architecture to translate a user’s design prompt into an iteratively refined IFC model. Given a human prompt (①), the Specifier Agent derives two complementary artifacts: (i) an IDS document encoding all formally expressible, schema-level requirements (e.g., properties, simple relations) (②), and (ii) a less formal non-IDS specification capturing constraints that cannot be represented in IDS form, such as geometric, topological, or complex relational conditions (③).",
+            "es": "Como se muestra en la Figura 1, el marco coordina tres agentes (el Specifier, el Modifier y el Verifier) dentro de una arquitectura de ciclo cerrado para traducir la instrucción de diseño de un usuario en un modelo IFC refinado iterativamente. Dada una instrucción humana (①), el agente Specifier deriva dos artefactos complementarios: (i) un documento IDS que codifica todos los requisitos a nivel de esquema que se pueden expresar formalmente (p. ej., propiedades, relaciones simples) (②), y (ii) una especificación no IDS, menos formal, que captura las restricciones que no se pueden representar en forma de IDS, como las condiciones geométricas, topológicas o relacionales complejas (③)."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 1,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: The Modifier-Specifier-Verifier Framework. Steps 4-8 are colored blue to indicate they are repeated in each iteration of the Modifier-Verifier Loop. The Specifier is only required in the first iteration to produce the specification documents.",
+            "es": "Figura 1: El marco Modifier-Specifier-Verifier. Los pasos 4-8 están coloreados en azul para indicar que se repiten en cada iteración del ciclo Modifier-Verifier. El Specifier solo se requiere en la primera iteración para producir los documentos de especificación."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The Modifier Agent generates and iteratively updates an IFC model based on the prompt and – in following iterations – subsequent feedback (④). In each iteration, validation on the current IFC model is then performed at two levels (⑤). An automated IDS checker evaluates the model against the IDS document, producing an IDS Report (⑥). In parallel, the Verifier Agent operationalizes the non-IDS specification by generating and executing custom verification code (i.e., programmatic checks over the IFC structure), also producing a report. Both reports are consolidated into a unified feedback report (⑦), which is returned to the Modifier Agent to guide model revision (⑧). The loop continues until the IFC Model satisfies both the formal IDS constraints and the non-IDS requirements, or until a predefined iteration limit is reached.",
+            "es": "El agente Modifier genera y actualiza iterativamente un modelo IFC con base en la instrucción y, en las iteraciones siguientes, en la retroalimentación posterior (④). En cada iteración, se realiza entonces la validación del modelo IFC actual en dos niveles (⑤). Un verificador IDS automatizado evalúa el modelo frente al documento IDS y produce un Informe IDS (⑥). En paralelo, el agente Verifier operacionaliza la especificación no IDS generando y ejecutando código de verificación personalizado (es decir, comprobaciones programáticas sobre la estructura IFC), y también produce un informe. Ambos informes se consolidan en un informe de retroalimentación unificado (⑦), que se devuelve al agente Modifier para guiar la revisión del modelo (⑧). El ciclo continúa hasta que el modelo IFC satisface tanto las restricciones IDS formales como los requisitos no IDS, o hasta que se alcanza un límite de iteraciones predefinido."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "Case Study",
+        "es": "Estudio de caso"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To demonstrate the framework, we conduct a case study using the prompt: “Create a simple but realistic house, 4 rooms per level, 2 levels, made out of wood. The roof should be a gable roof.”¹",
+            "es": "Para demostrar el marco, realizamos un estudio de caso con la instrucción: “Crea una casa sencilla pero realista, con 4 habitaciones por nivel, 2 niveles, hecha de madera. El techo debe ser a dos aguas (gable roof).”¹"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We use GPT-5.2 for five iterative refinement cycles. The Modifier and Verifier agents are equipped with a toolbox based on MCP4IFC (Nithyanantham et al., 2025), enabling iterative programmatic IFC model construction and querying. Concretely, both agents can interact with a python interpreter and run code using either available functions from the toolbox (e.g. create_wall()) or by writing own ifcopenshell-python² code. In each iteration the agent is allowed to make multiple tool calls and to incorporate the results into its reasoning process, as formalized by the ReAct framework (Yao et al., 2022). Automated IDS validation is performed using the open-source ifctester² implementation. As illustrated in Figure 2, the system progressively resolves detected violations. For instance, the IDS requirement of eight IFCSpace entities fails in Iteration 1 and is satisfied by Iteration 3. Similarly, the geometric verification of the gable roof initially fails and is corrected by Iteration 3, together with the assignment of the material attribute “Timber” to relevant wall and slab elements. By Iteration 5, the roof geometry and overall building envelope are further refined.",
+            "es": "Usamos GPT-5.2 durante cinco ciclos de refinamiento iterativo. Los agentes Modifier y Verifier están equipados con una caja de herramientas (toolbox) basada en MCP4IFC (Nithyanantham et al., 2025), que permite la construcción y la consulta programática iterativa de modelos IFC. En concreto, ambos agentes pueden interactuar con un intérprete de python y ejecutar código, ya sea usando funciones disponibles de la caja de herramientas (p. ej., create_wall()) o escribiendo código propio de ifcopenshell-python². En cada iteración el agente puede hacer varias llamadas a herramientas e incorporar los resultados a su proceso de razonamiento, como lo formaliza el marco ReAct (Yao et al., 2022). La validación IDS automatizada se realiza con la implementación de código abierto ifctester². Como ilustra la Figura 2, el sistema resuelve progresivamente las violaciones detectadas. Por ejemplo, el requisito IDS de ocho entidades IFCSpace falla en la Iteración 1 y se satisface en la Iteración 3. De manera similar, la verificación geométrica del techo a dos aguas falla al principio y se corrige en la Iteración 3, junto con la asignación del atributo de material “Timber” a los elementos de muro y de losa pertinentes. Para la Iteración 5, la geometría del techo y la envolvente general del edificio se refinan aún más."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: Iterative refinement in the case study. The boxes indicate compliance with individual IDS and non-IDS requirements at each iteration of the self-verification loop.",
+            "es": "Figura 2: Refinamiento iterativo en el estudio de caso. Los recuadros indican el cumplimiento de los requisitos IDS y no IDS individuales en cada iteración del ciclo de autoverificación."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "¹Our code is publicly available at github.com/Tsesterh/Text2BIM-Self-Verification.",
+            "es": "¹Nuestro código está disponible públicamente en github.com/Tsesterh/Text2BIM-Self-Verification."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "²https://docs.ifcopenshell.org",
+            "es": "²https://docs.ifcopenshell.org"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "Discussion",
+        "es": "Discusión"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The case study provides a proof of concept for the proposed framework; however, a comprehensive evaluation is required to assess its robustness and generalizability. In the presented experiment, several limitations became apparent. For instance, the system exhibited difficulties in reliably deleting existing elements and failed to resolve certain constraint violations across iterations, such as the missing relationship between the eight IFCSpace entities and their corresponding IFCBuildingStorey elements. Moreover, complete coverage of all formal and non-IDS requirements during specification generation cannot be guaranteed, and any errors or omissions at this stage directly impact subsequent validation and refinement.",
+            "es": "El estudio de caso ofrece una prueba de concepto (proof of concept) del marco propuesto; sin embargo, se requiere una evaluación exhaustiva para valorar su robustez y su capacidad de generalización. En el experimento presentado se hicieron evidentes varias limitaciones. Por ejemplo, el sistema mostró dificultades para eliminar de forma confiable los elementos existentes y no logró resolver ciertas violaciones de restricciones a lo largo de las iteraciones, como la relación faltante entre las ocho entidades IFCSpace y sus elementos IFCBuildingStorey correspondientes. Además, no se puede garantizar la cobertura completa de todos los requisitos formales y no IDS durante la generación de la especificación, y cualquier error u omisión en esta etapa repercute directamente en la validación y el refinamiento posteriores."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "Conclusion & Future Work",
+        "es": "Conclusión y trabajo futuro"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We presented an agent-based Text-to-BIM framework centered on self-verification. For each prompt, the system derives checkable constraints and leverages automated feedback to iteratively revise the IFC model until detected violations are minimized or resolved. The simple case study suggests that this specification-modification-verification loop improves model quality and reliability, while also highlighting the need for further evaluation and refinement to ensure robustness and broader applicability. Future work should therefore focus on systematic evaluation and strengthening of the individual agents. The Specifier agent could be assessed through a dedicated Text-to-IDS benchmark to measure completeness and correctness of constraint extraction. The Verifier agent may benefit from integrating deterministic geometry and topology checks to reduce reliance on purely reasoning-based validation. In addition, hybrid validation strategies should be explored, combining LLM-generated specifications with predefined or human-authored rule sets to improve reliability.",
+            "es": "Presentamos un marco Text-to-BIM basado en agentes y centrado en la autoverificación. Para cada instrucción, el sistema deriva restricciones verificables y aprovecha la retroalimentación automatizada para revisar iterativamente el modelo IFC hasta que las violaciones detectadas se minimicen o se resuelvan. El estudio de caso sencillo sugiere que este ciclo de especificación-modificación-verificación mejora la calidad y la confiabilidad del modelo, a la vez que destaca la necesidad de una mayor evaluación y refinamiento para asegurar la robustez y una aplicabilidad más amplia. Por lo tanto, el trabajo futuro debería centrarse en la evaluación sistemática y en el fortalecimiento de cada uno de los agentes. El agente Specifier podría evaluarse mediante un punto de referencia (benchmark) Text-to-IDS dedicado, para medir la completitud y la corrección de la extracción de restricciones. El agente Verifier podría beneficiarse de la integración de comprobaciones deterministas de geometría y topología, a fin de reducir la dependencia de una validación puramente basada en el razonamiento. Además, deberían explorarse estrategias de validación híbridas que combinen especificaciones generadas por LLM con conjuntos de reglas predefinidos o redactados por humanos para mejorar la confiabilidad."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "title": {
+        "en": "Acknowledgments",
+        "es": "Agradecimientos"
+      },
+      "blocks": [
+        {
+          "id": "s7-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "This research was partially funded by the Federal Ministry of Research, Technology and Space (BMFTR) and the Federal Ministry for Economic Affairs and Energy (BMWE) of Germany.",
+            "es": "Esta investigación fue financiada parcialmente por el Ministerio Federal de Investigación, Tecnología y Espacio (BMFTR) y el Ministerio Federal de Economía y Energía (BMWE) de Alemania."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Deng, Z., Du, C., Nousias, S., and Borrmann, A. (2025). Bimgent: Towards autonomous building modeling via computer-use agents. arXiv preprint arXiv:2506.07217."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Du, C., Esser, S., Nousias, S., and Borrmann, A. (2026). Text2bim: Generating building models using a large language model-based multiagent framework. Journal of Computing in Civil Engineering, 40(2):04025142."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Gou, Z., Shao, Z., Gong, Y., yelong shen, Yang, Y., Duan, N., and Chen, W. (2024). CRITIC: Large language models can self-correct with tool-interactive critiquing. In The Twelfth International Conference on Learning Representations."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Nithyanantham, B. K., Sesterhenn, T., Nedungadi, A., Peral Garijo, S., Zenkner, J., Bartelt, C., and Lüdtke, S. (2025). MCP4IFC: IFC-based building design using large language models. arXiv preprint arXiv:2511.05533."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K. R., and Cao, Y. (2022). React: Synergizing reasoning and acting in language models. In The eleventh international conference on learning representations."
+          }
+        }
+      ]
+    }
+  ]
+}
