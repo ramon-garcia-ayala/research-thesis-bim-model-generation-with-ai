@@ -528,6 +528,131 @@ describe('underlines and the remembered place', () => {
     expect(lastSaved().underlines[0]).toMatchObject({ id: 'u1', block: 's2-p1', lang: 'es', start: 0, end: 12, text: es_s2p1.slice(0, 12) })
   })
 
+  describe('a selection that goes beyond one block', () => {
+    /** Selects from a character of one block to a character of another and lifts the mouse. */
+    const drag = (fromId, fromAt, toId, toAt) => {
+      const node = (id) => {
+        const el = block(id)
+        return (el.tagName === 'FIGURE' ? el.querySelector('figcaption') : el).firstChild
+      }
+      const range = document.createRange()
+      range.setStart(node(fromId), fromAt)
+      if (toAt === 0) range.setEnd(block(toId), 0)
+      else range.setEnd(node(toId), toAt)
+      window.getSelection().removeAllRanges()
+      window.getSelection().addRange(range)
+      block(fromId).dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+    }
+    const acts = () => [...root.querySelectorAll('.reader__pop button')].map((b) => b.dataset.act)
+
+    it('underlines each paragraph it touches', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      drag('s1-p1', 10, 's1-p2', 8)
+      $('.reader__pop [data-act="underline"]').click()
+      const p1 = block('s1-p1').textContent
+      expect(lastSaved().underlines).toMatchObject([
+        { block: 's1-p1', start: 10, end: p1.length, text: p1.slice(10) },
+        { block: 's1-p2', start: 0, end: 8, text: block('s1-p2').textContent.slice(0, 8) },
+      ])
+      expect(block('s1-p1').querySelector('mark').textContent).toBe(p1.slice(10))
+      expect(block('s1-p2').querySelector('mark')).not.toBeNull()
+    })
+
+    it('takes the caption of a figure it passes over', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      drag('s2-p1', 5, 's2-p2', 6)
+      $('.reader__pop [data-act="underline"]').click()
+      expect(lastSaved().underlines.map((u) => u.block)).toEqual(['s2-p1', 'fig-1', 's2-p2'])
+    })
+
+    it('stays in the paragraph on a triple click, which ends at the start of the next one', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      drag('s1-p1', 0, 's1-p2', 0)
+      $('.reader__pop [data-act="underline"]').click()
+      const p1 = block('s1-p1').textContent
+      expect(lastSaved().underlines).toMatchObject([{ block: 's1-p1', start: 0, end: p1.length, text: p1 }])
+    })
+
+    it('does not offer to read a selection of several blocks, which the voice reads one block at a time', async () => {
+      window.speechSynthesis = fakeSynth([{ name: 'Voice', lang: 'es-MX' }])
+      window.SpeechSynthesisUtterance = Utterance
+      await withClient(fakeClient())
+      await read('sample-a')
+      drag('s1-p1', 10, 's1-p2', 8)
+      expect(acts()).toEqual(['underline', 'ask', 'read-from'])
+      drag('s1-p1', 10, 's1-p1', 20)
+      expect(acts()).toEqual(['underline', 'ask', 'read-from', 'read-selection'])
+      delete window.speechSynthesis
+      delete window.SpeechSynthesisUtterance
+    })
+
+    it('asks about the whole selection, attached to where it starts', async () => {
+      await withClient(fakeClient())
+      await read('sample-a')
+      drag('s1-p1', 10, 's1-p2', 8)
+      $('.reader__pop [data-act="ask"]').click()
+      expect($('.reader__chat').textContent).toContain(block('s1-p2').textContent.slice(0, 8))
+    })
+  })
+
+  describe('selecting while the voice reads', () => {
+    let synth
+    /** Selects the first `n` characters of a paragraph whose first sentence is lit, so its first node is an element. */
+    const selectLit = (id, n) => {
+      const first = document.createTreeWalker(block(id), NodeFilter.SHOW_TEXT).nextNode()
+      const range = document.createRange()
+      range.setStart(first, 0)
+      range.setEnd(first, n)
+      window.getSelection().removeAllRanges()
+      window.getSelection().addRange(range)
+      block(id).dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+    }
+    const withVoiceAndClient = async () => {
+      synth = fakeSynth([{ name: 'Voice', lang: 'es-MX' }])
+      window.speechSynthesis = synth
+      window.SpeechSynthesisUtterance = Utterance
+      await withClient(fakeClient())
+      await read('sample-a')
+    }
+    afterEach(() => {
+      delete window.speechSynthesis
+      delete window.SpeechSynthesisUtterance
+    })
+
+    it('keeps the selection when the voice moves on inside that paragraph', async () => {
+      await withVoiceAndClient()
+      $('[data-voice="play"]').click()
+      selectLit('s1-p1', 12)
+      synth.finish()
+      expect(window.getSelection().toString()).toBe(textOfBlock('s1-p1').en.slice(0, 12))
+    })
+
+    it('lights the sentence again once the selection is gone', async () => {
+      await withVoiceAndClient()
+      $('[data-voice="play"]').click()
+      selectLit('s1-p1', 12)
+      synth.finish()
+      window.getSelection().removeAllRanges()
+      document.dispatchEvent(new Event('selectionchange'))
+      expect(block('s1-p1').querySelector('.speaking').textContent).toBe('We generate them from rules.')
+    })
+
+    it('does not scroll to the voice while there is a selection', async () => {
+      await withVoiceAndClient()
+      const scroll = vi.fn()
+      window.Element.prototype.scrollIntoView = scroll
+      $('[data-voice="play"]').click()
+      scroll.mockClear()
+      selectLit('s1-p1', 12)
+      synth.finish()
+      expect(scroll).not.toHaveBeenCalled()
+      delete window.Element.prototype.scrollIntoView
+    })
+  })
+
   it('shows a margin mark in the other language', async () => {
     const reading = { ...emptyReading(), underlines: [{ id: 'u1', block: 's2-p1', lang: 'es', start: 0, end: 12, text: 'x', date: '2026-10-22' }] }
     await withClient(fakeClient(reading))

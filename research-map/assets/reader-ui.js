@@ -30,6 +30,25 @@ export function offsetsIn(blockEl, range) {
   return end > start ? { start, end } : null
 }
 
+/**
+ * What `range` covers of each block inside `textEl`, in order: [{ block, start, end, text }]. A range may run across
+ * blocks, begin on a section title or end at the very start of the next block, as a triple click does.
+ */
+export function selectionSpans(textEl, range) {
+  const spans = []
+  for (const el of textEl.querySelectorAll('[data-block]')) {
+    if (!range.intersectsNode(el)) continue
+    const part = el.ownerDocument.createRange()
+    part.selectNodeContents(holderOf(el))
+    if (range.compareBoundaryPoints(range.START_TO_START, part) > 0) part.setStart(range.startContainer, range.startOffset)
+    if (range.compareBoundaryPoints(range.END_TO_END, part) < 0) part.setEnd(range.endContainer, range.endOffset)
+    const at = offsetsIn(el, part)
+    const text = part.toString()
+    if (at && text.trim()) spans.push({ block: el.dataset.block, ...at, text })
+  }
+  return spans
+}
+
 /** Every string the reader shows, in its two languages. */
 export const LABELS = {
   en: {
@@ -176,7 +195,8 @@ export function mountReader(
   let now = null // { nodeId, paper }
   let pending = Promise.resolve()
   let speaking = null // the sentence being read: { block, start, end }
-  let picked = null // the selection the menu acts on: { block, start, end, text }
+  let picked = null // the selection the menu acts on: where it starts and all it says, and its span in each block
+  const redrawLater = new Set() // the blocks to re-draw once the author's selection has left them
   let following = true // the text moves with the voice, until the author scrolls away by hand
   // The local server, once it answers (null without it); the reading of the open paper (underlines, place, voice).
   let live = null
@@ -258,11 +278,20 @@ export function mountReader(
       ? []
       : citedNumbers(t, now.refs).map((c) => ({ start: c.start, end: c.end, id: `cite:${c.numbers.join(',')}` }))
 
-  /** Re-draws the text of block `id` with its highlights and its citations. */
+  /** The author's selection in the text, as a range; null when there is none. */
+  const selectedRange = () => {
+    const sel = win.getSelection?.()
+    if (!sel || sel.isCollapsed || !sel.rangeCount) return null
+    const range = sel.getRangeAt(0)
+    return text.contains(range.commonAncestorContainer) ? range : null
+  }
+
+  /** Re-draws the text of block `id` with its highlights and its citations; waits while the author is selecting in it. */
   function decorate(id) {
     const b = now && blockById(id)
     const holder = holderOf(blockEl(id))
     if (!b || !holder) return
+    if (selectedRange()?.intersectsNode(holder)) return void redrawLater.add(id)
     const t = textOf(b, lang)
     const ranges = [...rangesOf(id), ...citesOf(b, t)]
     // An underline made in the other language cannot be placed in this text: the paragraph gets a margin mark.
@@ -295,7 +324,7 @@ export function mountReader(
           if (before) decorate(before.block)
           if (item) {
             decorate(item.block)
-            if (following) blockEl(item.block)?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+            if (following && !selectedRange()) blockEl(item.block)?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
             persist({ position: { block: item.block, sentence: 0 } })
           }
           renderVoice()
@@ -615,13 +644,12 @@ export function mountReader(
     const sel = win.getSelection?.()
     if (!sel || sel.isCollapsed || !sel.rangeCount) return void (pop.hidden = true)
     const range = sel.getRangeAt(0)
-    const target = range.startContainer.parentElement?.closest('[data-block]')
-    const at = target && text.contains(target) ? offsetsIn(target, range) : null
-    if (!at) return void (pop.hidden = true)
-    picked = { block: target.dataset.block, ...at, text: range.toString() }
+    const spans = text.contains(range.commonAncestorContainer) ? selectionSpans(text, range) : []
+    if (!spans.length) return void (pop.hidden = true)
+    picked = { ...spans[0], text: spans.map((s) => s.text).join('\n\n'), spans }
     const acts = [
       ...(live ? [['underline', L().underline], ['ask', L().ask]] : []),
-      ...(speaker ? [['read-from', L().readFrom], ['read-selection', L().readSelection]] : []),
+      ...(speaker ? [['read-from', L().readFrom], ...(spans.length === 1 ? [['read-selection', L().readSelection]] : [])] : []),
     ]
     if (!acts.length) return void (pop.hidden = true)
     pop.innerHTML = acts.map(([act, label]) => `<button type="button" data-act="${act}">${esc(label)}</button>`).join('')
@@ -637,6 +665,14 @@ export function mountReader(
 
   text.addEventListener('mouseup', () => showPop())
   text.addEventListener('keyup', (e) => e.shiftKey && showPop())
+  doc.addEventListener('selectionchange', () => {
+    for (const id of redrawLater) {
+      const holder = holderOf(blockEl(id))
+      if (holder && selectedRange()?.intersectsNode(holder)) continue
+      redrawLater.delete(id)
+      decorate(id)
+    }
+  })
   doc.addEventListener('mousedown', (e) => {
     if (!pop.contains(e.target)) pop.hidden = true
     if (!refBox.contains(e.target) && !e.target.closest?.('.cite')) refBox.hidden = true
@@ -702,10 +738,10 @@ export function mountReader(
         if (narrow()) el.classList.add('chat-open')
       }
       if (action.dataset.act === 'underline' && reading) {
-        reading = addUnderline(reading, { block, lang, start, end, text: picked.text }, today())
+        for (const s of picked.spans) reading = addUnderline(reading, { ...s, lang }, today())
         persist()
         renderUnderlines()
-        decorate(block)
+        picked.spans.forEach((s) => decorate(s.block))
       }
       return
     }
