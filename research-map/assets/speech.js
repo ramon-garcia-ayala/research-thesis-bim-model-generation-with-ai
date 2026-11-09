@@ -32,6 +32,32 @@ export function buildQueue(paper, lang, from = null, only = null) {
   return queue
 }
 
+/** The parts of a chat answer as character ranges: line by line (lists have no full stops), then sentence by sentence. */
+export function answerParts(text) {
+  const parts = []
+  let at = 0
+  for (const line of text.split('\n')) {
+    for (const { start, end } of sentences(line)) parts.push({ start: at + start, end: at + end })
+    at += line.length + 1
+  }
+  return parts
+}
+
+/** What is said of a part: without its [¶ id] citations and markdown marks. */
+const sayable = (part) =>
+  part
+    .replace(/\s*\[¶[^\]]*\]/g, '')
+    .replace(/^\s*(?:#+|>|[-•])\s+/, '')
+    .replace(/[*`]/g, '')
+    .trim()
+
+/** Message `msg` of the chat as queue items: `chat-<msg>-<part>` is each part's block, so skip and seek move by part. */
+export function answerQueue(text, msg) {
+  return answerParts(text)
+    .map(({ start, end }, k) => ({ block: `chat-${msg}-${k}`, chat: msg, text: sayable(text.slice(start, end)) }))
+    .filter((item) => /[\p{L}\p{N}]/u.test(item.text))
+}
+
 /**
  * A speaker over `synth` (speechSynthesis) and `Utterance` (SpeechSynthesisUtterance). `onSentence(item | null)`
  * reports the sentence being spoken (null once stopped); `onIdle()` the end of the queue.
@@ -94,15 +120,18 @@ export function createSpeaker({ synth, Utterance, onSentence = () => {}, onIdle 
       queue = q
       speakAt(0)
     },
+    /**
+     * Stops the voice and keeps the place. Not the browser's own pause: with remote voices (Chrome's Google voices)
+     * it does nothing and the voice talks on. Resuming says the sentence again from its start.
+     */
     pause() {
       if (state !== 'playing') return
       state = 'paused'
-      synth.pause()
+      interrupt()
     },
     resume() {
       if (state !== 'paused') return
-      state = 'playing'
-      synth.resume()
+      speakAt(index)
     },
     stop() {
       if (state === 'idle') return
@@ -117,6 +146,13 @@ export function createSpeaker({ synth, Utterance, onSentence = () => {}, onIdle 
       const target = blocks[Math.min(blocks.length - 1, Math.max(0, blocks.indexOf(queue[index].block) + delta))]
       interrupt()
       speakAt(queue.findIndex((q) => q.block === target))
+    },
+    /** Goes to block `block` of the queue and reads on from there, also from a pause. */
+    seek(block) {
+      const i = queue.findIndex((q) => q.block === block)
+      if (state === 'idle' || i < 0) return
+      interrupt()
+      speakAt(i)
     },
     setRate(r) {
       rate = r

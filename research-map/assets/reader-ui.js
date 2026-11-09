@@ -68,6 +68,7 @@ export const LABELS = {
     rereading: 'Reading the paper again…',
     retry: 'Try again',
     save: 'Save this',
+    listen: 'Listen',
     approve: 'Approve',
     discard: 'Discard',
     saved: 'Saved to the note.',
@@ -116,6 +117,7 @@ export const LABELS = {
     rereading: 'Volviendo a leer el paper…',
     retry: 'Reintentar',
     save: 'Guardar esto',
+    listen: 'Escuchar',
     approve: 'Aprobar',
     discard: 'Descartar',
     saved: 'Guardado en la nota.',
@@ -264,7 +266,8 @@ export function mountReader(
     ? createSpeaker({
         synth: speech.synth,
         Utterance: speech.Utterance,
-        onSentence(item) {
+        onSentence(said) {
+          const item = said?.chat == null ? said : null // a chat answer is lit by the chat, and is not a place in the paper
           const before = speaking
           speaking = item ? { block: item.block, start: item.start, end: item.end } : null
           if (before) decorate(before.block)
@@ -302,6 +305,7 @@ export function mountReader(
           : ''
       }`
     for (const b of bar.querySelectorAll('[data-voice="pause"], [data-voice="stop"], [data-voice="prev"], [data-voice="next"]')) b.disabled = state === 'idle'
+    chat?.refreshVoice()
   }
 
   /** Says once, when the browser has no natural voice for the language, that Edge has them. */
@@ -468,6 +472,8 @@ export function mountReader(
             goTo(id)
           },
           current: () => now && { ...now, block: firstVisible() },
+          speaker,
+          onVoice: () => renderVoice(),
         })
       now = { nodeId, paper }
       chat?.setLang(lang)
@@ -497,7 +503,9 @@ export function mountReader(
   function setLang(l) {
     if (l !== 'en' && l !== 'es') return
     const keep = now ? firstVisible() : null
-    const reading = speaker?.at() // the voice goes on at the same paragraph, in the other language
+    // The voice goes on at the same paragraph, in the other language; a chat answer keeps its own language and goes on.
+    const at = speaker?.at()
+    const reading = at?.chat == null ? at : null
     if (reading) speaker.stop()
     lang = l
     remember(win, LANG_KEY, l)

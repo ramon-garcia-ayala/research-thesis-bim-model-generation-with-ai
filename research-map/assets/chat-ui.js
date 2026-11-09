@@ -4,6 +4,7 @@
  * paragraphs as links, and "Save this", which proposes a note entry the author edits and approves.
  */
 import { blocksOf, paraLabel } from './paper.js'
+import { answerParts, answerQueue } from './speech.js'
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 const SCOPES = ['underline', 'section', 'paper', 'papers']
@@ -11,9 +12,10 @@ const SCOPES = ['underline', 'section', 'paper', 'papers']
 /**
  * Mounts the chat into `el`. `client` is the local server's (reading-client.js); `papers` the prepared papers;
  * `labels` the reader's LABELS; `onCite(blockId)` scrolls the reader to a cited paragraph; `current()` gives
- * `{ nodeId, paper, block }` — the open paper and the paragraph in view.
+ * `{ nodeId, paper, block }` — the open paper and the paragraph in view. `speaker` is the reader's voice (speech.js),
+ * so answers are read with the same voice and speed; without it they are not offered; `onVoice()` reports a change.
  */
-export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite = () => {}, current = () => null }) {
+export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite = () => {}, current = () => null, speaker = null, onVoice = () => {} }) {
   let conv = null // the open paper's id, or '_across'
   let thread = null // { id, messages }
   let model = 'sonnet'
@@ -55,18 +57,86 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
       .replace(/\n/g, '<br>')
   }
 
+  /** An answer with each of its parts in a span, so the voice can light it and a click can go back to it. */
+  function answerHtml(text, i) {
+    let html = ''
+    let at = 0
+    answerParts(text).forEach(({ start, end }, k) => {
+      html += `${richText(text.slice(at, start))}<span class="chat__say" data-say="chat-${i}-${k}">${richText(text.slice(start, end))}</span>`
+      at = end
+    })
+    return html + richText(text.slice(at))
+  }
+
   function messageHtml(m, i) {
     const chipsHtml = (m.attach ?? []).map((a) => `<span class="chat__chip">«${esc(a.text)}»</span>`).join('')
+    const voice =
+      speaker && m.role === 'assistant'
+        ? `<button type="button" class="chat__voice" data-listen="${i}"></button><button type="button" class="chat__voice" data-hush hidden></button>`
+        : ''
     return `<div class="chat__msg ${m.role}" data-i="${i}">
       ${chipsHtml}
-      <div class="chat__text">${m.role === 'assistant' ? richText(m.text) : esc(m.text)}</div>
-      <button type="button" class="chat__save" data-save="${i}">${esc(L().save)}</button>
+      <div class="chat__text">${m.role === 'assistant' ? answerHtml(m.text, i) : esc(m.text)}</div>
+      <div class="chat__foot">${voice}<button type="button" class="chat__save" data-save="${i}">${esc(L().save)}</button></div>
     </div>`
+  }
+
+  /** Shows what the voice is doing: the sentence lit in its answer, and that answer's button as pause or resume. */
+  function paintVoice() {
+    if (!speaker) return
+    const item = speaker.at()
+    const paused = speaker.state() === 'paused'
+    for (const msg of log.querySelectorAll('.chat__msg[data-i]')) {
+      const on = item?.chat === Number(msg.dataset.i)
+      msg.classList.toggle('reading', on)
+      const listen = msg.querySelector('[data-listen]')
+      if (!listen) continue
+      listen.textContent = !on ? `▶ ${L().listen}` : paused ? `▶ ${L().resume}` : `⏸ ${L().pause}`
+      const hush = msg.querySelector('[data-hush]')
+      hush.hidden = !on
+      hush.textContent = `■ ${L().stop}`
+    }
+    for (const s of log.querySelectorAll('.chat__say.speaking')) if (s.dataset.say !== item?.block) s.classList.remove('speaking')
+    if (item?.chat == null) return
+    const said = log.querySelector(`[data-say="${item.block}"]`)
+    if (said && !said.classList.contains('speaking')) {
+      said.classList.add('speaking')
+      said.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
+    }
+  }
+
+  /** Stops the voice if it is reading this chat: its messages are about to change. */
+  const hush = () => {
+    if (speaker?.at()?.chat != null) speaker.stop()
+  }
+
+  /** What a click on the voice controls or on a sentence does; true if it was one of those. */
+  function voiceClick(t) {
+    if (!speaker) return false
+    const reading = speaker.at()?.chat
+    const listen = t.closest('[data-listen]')
+    const say = t.closest('[data-say]')
+    if (listen) {
+      const i = Number(listen.dataset.listen)
+      if (reading !== i) {
+        speaker.setLang(lang)
+        speaker.play(answerQueue(thread.messages[i].text, i))
+      } else if (speaker.state() === 'paused') speaker.resume()
+      else speaker.pause()
+    } else if (t.closest('[data-hush]')) speaker.stop()
+    else if (say && reading === Number(say.closest('[data-i]').dataset.i)) {
+      if (!el.ownerDocument.getSelection?.()?.isCollapsed) return false // selecting text to copy it, not going there
+      speaker.seek(say.dataset.say)
+    } else return false
+    paintVoice()
+    onVoice()
+    return true
   }
 
   function renderLog() {
     log.innerHTML = (thread?.messages ?? []).map(messageHtml).join('')
     log.scrollTop = log.scrollHeight
+    paintVoice()
   }
 
   function renderChips() {
@@ -223,8 +293,10 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
     const t = e.target
     const cite = t.closest('[data-cite]')
     if (cite) return onCite(cite.dataset.cite)
+    if (voiceClick(t)) return
     const c = t.closest('[data-conv]')
     if (c) {
+      hush()
       if (c.dataset.conv === 'across') {
         conv = '_across'
         const reading = await client.load('_across').catch(() => null)
@@ -307,6 +379,7 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
     },
     /** Shows the chat of paper `nodeId` (its last thread from `reading`), or the across-papers one. */
     setConversation(nodeId, reading = null) {
+      hush()
       if (nodeId !== '_across') paperConv = { id: nodeId, reading }
       conv = nodeId
       thread = structuredClone(reading?.chats?.at(-1) ?? null) // the reader's reading is not this chat's to change
@@ -316,5 +389,7 @@ export function mountChat(el, { client, papers = [], labels, lang = 'es', onCite
       renderLog()
     },
     paperOf,
+    /** The voice changed (another sentence, or the reader's own controls). */
+    refreshVoice: paintVoice,
   }
 }

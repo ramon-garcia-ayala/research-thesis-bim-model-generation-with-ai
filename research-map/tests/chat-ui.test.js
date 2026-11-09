@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mountChat } from '../assets/chat-ui.js'
 import { LABELS } from '../assets/reader-ui.js'
 import { emptyReading } from '../assets/reading.js'
+import { createSpeaker } from '../assets/speech.js'
+import { Utterance, fakeSynth } from './fake-speech.js'
 
 const paper = JSON.parse(readFileSync(join(import.meta.dirname, 'fixture/papers/sample-a/paper.json'), 'utf8'))
 const papers = [
@@ -50,6 +52,100 @@ beforeEach(() => {
   onCite = vi.fn()
   chat = mountChat(el, { client, papers, labels: LABELS, lang: 'es', onCite, current: () => ({ nodeId: 'sample-a', paper, block: 's2-p1' }) })
   chat.setConversation('sample-a', emptyReading())
+})
+
+describe('listening to an answer', () => {
+  const answer = 'Primera idea [¶ s2-p1]. Segunda idea. Tercera idea.'
+  let synth
+  let onVoice
+  let speaker
+
+  beforeEach(() => {
+    synth = fakeSynth()
+    onVoice = vi.fn()
+    speaker = createSpeaker({ synth, Utterance })
+    document.body.innerHTML = '<div class="reader__chat"></div>'
+    el = document.querySelector('.reader__chat')
+    chat = mountChat(el, { client, papers, labels: LABELS, lang: 'es', onCite, speaker, onVoice, current: () => ({ nodeId: 'sample-a', paper, block: 's2-p1' }) })
+    chat.setConversation('sample-a', {
+      ...emptyReading(),
+      chats: [{ id: 'c1', messages: [{ role: 'user', text: '¿Qué valida?' }, { role: 'assistant', text: answer }] }],
+    })
+  })
+
+  it('offers it on answers only', () => {
+    expect($('.chat__msg.user [data-listen]')).toBeNull()
+    expect($('.chat__msg.assistant [data-listen]').textContent).toContain(LABELS.es.listen)
+  })
+
+  it('offers nothing without a voice', () => {
+    chat = mountChat(el, { client, papers, labels: LABELS, lang: 'es', onCite, current: () => null })
+    chat.setConversation('sample-a', { ...emptyReading(), chats: [{ id: 'c1', messages: [{ role: 'assistant', text: answer }] }] })
+    expect($('[data-listen]')).toBeNull()
+  })
+
+  it('reads the answer sentence by sentence, in the chat language, lighting the one being said', async () => {
+    const setLang = vi.spyOn(speaker, 'setLang')
+    await click('[data-listen]')
+    expect(setLang).toHaveBeenCalledWith('es')
+    expect(synth.spoken[0].text).toBe('Primera idea.')
+    expect(onVoice).toHaveBeenCalled()
+    expect($('.chat__say.speaking').textContent).toContain('Primera idea')
+    synth.finish()
+    chat.refreshVoice()
+    expect($('.chat__say.speaking').textContent).toBe('Segunda idea.')
+  })
+
+  it('the same button pauses and resumes, and stop ends it', async () => {
+    await click('[data-listen]')
+    expect($('[data-listen]').textContent).toContain(LABELS.es.pause)
+    expect($('[data-hush]').hidden).toBe(false)
+    await click('[data-listen]')
+    expect(synth.cancel).toHaveBeenCalled()
+    expect($('[data-listen]').textContent).toContain(LABELS.es.resume)
+    expect($('.chat__say.speaking').textContent).toContain('Primera idea')
+    const said = synth.spoken.length
+    await click('[data-listen]')
+    expect(synth.spoken).toHaveLength(said + 1)
+    expect($('[data-listen]').textContent).toContain(LABELS.es.pause)
+    await click('[data-hush]')
+    expect(speaker.state()).toBe('idle')
+    expect($('[data-hush]').hidden).toBe(true)
+    expect($('.chat__say.speaking')).toBeNull()
+  })
+
+  it('clicking a sentence while it reads goes there; a click when nothing is read does nothing', async () => {
+    const third = () => el.querySelector('[data-say="chat-1-2"]')
+    third().click()
+    expect(synth.speak).not.toHaveBeenCalled()
+    await click('[data-listen]')
+    third().click()
+    expect(synth.spoken.at(-1).text).toBe('Tercera idea.')
+    expect($('.chat__say.speaking').textContent).toBe('Tercera idea.')
+    el.querySelector('[data-say="chat-1-0"]').click()
+    expect(synth.spoken.at(-1).text).toBe('Primera idea.')
+  })
+
+  it('a citation inside a sentence still cites, and does not move the voice', async () => {
+    await click('[data-listen]')
+    synth.finish()
+    await click('.chat__cite')
+    expect(onCite).toHaveBeenCalledWith('s2-p1')
+    expect(synth.spoken.at(-1).text).toBe('Segunda idea.')
+  })
+
+  it('stops when the conversation changes', async () => {
+    await click('[data-listen]')
+    chat.setConversation('sample-b', emptyReading())
+    expect(speaker.state()).toBe('idle')
+  })
+
+  it('keeps the lit sentence after the log is drawn again', async () => {
+    await click('[data-listen]')
+    chat.setLang('en')
+    expect($('.chat__say.speaking').textContent).toContain('Primera idea')
+    expect($('[data-listen]').textContent).toContain(LABELS.en.pause)
+  })
 })
 
 describe('the chat', () => {

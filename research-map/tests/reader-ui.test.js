@@ -256,10 +256,13 @@ describe('voice', () => {
     await withVoice()
     await read('sample-a')
     $('[data-voice="play"]').click()
+    const first = lastSpoken().text
     $('[data-voice="pause"]').click()
-    expect(synth.pause).toHaveBeenCalled()
+    expect(synth.cancel).toHaveBeenCalled()
+    const said = synth.spoken.length
     $('[data-voice="pause"]').click()
-    expect(synth.resume).toHaveBeenCalled()
+    expect(synth.spoken).toHaveLength(said + 1)
+    expect(lastSpoken().text).toBe(first)
     $('[data-voice="stop"]').click()
     expect(root.querySelector('.speaking')).toBeNull()
   })
@@ -322,6 +325,77 @@ describe('underlines and the remembered place', () => {
     el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
   }
   const lastSaved = () => client.save.mock.calls.at(-1)[1]
+
+  describe('an answer read aloud', () => {
+    let synth
+    const voices = [{ name: 'Dalia (Natural)', lang: 'es-MX' }, { name: 'Jorge (Natural)', lang: 'es-MX' }]
+    const withAnswer = async () => {
+      synth = fakeSynth(voices)
+      window.speechSynthesis = synth
+      window.SpeechSynthesisUtterance = Utterance
+      await withClient(fakeClient({ ...emptyReading(), voice: 'Jorge (Natural)', chats: [{ id: 'c1', messages: [{ role: 'assistant', text: 'Primera idea. Segunda idea.' }] }] }))
+      await read('sample-a')
+      client.save.mockClear()
+      $('[data-listen]').click()
+    }
+    afterEach(() => {
+      delete window.speechSynthesis
+      delete window.SpeechSynthesisUtterance
+    })
+
+    it('uses the voice chosen in the reader, and the reader follows along', async () => {
+      await withAnswer()
+      expect(synth.spoken.at(-1).text).toBe('Primera idea.')
+      expect(synth.spoken.at(-1).voice.name).toBe('Jorge (Natural)')
+      expect($('[data-voice="stop"]').disabled).toBe(false)
+    })
+
+    it('moves on sentence by sentence, lighting it in the chat and not in the paper', async () => {
+      await withAnswer()
+      synth.finish()
+      expect($('.chat__say.speaking').textContent).toBe('Segunda idea.')
+      expect($('.reader__text .speaking')).toBeNull()
+    })
+
+    it('is not remembered as the place in the paper', async () => {
+      await withAnswer()
+      synth.finish()
+      expect(client.save).not.toHaveBeenCalled()
+    })
+
+    it("the reader's pause and stop reach the chat's button", async () => {
+      await withAnswer()
+      $('[data-voice="pause"]').click()
+      expect($('[data-listen]').textContent).toContain(LABELS.es.resume)
+      $('[data-voice="stop"]').click()
+      expect($('[data-listen]').textContent).toContain(LABELS.es.listen)
+      expect($('.chat__say.speaking')).toBeNull()
+    })
+
+    it("the reader's previous and next move by sentence", async () => {
+      await withAnswer()
+      $('[data-voice="next"]').click()
+      expect(synth.spoken.at(-1).text).toBe('Segunda idea.')
+      $('[data-voice="prev"]').click()
+      expect(synth.spoken.at(-1).text).toBe('Primera idea.')
+    })
+
+    it('a language switch leaves the answer going, without starting the paper', async () => {
+      await withAnswer()
+      const spoken = synth.spoken.length
+      view.reader.setLang('en')
+      expect(synth.spoken).toHaveLength(spoken)
+      expect($('.chat__say.speaking').textContent).toBe('Primera idea.')
+    })
+
+    it('reading the paper takes over from the answer', async () => {
+      await withAnswer()
+      $('[data-voice="play"]').click()
+      expect($('.chat__say.speaking')).toBeNull()
+      expect($('[data-listen]').textContent).toContain(LABELS.es.listen)
+      expect($('.reader__text .speaking')).not.toBeNull()
+    })
+  })
 
   it('underlines a selection and saves it', async () => {
     await withClient(fakeClient())
