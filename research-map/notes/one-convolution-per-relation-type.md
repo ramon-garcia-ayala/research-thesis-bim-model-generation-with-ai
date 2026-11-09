@@ -1,0 +1,3 @@
+## 2026-11-08 · Summary
+Author: the network has two parts, a graph part where each element gathers its neighbours' information (message passing), and a multilayer perceptron that reads the result and decides which element is missing. HeteroGraphConv gives each relation type (e.g. on top of, touching) its own convolution, and the results are joined for an element with several relations. GraphSAGE and GCN were the recipes used to mix messages; GATConv and EdgeConv were tried but dropped because they cost much more compute.
+Claude: for the thesis this means the choice of which relations to keep as separate edge types in the decomposition decides how many convolutions the model needs. Open question: which relations deserve their own type and which could be grouped.

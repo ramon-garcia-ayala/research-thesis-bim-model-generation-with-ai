@@ -107,5 +107,17 @@ export function createClient({ fetch = (...a) => globalThis.fetch(...a), wait = 
       const r = await fetch('api/note', post(body))
       if (!r.ok) throw new Error(await errorOf(r))
     },
+    /** A proposed change to the map from a chat message: { proposal: { idea, links }, problems, groups }. */
+    async draftMapEntry(body) {
+      const r = await fetch('api/map-draft', post(body))
+      if (!r.ok) throw new Error(await errorOf(r))
+      return r.json()
+    },
+    /** Writes an approved proposal into map.json; the server refuses one that would leave the map invalid. */
+    async saveMapEntry(body) {
+      const r = await fetch('api/map-entry', post(body))
+      if (!r.ok) throw new Error(await errorOf(r))
+      return r.json()
+    },
   }
 }

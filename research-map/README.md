@@ -48,6 +48,12 @@ the paper and what it links to.
   default, Haiku to compare.
 - **Save this** on any message proposes a note entry (in English, your words quoted as written, yours and Claude's
   marked); edit it and *Approve* to append it to the paper's note.
+- **Add to the map** on any message proposes a change to `map.json` itself: a new idea or conclusion (title, id, group and its
+  note, which becomes `notes/<id>.md`) and the links that join it to papers, ideas, groups or the centre — or only links
+  between nodes the map already has. Every field is editable and each link can be unticked; *Approve* writes it, dated today,
+  but only if the whole map would still be valid (otherwise nothing is written and the problems are listed). The page shows
+  it after a reload. The line endings of `map.json` are kept, so the diff is only the addition. The server never commits:
+  the addition is yours to review and commit.
 
 Underlining, the chat and quizzes need `npm run dev` (the map's own server); opened any other way the reader shows text,
 figures and voice only.
