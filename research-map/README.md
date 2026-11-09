@@ -57,6 +57,13 @@ Preparing a paper (Claude does it, once per paper): `npm run paper:prepare -- <i
 `npm run paper:graph -- <id>` (the idea graph, Sonnet 5.5 at xhigh). Set `PAPER_EFFORT` (e.g. `high`) to run the last two
 at another effort.
 
+Finding papers: the Papers menu searches by word (titles, citations and the text in both languages, not the references),
+filters by keywords and by read or unread. Those three commands keep `papers/index.json` and `papers/words.json` up to
+date, so a new paper gets all of this by itself. Its keywords come from the vocabulary in `papers/keywords.json`: a keyword
+applies when one of its terms is in the title or the text uses its terms at least `min` times. After changing the vocabulary
+or repairing a `paper.json` by hand, run `npm run paper:index`, which also lists how many papers each keyword has. What has
+been read is in `reading/_library.json`; without the local server the marks are hidden.
+
 ## The rule
 
 Claude writes the map from the conversation; the author approves. Nothing is added without a yes. After every change

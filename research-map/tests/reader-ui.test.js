@@ -690,8 +690,10 @@ describe('underlines and the remembered place', () => {
       const area = { left: 0, right: 500, top: 50, bottom: 450, width: 500, height: 400 }
       const caret = (y) => {
         const [id, at] = rows[Object.keys(rows).reduce((a, b) => (Math.abs(b - y) < Math.abs(a - y) ? b : a))]
+        // Underlining splits a block's text, so the offset is kept inside the first piece, as a real caret would be.
+        const node = document.createTreeWalker(block(id), NodeFilter.SHOW_TEXT).nextNode()
         const range = document.createRange()
-        range.setStart(block(id).firstChild, at)
+        range.setStart(node, Math.min(at, node.length))
         range.collapse(true)
         return range
       }

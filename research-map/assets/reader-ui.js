@@ -198,7 +198,7 @@ const remember = (win, key, value) => {
  */
 export function mountReader(
   root,
-  { papers = [], map, load, base = '', client = null, onLit = () => {}, onShow = () => {}, win = window, speech = { synth: win.speechSynthesis, Utterance: win.SpeechSynthesisUtterance } } = {},
+  { papers = [], map, load, base = '', client = null, onLit = () => {}, onShow = () => {}, onPaper = () => {}, win = window, speech = { synth: win.speechSynthesis, Utterance: win.SpeechSynthesisUtterance } } = {},
 ) {
   const doc = root.ownerDocument
   let lang = stored(win, LANG_KEY, ['en', 'es'], 'es')
@@ -249,6 +249,7 @@ export function mountReader(
       <span class="reader__voice"></span>
       <button type="button" class="reader__mode"></button>
       <button type="button" class="reader__chat-open" hidden></button>
+      <button type="button" class="reader__mark" hidden></button>
       <button type="button" class="reader__close">×</button>
     </header>
     <p class="reader__hint" hidden></p>
@@ -561,6 +562,8 @@ export function mountReader(
       }
       el.hidden = false
       onShow()
+      $('.reader__mark').dataset.mark = nodeId
+      onPaper(nodeId)
       if (!paper) {
         now = null
         $('.reader__title').textContent = map?.nodes?.find((n) => n.id === nodeId)?.title ?? nodeId

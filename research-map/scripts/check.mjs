@@ -1,13 +1,14 @@
 /*
  * The checker Claude runs before every commit: the data is valid, every source file and note exists, no note is
  * orphaned, every note entry has a real date, every prepared paper (papers/<node-id>/) is valid with its figures and
- * its graph, and papers/index.json is up to date.
+ * its graph, and papers/index.json and papers/words.json are up to date.
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { isDeepStrictEqual } from 'node:util'
 import { isDate, validate } from '../assets/model.js'
+import { keywordsOf, validateVocabulary, wordsOf } from '../assets/library.js'
 import { blocksOf, untranslated, validateGraph, validatePaper } from '../assets/paper.js'
 
 const ENTRY_HEADING = /^## (\S+) · /
@@ -18,8 +19,19 @@ const paperDirs = (dir) =>
     ? readdirSync(join(dir, 'papers'), { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort()
     : []
 
-/** What papers/index.json must hold: one entry per prepared paper folder. */
+/** The keywords a paper can have (papers/keywords.json); none while there is no usable vocabulary. */
+function vocabularyOf(dir) {
+  try {
+    const vocabulary = readJson(join(dir, 'papers', 'keywords.json'))
+    return validateVocabulary(vocabulary).length ? [] : vocabulary
+  } catch {
+    return []
+  }
+}
+
+/** What papers/index.json must hold: the keywords on offer and one entry per prepared paper folder. */
 export function indexPapers(dir) {
+  const vocabulary = vocabularyOf(dir)
   const papers = []
   for (const id of paperDirs(dir)) {
     let paper
@@ -34,9 +46,38 @@ export function indexPapers(dir) {
       figures: blocksOf(paper).filter((b) => b.image).length,
       es: untranslated(paper).length === 0,
       graph: existsSync(join(dir, 'papers', id, 'graph.json')),
+      keywords: keywordsOf(paper, vocabulary),
     })
   }
-  return { papers }
+  return { keywords: vocabulary.map(({ id, label }) => ({ id, label })), papers }
+}
+
+/** What papers/words.json must hold: the words each prepared paper can be found by, its map title and citation included. */
+export function indexWords(dir) {
+  let nodes = []
+  try {
+    nodes = readJson(join(dir, 'map.json')).nodes ?? []
+  } catch {}
+  const words = {}
+  for (const id of paperDirs(dir)) {
+    let paper
+    try {
+      paper = readJson(join(dir, 'papers', id, 'paper.json'))
+    } catch {
+      continue
+    }
+    const node = nodes.find((n) => n.id === id)
+    words[id] = wordsOf(paper, [node?.title, node?.cite])
+  }
+  return { words }
+}
+
+/** Rewrites papers/index.json and papers/words.json; returns the index. */
+export function writeIndexes(dir) {
+  const index = indexPapers(dir)
+  writeFileSync(join(dir, 'papers', 'index.json'), `${JSON.stringify(index, null, 2)}\n`)
+  writeFileSync(join(dir, 'papers', 'words.json'), `${JSON.stringify(indexWords(dir), null, 2)}\n`)
+  return index
 }
 
 /** The problems of the prepared papers in `dir`/papers, against the map's nodes. */
@@ -71,6 +112,18 @@ function checkPapers(dir, nodes) {
       index = readJson(join(dir, 'papers', 'index.json'))
     } catch {}
     if (!isDeepStrictEqual(index, indexPapers(dir))) problems.push('papers/index.json does not match the papers folders')
+    let words = null
+    try {
+      words = readJson(join(dir, 'papers', 'words.json'))
+    } catch {}
+    if (!isDeepStrictEqual(words, indexWords(dir))) problems.push('papers/words.json does not match the papers folders')
+  }
+  if (existsSync(join(dir, 'papers', 'keywords.json'))) {
+    try {
+      for (const p of validateVocabulary(readJson(join(dir, 'papers', 'keywords.json')))) problems.push(`papers/keywords.json: ${p}`)
+    } catch (e) {
+      problems.push(`papers/keywords.json: cannot be read: ${e.message}`)
+    }
   }
   return problems
 }

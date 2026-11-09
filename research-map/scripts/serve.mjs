@@ -8,6 +8,7 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { runClaude, streamClaude } from './lib/claude.mjs'
 import { handleApi, routes, sendJson } from './server/api.mjs'
+import { libraryRoutes } from './server/library.mjs'
 import { chatRoutes } from './server/chat.mjs'
 import { allowed } from './server/guard.mjs'
 import { startPhone } from './server/phone.mjs'
@@ -15,7 +16,7 @@ import { serveStatic } from './server/static.mjs'
 
 /** The server for the map folder `root`; `claude` runs Claude Code, `now` gives the date (tests replace both). */
 export function createServer({ root, claude = { run: runClaude, stream: streamClaude }, now = () => new Date() } = {}) {
-  const ctx = { root, claude, now, routes: [...routes, ...chatRoutes] }
+  const ctx = { root, claude, now, routes: [...routes, ...libraryRoutes, ...chatRoutes] }
   const server = http.createServer(async (req, res) => {
     if (!allowed(req, { port: server.address()?.port })) return sendJson(res, 403, { error: 'forbidden' })
     try {

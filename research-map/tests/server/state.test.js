@@ -35,6 +35,31 @@ function call(method, path, json) {
   })
 }
 
+describe('what has been read', () => {
+  it('starts empty, and keeps what is marked with its date', async () => {
+    expect((await call('GET', '/api/library')).body).toEqual({ version: 1, read: {} })
+    expect((await call('PUT', '/api/library/sample-a', { read: true })).status).toBe(200)
+    const { read } = (await call('GET', '/api/library')).body
+    expect(read['sample-a']).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(JSON.parse(readFileSync(join(root, 'reading/_library.json'), 'utf8')).read['sample-a']).toBe(read['sample-a'])
+  })
+
+  it('forgets it when unmarked', async () => {
+    await call('PUT', '/api/library/sample-a', { read: true })
+    await call('PUT', '/api/library/sample-a', { read: false })
+    expect((await call('GET', '/api/library')).body.read).toEqual({})
+  })
+
+  it('refuses a paper that is not prepared, and anything but true or false', async () => {
+    expect((await call('PUT', '/api/library/sample-b', { read: true })).status).toBe(404)
+    expect((await call('PUT', '/api/library/sample-a', { read: 'yes' })).status).toBe(400)
+  })
+
+  it('does not treat the list as a paper', async () => {
+    expect((await call('GET', '/api/state/_library')).status).toBe(404)
+  })
+})
+
 describe('the reading state', () => {
   it('returns an empty reading, then what was saved', async () => {
     expect((await call('GET', '/api/state/sample-a')).body).toEqual(emptyReading())

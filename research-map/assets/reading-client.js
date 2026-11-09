@@ -88,6 +88,16 @@ export function createClient({ fetch = (...a) => globalThis.fetch(...a), wait = 
         for (const e of parsed.events) onEvent(e.event, e.data)
       }
     },
+    /** What is marked as read: { version, read: { id: date } }. */
+    async library() {
+      const r = await fetch('api/library')
+      if (!r.ok) throw new Error(await errorOf(r))
+      return r.json()
+    },
+    async setRead(id, read) {
+      const r = await fetch(`api/library/${encodeURIComponent(id)}`, json({ read }))
+      if (!r.ok) throw new Error(await errorOf(r))
+    },
     async draftNote(body) {
       const r = await fetch('api/note-draft', post(body))
       if (!r.ok) throw new Error(await errorOf(r))
