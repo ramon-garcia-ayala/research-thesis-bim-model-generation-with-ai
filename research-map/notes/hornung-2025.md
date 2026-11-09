@@ -13,3 +13,12 @@ For the thesis
 - It stops at class and bounding box shown as geometry: no IFC is written and no validity is measured. That is the gap.
 - The 56% of files lost shows the raw material problem, though its strict six-class filter causes part of that loss.
 - Do not read "180,000" as independent examples: they come from 22 files, and Renner et al. flag possible leakage.
+
+## 2026-11-08 · The author's reading
+The author read it and asked to bring into the research, as a complement to the thesis question, its way of making and
+assembling the graphs, its methodology, and how its conclusions point at improving the dataset: "la metodología para
+hacer los grafos y la forma de ensamblar sus grafos y toda la metodología que establece, que es algo que podemos utilizar
+para la investigación."
+
+Now in the map as five linked ideas: the graph recipe, the deconstruction into training examples, the assembly one element
+at a time, cleaning real models, and where a dataset's size comes from.
