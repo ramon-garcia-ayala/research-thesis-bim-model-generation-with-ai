@@ -31,3 +31,10 @@ Speak to the author in Spanish (Mexico); the code, comments and commit messages 
 
 Revit 2027 + pyRevit (IronPython 2.7) `extract.py` / `rebuild.py`, Python 3 `compare.py`, `run.sh` for the round
 trip; JSON in between. See [pipeline/README.md](pipeline/README.md).
+
+Direction approved by the supervisor (2026-11-10): step 04 learns by **masking** (hide part of a model, the AI predicts
+it; not necessarily a GNN) and step 05 assembles through an **MCP server for Revit**, with `rebuild.py` kept as the
+no-AI control. Experiments: place everything at once, one by one, or one and then its neighbours; and how to tell
+"new" from "copied". Research question (2026-11-10): "Can we decompose BIM models into meaningful parts and use them
+to generate new, valid models?" It is in `research-map/map.json`; decks 01–04 keep the question of their day. The
+next deck is `presentacion-05` (masking and MCP); its date is not set yet.

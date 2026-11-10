@@ -3264,3 +3264,250 @@ html[data-embed] .deck__bar {
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
+
+/* -- masking (deck 05): one graph told in three clicks — hide, predict, compare — and the list beside it lights each
+   phase (data-build-state on its items). The layers of a hidden node: the real one fades out at click 1, a hole
+   stands in for it, then the guess covers the hole; the verdict (right or wrong) comes at the last click. -- */
+.slide .maskstage {
+  margin-block: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 3cqw;
+  align-items: center;
+}
+
+.maskpanel {
+  padding: 0.8cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.6cqw;
+  background: var(--panel);
+}
+
+.maskgraph {
+  display: block;
+  width: 100%;
+  max-height: 21cqw;
+  height: auto;
+}
+
+.maskgraph text {
+  fill: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.maskgraph .mg-edge {
+  stroke: var(--ink-tertiary);
+  stroke-width: 1.4;
+}
+
+.maskgraph .mg-edge[data-built] {
+  stroke-dasharray: 5 4;
+}
+
+.maskgraph .mg-node rect {
+  fill: var(--panel);
+  stroke: var(--ink);
+  stroke-width: 1.4;
+}
+
+.maskgraph .is-hole rect {
+  stroke: var(--ink-tertiary);
+  stroke-dasharray: 5 4;
+}
+
+.maskgraph .is-hole text {
+  fill: var(--ink-tertiary);
+}
+
+.maskgraph .is-guess rect {
+  fill: color-mix(in srgb, var(--ink) 9%, var(--panel));
+  stroke-dasharray: 5 4;
+}
+
+/* the real node steps out as soon as it is hidden (beats the dimming of earlier steps) */
+.maskgraph .real[data-built] {
+  opacity: 0 !important;
+}
+
+.maskgraph [data-build]:not([data-built]) {
+  transform: none;
+}
+
+.maskgraph .mg-verdict circle {
+  fill: var(--panel);
+  stroke: var(--ink);
+  stroke-width: 1.4;
+}
+
+.maskgraph .mg-verdict.is-no circle {
+  stroke-dasharray: 3 2;
+}
+
+.maskgraph .mg-verdict text {
+  font-size: 12px;
+}
+
+.maskgraph text.mg-was {
+  fill: var(--ink-secondary);
+  font-size: 12px;
+  text-anchor: start;
+}
+
+.phases {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 1.3cqw;
+}
+
+.phases > li {
+  display: grid;
+  gap: 0.3cqw;
+  padding-top: 0.8cqw;
+  border-top: 1px solid var(--separator);
+  color: var(--ink-tertiary);
+  font-size: 1.2cqw;
+  line-height: 1.3;
+}
+
+.phases > li > small {
+  font-family: var(--font-mono);
+  font-size: 0.95cqw;
+}
+
+.phases > li > b {
+  color: inherit;
+  font-size: 1.7cqw;
+  font-weight: 500;
+}
+
+.phases > li[data-built] {
+  border-top-color: var(--ink);
+  color: var(--ink-secondary);
+}
+
+.phases > li[data-now] > b {
+  color: var(--ink);
+}
+
+/* -- mcpflow (deck 05): the loop under the boxes runs from Revit back to the AI, columns 4 to 2 of five -- */
+.flow.mcpflow {
+  margin-block: auto 0;
+  gap: 3.2cqw;
+}
+
+.mcpflow > li {
+  min-height: 10cqw;
+}
+
+.loopback.loopback--mid {
+  margin: 0 0 1.6cqw calc(30% - 0.64cqw);
+  width: calc(40% + 1.28cqw);
+}
+
+/* -- place (deck 05): the order a few elements go in, shown by the order they appear (--k = the turn) -- */
+.place {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-block: 0.4cqw;
+}
+
+.place .pl-edge {
+  stroke: var(--ink-tertiary);
+  stroke-width: 1.2;
+}
+
+.place .pl-node circle {
+  fill: var(--panel);
+  stroke: var(--ink);
+  stroke-width: 1.4;
+}
+
+.place .pl-node text {
+  fill: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.place .pl-node {
+  opacity: 0;
+  transition: opacity 280ms ease;
+}
+
+.card[data-built] .place .pl-node {
+  opacity: 1;
+  transition-delay: calc(var(--k, 0) * 360ms + 250ms);
+}
+
+.slide--roomy .points .card .stepline__from {
+  font-size: 0.95cqw;
+}
+
+/* -- tenrow (deck 05): the ten models; the tenth is kept out (click 1), the nine are what a result must not copy -- */
+.tenrow {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 1cqw;
+  margin-block: 1.4cqw 0;
+}
+
+.tenrow > i {
+  aspect-ratio: 1.7;
+  border: 1px solid var(--separator);
+  border-radius: 0.4cqw;
+  background: var(--panel);
+}
+
+.tenrow > i.is-unseen[data-built] {
+  border-style: dashed;
+  border-color: var(--ink);
+  background: transparent;
+}
+
+.tenrow > i.is-seen[data-built] {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.tenrow__cap,
+.tenrow__all {
+  padding-top: 0.4cqw;
+  border-top: 1px solid var(--ink-tertiary);
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 1cqw;
+}
+
+.tenrow__cap--train { grid-column: 1 / 10; }
+.tenrow__cap--test { grid-column: 10 / 11; border-top-style: dashed; }
+
+.tenrow__all {
+  grid-column: 1 / -1;
+  border-top: 0;
+  padding-top: 0;
+  color: var(--ink-tertiary);
+}
+
+/* a fact that is a proposal, not a decision yet */
+.facts > div.is-later {
+  border-top-style: dashed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .place .pl-node {
+    transition: none;
+    opacity: 1;
+  }
+}
+
+/* the masking slide: its closing line takes the height it needs, clear of the footnote */
+.maskstage ~ .stepline__below {
+  height: auto;
+  margin-bottom: 4.2cqw;
+}

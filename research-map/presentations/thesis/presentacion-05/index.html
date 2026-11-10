@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en" data-lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thesis 05 · Masking and MCP</title>
+    <meta name="description" content="Presentation 05 for the thesis (MaCAD, IAAC): the training step learns by masking, and an MCP server assembles what the AI proposes in Revit. The workflow, the three ways to place, and the open question of new versus copied." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" />
+    <link rel="stylesheet" href="../../assets/deck.css" />
+  </head>
+  <body data-track="thesis" data-presentation="presentacion-05">
+    <nav class="rail"></nav>
+    <main class="deck">
+      <!-- 1 · Question and hypothesis -->
+      <section class="slide slide--title slide--title-wide" data-map="question hypothesis">
+        <p class="eyebrow"><span><span lang="en">Presentation 05 · Masking and MCP</span><span lang="es">Presentación 05 · Masking y MCP</span></span><b>05</b></p>
+        <div class="title__text">
+          <h1><span lang="en">Can we decompose BIM models into meaningful parts and use them to <em>generate new, valid models?</em></span><span lang="es">¿Podemos descomponer modelos BIM en partes con sentido y usarlas para <em>generar modelos nuevos y válidos?</em></span></h1>
+          <p class="lede" data-build="1"><span lang="en">Hypothesis: if a BIM model is <mark class="kw">decomposed into its elements and relations</mark>, an AI can <mark class="kw">find the patterns</mark> it needs to understand how to <mark class="kw">build something similar</mark>.</span><span lang="es">Hipótesis: si un modelo BIM <mark class="kw">se descompone en sus elementos y relaciones</mark>, una IA puede <mark class="kw">encontrar los patrones</mark> que necesita para entender cómo <mark class="kw">armar algo parecido</mark>.</span></p>
+          <p class="title__meta"><span lang="en">MaCAD, IAAC</span><span lang="es">MaCAD, IAAC</span></p>
+        </div>
+      </section>
+      <!-- Index -->
+      <section class="slide" data-map="question">
+        <p class="eyebrow"><span><span lang="en">Index</span><span lang="es">Índice</span></span><b>05</b></p>
+        <h2><span lang="en">Three chapters: <em>where I am, how it learns, and how it builds.</em></span><span lang="es">Tres capítulos: <em>dónde estoy, cómo aprende y cómo arma.</em></span></h2>
+        <ol class="chapters">
+          <li>
+            <small>01</small>
+            <h3><span lang="en">Where I am</span><span lang="es">Dónde estoy</span></h3>
+            <ul>
+              <li><span lang="en">The round trip, with no AI</span><span lang="es">La ida y vuelta, sin IA</span></li>
+              <li><span lang="en">What the advice changes</span><span lang="es">Lo que cambia el consejo</span></li>
+            </ul>
+          </li>
+          <li>
+            <small>02</small>
+            <h3><span lang="en">Masking: how it learns</span><span lang="es">Masking: cómo aprende</span></h3>
+            <ul>
+              <li><span lang="en">Hide part of a model, fill it in</span><span lang="es">Ocultar parte de un modelo y completarlo</span></li>
+              <li><span lang="en">Inside step 04</span><span lang="es">Dentro del paso 04</span></li>
+            </ul>
+          </li>
+          <li>
+            <small>03</small>
+            <h3><span lang="en">MCP: how it builds</span><span lang="es">MCP: cómo arma</span></h3>
+            <ul>
+              <li><span lang="en">The MCP workflow in Revit</span><span lang="es">El flujo MCP en Revit</span></li>
+              <li><span lang="en">Three ways to place</span><span lang="es">Tres formas de colocar</span></li>
+              <li><span lang="en">New, not a copy</span><span lang="es">Nuevo, no una copia</span></li>
+              <li><span lang="en">Next steps</span><span lang="es">Siguientes pasos</span></li>
+            </ul>
+          </li>
+        </ol>
+      </section>
+      <!-- Chapter 1 -->
+      <section class="slide slide--chapter">
+        <p class="eyebrow"><span><span lang="en">Chapter 1</span><span lang="es">Capítulo 1</span></span><b>05</b></p>
+        <span class="chapter__n">01</span>
+        <h1><span lang="en">Where I am</span><span lang="es">Dónde estoy</span></h1>
+        <p class="lede"><span lang="en">The round trip works with no AI; the supervisor’s advice sets what steps 04 and 05 become.</span><span lang="es">La ida y vuelta funciona sin IA; el consejo del asesor define en qué se convierten los pasos 04 y 05.</span></p>
+      </section>
+      <!-- Chapter 1 · where I am: the pipeline, what runs today and what the advice changes -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="ifc-to-graph-recipe hypothesis masking-training mcp-assembles-in-revit">
+        <p class="eyebrow"><span><span lang="en">Where I am · the pipeline</span><span lang="es">Dónde estoy · la pipeline</span></span><b>05</b></p>
+        <h2><span lang="en">The round trip runs with no AI; <em>the advice decides what 04 and 05 become.</em></span><span lang="es">La ida y vuelta corre sin IA; <em>el consejo decide en qué se convierten 04 y 05.</em></span></h2>
+        <ol class="stepline">
+          <li class="is-on" data-build-state="2"><small>01</small><h3><span lang="en">BIM model</span><span lang="es">Modelo BIM</span></h3><p class="stepline__does"><span lang="en">a Revit model</span><span lang="es">un modelo Revit</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today</span><span lang="es">corre hoy</span></span></div></li>
+          <li class="is-on" data-build-state="2"><small>02</small><h3><span lang="en">Decompose</span><span lang="es">Descomponer</span></h3><p class="stepline__does"><span lang="en">elements to JSON</span><span lang="es">elementos a JSON</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today</span><span lang="es">corre hoy</span></span></div></li>
+          <li class="is-off" data-build-state="1"><small>03</small><h3><span lang="en">Label</span><span lang="es">Etiquetar</span></h3><p class="stepline__does"><span lang="en">id, type and relations</span><span lang="es">id, tipo y relaciones</span></p><div class="stepline__foot"><span data-state="later"><span lang="en">next: the graph of the 10 models</span><span lang="es">siguiente: el grafo de los 10 modelos</span></span></div></li>
+          <li class="is-off" data-build-state="1"><small>04</small><h3><span lang="en">Mask · learn</span><span lang="es">Masking · aprender</span></h3><p class="stepline__does"><span lang="en">hide parts, predict them</span><span lang="es">ocultar partes, predecirlas</span></p><div class="stepline__foot"><span data-state="next"><span lang="en">next: the advice</span><span lang="es">siguiente: el consejo</span></span></div></li>
+          <li class="is-on" data-build-state="2"><small>05</small><h3><span lang="en">MCP · assemble</span><span lang="es">MCP · armar</span></h3><p class="stepline__does"><span lang="en">proposals into Revit</span><span lang="es">propuestas a Revit</span></p><div class="stepline__foot"><ul><li data-state="built"><span lang="en">rebuild.py, no AI</span><span lang="es">rebuild.py, sin IA</span></li><li data-state="next"><span lang="en">next: through MCP</span><span lang="es">siguiente: con MCP</span></li></ul></div></li>
+          <li class="is-on" data-build-state="2"><small>06</small><h3><span lang="en">Validate</span><span lang="es">Validar</span></h3><p class="stepline__does"><span lang="en">original vs new, at 1 cm</span><span lang="es">original vs nuevo, a 1 cm</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today</span><span lang="es">corre hoy</span></span></div></li>
+        </ol>
+        <p class="stepline__below" data-build="3"><span lang="en">The round trip runs 01 → 02 → 05 → 06 with no AI: <mark class="kw">412 elements</mark> out to text and back, and <mark class="kw">107 of 107</mark> doors and windows keep their wall. <em>What is missing is the AI’s part: <mark class="kw">masking</mark> to learn, <mark class="kw">MCP</mark> to build.</em></span><span lang="es">La ida y vuelta corre 01 → 02 → 05 → 06 sin IA: <mark class="kw">412 elementos</mark> de ida a texto y de vuelta, y <mark class="kw">107 de 107</mark> puertas y ventanas conservan su muro. <em>Falta la parte de la IA: <mark class="kw">masking</mark> para aprender, <mark class="kw">MCP</mark> para armar.</em></span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/summary.json, Nov 2026</span><span lang="es">Autor, pipeline/out/summary.json, nov 2026</span></li></ol>
+      </section>
+      <!-- Chapter 2 -->
+      <section class="slide slide--chapter">
+        <p class="eyebrow"><span><span lang="en">Chapter 2</span><span lang="es">Capítulo 2</span></span><b>05</b></p>
+        <span class="chapter__n">02</span>
+        <h1><span lang="en">Masking: how it learns</span><span lang="es">Masking: cómo aprende</span></h1>
+        <p class="lede"><span lang="en">Hide part of a model and ask the AI to fill it in.</span><span lang="es">Ocultar parte de un modelo y pedirle a la IA que lo complete.</span></p>
+      </section>
+      <!-- Chapter 2 · masking: hide, predict, compare -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="masking-training han-2025 building-graph-ai-2025 hornung-2025">
+        <p class="eyebrow"><span><span lang="en">Masking · how it learns</span><span lang="es">Masking · cómo aprende</span></span><b>05</b></p>
+        <h2><span lang="en">Hide part of a model, <em>and ask the AI to complete it.</em></span><span lang="es">Ocultar parte de un modelo, <em>y pedirle a la IA que lo complete.</em></span></h2>
+        <div class="maskstage">
+          <div class="maskpanel"><svg class="maskgraph" viewBox="0 0 560 292" role="img" aria-label="" focusable="false"><title lang="en">A small model as a graph: a level, a floor, two walls, a room, a door and a window. The door and the room are hidden, the AI guesses them, and its guesses are compared with what was hidden.</title><title lang="es">Un modelo pequeño como grafo: un nivel, una losa, dos muros, un room, una puerta y una ventana. La puerta y el room se ocultan, la IA los adivina y sus respuestas se comparan con lo oculto.</title><line class="mg-edge" x1="280" y1="28" x2="280" y2="100"/><line class="mg-edge" x1="280" y1="100" x2="120" y2="172"/><line class="mg-edge" x1="280" y1="100" x2="440" y2="172"/><line class="mg-edge" x1="280" y1="100" x2="280" y2="172" data-build-state="1"/><line class="mg-edge" x1="280" y1="172" x2="120" y2="172" data-build-state="1"/><line class="mg-edge" x1="280" y1="172" x2="440" y2="172" data-build-state="1"/><line class="mg-edge" x1="120" y1="172" x2="120" y2="244" data-build-state="1"/><line class="mg-edge" x1="440" y1="172" x2="440" y2="244"/><g class="mg-node"><rect x="232" y="11" width="96" height="34" rx="6"/><text x="280" y="28" lang="en">Level</text><text x="280" y="28" lang="es">Nivel</text></g><g class="mg-node"><rect x="232" y="83" width="96" height="34" rx="6"/><text x="280" y="100" lang="en">Floor</text><text x="280" y="100" lang="es">Losa</text></g><g class="mg-node"><rect x="72" y="155" width="96" height="34" rx="6"/><text x="120" y="172" lang="en">Wall</text><text x="120" y="172" lang="es">Muro</text></g><g class="mg-node"><rect x="392" y="155" width="96" height="34" rx="6"/><text x="440" y="172" lang="en">Wall</text><text x="440" y="172" lang="es">Muro</text></g><g class="mg-node"><rect x="392" y="227" width="96" height="34" rx="6"/><text x="440" y="244" lang="en">Window</text><text x="440" y="244" lang="es">Ventana</text></g><g class="mg-node real" data-build-state="1"><rect x="72" y="227" width="96" height="34" rx="6"/><text x="120" y="244" lang="en">Door</text><text x="120" y="244" lang="es">Puerta</text></g><g class="mg-node is-hole" data-build="1"><rect x="72" y="227" width="96" height="34" rx="6"/><text x="120" y="244">?</text></g><g class="mg-node is-guess" data-build="2"><rect x="72" y="227" width="96" height="34" rx="6"/><text x="120" y="244" lang="en">Window</text><text x="120" y="244" lang="es">Ventana</text></g><g class="mg-verdict is-no" data-build="3"><circle cx="164" cy="230" r="9"/><text x="164" y="230">✕</text><text class="mg-was" x="184" y="246" lang="en">was: Door</text><text class="mg-was" x="184" y="246" lang="es">era: Puerta</text></g><g class="mg-node real" data-build-state="1"><rect x="232" y="155" width="96" height="34" rx="6"/><text x="280" y="172" lang="en">Room</text><text x="280" y="172" lang="es">Room</text></g><g class="mg-node is-hole" data-build="1"><rect x="232" y="155" width="96" height="34" rx="6"/><text x="280" y="172">?</text></g><g class="mg-node is-guess" data-build="2"><rect x="232" y="155" width="96" height="34" rx="6"/><text x="280" y="172" lang="en">Room</text><text x="280" y="172" lang="es">Room</text></g><g class="mg-verdict is-yes" data-build="3"><circle cx="324" cy="158" r="9"/><text x="324" y="158">✓</text></g></svg></div>
+          <ol class="phases">
+            <li data-build-state="1"><small>01</small><b><span lang="en">Hide</span><span lang="es">Ocultar</span></b><span><span lang="en">A mask covers part of the model: elements or relations.</span><span lang="es">Una máscara cubre parte del modelo: elementos o relaciones.</span></span></li>
+            <li data-build-state="2"><small>02</small><b><span lang="en">Predict</span><span lang="es">Predecir</span></b><span><span lang="en">The AI proposes what is hidden, from what remains.</span><span lang="es">La IA propone lo oculto, a partir de lo que queda.</span></span></li>
+            <li data-build-state="3"><small>03</small><b><span lang="en">Compare</span><span lang="es">Comparar</span></b><span><span lang="en">Against what was hidden: the gap is what it learns from.</span><span lang="es">Contra lo que estaba oculto: la diferencia es de lo que aprende.</span></span></li>
+          </ol>
+        </div>
+        <p class="stepline__below" data-build="3"><span lang="en">Expected result: given an incomplete model, <mark class="kw">the AI proposes what is missing</mark>. <em>Trained on the models it has seen, <mark class="kw">tested on one it has not</mark>.</em></span><span lang="es">Resultado esperado: dado un modelo incompleto, <mark class="kw">la IA propone lo que falta</mark>. <em>Entrenada con los modelos que vio, <mark class="kw">probada con uno que no vio</mark>.</em></span></p>
+        <p class="footnote" data-build="3"><span lang="en">Illustration, not a result. Precedents: Han et al.<sup>1</sup> mask half of the nodes of Revit graphs; Liang et al.<sup>2</sup>, the interior walls of a model; Hornung et al.<sup>3</sup>, one node. <mark class="kw">What to hide, and which model fills it, is open</mark>.</span><span lang="es">Ilustración, no un resultado. Antecedentes: Han et al.<sup>1</sup> ocultan la mitad de los nodos de grafos de Revit; Liang et al.<sup>2</sup>, los muros interiores de un modelo; Hornung et al.<sup>3</sup>, un nodo. <mark class="kw">Qué ocultar, y con qué modelo completarlo, está abierto</mark>.</span></p>
+        <ol class="refs"><li><a href="https://doi.org/10.1111/mice.70073" target="_blank" rel="noopener noreferrer">Han et al., Computer-Aided Civil and Infrastructure Engineering, 2025</a></li><li><a href="https://doi.org/10.1177/14780771251352946" target="_blank" rel="noopener noreferrer">Liang et al., IJAC 23(3), 2025</a></li><li><a href="https://doi.org/10.25442/hku.29365832" target="_blank" rel="noopener noreferrer">Hornung et al., CAAD Futures 2025</a></li></ol>
+      </section>
+      <!-- Chapter 2 · the core: inside steps 03 and 04, with masking -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs slide--dense" data-map="masking-training deconstruct-for-training ifc-to-graph-recipe hornung-2025 hypothesis">
+        <p class="eyebrow"><span><span lang="en">The core of the thesis · inside 03 and 04</span><span lang="es">El centro de la tesis · dentro de 03 y 04</span></span><b>05</b></p>
+        <div class="where">
+          <span>01 <span lang="en">Model</span><span lang="es">Modelo</span></span><span>02 <span lang="en">Decompose</span><span lang="es">Descomponer</span></span><span class="is-on">03 <span lang="en">Label</span><span lang="es">Etiquetar</span></span><span class="is-on">04 <span lang="en">Mask · learn</span><span lang="es">Masking · aprender</span></span><span>05 <span lang="en">MCP</span><span lang="es">MCP</span></span><span>06 <span lang="en">Validate</span><span lang="es">Validar</span></span>
+          <em><span lang="en">what is built next</span><span lang="es">lo que se construye ahora</span></em>
+        </div>
+        <h2><span lang="en">From a labelled graph to a model <em>that fills in what was hidden.</em></span><span lang="es">De un grafo etiquetado a un modelo <em>que completa lo que se ocultó.</em></span></h2>
+        <div class="lanes">
+          <div class="lane__head" data-build="1"><small>03 · labels.py</small><b><span lang="en">Label</span><span lang="es">Etiquetar</span></b></div>
+          <div class="lane__step" data-build="1"><small>3.1</small><b><span lang="en">Type and class</span><span lang="es">Tipo y clase</span></b><span><span lang="en">the Revit type, and <mark class="kw">a class that sets the order</mark>: level → floor → columns → walls → openings → rooms</span><span lang="es">el tipo de Revit, y <mark class="kw">una clase que da el orden</mark>: nivel → losa → columnas → muros → aberturas → rooms</span></span></div>
+          <div class="lane__step is-later" data-build="1"><small><span lang="en">3.2 · later</span><span lang="es">3.2 · después</span></small><b><span lang="en">Geometry</span><span lang="es">Geometría</span></b><span><span lang="en">an oriented box: centre, size, angle<sup>1</sup></span><span lang="es">una caja orientada: centro, tamaño, ángulo<sup>1</sup></span></span></div>
+          <div class="lane__step" data-build="1"><small>3.3</small><b><span lang="en">Typed edges</span><span lang="es">Aristas con tipo</span></b><span><span lang="en">on level · hosted in · joins · encloses<sup>1</sup></span><span lang="es">en nivel · alojado en · se une con · cierra<sup>1</sup></span></span></div>
+          <div class="lane__step is-own" data-build="1"><small data-build-state="3"><span lang="en">3.4 · own</span><span lang="es">3.4 · propio</span></small><b><span lang="en">Weights</span><span lang="es">Pesos</span></b><span><span lang="en">how often each relation appears across the 10 models</span><span lang="es">cuántas veces aparece cada relación en los 10 modelos</span></span></div>
+          <div class="lane__step" data-build="1"><small>3.5</small><b><span lang="en">Subgraphs</span><span lang="es">Subgrafos</span></b><span><span lang="en">20 nodes around each element, by BFS<sup>1</sup></span><span lang="es">20 nodos alrededor de cada elemento, por BFS<sup>1</sup></span></span></div>
+
+          <div class="lane__head" data-build="2"><small>04 · train.py</small><b><span lang="en">Mask · learn</span><span lang="es">Masking · aprender</span></b></div>
+          <div class="lane__step" data-build="2"><small>4.1</small><b><span lang="en">Mask</span><span lang="es">Ocultar</span></b><span><span lang="en">hide part of each subgraph: <mark class="kw">elements, relations or a whole class</mark><sup>1,2</sup></span><span lang="es">ocultar parte de cada subgrafo: <mark class="kw">elementos, relaciones o una clase completa</mark><sup>1,2</sup></span></span></div>
+          <div class="lane__step" data-build="2"><small>4.2</small><b><span lang="en">Predict</span><span lang="es">Predecir</span></b><span><span lang="en">a model fills what is hidden: what it is and what it joins; <mark class="kw">a graph network or another</mark></span><span lang="es">un modelo completa lo oculto: qué es y con qué se une; <mark class="kw">una red de grafos u otro</mark></span></span></div>
+          <div class="lane__step" data-build="2"><small>4.3</small><b><span lang="en">Compare</span><span lang="es">Comparar</span></b><span><span lang="en">with what was hidden: the gap is what it learns from</span><span lang="es">con lo que estaba oculto: la diferencia es de lo que aprende</span></span></div>
+          <div class="lane__step" data-build="2"><small>4.4</small><b><span lang="en">↻ Again</span><span lang="es">↻ Otra vez</span></b><span><span lang="en">hide something else, over the 9 training models</span><span lang="es">ocultar otra cosa, en los 9 modelos de entrenamiento</span></span></div>
+          <div class="lane__step is-own" data-build="2"><small data-build-state="3"><span lang="en">4.5 · own</span><span lang="es">4.5 · propio</span></small><b><span lang="en">Test</span><span lang="es">Probar</span></b><span><span lang="en">train on 9 models, test on the one it did not see</span><span lang="es">entrena con 9 modelos, prueba con el que no vio</span></span></div>
+        </div>
+        <p class="footnote" data-build="3"><span lang="en"><mark class="kw">First relations, then geometry</mark>: masking works on the graph first; where each element goes joins after. Bold border: <mark class="kw">this thesis’s own part</mark>. Dashed: later. Step 04 widens the take-apart of Hornung<sup>1</sup>: the next element is one thing to hide, not the only one.</span><span lang="es"><mark class="kw">Primero relaciones, luego geometría</mark>: el masking trabaja primero sobre el grafo; dónde va cada elemento se conecta después. Borde marcado: <mark class="kw">lo propio de esta tesis</mark>. Punteado: después. El paso 04 amplía el desarmado de Hornung<sup>1</sup>: el siguiente elemento es una cosa por ocultar, no la única.</span></p>
+        <ol class="refs"><li><a href="https://doi.org/10.25442/hku.29365832" target="_blank" rel="noopener noreferrer">Hornung et al., CAAD Futures 2025</a></li><li><a href="https://doi.org/10.1111/mice.70073" target="_blank" rel="noopener noreferrer">Han et al., Computer-Aided Civil and Infrastructure Engineering, 2025</a></li></ol>
+      </section>
+      <!-- Chapter 3 -->
+      <section class="slide slide--chapter">
+        <p class="eyebrow"><span><span lang="en">Chapter 3</span><span lang="es">Capítulo 3</span></span><b>05</b></p>
+        <span class="chapter__n">03</span>
+        <h1><span lang="en">MCP: how it builds</span><span lang="es">MCP: cómo arma</span></h1>
+        <p class="lede"><span lang="en">The AI’s proposals become Revit elements, and the order of placing is the experiment.</span><span lang="es">Las propuestas de la IA se vuelven elementos de Revit, y el orden de colocarlas es el experimento.</span></p>
+      </section>
+      <!-- Chapter 3 · the MCP workflow -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="mcp-assembles-in-revit mcp4ifc-2025 masking-training">
+        <p class="eyebrow"><span><span lang="en">MCP · how it builds</span><span lang="es">MCP · cómo arma</span></span><b>05</b></p>
+        <h2><span lang="en">The AI proposes, <em>MCP builds it in Revit.</em></span><span lang="es">La IA propone, <em>MCP lo construye en Revit.</em></span></h2>
+        <ol class="flow mcpflow">
+          <li class="" data-build="1"><b><span lang="en">Incomplete model</span><span lang="es">Modelo incompleto</span></b><small><span lang="en">what is left after the mask · JSON</span><span lang="es">lo que queda tras la máscara · JSON</span></small></li>
+          <li class="is-ink" data-build="1"><b><span lang="en">The AI proposes</span><span lang="es">La IA propone</span></b><small><span lang="en">the next element: what it is, what it joins</span><span lang="es">el siguiente elemento: qué es, con qué se une</span></small></li>
+          <li class="is-ink" data-build="2"><b><span lang="en">MCP server</span><span lang="es">Servidor MCP</span></b><small><span lang="en">turns each proposal into an action in Revit</span><span lang="es">convierte cada propuesta en una acción en Revit</span></small></li>
+          <li class="" data-build="2"><b><span lang="en">Revit</span><span lang="es">Revit</span></b><small><span lang="en">the element is created, joined, hosted</span><span lang="es">el elemento se crea, se une, se aloja</span></small></li>
+          <li class="" data-build="3"><b><span lang="en">Validate</span><span lang="es">Validar</span></b><small><span lang="en">original vs new, at 1 cm · Revit’s warnings</span><span lang="es">original vs nuevo, a 1 cm · advertencias de Revit</span></small></li>
+        </ol>
+        <div class="loopback loopback--mid" data-build="2"><span><span lang="en">↻ the new element joins the model, and the next is proposed</span><span lang="es">↻ el elemento nuevo entra al modelo y se propone el siguiente</span></span></div>
+        <p class="stepline__below" data-build="4"><span lang="en"><mark class="kw">rebuild.py stays as the control</mark>: the same checks measure the round trip with no AI. <em>MCP4IFC<sup>1</sup> shows what to watch: <mark class="kw">walls not connected, openings and rooms missing</mark>.</em></span><span lang="es"><mark class="kw">rebuild.py queda como control</mark>: las mismas revisiones miden la ida y vuelta sin IA. <em>MCP4IFC<sup>1</sup> muestra qué vigilar: <mark class="kw">muros sin conectar, aberturas y rooms que faltan</mark>.</em></span></p>
+        <ol class="refs"><li><a href="https://arxiv.org/abs/2511.05533" target="_blank" rel="noopener noreferrer">Nithyanantham et al., MCP4IFC, arXiv:2511.05533, 2025</a></li></ol>
+      </section>
+      <!-- Chapter 3 · three ways to place -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs slide--roomy" data-map="placement-order-experiments assemble-node-by-node building-graph-ai-2025 hornung-2025">
+        <p class="eyebrow"><span><span lang="en">MCP · the experiment</span><span lang="es">MCP · el experimento</span></span><b>05</b></p>
+        <h2><span lang="en">Three ways to place what the AI proposes: <em>same model, same checks.</em></span><span lang="es">Tres formas de colocar lo que propone la IA: <em>mismo modelo, mismas revisiones.</em></span></h2>
+        <div class="points">
+          <article class="card" data-build="1">
+            <span class="tag"><span lang="en">A</span><span lang="es">A</span></span>
+            <h3><span lang="en">All at once</span><span lang="es">Todo de una vez</span></h3>
+            <svg class="place" viewBox="0 0 220 120" aria-hidden="true" focusable="false"><line class="pl-edge" x1="30" y1="60" x2="82" y2="28"/><line class="pl-edge" x1="30" y1="60" x2="82" y2="92"/><line class="pl-edge" x1="82" y1="28" x2="138" y2="28"/><line class="pl-edge" x1="82" y1="92" x2="138" y2="92"/><line class="pl-edge" x1="138" y1="28" x2="190" y2="60"/><line class="pl-edge" x1="138" y1="92" x2="190" y2="60"/><g class="pl-node" style="--k:0"><circle cx="30" cy="60" r="12"/><text x="30" y="60">1</text></g><g class="pl-node" style="--k:0"><circle cx="82" cy="28" r="12"/><text x="82" y="28">1</text></g><g class="pl-node" style="--k:0"><circle cx="82" cy="92" r="12"/><text x="82" y="92">1</text></g><g class="pl-node" style="--k:0"><circle cx="138" cy="28" r="12"/><text x="138" y="28">1</text></g><g class="pl-node" style="--k:0"><circle cx="138" cy="92" r="12"/><text x="138" y="92">1</text></g><g class="pl-node" style="--k:0"><circle cx="190" cy="60" r="12"/><text x="190" y="60">1</text></g></svg>
+            <p><span lang="en">Every proposed element goes into the viewport <mark class="kw">together</mark>.</span><span lang="es">Todos los elementos propuestos entran al viewport <mark class="kw">juntos</mark>.</span></p>
+            <small class="stepline__from"><span lang="en">precedent: Liang et al.<sup>1</sup></span><span lang="es">antecedente: Liang et al.<sup>1</sup></span></small>
+          </article>
+          <article class="card" data-build="2">
+            <span class="tag"><span lang="en">B</span><span lang="es">B</span></span>
+            <h3><span lang="en">One by one</span><span lang="es">Uno por uno</span></h3>
+            <svg class="place" viewBox="0 0 220 120" aria-hidden="true" focusable="false"><line class="pl-edge" x1="30" y1="60" x2="82" y2="28"/><line class="pl-edge" x1="30" y1="60" x2="82" y2="92"/><line class="pl-edge" x1="82" y1="28" x2="138" y2="28"/><line class="pl-edge" x1="82" y1="92" x2="138" y2="92"/><line class="pl-edge" x1="138" y1="28" x2="190" y2="60"/><line class="pl-edge" x1="138" y1="92" x2="190" y2="60"/><g class="pl-node" style="--k:0"><circle cx="30" cy="60" r="12"/><text x="30" y="60">1</text></g><g class="pl-node" style="--k:1"><circle cx="82" cy="28" r="12"/><text x="82" y="28">2</text></g><g class="pl-node" style="--k:2"><circle cx="82" cy="92" r="12"/><text x="82" y="92">3</text></g><g class="pl-node" style="--k:3"><circle cx="138" cy="28" r="12"/><text x="138" y="28">4</text></g><g class="pl-node" style="--k:4"><circle cx="138" cy="92" r="12"/><text x="138" y="92">5</text></g><g class="pl-node" style="--k:5"><circle cx="190" cy="60" r="12"/><text x="190" y="60">6</text></g></svg>
+            <p><span lang="en">Each element goes in <mark class="kw">after the last</mark>.</span><span lang="es">Cada elemento entra <mark class="kw">después del anterior</mark>.</span></p>
+            <small class="stepline__from"><span lang="en">precedent: Hornung et al.<sup>2</sup></span><span lang="es">antecedente: Hornung et al.<sup>2</sup></span></small>
+          </article>
+          <article class="card" data-build="3">
+            <span class="tag"><span lang="en">C</span><span lang="es">C</span></span>
+            <h3><span lang="en">One, then its neighbours</span><span lang="es">Uno, luego sus vecinos</span></h3>
+            <svg class="place" viewBox="0 0 220 120" aria-hidden="true" focusable="false"><line class="pl-edge" x1="30" y1="60" x2="82" y2="28"/><line class="pl-edge" x1="30" y1="60" x2="82" y2="92"/><line class="pl-edge" x1="82" y1="28" x2="138" y2="28"/><line class="pl-edge" x1="82" y1="92" x2="138" y2="92"/><line class="pl-edge" x1="138" y1="28" x2="190" y2="60"/><line class="pl-edge" x1="138" y1="92" x2="190" y2="60"/><g class="pl-node" style="--k:0"><circle cx="30" cy="60" r="12"/><text x="30" y="60">1</text></g><g class="pl-node" style="--k:1"><circle cx="82" cy="28" r="12"/><text x="82" y="28">2</text></g><g class="pl-node" style="--k:1"><circle cx="82" cy="92" r="12"/><text x="82" y="92">2</text></g><g class="pl-node" style="--k:2"><circle cx="138" cy="28" r="12"/><text x="138" y="28">3</text></g><g class="pl-node" style="--k:2"><circle cx="138" cy="92" r="12"/><text x="138" y="92">3</text></g><g class="pl-node" style="--k:3"><circle cx="190" cy="60" r="12"/><text x="190" y="60">4</text></g></svg>
+            <p><span lang="en">Place one, then <mark class="kw">those joined to it</mark>, and so on.</span><span lang="es">Se coloca uno, luego <mark class="kw">los que se unen a él</mark>, y así.</span></p>
+            <small class="stepline__from"><span lang="en">to explore</span><span lang="es">por explorar</span></small>
+          </article>
+        </div>
+        <p class="stepline__below" data-build="4"><span lang="en">Each result is judged by <mark class="kw">the same compare.py</mark>, the Revit warnings and the relations kept: <em>what changes is <mark class="kw">the order</mark>, not the yardstick.</em></span><span lang="es">Cada resultado lo juzgan <mark class="kw">el mismo compare.py</mark>, las advertencias de Revit y las relaciones que se conservan: <em>lo que cambia es <mark class="kw">el orden</mark>, no la vara.</em></span></p>
+        <ol class="refs"><li><a href="https://doi.org/10.1177/14780771251352946" target="_blank" rel="noopener noreferrer">Liang et al., IJAC 23(3), 2025</a></li><li><a href="https://doi.org/10.25442/hku.29365832" target="_blank" rel="noopener noreferrer">Hornung et al., CAAD Futures 2025</a></li></ol>
+      </section>
+      <!-- Chapter 3 · new, not a copy -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="new-not-replicated accuracy-on-own-models masking-training">
+        <p class="eyebrow"><span><span lang="en">The open question · new, not a copy</span><span lang="es">La pregunta abierta · nuevo, no una copia</span></span><b>05</b></p>
+        <h2><span lang="en">New, not a copy: <em>how to tell what it learned from what it remembers.</em></span><span lang="es">Nuevo, no una copia: <em>cómo distinguir lo que aprendió de lo que recuerda.</em></span></h2>
+        <div class="tenrow">
+          <i class="is-seen" data-build-state="2"></i><i class="is-seen" data-build-state="2"></i><i class="is-seen" data-build-state="2"></i><i class="is-seen" data-build-state="2"></i><i class="is-seen" data-build-state="2"></i><i class="is-seen" data-build-state="2"></i><i class="is-seen" data-build-state="2"></i><i class="is-seen" data-build-state="2"></i><i class="is-seen" data-build-state="2"></i><i class="is-unseen" data-build-state="1"></i>
+          <p class="tenrow__cap tenrow__cap--train" data-build="1"><span lang="en">train · the 9 it learns from</span><span lang="es">entrenar · los 9 de los que aprende</span></p>
+          <p class="tenrow__cap tenrow__cap--test" data-build="1"><span lang="en">test · not seen</span><span lang="es">probar · no visto</span></p>
+          <p class="tenrow__all"><span lang="en">10 Revit models of one typology</span><span lang="es">10 modelos Revit de una tipología</span></p>
+        </div>
+        <div class="facts">
+          <div data-build="1"><b><span lang="en">Keep one model out</span><span lang="es">Dejar un modelo fuera</span></b><span><span lang="en"><mark class="kw">Train on 9, test on the 1</mark> it has not seen: a good score on its own models <mark class="kw">can be memory</mark>.</span><span lang="es"><mark class="kw">Entrenar con 9, probar con el 1</mark> que no vio: un buen acierto en sus propios modelos <mark class="kw">puede ser memoria</mark>.</span></span></div>
+          <div class="is-later" data-build="2"><b><span lang="en">Compare with what it learned · to define</span><span lang="es">Comparar con lo que aprendió · por definir</span></b><span><span lang="en">Is the result <mark class="kw">a near-copy</mark> of one of the nine? Then <mark class="kw">it replayed, it did not generate</mark>.</span><span lang="es">¿El resultado es <mark class="kw">casi una copia</mark> de uno de los nueve? Entonces <mark class="kw">repitió, no generó</mark>.</span></span></div>
+          <div data-build="3"><b><span lang="en">Check it is valid</span><span lang="es">Revisar que sea válido</span></b><span><span lang="en">The same checks in Revit: <mark class="kw">1 cm</mark>, the warnings, <mark class="kw">the relations kept</mark>.</span><span lang="es">Las mismas revisiones en Revit: <mark class="kw">1 cm</mark>, las advertencias, <mark class="kw">las relaciones que se conservan</mark>.</span></span></div>
+        </div>
+        <p class="footnote" data-build="3"><span lang="en"><mark class="kw">Valid</mark> already has its check in Revit; <mark class="kw">new</mark> does not yet: how much difference counts as new is open.</span><span lang="es"><mark class="kw">Válido</mark> ya tiene su revisión en Revit; <mark class="kw">nuevo</mark> todavía no: cuánta diferencia cuenta como nuevo está abierto.</span></p>
+        <ol class="refs"><li><span lang="en">Author, research map, Nov 2026</span><span lang="es">Autor, mapa de investigación, nov 2026</span></li></ol>
+      </section>
+      <!-- Chapter 3 · next steps -->
+      <section class="slide slide--roomy" data-map="masking-training mcp-assembles-in-revit placement-order-experiments hypothesis">
+        <p class="eyebrow"><span><span lang="en">Next steps</span><span lang="es">Siguientes pasos</span></span><b>05</b></p>
+        <h2><span lang="en">Next: <em>masking first, then MCP, then the three orders.</em></span><span lang="es">Siguiente: <em>primero el masking, luego MCP, luego los tres órdenes.</em></span></h2>
+        <div class="points points--chain">
+          <article class="card" data-build="1">
+            <span class="tag tag--ink">01</span>
+            <h3><span lang="en">Masking on the 10 models</span><span lang="es">Masking en los 10 modelos</span></h3>
+            <p><span lang="en">Hide parts of their subgraphs, <mark class="kw">train on 9</mark> and see what it fills in on the one it did not see.</span><span lang="es">Ocultar partes de sus subgrafos, <mark class="kw">entrenar con 9</mark> y ver qué completa en el que no vio.</span></p>
+          </article>
+          <article class="card" data-build="2">
+            <span class="tag tag--ink">02</span>
+            <h3><span lang="en">MCP for Revit</span><span lang="es">MCP para Revit</span></h3>
+            <p><span lang="en">Choose or build the server, and <mark class="kw">place a first proposed element</mark> in Revit.</span><span lang="es">Elegir o construir el servidor, y <mark class="kw">colocar un primer elemento propuesto</mark> en Revit.</span></p>
+          </article>
+          <article class="card" data-build="3">
+            <span class="tag tag--ink">03</span>
+            <h3><span lang="en">The three orders</span><span lang="es">Los tres órdenes</span></h3>
+            <p><span lang="en">Run <mark class="kw">all at once, one by one, and one with its neighbours</mark> on the same masked model, and compare.</span><span lang="es">Correr <mark class="kw">todo de una vez, uno por uno, y uno con sus vecinos</mark> sobre el mismo modelo con huecos, y comparar.</span></p>
+          </article>
+        </div>
+      </section>
+      <!-- Chapter 3 · to decide -->
+      <section class="slide slide--roomy" data-map="masking-training mcp-assembles-in-revit">
+        <p class="eyebrow"><span><span lang="en">For today · to decide</span><span lang="es">Para hoy · por decidir</span></span><b>05</b></p>
+        <h2><span lang="en">Three choices I would like to <em>talk through.</em></span><span lang="es">Tres decisiones que quiero <em>conversar.</em></span></h2>
+        <div class="points">
+          <article class="card" data-build="1">
+            <span class="tag tag--ink">01</span>
+            <h3><span lang="en">What to hide</span><span lang="es">Qué ocultar</span></h3>
+            <p><span lang="en"><mark class="kw">Elements, relations or a whole class</mark>, such as all the openings? And how much of the model at a time?</span><span lang="es">¿<mark class="kw">Elementos, relaciones o una clase completa</mark>, como todas las aberturas? ¿Y cuánto del modelo a la vez?</span></p>
+          </article>
+          <article class="card" data-build="2">
+            <span class="tag tag--ink">02</span>
+            <h3><span lang="en">Which model fills it</span><span lang="es">Qué modelo lo completa</span></h3>
+            <p><span lang="en"><mark class="kw">A graph network</mark> as in the papers, or <mark class="kw">another model</mark> that predicts the hidden part?</span><span lang="es">¿<mark class="kw">Una red de grafos</mark> como en los papers, u <mark class="kw">otro modelo</mark> que prediga la parte oculta?</span></p>
+          </article>
+          <article class="card" data-build="3">
+            <span class="tag tag--ink">03</span>
+            <h3><span lang="en">Who calls the tools</span><span lang="es">Quién llama las herramientas</span></h3>
+            <p><span lang="en"><mark class="kw">The trained model</mark> itself, or <mark class="kw">an LLM</mark> that reads its predictions and calls the MCP server?</span><span lang="es">¿<mark class="kw">El modelo entrenado</mark> mismo, o <mark class="kw">un LLM</mark> que lee sus predicciones y llama al servidor MCP?</span></p>
+          </article>
+        </div>
+      </section>
+      <!-- Back cover -->
+      <section class="slide slide--title slide--title-wide">
+        <p class="eyebrow"><span><span lang="en">Presentation 05 · Masking and MCP</span><span lang="es">Presentación 05 · Masking y MCP</span></span><b>05</b></p>
+        <div class="title__text">
+          <h1><span lang="en">Thank you.</span><span lang="es">Gracias.</span></h1>
+          <p class="lede"><span lang="en">Questions and comments are welcome, <mark class="kw">above all on what to hide</mark> and on how the MCP server builds in Revit.</span><span lang="es">Preguntas y comentarios son bienvenidos, <mark class="kw">sobre todo de qué ocultar</mark> y de cómo el servidor MCP arma en Revit.</span></p>
+          <p class="title__meta"><span lang="en">G. Ramón García Ayala · MaCAD, IAAC</span><span lang="es">G. Ramón García Ayala · MaCAD, IAAC</span></p>
+        </div>
+      </section>
+    </main>
+    <script type="module">
+      import { mountDeck } from '../../assets/deck.js'
+      mountDeck(window)
+    </script>
+  </body>
+</html>
