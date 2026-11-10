@@ -31,11 +31,13 @@ def outline(f):
 
 
 def floor_gap(x, y):
+    """Position only: the farthest any outline point is from the other outline (both ways). The area is compared on its
+    own (diff.json), as for walls; adding it here once made floors in place with another area count as out of place."""
     p, q = outline(x), outline(y)
     if not p or not q:
         return 1e9
-    centre = lambda s: [sum(v[i] for v in s) / len(s) for i in range(3)]
-    return dist(centre(p), centre(q)) + abs((x['area'] or 0) - (y['area'] or 0)) * FT * FT / max((x['area'] or 1) * FT * FT, 1)
+    one_way = lambda s, t: max(min(dist(u, v) for v in t) for u in s)
+    return max(one_way(p, q), one_way(q, p))
 
 
 def point_gap(x, y):
@@ -59,10 +61,11 @@ def match(xs, ys, gap, tol=TOL):
     return pairs
 
 
-rows, by_id = {}, {}
+rows, by_id, matched = {}, {}, {}
 for cat, gap in (('walls', wall_gap), ('floors', floor_gap), ('doors', point_gap), ('windows', point_gap)):
     xs, ys = a[cat], b[cat]
     pairs = match(xs, ys, gap)
+    matched[cat] = (xs, ys, pairs)
     same_type = sum(1 for i, j in pairs.items() if xs[i]['type'] == ys[j]['type'])
     rows[cat] = {'source': len(xs), 'rebuilt': len(ys), 'same_position': len(pairs), 'same_position_and_type': same_type}
     by_id[cat] = {xs[i]['id']: ys[j]['id'] for i, j in pairs.items()}
@@ -117,4 +120,35 @@ summary = {
     'revit_messages': sorted(report['revit_messages'].items(), key=lambda kv: -kv[1])[:15],
 }
 json.dump(summary, open(os.path.join(OUT, 'summary.json'), 'w', encoding='utf-8'), indent=1, ensure_ascii=False)
+
+# Element by element: what did not come back the same, by source id (and rebuilt id when it has a match). Feeds the
+# deck's 3D view of the differences.
+off = lambda p, q: abs(p - q) / p > 0.01 if p else q > 0
+diff = {}
+for cat, (xs, ys, pairs) in matched.items():
+    found = []
+    for i, x in enumerate(xs):
+        if i not in pairs:
+            found.append({'id': x['id'], 'issue': 'not_in_place'})
+            continue
+        y = ys[pairs[i]]
+        if x['type'] != y['type']:
+            found.append({'id': x['id'], 'rebuilt_id': y['id'], 'issue': 'type'})
+        if cat in ('walls', 'floors') and off(x['area'] or 0, y['area'] or 0):
+            found.append({'id': x['id'], 'rebuilt_id': y['id'], 'issue': 'area', 'source_m2': round((x['area'] or 0) * FT * FT, 2), 'rebuilt_m2': round((y['area'] or 0) * FT * FT, 2)})
+        if cat in ('doors', 'windows'):
+            if not (x['host'] in by_id['walls'] and by_id['walls'][x['host']] == y['host']):
+                found.append({'id': x['id'], 'rebuilt_id': y['id'], 'issue': 'host'})
+            if x.get('hand_flipped') != y.get('hand_flipped') or x.get('facing_flipped') != y.get('facing_flipped'):
+                found.append({'id': x['id'], 'rebuilt_id': y['id'], 'issue': 'flipped'})
+    taken = set(pairs.values())
+    found += [{'rebuilt_id': y['id'], 'issue': 'extra'} for j, y in enumerate(ys) if j not in taken]
+    diff[cat] = found
+xs, ys = a['rooms'], b['rooms']
+pairs = match(xs, ys, point_gap)
+diff['rooms'] = [{'id': x['id'], 'issue': 'not_in_place'} for i, x in enumerate(xs) if i not in pairs]
+diff['rooms'] += [{'id': xs[i]['id'], 'rebuilt_id': ys[j]['id'], 'issue': 'not_enclosed' if ys[j]['area'] <= 0 else 'area',
+                   'source_m2': round(xs[i]['area'] * FT * FT, 2), 'rebuilt_m2': round(ys[j]['area'] * FT * FT, 2)}
+                  for i, j in pairs.items() if xs[i]['area'] > 0 and off(xs[i]['area'], ys[j]['area'])]
+json.dump(diff, open(os.path.join(OUT, 'diff.json'), 'w', encoding='utf-8'), indent=1, ensure_ascii=False)
 print(json.dumps(summary, indent=1, ensure_ascii=False))
