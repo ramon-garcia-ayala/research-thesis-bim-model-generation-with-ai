@@ -107,7 +107,7 @@ function buildScene(side, issues, mode) {
   side.floors.forEach((f) => add('floor', floorMesh(f), f.id))
   side.walls.forEach((w) =>
     add('wall', wallMesh(w), w.id, (mesh, slot) => {
-      if (slot === 1) callouts.push({ at: at((w.a[0] + w.b[0]) / 2, (w.a[1] + w.b[1]) / 2, w.z + w.h), text: `${w.len.toFixed(2)} m` })
+      if (slot === 1) callouts.push({ slot, at: at((w.a[0] + w.b[0]) / 2, (w.a[1] + w.b[1]) / 2, w.z + w.h), text: `${w.len.toFixed(2)} m` })
     }),
   )
   for (const o of [...side.doors, ...side.windows])
@@ -125,8 +125,22 @@ function buildScene(side, issues, mode) {
   return { scene, parts, callouts }
 }
 
-/** (Re)colours a scene from the current theme. */
+/**
+ * The colour slots a diff view lights, from its slide's build (deck.js): the slot of the legend item being told
+ * (`.diffs li[data-slot][data-now]`), every slot once the slide is complete, none before its first step. A plain
+ * view, or one on a slide without builds, lights them all: null.
+ */
+export function focusOf(host) {
+  const slide = host.closest('.slide')
+  if (host.dataset.mode !== 'diff' || !slide || slide.dataset.complete !== undefined) return null
+  const now = slide.querySelector('.diffs li[data-slot][data-now]')
+  return new Set(now ? [Number(now.dataset.slot)] : [])
+}
+
+/** (Re)colours a scene from the current theme and the slots in focus. */
 function paint(view) {
+  view.focus = focusOf(view.host)
+  const lit = (slot) => slot > 0 && (!view.focus || view.focus.has(slot))
   const ink = new THREE.Color(token('--ink'))
   const quiet = new THREE.Color(token('--ink-tertiary'))
   const slots = [null, 1, 2, 3, 4, 5].map((n) => n && new THREE.Color(token(`--diff-${n}`)))
@@ -134,8 +148,9 @@ function paint(view) {
   const diff = view.mode === 'diff'
   for (const part of view.parts) {
     const { kind, slot, edge } = part.userData
-    const flagged = diff && slot > 0
+    const flagged = diff && lit(slot)
     const hue = flagged ? slots[slot] : kind === 'opening' ? ink : quiet
+    part.material?.dispose?.()
     if (edge) {
       part.material = new THREE.LineBasicMaterial({ color: flagged ? hue : ink, transparent: true, opacity: flagged ? 1 : diff ? 0.12 : 0.55 })
     } else {
@@ -230,7 +245,7 @@ export async function mountModels(doc = document, url = 'model.json') {
     view.renderer.render(view.scene, camera)
     for (const t of view.tags) {
       point.copy(t.at).project(camera)
-      t.tag.hidden = point.z > 1
+      t.tag.hidden = point.z > 1 || (view.focus !== null && !view.focus.has(t.slot))
       t.tag.style.left = `${((point.x + 1) / 2) * 100}%`
       t.tag.style.top = `${((1 - point.y) / 2) * 100}%`
     }
@@ -246,6 +261,12 @@ export async function mountModels(doc = document, url = 'model.json') {
     renderAll()
   }
   new MutationObserver(repaint).observe(doc.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  // a step of the slide lights another slot: repaint the views of that slide only
+  for (const slide of new Set(views.map((v) => v.host.closest('.slide')).filter(Boolean))) {
+    const own = views.filter((v) => v.host.closest('.slide') === slide)
+    new MutationObserver(() => { own.forEach(paint); own.forEach(render) })
+      .observe(slide, { attributes: true, attributeFilter: ['data-step', 'data-complete'] })
+  }
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', repaint)
   renderAll()
 }

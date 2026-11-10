@@ -30,6 +30,16 @@ A slide says what it uses with `data-map="id id …"` on its `<section class="sl
 `hypothesis`. No `data-map` = it uses nothing from the map. A new deck: copy the track's latest folder to
 `presentations/<track>/presentacion-NN/`, list it in `presentations/assets/site.js`, run `npm run check`.
 
+**Builds (one click at a time).** A piece with `data-build="n"` appears on click *n* of its slide; one with
+`data-build-state="n"` is always there and changes on click *n* (deck.css says how). → builds the next step, and moves
+on once the slide is complete; ← takes one back. A slide reached going back, from a dot or from the map's viewer shows
+complete. While a step is told, the pieces before it step back a little; on the last step all come back. Slides
+cross-fade, and the six step headings (`.stepline`, `.arch`) glide between slides that show them. On a 3D diff slide,
+the legend item being told lights its colour in the views (`model3d.js` `focusOf`).
+
+**Key words.** `<mark class="kw">` on the few words of a long text the presenter reads at a glance; the same words in
+both languages.
+
 ## The paper reader
 
 Press **Papers** in the toolbar (or **Read** in a paper's panel): the paper opens over the right half of the map, or in

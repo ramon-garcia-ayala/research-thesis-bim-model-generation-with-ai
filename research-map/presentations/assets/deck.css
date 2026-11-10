@@ -2644,7 +2644,8 @@ html[data-embed] .deck__bar {
   padding: 0;
   margin-top: auto;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   gap: 3cqw;
 }
 
@@ -3121,4 +3122,145 @@ html[data-embed] .deck__bar {
 /* centred in the room under the title, clear of the footnote */
 .slide .lanes {
   margin-block: auto;
+}
+
+/* -- builds: a slide's pieces, one click at a time (deck.js setStep) --
+   [data-build] appears on its step; [data-build-state] is always there and changes on its step (rules per piece).
+   The pieces of the step being told are [data-now]; the ones before step back a little; on the last step,
+   [data-complete], every piece comes back. Stagger: --d, the order within the step. */
+.slide [data-build],
+.slide [data-build-state] {
+  transition:
+    opacity 320ms ease,
+    transform 320ms ease,
+    border-color 320ms ease,
+    box-shadow 320ms ease,
+    background-color 320ms ease,
+    color 320ms ease;
+  transition-delay: calc(var(--d, 0) * 70ms);
+}
+
+.slide [data-build]:not([data-built]) {
+  opacity: 0;
+  transform: translateY(0.5cqw);
+  pointer-events: none;
+}
+
+/* a piece holding the one being told does not step back: it would take its child with it */
+.slide:not([data-complete]) :is([data-build], [data-build-state])[data-built]:not([data-now], :has([data-now])) {
+  opacity: 0.42;
+}
+
+/* entering a slide: what has no build rises in once, in order (the index's chapters) */
+@keyframes deck-rise {
+  from { opacity: 0; transform: translateY(0.6cqw); }
+}
+
+.slide .chapters > li {
+  animation: deck-rise 420ms ease both;
+}
+
+.slide .chapters > li:nth-child(2) { animation-delay: 90ms; }
+.slide .chapters > li:nth-child(3) { animation-delay: 180ms; }
+.slide .chapters > li:nth-child(4) { animation-delay: 270ms; }
+
+/* between slides: a short cross-fade (deck.js, View Transitions). The six step headings carry a name, so between
+   slides that show them (the stepline, the arch) they glide to their new place instead of fading. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 260ms;
+}
+
+::view-transition-group(*) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+.stepline > li:nth-child(1) > small, .arch__step:nth-child(1) > small { view-transition-name: step-n1; }
+.stepline > li:nth-child(2) > small, .arch__step:nth-child(2) > small { view-transition-name: step-n2; }
+.stepline > li:nth-child(3) > small, .arch__step:nth-child(3) > small { view-transition-name: step-n3; }
+.stepline > li:nth-child(4) > small, .arch__step:nth-child(4) > small { view-transition-name: step-n4; }
+.stepline > li:nth-child(5) > small, .arch__step:nth-child(5) > small { view-transition-name: step-n5; }
+.stepline > li:nth-child(6) > small, .arch__step:nth-child(6) > small { view-transition-name: step-n6; }
+.stepline > li:nth-child(1) > h3, .arch__step:nth-child(1) > span { view-transition-name: step-t1; }
+.stepline > li:nth-child(2) > h3, .arch__step:nth-child(2) > span { view-transition-name: step-t2; }
+.stepline > li:nth-child(3) > h3, .arch__step:nth-child(3) > span { view-transition-name: step-t3; }
+.stepline > li:nth-child(4) > h3, .arch__step:nth-child(4) > span { view-transition-name: step-t4; }
+.stepline > li:nth-child(5) > h3, .arch__step:nth-child(5) > span { view-transition-name: step-t5; }
+.stepline > li:nth-child(6) > h3, .arch__step:nth-child(6) > span { view-transition-name: step-t6; }
+
+/* the strip of steps on top of chapter 3 stays put from slide to slide: only which steps are on changes */
+.where { view-transition-name: where-strip; }
+
+/* slide 7: the six boxes come in neutral, as on the pipeline of chapter 1; their state is the build */
+.stepline > li[data-build-state]:not([data-built]) {
+  border-style: solid;
+  border-color: var(--separator);
+  box-shadow: none;
+  background: var(--panel);
+}
+
+.stepline > li[data-build-state]:not([data-built]) :is(h3, .stepline__does) {
+  color: var(--ink);
+}
+
+.stepline > li[data-build-state]:not([data-built]) .stepline__does {
+  color: var(--ink-secondary);
+}
+
+.stepline > li[data-build-state] .stepline__foot {
+  transition: opacity 320ms ease;
+  transition-delay: inherit;
+}
+
+.stepline > li[data-build-state]:not([data-built]) .stepline__foot {
+  opacity: 0;
+}
+
+/* slide 15: this thesis's own sub-steps get their bold border on the step that tells them (the state is on their label) */
+.lane__step.is-own:has(> small[data-build-state]:not([data-built])) {
+  border-color: var(--separator);
+  box-shadow: none;
+}
+
+/* a 3D view comes in as the other pieces do; the legend lights its slot in the views (model3d.js focusOf) */
+.model3d[data-build] {
+  transition-duration: 420ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide [data-build],
+  .slide [data-build-state],
+  .stepline > li[data-build-state] .stepline__foot {
+    transition: none;
+  }
+
+  .slide [data-build]:not([data-built]) {
+    transform: none;
+  }
+
+  .slide .chapters > li {
+    animation: none;
+  }
+}
+
+/* where a next step comes from: the finding (slide 14) or the piece (slide 15) that asks for it */
+.stepline__from {
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.85cqw;
+  font-style: normal;
+  line-height: 1.3;
+}
+
+/* key words of a long text: what the presenter reads at a glance, without reading it all. A light touch: full ink,
+   a little weight and a soft underlay, in both themes (it mixes from the ink). */
+.slide mark.kw {
+  padding: 0 0.08em;
+  border-radius: 0.15em;
+  background: linear-gradient(transparent 58%, color-mix(in srgb, var(--ink) 10%, transparent) 58%);
+  color: var(--ink);
+  font-weight: 600;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
