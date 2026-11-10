@@ -1,0 +1,2 @@
+## 2026-11-08 · Summary
+Claude: Renner's copilot predicts the type of the next element with about 79% accuracy against 16.67% for chance, which supports the hypothesis that decomposing a model into elements and relations lets an AI find patterns. But the validation comes from the same models the network was trained on, so it does not show that the patterns carry over to models it has not seen. For the thesis, the claim to test is generation on held-out models, not accuracy on the training source.
