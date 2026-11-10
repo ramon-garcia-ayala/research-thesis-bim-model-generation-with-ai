@@ -2462,3 +2462,502 @@ html[data-embed] .deck__bar {
   content: '– ';
   color: var(--ink-tertiary);
 }
+
+/* -- models: 3D views of a pipeline model (assets/model3d.js), side by side, with a legend row beneath. The views
+   have a fixed height and sit on the legend, so every models slide puts them in the same place whatever its title. -- */
+:root {
+  /* the kinds of difference, categorical in a fixed order (validated: dataviz validate_palette, light on #ffffff) */
+  --diff-1: #2a78d6;
+  --diff-2: #eb6834;
+  --diff-3: #1baf7a;
+  --diff-4: #eda100;
+  --diff-5: #e87ba4;
+}
+
+:root[data-theme='dark'] {
+  --diff-1: #3987e5;
+  --diff-2: #d95926;
+  --diff-3: #199e70;
+  --diff-4: #c98500;
+  --diff-5: #d55181;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --diff-1: #3987e5;
+    --diff-2: #d95926;
+    --diff-3: #199e70;
+    --diff-4: #c98500;
+    --diff-5: #d55181;
+  }
+}
+
+.slide--models .models {
+  flex: none;
+  height: 27cqw;
+  margin-top: auto;
+}
+
+.models {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+  gap: 1.6cqw;
+}
+
+.model3d {
+  position: relative;
+  min-height: 0;
+  border: 1px solid var(--separator);
+  border-radius: 0.6cqw;
+  overflow: hidden;
+}
+
+/* out of the flow: the canvas must never size its box, or the resize observer and the layout feed each other */
+.model3d canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+
+.model3d canvas:active {
+  cursor: grabbing;
+}
+
+.model3d__label {
+  position: absolute;
+  top: 0.9cqw;
+  left: 1cqw;
+  display: grid;
+  gap: 0.2cqw;
+  padding: 0.5cqw 0.8cqw;
+  border-radius: 0.4cqw;
+  background: var(--panel);
+  pointer-events: none;
+}
+
+.model3d__label b {
+  font-size: 1.35cqw;
+}
+
+.model3d__label small {
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.95cqw;
+}
+
+/* a value pinned to a point of the model (a moved wall's length), placed by model3d.js */
+.model3d__callout {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 0.8cqw));
+  padding: 0.25cqw 0.6cqw;
+  border: 1px solid var(--diff-1);
+  border-radius: 0.3cqw;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 1cqw;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* the legend: one cell per kind, its count, what it is; neutral cells when nothing is flagged */
+.slide .diffs {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1.6cqw;
+  height: 5.4cqw;
+  font-size: 1.05cqw;
+  line-height: 1.3;
+}
+
+.diffs > li {
+  display: grid;
+  grid-template-columns: 1cqw minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  column-gap: 0.6cqw;
+  align-content: start;
+  padding-top: 0.7cqw;
+  border-top: 1px solid var(--separator);
+}
+
+.diffs > li > i {
+  width: 1cqw;
+  height: 1cqw;
+  margin-top: 0.45cqw;
+  border-radius: 0.2cqw;
+  background: var(--ink-tertiary);
+}
+
+.diffs > li[data-slot='1'] > i { background: var(--diff-1); }
+.diffs > li[data-slot='2'] > i { background: var(--diff-2); }
+.diffs > li[data-slot='3'] > i { background: var(--diff-3); }
+.diffs > li[data-slot='4'] > i { background: var(--diff-4); }
+.diffs > li[data-slot='5'] > i { background: var(--diff-5); }
+
+.diffs b {
+  font-family: var(--font-serif);
+  font-size: 1.9cqw;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.diffs small {
+  grid-column: 2;
+  color: var(--ink-secondary);
+}
+
+/* -- chapter: the divider before each chapter, and the index -- */
+.slide--chapter {
+  justify-content: flex-end;
+}
+
+.slide--chapter .chapter__n {
+  font-family: var(--font-serif);
+  font-size: 12cqw;
+  line-height: 0.85;
+  color: var(--ink-tertiary);
+}
+
+.slide--chapter h1 {
+  font-family: var(--font-serif);
+  font-size: 5.2cqw;
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+.slide--chapter .lede {
+  max-width: 48ch;
+}
+
+.slide .chapters {
+  list-style: none;
+  padding: 0;
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3cqw;
+}
+
+.chapters > li {
+  display: grid;
+  align-content: start;
+  gap: 0.8cqw;
+  padding-top: 1cqw;
+  border-top: 1px solid var(--ink);
+}
+
+.chapters > li > small {
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.95cqw;
+}
+
+.chapters h3 {
+  font-family: var(--font-serif);
+  font-size: 2.6cqw;
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.chapters ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.4cqw;
+  color: var(--ink-secondary);
+  font-size: 1.2cqw;
+}
+
+/* a step of the pipe that does not exist yet */
+.pipe__steps > li.is-missing {
+  border-style: dashed;
+  border-color: var(--ink-tertiary);
+  background: transparent;
+}
+
+/* -- stepline: the thesis pipeline, the same six steps on every slide that shows it (5, 7, 8). The boxes have one
+   size and sit on a fixed-height block, so the diagram lands in the same place on each slide. Head (number, name,
+   what the step does) never changes; the foot is the slide's own indication: a source, a state, or files.
+   Box states: is-key (the thesis's own step), is-on (runs today), is-off (not built yet). -- */
+.slide .stepline {
+  list-style: none;
+  padding: 0;
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 2.4cqw;
+}
+
+.stepline > li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35cqw;
+  height: 18cqw;
+  padding: 1cqw 1.1cqw 1.1cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.6cqw;
+  background: var(--panel);
+}
+
+.stepline > li + li::before {
+  content: '→';
+  position: absolute;
+  left: -1.85cqw;
+  top: 1.6cqw;
+  color: var(--ink-tertiary);
+  font-size: 1.4cqw;
+}
+
+.stepline > li > small {
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.95cqw;
+}
+
+.stepline h3 {
+  font-size: 1.6cqw;
+  line-height: 1.15;
+}
+
+.stepline__does {
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 1cqw;
+  line-height: 1.35;
+}
+
+.stepline__foot {
+  margin-top: auto;
+  display: grid;
+  gap: 0.4cqw;
+  padding-top: 0.7cqw;
+  border-top: 1px solid var(--separator);
+  font-size: 1.05cqw;
+  line-height: 1.3;
+}
+
+.stepline__foot > small {
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.95cqw;
+}
+
+.slide .stepline__foot ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.35cqw;
+}
+
+/* the marks of a state, as in the pipe: built ● · next ◐ · later ○ */
+.stepline [data-state='built'] { --mark: '●'; --mark-ink: var(--ink); }
+.stepline [data-state='next'] { --mark: '◐'; --mark-ink: var(--ink-secondary); }
+.stepline [data-state='later'] { --mark: '○'; --mark-ink: var(--ink-tertiary); }
+
+.stepline [data-state]::before {
+  content: var(--mark);
+  margin-right: 0.45em;
+  color: var(--mark-ink);
+  font-family: var(--font-mono);
+}
+
+.stepline > li.is-key,
+.stepline > li.is-on {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.stepline > li.is-off {
+  border-style: dashed;
+  border-color: var(--ink-tertiary);
+  background: transparent;
+}
+
+.stepline > li.is-off :is(h3, .stepline__does) {
+  color: var(--ink-tertiary);
+}
+
+/* the block under the diagram: one height on every stepline slide */
+.stepline__below {
+  height: 7.6cqw;
+  font-size: 1.35cqw;
+  line-height: 1.4;
+  color: var(--ink-secondary);
+}
+
+.stepline__below em {
+  color: var(--ink);
+  font-style: normal;
+}
+
+.stepline__bands {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.4cqw;
+}
+
+.stepline__bands > div {
+  display: grid;
+  align-content: start;
+  gap: 0.3cqw;
+  padding-top: 0.7cqw;
+  border-top: 1px solid var(--separator);
+  font-size: 1.1cqw;
+}
+
+.stepline__bands > div[data-state='built'] {
+  border-top-color: var(--ink);
+}
+
+.stepline__bands b {
+  color: var(--ink);
+  font-size: 1.25cqw;
+}
+
+/* -- a data table and its facts: the full numbers above, what matters about them below, in three columns -- */
+.sheet.sheet--data {
+  margin-top: 0.4cqw;
+  font-size: 1.1cqw;
+}
+
+.sheet.sheet--data td {
+  padding-block: 0.55cqw;
+}
+
+.slide .facts {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.4cqw;
+}
+
+.facts > div {
+  display: grid;
+  align-content: start;
+  gap: 0.35cqw;
+  padding-top: 0.7cqw;
+  border-top: 1px solid var(--ink);
+  color: var(--ink-secondary);
+  font-size: 1.05cqw;
+  line-height: 1.35;
+}
+
+.facts b {
+  color: var(--ink);
+  font-size: 1.25cqw;
+}
+
+/* -- arch: the pipeline's six steps as columns (aligned with the stepline), with rows beneath them: the file of
+   each step, what it hands on, the technology it runs on. Used by the files slide and the stack slide, so the two
+   read as one. Cells: is-on (exists), is-off (not built yet); `a` puts the flow arrow before a cell. -- */
+.slide .arch {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  column-gap: 2.4cqw;
+  row-gap: 0.7cqw;
+}
+
+.arch__step {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6cqw;
+  padding-bottom: 0.5cqw;
+  border-bottom: 1px solid var(--ink);
+  font-size: 1.3cqw;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.arch__step small {
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.95cqw;
+  font-weight: 400;
+}
+
+.arch__label {
+  grid-column: 1 / -1;
+  margin-top: 0.5cqw;
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.95cqw;
+}
+
+.arch__cell {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.3cqw;
+  padding: 0.75cqw 0.9cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.5cqw;
+  background: var(--panel);
+  color: var(--ink-secondary);
+  font-size: 1.02cqw;
+  line-height: 1.3;
+}
+
+.arch__cell.a::before {
+  content: '→';
+  position: absolute;
+  left: -1.85cqw;
+  top: 0.75cqw;
+  color: var(--ink-tertiary);
+  font-size: 1.3cqw;
+}
+
+.arch__cell > code,
+.arch__cell > b {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 1.05cqw;
+  font-weight: 600;
+}
+
+.arch__cell > b {
+  font-family: var(--font-sans);
+}
+
+.arch__cell.is-on {
+  border-color: var(--ink);
+}
+
+.arch__cell.is-off {
+  border-style: dashed;
+  border-color: var(--ink-tertiary);
+  background: transparent;
+  color: var(--ink-tertiary);
+}
+
+.arch__cell.is-off > :is(code, b) {
+  color: var(--ink-secondary);
+}
+
+.arch__cell hr {
+  margin: 0.3cqw 0;
+  border: 0;
+  border-top: 1px solid var(--separator);
+}
+
+.arch__cell > code.off {
+  color: var(--ink-tertiary);
+  font-weight: 400;
+  text-decoration: underline dashed;
+}
+
+/* one row height for both arch slides, so the files slide and the stack slide line up */
+.slide .arch {
+  grid-template-rows: auto auto 11cqw auto 5.4cqw;
+}
