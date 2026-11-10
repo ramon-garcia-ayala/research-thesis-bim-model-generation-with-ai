@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en" data-lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thesis 04 · Datasets from BIM</title>
+    <meta name="description" content="Presentation 04 for the thesis (MaCAD, IAAC): one topic, generating datasets by learning from BIM models. The process, the expected result, the progress and the next steps." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" />
+    <link rel="stylesheet" href="../../assets/deck.css" />
+    <script type="importmap">{ "imports": { "three": "../../assets/vendor/three/three.module.min.js" } }</script>
+  </head>
+  <body data-track="thesis" data-presentation="presentacion-04">
+    <nav class="rail"></nav>
+    <main class="deck">
+      <!-- 1 · Question and hypothesis -->
+      <section class="slide slide--title slide--title-wide" data-map="question hypothesis">
+        <p class="eyebrow"><span><span lang="en">Presentation 04 · Datasets from BIM models</span><span lang="es">Presentación 04 · Datasets desde modelos BIM</span></span><b>04</b></p>
+        <div class="title__text">
+          <h1><span lang="en">Can an AI learn to decompose BIM models into meaningful parts and use them to <em>generate new, valid models?</em></span><span lang="es">¿Puede una IA aprender a descomponer modelos BIM en partes con sentido y usarlas para <em>generar modelos nuevos y válidos?</em></span></h1>
+          <p class="lede" data-build="1"><span lang="en">Hypothesis: if a BIM model is <mark class="kw">decomposed into its elements and relations</mark>, an AI can <mark class="kw">find the patterns</mark> it needs to understand how to <mark class="kw">build something similar</mark>.</span><span lang="es">Hipótesis: si un modelo BIM <mark class="kw">se descompone en sus elementos y relaciones</mark>, una IA puede <mark class="kw">encontrar los patrones</mark> que necesita para entender cómo <mark class="kw">construir algo similar</mark>.</span></p>
+          <p class="title__meta"><span lang="en">MaCAD, IAAC · 10 Nov 2026</span><span lang="es">MaCAD, IAAC · 10 nov 2026</span></p>
+        </div>
+      </section>
+
+      <!-- Index -->
+      <section class="slide" data-map="question">
+        <p class="eyebrow"><span><span lang="en">Index</span><span lang="es">Índice</span></span><b>04</b></p>
+        <h2><span lang="en">Three chapters: <em>why, the test and how it is built, and where it goes.</em></span><span lang="es">Tres capítulos: <em>por qué, la prueba y cómo se arma, y hacia dónde va.</em></span></h2>
+        <ol class="chapters">
+          <li>
+            <small>01</small>
+            <h3><span lang="en">Approach to the problem</span><span lang="es">Aproximación al problema</span></h3>
+            <ul>
+              <li><span lang="en">The literature</span><span lang="es">La literatura</span></li>
+              <li><span lang="en">Why this pipeline</span><span lang="es">Por qué esta pipeline</span></li>
+            </ul>
+          </li>
+          <li>
+            <small>02</small>
+            <h3><span lang="en">Proof of concept</span><span lang="es">Prueba de concepto</span></h3>
+            <ul>
+              <li><span lang="en">Where I am in the pipeline</span><span lang="es">Dónde estoy en la pipeline</span></li>
+              <li><span lang="en">The files and the stack</span><span lang="es">Los archivos y el stack</span></li>
+              <li><span lang="en">What came out of the run</span><span lang="es">Lo que salió de la corrida</span></li>
+              <li><span lang="en">Original vs rebuilt, in 3D</span><span lang="es">Original vs reconstruido, en 3D</span></li>
+            </ul>
+          </li>
+          <li>
+            <small>03</small>
+            <h3><span lang="en">Results and next steps</span><span lang="es">Resultados y siguientes pasos</span></h3>
+            <ul>
+              <li><span lang="en">The data of the round trip</span><span lang="es">Los datos de la ida y vuelta</span></li>
+              <li><span lang="en">Inside 03 and 04</span><span lang="es">Dentro de 03 y 04</span></li>
+              <li><span lang="en">Where this goes</span><span lang="es">Hacia dónde vamos</span></li>
+            </ul>
+          </li>
+        </ol>
+      </section>
+
+      <!-- Chapter 1 -->
+      <section class="slide slide--chapter">
+        <p class="eyebrow"><span><span lang="en">Chapter 1</span><span lang="es">Capítulo 1</span></span><b>04</b></p>
+        <span class="chapter__n">01</span>
+        <h1><span lang="en">Approach to the problem</span><span lang="es">Aproximación al problema</span></h1>
+        <p class="lede"><span lang="en">Why take a BIM model apart to learn how to build another one.</span><span lang="es">Por qué desarmar un modelo BIM para aprender a armar otro.</span></p>
+      </section>
+
+      <!-- 5 · Two papers -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="hornung-2025 renner-2025">
+        <p class="eyebrow"><span><span lang="en">Literature · generating and predicting elements</span><span lang="es">Literatura · generación y predicción de elementos</span></span><b>04</b></p>
+        <h2><span lang="en">The same recipe exists for IFC: <em>graph → network → next element.</em></span><span lang="es">La misma receta ya existe para IFC: <em>grafo → red → siguiente elemento.</em></span></h2>
+        <div class="points">
+          <article class="card" data-build="1">
+            <span class="tag"><span lang="en">Read</span><span lang="es">Leído</span></span>
+            <h3><span lang="en">Hornung et al. 2025<sup>1</sup></span><span lang="es">Hornung et al. 2025<sup>1</sup></span></h3>
+            <p><span lang="en">“Key issues included the <mark class="kw">limited number of samples</mark> available to train a ML model, as well as the <mark class="kw">noise and inconsistencies</mark> present in the data collected.”</span><span lang="es">“Entre los problemas clave estaban el <mark class="kw">número limitado de muestras</mark> disponibles para entrenar un modelo de ML, así como el <mark class="kw">ruido y las inconsistencias</mark> presentes en los datos recopilados.”</span></p>
+            <p class="limit" data-build="3"><span lang="en">My dataset: <mark class="kw">Revit data lakes</mark>, one standard, <mark class="kw">one typology</mark>.</span><span lang="es">Mi dataset: <mark class="kw">data lakes de Revit</mark>, un estándar, <mark class="kw">una tipología</mark>.</span></p>
+          </article>
+          <article class="card card--now" data-build="2">
+            <span class="tag tag--ink"><span lang="en">Reading</span><span lang="es">Leyendo</span></span>
+            <h3><span lang="en">Renner et al. 2025<sup>2</sup></span><span lang="es">Renner et al. 2025<sup>2</sup></span></h3>
+            <p><span lang="en"><mark class="kw">Three levels</mark> of human-AI interaction: <mark class="kw">restricted</mark> (the AI gives only dimensions), <mark class="kw">partial assistance</mark> (placement, angle and dimensions) and <mark class="kw">fully autonomous</mark> (type, position, angle and dimensions).</span><span lang="es"><mark class="kw">Tres niveles</mark> de interacción humano-IA: <mark class="kw">restringido</mark> (la IA da solo dimensiones), <mark class="kw">asistencia parcial</mark> (ubicación, ángulo y dimensiones) y <mark class="kw">totalmente autónomo</mark> (tipo, posición, ángulo y dimensiones).</span></p>
+            <p class="limit" data-build="3"><span lang="en">Validated on <mark class="kw">the same models it trained on</mark>. Mine: on <mark class="kw">models it has not seen</mark>.</span><span lang="es">Validado en <mark class="kw">los mismos modelos con que entrenó</mark>. El mío: en <mark class="kw">modelos que no vio</mark>.</span></p>
+          </article>
+        </div>
+        <ol class="refs"><li><a href="https://doi.org/10.25442/hku.29365832" target="_blank" rel="noopener noreferrer">Hornung, Renner, Elshani, Niepert, Wortmann, CAAD Futures 2025</a></li><li><a href="https://doi.org/10.1177/14780771251354914" target="_blank" rel="noopener noreferrer">Renner, Hornung, Elshani, Niepert, Wortmann, IJAC 23(3), 2025</a></li></ol>
+      </section>
+
+      <!-- Chapter 1 · why this pipeline -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="ifc-to-graph-recipe hornung-2025 renner-2025">
+        <p class="eyebrow"><span><span lang="en">Why this pipeline</span><span lang="es">Por qué esta pipeline</span></span><b>04</b></p>
+        <h2><span lang="en">Take a model apart, learn its relations, <em>build a new one.</em></span><span lang="es">Desarmar un modelo, aprender sus relaciones, <em>armar uno nuevo.</em></span></h2>
+        <ol class="stepline">
+          <li><small>01</small><h3><span lang="en">BIM model</span><span lang="es">Modelo BIM</span></h3><p class="stepline__does"><span lang="en">a Revit model</span><span lang="es">un modelo Revit</span></p><div class="stepline__foot" data-build="1"><small><span lang="en">rests on</span><span lang="es">se apoya en</span></small><span><span lang="en">Revit data lakes</span><span lang="es">data lakes de Revit</span></span></div></li>
+          <li><small>02</small><h3><span lang="en">Decompose</span><span lang="es">Descomponer</span></h3><p class="stepline__does"><span lang="en">elements to JSON</span><span lang="es">elementos a JSON</span></p><div class="stepline__foot" data-build="1"><small><span lang="en">rests on</span><span lang="es">se apoya en</span></small><span>Hornung<sup>1</sup></span></div></li>
+          <li><small>03</small><h3><span lang="en">Label</span><span lang="es">Etiquetar</span></h3><p class="stepline__does"><span lang="en">id, type and relations</span><span lang="es">id, tipo y relaciones</span></p><div class="stepline__foot" data-build="1"><small><span lang="en">rests on</span><span lang="es">se apoya en</span></small><span>Hornung<sup>1</sup></span></div></li>
+          <li><small>04</small><h3><span lang="en">AI · learn</span><span lang="es">IA · aprender</span></h3><p class="stepline__does"><span lang="en">weights and neighbours</span><span lang="es">pesos y vecinos</span></p><div class="stepline__foot" data-build="1"><small><span lang="en">rests on</span><span lang="es">se apoya en</span></small><span>Hornung, Renner<sup>1,2</sup></span></div></li>
+          <li><small>05</small><h3><span lang="en">Predict · reassemble</span><span lang="es">Predecir · reensamblar</span></h3><p class="stepline__does"><span lang="en">one element at a time, into Revit</span><span lang="es">un elemento a la vez, a Revit</span></p><div class="stepline__foot" data-build="1"><small><span lang="en">rests on</span><span lang="es">se apoya en</span></small><span>DGMG, Renner<sup>3,2</sup></span></div></li>
+          <li class="is-key"><small>06</small><h3><span lang="en">Validate</span><span lang="es">Validar</span></h3><p class="stepline__does"><span lang="en">original vs new, at 1 cm</span><span lang="es">original vs nuevo, a 1 cm</span></p><div class="stepline__foot" data-build="2"><small><span lang="en">rests on</span><span lang="es">se apoya en</span></small><span><span lang="en">this thesis</span><span lang="es">esta tesis</span></span></div></li>
+        </ol>
+        <p class="stepline__below" data-build="2"><span lang="en">Each step rests on <mark class="kw">published work</mark>. <em>The thesis joins them on <mark class="kw">native Revit models</mark>, and checks the result <mark class="kw">back in Revit</mark>.</em></span><span lang="es">Cada paso se apoya en un <mark class="kw">trabajo publicado</mark>. <em>La tesis los une sobre <mark class="kw">modelos Revit nativos</mark> y revisa el resultado <mark class="kw">de vuelta en Revit</mark>.</em></span></p>
+        <ol class="refs"><li><a href="https://doi.org/10.25442/hku.29365832" target="_blank" rel="noopener noreferrer">Hornung et al., CAAD Futures 2025</a></li><li><a href="https://doi.org/10.1177/14780771251354914" target="_blank" rel="noopener noreferrer">Renner et al., IJAC 23(3), 2025</a></li><li><a href="https://arxiv.org/abs/1803.03324" target="_blank" rel="noopener noreferrer">Li et al., DGMG, arXiv:1803.03324, 2018</a></li></ol>
+      </section>
+
+      <!-- Chapter 2 -->
+      <section class="slide slide--chapter">
+        <p class="eyebrow"><span><span lang="en">Chapter 2</span><span lang="es">Capítulo 2</span></span><b>04</b></p>
+        <span class="chapter__n">02</span>
+        <h1><span lang="en">Proof of concept</span><span lang="es">Prueba de concepto</span></h1>
+        <p class="lede"><span lang="en">The hypothesis, tested on a real model: how the test is built, and what came back.</span><span lang="es">La hipótesis, probada sobre un modelo real: cómo se arma la prueba y qué regresó.</span></p>
+      </section>
+
+      <!-- Chapter 2 · where I am: the same pipeline, the steps that run today -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="ifc-to-graph-recipe hypothesis">
+        <p class="eyebrow"><span><span lang="en">Proof of concept · where I am in the pipeline</span><span lang="es">Prueba de concepto · dónde estoy en la pipeline</span></span><b>04</b></p>
+        <h2><span lang="en">Before any AI, a test: <em>does a model survive being taken apart and put back?</em></span><span lang="es">Antes de la IA, una prueba: <em>¿sobrevive un modelo a desarmarse y rearmarse?</em></span></h2>
+        <ol class="stepline">
+          <li class="is-on" data-build-state="2"><small>01</small><h3><span lang="en">BIM model</span><span lang="es">Modelo BIM</span></h3><p class="stepline__does"><span lang="en">a Revit model</span><span lang="es">un modelo Revit</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today</span><span lang="es">corre hoy</span></span></div></li>
+          <li class="is-on" data-build-state="2"><small>02</small><h3><span lang="en">Decompose</span><span lang="es">Descomponer</span></h3><p class="stepline__does"><span lang="en">elements to JSON</span><span lang="es">elementos a JSON</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today</span><span lang="es">corre hoy</span></span></div></li>
+          <li class="is-off" data-build-state="1"><small>03</small><h3><span lang="en">Label</span><span lang="es">Etiquetar</span></h3><p class="stepline__does"><span lang="en">id, type and relations</span><span lang="es">id, tipo y relaciones</span></p><div class="stepline__foot"><span data-state="later"><span lang="en">skipped: the JSON goes on as is</span><span lang="es">se salta: el JSON sigue tal cual</span></span></div></li>
+          <li class="is-off" data-build-state="1"><small>04</small><h3><span lang="en">AI · learn</span><span lang="es">IA · aprender</span></h3><p class="stepline__does"><span lang="en">weights and neighbours</span><span lang="es">pesos y vecinos</span></p><div class="stepline__foot"><span data-state="later"><span lang="en">skipped: no AI yet</span><span lang="es">se salta: aún sin IA</span></span></div></li>
+          <li class="is-on" data-build-state="2"><small>05</small><h3><span lang="en">Predict · reassemble</span><span lang="es">Predecir · reensamblar</span></h3><p class="stepline__does"><span lang="en">one element at a time, into Revit</span><span lang="es">un elemento a la vez, a Revit</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today: reassemble only</span><span lang="es">corre hoy: solo reensamblar</span></span></div></li>
+          <li class="is-on" data-build-state="2"><small>06</small><h3><span lang="en">Validate</span><span lang="es">Validar</span></h3><p class="stepline__does"><span lang="en">original vs new, at 1 cm</span><span lang="es">original vs nuevo, a 1 cm</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today</span><span lang="es">corre hoy</span></span></div></li>
+        </ol>
+        <p class="stepline__below" data-build="3"><span lang="en">The proof of concept runs 01 → 02 → 05 → 06: the JSON goes <mark class="kw">straight from decomposing to reassembling</mark>. <em>If the text loses something here, <mark class="kw">no AI could learn it</mark>.</em></span><span lang="es">La prueba de concepto corre 01 → 02 → 05 → 06: el JSON pasa <mark class="kw">directo de descomponer a reensamblar</mark>. <em>Si el texto pierde algo aquí, <mark class="kw">ninguna IA podría aprenderlo</mark>.</em></span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/README.md, Nov 2026</span><span lang="es">Autor, pipeline/README.md, nov 2026</span></li></ol>
+      </section>
+
+      <!-- Chapter 2 · the files: what each does and how they assemble -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs slide--dense" data-map="ifc-to-graph-recipe">
+        <p class="eyebrow"><span><span lang="en">Proof of concept · the files</span><span lang="es">Prueba de concepto · los archivos</span></span><b>04</b></p>
+        <h2><span lang="en">Each step is a file, <em>and each file hands a file to the next.</em></span><span lang="es">Cada paso es un archivo, <em>y cada archivo le entrega un archivo al siguiente.</em></span></h2>
+        <div class="arch">
+          <div class="arch__step"><small>01</small><span><span lang="en">BIM model</span><span lang="es">Modelo BIM</span></span></div>
+          <div class="arch__step"><small>02</small><span><span lang="en">Decompose</span><span lang="es">Descomponer</span></span></div>
+          <div class="arch__step"><small>03</small><span><span lang="en">Label</span><span lang="es">Etiquetar</span></span></div>
+          <div class="arch__step"><small>04</small><span><span lang="en">AI · learn</span><span lang="es">IA · aprender</span></span></div>
+          <div class="arch__step"><small>05</small><span><span lang="en">Predict · reassemble</span><span lang="es">Predecir · reensamblar</span></span></div>
+          <div class="arch__step"><small>06</small><span><span lang="en">Validate</span><span lang="es">Validar</span></span></div>
+
+          <p class="arch__label"><span lang="en">The file · what it does</span><span lang="es">El archivo · qué hace</span></p>
+          <div class="arch__cell is-on" data-build="1"><code>input/source.rvt</code><span><span lang="en">Autodesk’s mixed-use sample.</span><span lang="es">La muestra de uso mixto de Autodesk.</span></span></div>
+          <div class="arch__cell is-on a" data-build="1"><code>extract.py</code><span><span lang="en">Inside Revit: each element to JSON.</span><span lang="es">Dentro de Revit: cada elemento a JSON.</span></span></div>
+          <div class="arch__cell is-off a" data-build="2"><code>labels.py</code><span><span lang="en">Id, type and class of each element, and its relations.</span><span lang="es">Id, tipo y clase de cada elemento, y sus relaciones.</span></span></div>
+          <div class="arch__cell is-off a" data-build="2"><code>train.py</code><span><span lang="en">Trains a graph network on the subgraphs of the list.</span><span lang="es">Entrena una red de grafos con los subgrafos del listado.</span></span></div>
+          <div class="arch__cell is-on a" data-build="1"><code class="off" data-build="2">predict.py</code><span data-build="2"><span lang="en">Missing: from the slab, one at a time.</span><span lang="es">Falta: desde la losa, uno a la vez.</span></span><hr /><code>rebuild.py</code><span><span lang="en">JSON → a new Revit project.</span><span lang="es">JSON → un Revit nuevo.</span></span></div>
+          <div class="arch__cell is-on a" data-build="1"><code>compare.py</code><span><span lang="en">Reads the rebuilt back, compares at 1 cm.</span><span lang="es">Relee el reconstruido y compara a 1 cm.</span></span></div>
+
+          <p class="arch__label"><span lang="en">What it hands on →</span><span lang="es">Lo que entrega →</span></p>
+          <div class="arch__cell is-on" data-build="1"><code>source.rvt</code></div>
+          <div class="arch__cell is-on a" data-build="1"><code>source.json</code></div>
+          <div class="arch__cell is-off a" data-build="2"><code>labels.json</code><span><span lang="en">the list</span><span lang="es">el listado</span></span></div>
+          <div class="arch__cell is-off a" data-build="2"><code>model.pt</code><span><span lang="en">the learned weights</span><span lang="es">los pesos aprendidos</span></span></div>
+          <div class="arch__cell is-on a" data-build="1"><code>rebuilt.rvt</code><span data-build="2"><span lang="en">from predicted.json, later</span><span lang="es">desde predicted.json, después</span></span></div>
+          <div class="arch__cell is-on a" data-build="1"><code>summary.json · diff.json</code></div>
+        </div>
+        <div class="facts" data-build="3">
+          <div><b><span lang="en">Today · run.sh</span><span lang="es">Hoy · run.sh</span></b><span><span lang="en">Runs extract → rebuild → extract → compare: <mark class="kw">the round trip</mark> of this test, steps 01, 02, 05, 06.</span><span lang="es">Corre extract → rebuild → extract → compare: <mark class="kw">la ida y vuelta</mark> de esta prueba, pasos 01, 02, 05, 06.</span></span></div>
+          <div><b><span lang="en">How it assembles</span><span lang="es">Cómo se ensambla</span></b><span><span lang="en">Every step <mark class="kw">speaks JSON</mark>, so labels.py, train.py and predict.py go in between extract.py and rebuild.py <mark class="kw">without changing them</mark>.</span><span lang="es">Todos los pasos <mark class="kw">hablan JSON</mark>, así que labels.py, train.py y predict.py entran entre extract.py y rebuild.py <mark class="kw">sin cambiarlos</mark>.</span></span></div>
+          <div><b><span lang="en">The same yardstick</span><span lang="es">La misma vara</span></b><span><span lang="en">What the AI predicts is rebuilt by the <mark class="kw">same rebuild.py</mark> and measured by the <mark class="kw">same compare.py</mark> as the round trip.</span><span lang="es">Lo que prediga la IA lo reconstruye el <mark class="kw">mismo rebuild.py</mark> y lo mide el <mark class="kw">mismo compare.py</mark> que la ida y vuelta.</span></span></div>
+        </div>
+        <p class="footnote" data-build="3"><span lang="en">Solid: exists. Dashed: missing; its file names are proposals.</span><span lang="es">Sólido: existe. Punteado: falta; sus nombres de archivo son propuestos.</span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/README.md, Nov 2026</span><span lang="es">Autor, pipeline/README.md, nov 2026</span></li></ol>
+      </section>
+
+      <!-- Chapter 2 · the stack: what each step runs on, today and next -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs slide--dense" data-map="ifc-to-graph-recipe hornung-2025 renner-2025">
+        <p class="eyebrow"><span><span lang="en">Proof of concept · the stack</span><span lang="es">Prueba de concepto · el stack</span></span><b>04</b></p>
+        <h2><span lang="en">Revit to read and write, <em>a proven stack to learn, JSON in between.</em></span><span lang="es">Revit para leer y escribir, <em>un stack probado para aprender, JSON en medio.</em></span></h2>
+        <div class="arch">
+          <div class="arch__step"><small>01</small><span><span lang="en">BIM model</span><span lang="es">Modelo BIM</span></span></div>
+          <div class="arch__step"><small>02</small><span><span lang="en">Decompose</span><span lang="es">Descomponer</span></span></div>
+          <div class="arch__step"><small>03</small><span><span lang="en">Label</span><span lang="es">Etiquetar</span></span></div>
+          <div class="arch__step"><small>04</small><span><span lang="en">AI · learn</span><span lang="es">IA · aprender</span></span></div>
+          <div class="arch__step"><small>05</small><span><span lang="en">Predict · reassemble</span><span lang="es">Predecir · reensamblar</span></span></div>
+          <div class="arch__step"><small>06</small><span><span lang="en">Validate</span><span lang="es">Validar</span></span></div>
+
+          <p class="arch__label" data-build="1"><span lang="en">Today · why</span><span lang="es">Hoy · por qué</span></p>
+          <div class="arch__cell is-on" data-build="1"><b>Revit 2027</b><span><span lang="en">What the data lakes hold: nothing to convert.</span><span lang="es">Lo que tienen los data lakes: nada que convertir.</span></span></div>
+          <div class="arch__cell is-on a" data-build="1"><b>pyRevit · IronPython 2.7</b><span><span lang="en">The full Revit API, no IFC in between.</span><span lang="es">La API completa de Revit, sin IFC de por medio.</span></span></div>
+          <div class="arch__cell is-off a" data-build="1"><span><span lang="en">not yet</span><span lang="es">aún no</span></span></div>
+          <div class="arch__cell is-off a" data-build="1"><span><span lang="en">not yet</span><span lang="es">aún no</span></span></div>
+          <div class="arch__cell is-on a" data-build="1"><b>pyRevit · IronPython 2.7</b><span><span lang="en">Writes the native model back.</span><span lang="es">Escribe el modelo nativo de vuelta.</span></span></div>
+          <div class="arch__cell is-on a" data-build="1"><b>Python 3 · three.js</b><span><span lang="en">JSON against JSON; the 3D to see it.</span><span lang="es">JSON contra JSON; el 3D para verlo.</span></span></div>
+
+          <p class="arch__label" data-build="2"><span lang="en">Next</span><span lang="es">Después</span></p>
+          <div class="arch__cell" data-build="2"><b><span lang="en">Revit data lake</span><span lang="es">Data lake de Revit</span></b><span><span lang="en">a series of models</span><span lang="es">una serie de modelos</span></span></div>
+          <div class="arch__cell a" data-build="2"><b><span lang="en">the same</span><span lang="es">el mismo</span></b><span><span lang="en">+ columns, separators</span><span lang="es">+ columnas, separadores</span></span></div>
+          <div class="arch__cell a" data-build="2"><b>NetworkX</b><span>Python 3<sup>1</sup></span></div>
+          <div class="arch__cell a" data-build="2"><b>DGL + PyTorch</b><span><span lang="en">a graph network, on GPU<sup>1,2</sup></span><span lang="es">una red de grafos, en GPU<sup>1,2</sup></span></span></div>
+          <div class="arch__cell a" data-build="2"><b>PyTorch → pyRevit</b><span><span lang="en">predict, then rebuild</span><span lang="es">predecir, luego reconstruir</span></span></div>
+          <div class="arch__cell a" data-build="2"><b><span lang="en">the same</span><span lang="es">el mismo</span></b><span><span lang="en">+ IFC export for the 3D</span><span lang="es">+ IFC exportado para el 3D</span></span></div>
+        </div>
+        <div class="facts" data-build="3">
+          <div><b><span lang="en">JSON in between</span><span lang="es">JSON en medio</span></b><span><span lang="en">Each step can <mark class="kw">change its technology</mark> without touching the others: they <mark class="kw">only share text</mark>.</span><span lang="es">Cada paso puede <mark class="kw">cambiar de tecnología</mark> sin tocar a los demás: <mark class="kw">solo comparten texto</mark>.</span></span></div>
+          <div><b><span lang="en">Proven to learn</span><span lang="es">Probado para aprender</span></b><span><span lang="en">NetworkX, DGL and PyTorch are <mark class="kw">what Hornung and Renner used</mark>, so the results can be <mark class="kw">compared with theirs</mark>.</span><span lang="es">NetworkX, DGL y PyTorch son <mark class="kw">lo que usaron Hornung y Renner</mark>, así los resultados se pueden <mark class="kw">comparar con los suyos</mark>.</span></span></div>
+          <div><b><span lang="en">Compute</span><span lang="es">Cómputo</span></b><span><span lang="en">Cloud GPU (RunPod) <mark class="kw">only while training</mark>; soon <mark class="kw">an own A10</mark> (1/3, 8 GB VRAM, 12 vCPU, 110 GB RAM) for daily tests.</span><span lang="es">GPU en la nube (RunPod) <mark class="kw">solo al entrenar</mark>; pronto <mark class="kw">una A10 propia</mark> (1/3, 8 GB VRAM, 12 vCPU, 110 GB RAM) para pruebas diarias.</span></span></div>
+        </div>
+        <ol class="refs"><li><a href="https://doi.org/10.25442/hku.29365832" target="_blank" rel="noopener noreferrer">Hornung et al., CAAD Futures 2025</a></li><li><a href="https://doi.org/10.1177/14780771251354914" target="_blank" rel="noopener noreferrer">Renner et al., IJAC 23(3), 2025</a></li></ol>
+      </section>
+
+      <!-- Chapter 2 · what came out of the run: back to the pipeline, before the 3D -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="hypothesis">
+        <p class="eyebrow"><span><span lang="en">Proof of concept · what came out of the run</span><span lang="es">Prueba de concepto · lo que salió de la corrida</span></span><b>04</b></p>
+        <h2><span lang="en">One run of run.sh: <em>412 elements out to text and back into Revit, with no AI.</em></span><span lang="es">Una corrida de run.sh: <em>412 elementos de ida a texto y de vuelta a Revit, sin IA.</em></span></h2>
+        <ol class="stepline">
+          <li class="is-on"><small>01</small><h3><span lang="en">BIM model</span><span lang="es">Modelo BIM</span></h3><p class="stepline__does"><span lang="en">a Revit model</span><span lang="es">un modelo Revit</span></p><div class="stepline__foot" data-build="1"><small>source.rvt</small><ul><li data-state="built"><span lang="en">7,704 elements, 57 categories</span><span lang="es">7,704 elementos, 57 categorías</span></li></ul></div></li>
+          <li class="is-on"><small>02</small><h3><span lang="en">Decompose</span><span lang="es">Descomponer</span></h3><p class="stepline__does"><span lang="en">elements to JSON</span><span lang="es">elementos a JSON</span></p><div class="stepline__foot" data-build="1"><small>extract.py</small><ul><li data-state="built"><span lang="en">412 elements, 6 categories</span><span lang="es">412 elementos, 6 categorías</span></li></ul></div></li>
+          <li class="is-off"><small>03</small><h3><span lang="en">Label</span><span lang="es">Etiquetar</span></h3><p class="stepline__does"><span lang="en">id, type and relations</span><span lang="es">id, tipo y relaciones</span></p><div class="stepline__foot" data-build="1"><small>labels.py</small><ul><li data-state="later"><span lang="en">skipped</span><span lang="es">se salta</span></li></ul></div></li>
+          <li class="is-off"><small>04</small><h3><span lang="en">AI · learn</span><span lang="es">IA · aprender</span></h3><p class="stepline__does"><span lang="en">weights and neighbours</span><span lang="es">pesos y vecinos</span></p><div class="stepline__foot" data-build="1"><small>train.py</small><ul><li data-state="later"><span lang="en">skipped</span><span lang="es">se salta</span></li></ul></div></li>
+          <li class="is-on"><small>05</small><h3><span lang="en">Predict · reassemble</span><span lang="es">Predecir · reensamblar</span></h3><p class="stepline__does"><span lang="en">one element at a time, into Revit</span><span lang="es">un elemento a la vez, a Revit</span></p><div class="stepline__foot" data-build="2"><small>rebuild.py</small><ul><li data-state="built"><span lang="en">rebuilt.rvt, 0 failures</span><span lang="es">rebuilt.rvt, 0 fallas</span></li></ul></div></li>
+          <li class="is-on"><small>06</small><h3><span lang="en">Validate</span><span lang="es">Validar</span></h3><p class="stepline__does"><span lang="en">original vs new, at 1 cm</span><span lang="es">original vs nuevo, a 1 cm</span></p><div class="stepline__foot" data-build="2"><small>compare.py</small><ul><li data-state="built"><span lang="en">summary.json, diff.json</span><span lang="es">summary.json, diff.json</span></li></ul></div></li>
+        </ol>
+        <p class="stepline__below" data-build="3"><span lang="en">What each step handed on in this run. <em>Next, the same <mark class="kw">in 3D</mark>: the original and the rebuilt, side by side.</em></span><span lang="es">Lo que entregó cada paso en esta corrida. <em>A continuación, lo mismo <mark class="kw">en 3D</mark>: el original y el reconstruido, lado a lado.</em></span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/summary.json, Nov 2026</span><span lang="es">Autor, pipeline/out/summary.json, nov 2026</span></li></ol>
+      </section>
+
+      <!-- Chapter 2 · original vs rebuilt, in 3D -->
+      <section class="slide slide--models" data-map="hypothesis">
+        <p class="eyebrow"><span><span lang="en">The test · original vs rebuilt</span><span lang="es">La prueba · original vs reconstruido</span></span><b>04</b></p>
+        <h2><span lang="en">The same model, <em>before and after going through text.</em></span><span lang="es">El mismo modelo, <em>antes y después de pasar por texto.</em></span></h2>
+        <div class="models">
+          <div class="model3d" data-side="source" data-mode="plain" data-label="Original model, source.rvt">
+            <p class="model3d__label"><b><span lang="en">Original</span><span lang="es">Original</span></b><small>source.rvt</small></p>
+          </div>
+          <div class="model3d" data-build="1" data-side="rebuilt" data-mode="plain" data-label="Rebuilt model, rebuilt.rvt">
+            <p class="model3d__label"><b><span lang="en">Rebuilt</span><span lang="es">Reconstruido</span></b><small><span lang="en">rebuilt.rvt · from the JSON, no AI</span><span lang="es">rebuilt.rvt · desde el JSON, sin IA</span></small></p>
+          </div>
+        </div>
+        <ul class="diffs" data-build="2">
+          <li><i></i><b>180</b><small><span lang="en">walls</span><span lang="es">muros</span></small></li>
+          <li><i></i><b>16</b><small><span lang="en">floors</span><span lang="es">losas</span></small></li>
+          <li><i></i><b>107</b><small><span lang="en">doors and windows</span><span lang="es">puertas y ventanas</span></small></li>
+          <li><i></i><b>91</b><small><span lang="en">rooms</span><span lang="es">rooms</span></small></li>
+          <li><i></i><b>5 → 6</b><small><span lang="en">Revit warnings, original → rebuilt</span><span lang="es">advertencias de Revit, original → reconstruido</span></small></li>
+        </ul>
+        <p class="footnote" data-build="2"><span lang="en">Drag to orbit, scroll to zoom: both views, and the next slide’s, <mark class="kw">move together</mark>. <mark class="kw">Simplified geometry</mark> drawn from the JSON: walls of a fixed thickness, 30 cm slabs.</span><span lang="es">Arrastra para girar y usa la rueda para acercar: las dos vistas, y las de la slide siguiente, <mark class="kw">se mueven juntas</mark>. <mark class="kw">Geometría simplificada</mark> desde el JSON: muros de grosor fijo, losas de 30 cm.</span></p>
+      </section>
+
+      <!-- Chapter 2 · the differences, in 3D -->
+      <section class="slide slide--models" data-map="hypothesis">
+        <p class="eyebrow"><span><span lang="en">The test · the differences</span><span lang="es">La prueba · las diferencias</span></span><b>04</b></p>
+        <h2><span lang="en">Almost everything comes back in place; <em>areas and orientations change.</em></span><span lang="es">Casi todo regresa en su lugar; <em>lo que cambia son áreas y orientaciones.</em></span></h2>
+        <div class="models">
+          <div class="model3d" data-side="source" data-mode="diff" data-label="Original model, its differences coloured by kind">
+            <p class="model3d__label"><b><span lang="en">Original</span><span lang="es">Original</span></b><small>source.rvt</small></p>
+          </div>
+          <div class="model3d" data-side="rebuilt" data-mode="diff" data-label="Rebuilt model, its differences coloured by kind">
+            <p class="model3d__label"><b><span lang="en">Rebuilt</span><span lang="es">Reconstruido</span></b><small>rebuilt.rvt</small></p>
+          </div>
+        </div>
+        <ul class="diffs">
+          <li data-slot="1" data-build="1"><i></i><b>1</b><small><span lang="en">wall out of place: 9.60 → 9.74 m</span><span lang="es">muro fuera de posición: 9.60 → 9.74 m</span></small></li>
+          <li data-slot="2" data-build="2"><i></i><b>105</b><small><span lang="en">another area: 103 walls (+5%), 2 floors (+7%)</span><span lang="es">otra área: 103 muros (+5%), 2 losas (+7%)</span></small></li>
+          <li data-slot="3" data-build="3"><i></i><b>49</b><small><span lang="en">rooms with another area (−47% to +218%)</span><span lang="es">rooms con otra área (−47% a +218%)</span></small></li>
+          <li data-slot="4" data-build="4"><i></i><b>5</b><small><span lang="en">rooms no longer enclosed</span><span lang="es">rooms que ya no cierran</span></small></li>
+          <li data-slot="5" data-build="5"><i></i><b>25</b><small><span lang="en">flipped: 24 windows, 1 door</span><span lang="es">invertidas: 24 ventanas, 1 puerta</span></small></li>
+        </ul>
+        <p class="footnote" data-build="6"><span lang="en">Each side shows <mark class="kw">its own values</mark>: the wall’s length, each room as a disc of its area (at a quarter), each door or window with a post on its hinge side. Walls and floors with another area look alike: <mark class="kw">their axis and height did not change</mark>. From compare.py → out/diff.json.</span><span lang="es">Cada lado muestra <mark class="kw">sus propios valores</mark>: la longitud del muro, cada room como un disco de su área (a un cuarto), cada puerta o ventana con un poste del lado de la bisagra. Los muros y losas con otra área se ven iguales: <mark class="kw">su eje y altura no cambiaron</mark>. Desde compare.py → out/diff.json.</span></p>
+      </section>
+
+      <!-- Chapter 3 -->
+      <section class="slide slide--chapter">
+        <p class="eyebrow"><span><span lang="en">Chapter 3</span><span lang="es">Capítulo 3</span></span><b>04</b></p>
+        <span class="chapter__n">03</span>
+        <h1><span lang="en">Results and next steps</span><span lang="es">Resultados y siguientes pasos</span></h1>
+        <p class="lede"><span lang="en">What the test showed, and the steps it points to for the next meeting.</span><span lang="es">Lo que mostró la prueba, y los pasos que de ahí siguen para la próxima reunión.</span></p>
+      </section>
+
+      <!-- Chapter 3 · every number of the round trip -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs slide--dense" data-map="hypothesis">
+        <p class="eyebrow"><span><span lang="en">Results · the round trip, element by element</span><span lang="es">Resultados · la ida y vuelta, elemento por elemento</span></span><b>04</b></p>
+        <div class="where">
+          <span>01 <span lang="en">Model</span><span lang="es">Modelo</span></span><span class="is-on">02 <span lang="en">Decompose</span><span lang="es">Descomponer</span></span><span>03 <span lang="en">Label</span><span lang="es">Etiquetar</span></span><span>04 <span lang="en">AI · learn</span><span lang="es">IA · aprender</span></span><span class="is-on">05 <span lang="en">Reassemble</span><span lang="es">Reensamblar</span></span><span class="is-on">06 <span lang="en">Validate</span><span lang="es">Validar</span></span>
+          <em><span lang="en">where these numbers come from</span><span lang="es">de dónde salen estos números</span></em>
+        </div>
+        <h2><span lang="en">Everything comes back; <em>what changes is what Revit derives from relations.</em></span><span lang="es">Todo regresa; <em>lo que cambia es lo que Revit deriva de las relaciones.</em></span></h2>
+        <table class="sheet sheet--data">
+          <thead><tr><th><span lang="en">Element</span><span lang="es">Elemento</span></th><th><span lang="en">Original</span><span lang="es">Original</span></th><th><span lang="en">Rebuilt</span><span lang="es">Reconstruido</span></th><th><span lang="en">Same place and type</span><span lang="es">Mismo lugar y tipo</span></th><th data-build="1"><span lang="en">Changed</span><span lang="es">Cambió</span></th></tr></thead>
+          <tbody>
+            <tr><td><span lang="en">Levels</span><span lang="es">Niveles</span></td><td>5</td><td>5</td><td>5</td><td data-build="1">·</td></tr>
+            <tr><td><span lang="en">Walls</span><span lang="es">Muros</span></td><td>180</td><td>180</td><td>179</td><td data-build="1"><span lang="en">1 curtain wall 14 cm longer · 103 with another area: 84 larger, 19 smaller</span><span lang="es">1 muro cortina 14 cm más largo · 103 con otra área: 84 mayor, 19 menor</span></td></tr>
+            <tr><td><span lang="en">Floors</span><span lang="es">Losas</span></td><td>16</td><td>16</td><td>16</td><td data-build="1"><span lang="en">2 with 7% more area, same outline</span><span lang="es">2 con 7% más de área, mismo contorno</span></td></tr>
+            <tr><td><span lang="en">Doors</span><span lang="es">Puertas</span></td><td>83</td><td>83</td><td><span lang="en">83, all on their wall</span><span lang="es">83, todas en su muro</span></td><td data-build="1"><span lang="en">1 with its hand flipped</span><span lang="es">1 con la mano invertida</span></td></tr>
+            <tr><td><span lang="en">Windows</span><span lang="es">Ventanas</span></td><td>24</td><td>24</td><td><span lang="en">24, all on their wall</span><span lang="es">24, todas en su muro</span></td><td data-build="1"><span lang="en">24 with their hand flipped</span><span lang="es">24 con la mano invertida</span></td></tr>
+            <tr><td>Rooms</td><td>91</td><td>91</td><td><span lang="en">91 by name and place</span><span lang="es">91 por nombre y lugar</span></td><td data-build="1"><span lang="en">54 with another area: 45 larger, 4 smaller, 5 no longer enclosed</span><span lang="es">54 con otra área: 45 mayor, 4 menor, 5 ya no cierran</span></td></tr>
+          </tbody>
+        </table>
+        <div class="facts">
+          <div data-build="2"><b><span lang="en">Coverage · 412 of 7,704 (5%)</span><span lang="es">Cobertura · 412 de 7,704 (5%)</span></b><span><span lang="en"><mark class="kw">6 of 57 categories</mark>. Left out: 3,276 mullions and 1,541 curtain panels, 176 columns, 104 furniture, 76 room separators, 65 ceilings.</span><span lang="es"><mark class="kw">6 de 57 categorías</mark>. Fuera: 3,276 montantes y 1,541 paneles de muro cortina, 176 columnas, 104 muebles, 76 separadores de room, 65 plafones.</span></span></div>
+          <div data-build="2"><b><span lang="en">What Revit said · 0 failures</span><span lang="es">Lo que dijo Revit · 0 fallas</span></b><span><span lang="en">5 mullions not created, 5 invalid references, 4 rooms sharing a region, 3 duplicates, 1 floor and 1 wall overlapping. <mark class="kw">File warnings 5 → 6</mark>.</span><span lang="es">5 montantes no creados, 5 referencias inválidas, 4 rooms en la misma región, 3 duplicados, 1 losa y 1 muro encimados. <mark class="kw">Advertencias del archivo 5 → 6</mark>.</span></span></div>
+          <div data-build="3"><b><span lang="en">Relations</span><span lang="es">Relaciones</span></b><span><span lang="en"><mark class="kw">107 of 107</mark> doors and windows keep their wall; what fails is <mark class="kw">what Revit derives from relations</mark>. So next: <mark class="kw">label them (03) and learn them (04)</mark>.</span><span lang="es"><mark class="kw">107 de 107</mark> puertas y ventanas conservan su muro; lo que falla es <mark class="kw">lo que Revit deriva de relaciones</mark>. Por eso lo siguiente: <mark class="kw">etiquetarlas (03) y aprenderlas (04)</mark>.</span></span></div>
+        </div>
+        <p class="footnote" data-build="2"><span lang="en">Tolerance <mark class="kw">1 cm</mark>. Area changes count when they pass <mark class="kw">1%</mark>. The likely cause of the room areas, <mark class="kw">the missing separators</mark>, is not tested yet.</span><span lang="es">Tolerancia de <mark class="kw">1 cm</mark>. Un cambio de área cuenta cuando pasa de <mark class="kw">1%</mark>. La causa probable de las áreas de rooms, <mark class="kw">los separadores que faltan</mark>, aún no está probada.</span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/summary.json and diff.json, Nov 2026</span><span lang="es">Autor, pipeline/out/summary.json y diff.json, nov 2026</span></li></ol>
+      </section>
+
+      <!-- Chapter 3 · the core: inside steps 03 and 04 -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs slide--dense" data-map="ifc-to-graph-recipe hornung-2025 renner-2025 hypothesis">
+        <p class="eyebrow"><span><span lang="en">The core of the thesis · inside 03 and 04</span><span lang="es">El centro de la tesis · dentro de 03 y 04</span></span><b>04</b></p>
+        <div class="where">
+          <span>01 <span lang="en">Model</span><span lang="es">Modelo</span></span><span>02 <span lang="en">Decompose</span><span lang="es">Descomponer</span></span><span class="is-on">03 <span lang="en">Label</span><span lang="es">Etiquetar</span></span><span class="is-on">04 <span lang="en">AI · learn</span><span lang="es">IA · aprender</span></span><span>05 <span lang="en">Predict</span><span lang="es">Predecir</span></span><span>06 <span lang="en">Validate</span><span lang="es">Validar</span></span>
+          <em><span lang="en">what is built next</span><span lang="es">lo que se construye ahora</span></em>
+        </div>
+        <h2><span lang="en">From loose elements to a graph network <em>that proposes the next one and what it joins.</em></span><span lang="es">De elementos sueltos a una red de grafos <em>que propone el siguiente y con qué se une.</em></span></h2>
+        <div class="lanes">
+          <div class="lane__head" data-build="1"><small>03 · labels.py</small><b><span lang="en">Label</span><span lang="es">Etiquetar</span></b></div>
+          <div class="lane__step" data-build="1"><small>3.1</small><b><span lang="en">Type and class</span><span lang="es">Tipo y clase</span></b><span><span lang="en">the Revit type, and <mark class="kw">a class that sets the order</mark>: level → floor → columns → walls → openings → rooms</span><span lang="es">el tipo de Revit, y <mark class="kw">una clase que da el orden</mark>: nivel → losa → columnas → muros → aberturas → rooms</span></span></div>
+          <div class="lane__step is-later" data-build="1"><small><span lang="en">3.2 · later</span><span lang="es">3.2 · después</span></small><b><span lang="en">Geometry</span><span lang="es">Geometría</span></b><span><span lang="en">an oriented box: centre, size, angle<sup>1</sup></span><span lang="es">una caja orientada: centro, tamaño, ángulo<sup>1</sup></span></span></div>
+          <div class="lane__step" data-build="1"><small>3.3</small><b><span lang="en">Typed edges</span><span lang="es">Aristas con tipo</span></b><span><span lang="en">on level · hosted in · joins · encloses<sup>1</sup></span><span lang="es">en nivel · alojado en · se une con · cierra<sup>1</sup></span></span></div>
+          <div class="lane__step is-own" data-build="1"><small data-build-state="3"><span lang="en">3.4 · own</span><span lang="es">3.4 · propio</span></small><b><span lang="en">Weights</span><span lang="es">Pesos</span></b><span><span lang="en">how often each relation appears across the 10 models</span><span lang="es">cuántas veces aparece cada relación en los 10 modelos</span></span></div>
+          <div class="lane__step" data-build="1"><small>3.5</small><b><span lang="en">Subgraphs</span><span lang="es">Subgrafos</span></b><span><span lang="en">20 nodes around each element, by BFS<sup>1</sup></span><span lang="es">20 nodos alrededor de cada elemento, por BFS<sup>1</sup></span></span></div>
+
+          <div class="lane__head" data-build="2"><small>04 · train.py</small><b><span lang="en">AI · learn</span><span lang="es">IA · aprender</span></b></div>
+          <div class="lane__step" data-build="2"><small>4.1</small><b><span lang="en">Take apart</span><span lang="es">Deconstruir</span></b><span><span lang="en">remove elements in that order: <mark class="kw">each step is a pair</mark>, what is there → what comes next<sup>1,3</sup></span><span lang="es">quitar elementos en ese orden: <mark class="kw">cada paso es un par</mark>, lo que hay → lo que sigue<sup>1,3</sup></span></span></div>
+          <div class="lane__step" data-build="2"><small>4.2</small><b><span lang="en">What comes next</span><span lang="es">Qué sigue</span></b><span><span lang="en">a GNN classifies the type of the next element<sup>2</sup></span><span lang="es">una GNN clasifica el tipo del siguiente elemento<sup>2</sup></span></span></div>
+          <div class="lane__step" data-build="2"><small>4.3</small><b><span lang="en">What it joins</span><span lang="es">Con qué se une</span></b><span><span lang="en">it picks the elements it connects to: its level, its floor, its wall<sup>3</sup></span><span lang="es">elige a qué elementos se conecta: su nivel, su losa, su muro<sup>3</sup></span></span></div>
+          <div class="lane__step" data-build="2"><small>4.4</small><b><span lang="en">↻ Again</span><span lang="es">↻ Otra vez</span></b><span><span lang="en">add it to the graph and predict again, one at a time, until the class is done<sup>3</sup></span><span lang="es">se agrega al grafo y se predice de nuevo, uno a la vez, hasta cerrar la clase<sup>3</sup></span></span></div>
+          <div class="lane__step is-own" data-build="2"><small data-build-state="3"><span lang="en">4.5 · own</span><span lang="es">4.5 · propio</span></small><b><span lang="en">Test</span><span lang="es">Probar</span></b><span><span lang="en">train on 9 models, test on the graph of the one it did not see</span><span lang="es">entrena con 9 modelos, prueba con el grafo del que no vio</span></span></div>
+        </div>
+        <p class="footnote" data-build="3"><span lang="en"><mark class="kw">First relations, then geometry</mark>: for now the network works on the graph only; where each element goes (position, angle, size<sup>2</sup>) joins after. Bold border: <mark class="kw">this thesis’s own part</mark>. Dashed: later. The class order follows Hornung’s hBFS; columns are not exported yet.</span><span lang="es"><mark class="kw">Primero relaciones, luego geometría</mark>: por ahora la red trabaja solo con el grafo; dónde va cada elemento (posición, ángulo, medidas<sup>2</sup>) se conecta después. Borde marcado: <mark class="kw">lo propio de esta tesis</mark>. Punteado: después. El orden de las clases sigue el hBFS de Hornung; las columnas aún no se exportan.</span></p>
+        <ol class="refs"><li><a href="https://doi.org/10.25442/hku.29365832" target="_blank" rel="noopener noreferrer">Hornung et al., CAAD Futures 2025</a></li><li><a href="https://doi.org/10.1177/14780771251354914" target="_blank" rel="noopener noreferrer">Renner et al., IJAC 23(3), 2025</a></li><li><a href="https://arxiv.org/abs/1803.03324" target="_blank" rel="noopener noreferrer">Li et al., DGMG, arXiv:1803.03324, 2018</a></li></ol>
+      </section>
+
+      <!-- Chapter 3 · where this goes: the next steps on the same pipeline -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="ifc-to-graph-recipe hornung-2025 renner-2025 hypothesis">
+        <p class="eyebrow"><span><span lang="en">Next steps · where this goes</span><span lang="es">Siguientes pasos · hacia dónde vamos</span></span><b>04</b></p>
+        <div class="where">
+          <span class="is-on">01 <span lang="en">Model</span><span lang="es">Modelo</span></span><span class="is-on">02 <span lang="en">Decompose</span><span lang="es">Descomponer</span></span><span class="is-on">03 <span lang="en">Label</span><span lang="es">Etiquetar</span></span><span class="is-on">04 <span lang="en">AI · learn</span><span lang="es">IA · aprender</span></span><span class="is-on">05 <span lang="en">Predict</span><span lang="es">Predecir</span></span><span class="is-on">06 <span lang="en">Validate</span><span lang="es">Validar</span></span>
+          <em><span lang="en">the whole pipeline, for the next meeting</span><span lang="es">toda la pipeline, para la próxima reunión</span></em>
+        </div>
+        <h2><span lang="en">For the next meeting: <em>ten models, their subgraphs and a first graph network.</em></span><span lang="es">Para la próxima reunión: <em>diez modelos, sus subgrafos y una primera red de grafos.</em></span></h2>
+        <ol class="stepline">
+          <li class="is-on"><small>01</small><h3><span lang="en">BIM model</span><span lang="es">Modelo BIM</span></h3><p class="stepline__does"><span lang="en">a Revit model</span><span lang="es">un modelo Revit</span></p><div class="stepline__foot" data-build="1"><small><span lang="en">next</span><span lang="es">siguiente</span></small><span><span lang="en">10 samples, one typology</span><span lang="es">10 muestras, una tipología</span></span><em class="stepline__from"><span lang="en">← 15 · 4.5: train on 9, test on 1</span><span lang="es">← 15 · 4.5: entrenar con 9, probar con 1</span></em></div></li>
+          <li class="is-on"><small>02</small><h3><span lang="en">Decompose</span><span lang="es">Descomponer</span></h3><p class="stepline__does"><span lang="en">elements to JSON</span><span lang="es">elementos a JSON</span></p><div class="stepline__foot" data-build="1"><small><span lang="en">next</span><span lang="es">siguiente</span></small><span><span lang="en">extract.py on the 10, + columns, separators</span><span lang="es">extract.py en las 10, + columnas, separadores</span></span><em class="stepline__from"><span lang="en">← 14: 176 columns, 76 separators left out</span><span lang="es">← 14: 176 columnas, 76 separadores fuera</span></em></div></li>
+          <li class="is-on"><small>03</small><h3><span lang="en">Label</span><span lang="es">Etiquetar</span></h3><p class="stepline__does"><span lang="en">id, type and relations</span><span lang="es">id, tipo y relaciones</span></p><div class="stepline__foot" data-build="2"><small><span lang="en">next</span><span lang="es">siguiente</span></small><span><span lang="en">the graph of the 10: type, class, subgraphs<sup>1</sup></span><span lang="es">el grafo de las 10: tipo, clase, subgrafos<sup>1</sup></span></span><em class="stepline__from"><span lang="en">← 15 · lane 03</span><span lang="es">← 15 · carril 03</span></em></div></li>
+          <li class="is-on"><small>04</small><h3><span lang="en">AI · learn</span><span lang="es">IA · aprender</span></h3><p class="stepline__does"><span lang="en">weights and neighbours</span><span lang="es">pesos y vecinos</span></p><div class="stepline__foot" data-build="2"><small><span lang="en">next</span><span lang="es">siguiente</span></small><span><span lang="en">a first GNN: what follows, what it joins<sup>1,2</sup></span><span lang="es">una primera GNN: qué sigue, con qué se une<sup>1,2</sup></span></span><em class="stepline__from"><span lang="en">← 15 · lane 04</span><span lang="es">← 15 · carril 04</span></em></div></li>
+          <li class="is-on"><small>05</small><h3><span lang="en">Predict · reassemble</span><span lang="es">Predecir · reensamblar</span></h3><p class="stepline__does"><span lang="en">one element at a time, into Revit</span><span lang="es">un elemento a la vez, a Revit</span></p><div class="stepline__foot" data-build="3"><small><span lang="en">next</span><span lang="es">siguiente</span></small><span><span lang="en">from the slab, class by class<sup>3</sup></span><span lang="es">desde la losa, clase por clase<sup>3</sup></span></span><em class="stepline__from"><span lang="en">← 15 · 4.1–4.4</span><span lang="es">← 15 · 4.1–4.4</span></em></div></li>
+          <li class="is-key"><small>06</small><h3><span lang="en">Validate</span><span lang="es">Validar</span></h3><p class="stepline__does"><span lang="en">original vs new, at 1 cm</span><span lang="es">original vs nuevo, a 1 cm</span></p><div class="stepline__foot" data-build="3"><small><span lang="en">next</span><span lang="es">siguiente</span></small><span><span lang="en">its relations against the unseen model</span><span lang="es">sus relaciones contra el modelo no visto</span></span><em class="stepline__from"><span lang="en">← 14: the round trip keeps 107 of 107</span><span lang="es">← 14: la ida y vuelta conserva 107 de 107</span></em></div></li>
+        </ol>
+        <div class="stepline__below stepline__bands" data-build="4">
+          <div data-state="built"><b><span lang="en">What I need</span><span lang="es">Lo que necesito</span></b><span><span lang="en"><mark class="kw">10 Revit models of one typology</mark> · labels.py, train.py, predict.py · <mark class="kw">a GPU</mark> to train.</span><span lang="es"><mark class="kw">10 modelos Revit de una tipología</mark> · labels.py, train.py, predict.py · <mark class="kw">una GPU</mark> para entrenar.</span></span></div>
+          <div data-state="built"><b><span lang="en">To expect at the next meeting</span><span lang="es">Qué esperar en la próxima reunión</span></b><span><span lang="en">The <mark class="kw">subgraph dataset</mark>, and the graph seen · a GNN that proposes <mark class="kw">what follows and what it joins</mark>, with <mark class="kw">its accuracy on the unseen model</mark>.</span><span lang="es">El <mark class="kw">dataset de subgrafos</mark>, y el grafo visto · una GNN que propone <mark class="kw">qué sigue y con qué se une</mark>, con <mark class="kw">su acierto en el modelo no visto</mark>.</span></span></div>
+          <div><b><span lang="en">After</span><span lang="es">Después</span></b><span><span lang="en"><mark class="kw">The geometry</mark>: where each element goes, rebuilt in Revit and measured at 1 cm. Then <mark class="kw">more samples</mark>, other shapes.</span><span lang="es"><mark class="kw">La geometría</mark>: dónde va cada elemento, reensamblado en Revit y medido a 1 cm. Luego <mark class="kw">más muestras</mark>, otras formas.</span></span></div>
+        </div>
+        <ol class="refs"><li><a href="https://doi.org/10.25442/hku.29365832" target="_blank" rel="noopener noreferrer">Hornung et al., CAAD Futures 2025</a></li><li><a href="https://doi.org/10.1177/14780771251354914" target="_blank" rel="noopener noreferrer">Renner et al., IJAC 23(3), 2025</a></li><li><a href="https://arxiv.org/abs/1803.03324" target="_blank" rel="noopener noreferrer">Li et al., DGMG, arXiv:1803.03324, 2018</a></li></ol>
+      </section>
+
+      <!-- Back cover -->
+      <section class="slide slide--title slide--title-wide">
+        <p class="eyebrow"><span><span lang="en">Presentation 04 · Datasets from BIM models</span><span lang="es">Presentación 04 · Datasets desde modelos BIM</span></span><b>04</b></p>
+        <div class="title__text">
+          <h1><span lang="en">Thank you.</span><span lang="es">Gracias.</span></h1>
+          <p class="lede"><span lang="en">Questions and comments are welcome, <mark class="kw">above all on the next steps</mark>: ten models, their subgraphs and a first graph network.</span><span lang="es">Preguntas y comentarios son bienvenidos, <mark class="kw">sobre todo de los siguientes pasos</mark>: diez modelos, sus subgrafos y una primera red de grafos.</span></p>
+          <p class="title__meta"><span lang="en">G. Ramón García Ayala · MaCAD, IAAC · 10 Nov 2026</span><span lang="es">G. Ramón García Ayala · MaCAD, IAAC · 10 nov 2026</span></p>
+        </div>
+      </section>
+    </main>
+    <script type="module">
+      import { mountDeck } from '../../assets/deck.js'
+      import { mountModels } from '../../assets/model3d.js'
+      mountDeck(window)
+      mountModels(document, 'model.json')
+    </script>
+  </body>
+</html>

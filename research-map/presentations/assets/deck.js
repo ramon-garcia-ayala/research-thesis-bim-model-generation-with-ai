@@ -181,15 +181,43 @@ export function mountDeck(win, opts = {}) {
     win.parent.postMessage({ type: 'slide', track, presentation, index: current, total: slides.length, map }, origin)
   }
 
-  let current = 0
-  const show = (i, writeHash = true) => {
-    current = Math.min(Math.max(i, 0), slides.length - 1)
-    slides.forEach((s, k) => { s.hidden = k !== current })
+  // builds: a slide's pieces come one click at a time, except embedded, where no one is presenting
+  const steps = slides.map((s) => (embed ? 0 : buildCount(s)))
+  slides.forEach((s, k) => setStep(s, steps[k], steps[k]))
+
+  let current = -1
+  const step = []
+  let transition = null
+  /** Shows slide i at step `at`: 0 when it is reached going forward, complete (its last step) otherwise. */
+  const show = (i, writeHash = true, at = Infinity) => {
+    const target = Math.min(Math.max(i, 0), slides.length - 1)
+    const from = current
+    current = target
+    step[current] = Math.min(at, steps[current])
+    const swap = () => {
+      slides.forEach((s, k) => { s.hidden = k !== target })
+      setStep(slides[target], step[target], steps[target])
+    }
+    // a slide change cross-fades where the browser can and motion is welcome; a step changes in CSS alone
+    if (from >= 0 && target !== from && doc.startViewTransition && !reduce()) {
+      transition?.skipTransition?.()
+      transition = doc.startViewTransition(swap)
+    } else swap()
     ;[...dots.children].forEach((d, k) => d.setAttribute('aria-current', k === current ? 'step' : 'false'))
     count.textContent = `${current + 1} / ${slides.length}`
     if (writeHash) win.history.replaceState(null, '', `#${current + 1}`)
     syncClips()
     announce()
+  }
+  /** → builds the next step of the slide, or moves on to the next slide at its first step. */
+  const forward = () => {
+    if (step[current] < steps[current]) setStep(slides[current], ++step[current], steps[current])
+    else if (current < slides.length - 1) show(current + 1, true, 0)
+  }
+  /** ← takes back the last step, or goes back to the previous slide, complete. */
+  const back = () => {
+    if (step[current] > 0) setStep(slides[current], --step[current], steps[current])
+    else if (current > 0) show(current - 1)
   }
   slides.forEach((_, k) => {
     const d = doc.createElement('button')
@@ -211,8 +239,8 @@ export function mountDeck(win, opts = {}) {
     else doc.documentElement.requestFullscreen()
   }
 
-  prev.addEventListener('click', () => show(current - 1))
-  next.addEventListener('click', () => show(current + 1))
+  prev.addEventListener('click', back)
+  next.addEventListener('click', forward)
   full.addEventListener('click', fullscreen)
   lang.addEventListener('click', () =>
     setLang(doc, storage, doc.documentElement.dataset.lang === 'es' ? 'en' : 'es'))
@@ -220,8 +248,8 @@ export function mountDeck(win, opts = {}) {
   doc.addEventListener('keydown', (e) => {
     if (e.altKey || e.ctrlKey || e.metaKey || e.target?.closest?.('select, input, textarea')) return
     const keys = {
-      ArrowRight: () => show(current + 1), PageDown: () => show(current + 1), ' ': () => show(current + 1),
-      ArrowLeft: () => show(current - 1), PageUp: () => show(current - 1),
+      ArrowRight: forward, PageDown: forward, ' ': forward,
+      ArrowLeft: back, PageUp: back,
       Home: () => show(0), End: () => show(slides.length - 1),
       ArrowUp: () => goPresentation(-1), ArrowDown: () => goPresentation(1),
       f: fullscreen, F: fullscreen,
@@ -240,7 +268,37 @@ export function mountDeck(win, opts = {}) {
   }
   win.addEventListener('hashchange', () => show(slideFromHash(win.location.hash, slides.length), false))
 
-  if (slides.length) show(slideFromHash(win.location.hash, slides.length))
+  if (slides.length) show(slideFromHash(win.location.hash, slides.length), true, 0)
+}
+
+/** How many steps a slide builds in: the highest `data-build` or `data-build-state` on it, 0 for none. */
+export function buildCount(slide) {
+  let n = 0
+  for (const el of slide.querySelectorAll('[data-build], [data-build-state]')) {
+    n = Math.max(n, Number.parseInt(el.dataset.build ?? el.dataset.buildState, 10) || 0)
+  }
+  return n
+}
+
+/**
+ * Puts a slide at step `at` of `total`: every piece of a step up to it gets `data-built`, those of this very step
+ * `data-now` and their order `--d` (a stagger). `data-build` pieces appear (deck.css); `data-build-state` ones
+ * are always there and change. The slide carries `data-step`, and `data-complete` on its last step.
+ */
+export function setStep(slide, at, total) {
+  slide.dataset.step = String(at)
+  if (at >= total) slide.dataset.complete = ''
+  else delete slide.dataset.complete
+  let order = 0
+  for (const el of slide.querySelectorAll('[data-build], [data-build-state]')) {
+    const n = Number.parseInt(el.dataset.build ?? el.dataset.buildState, 10) || 0
+    if (n <= at) el.dataset.built = ''
+    else delete el.dataset.built
+    if (n === at) {
+      el.dataset.now = ''
+      el.style.setProperty('--d', String(order++))
+    } else delete el.dataset.now
+  }
 }
 
 function button(doc, glyph, label) {

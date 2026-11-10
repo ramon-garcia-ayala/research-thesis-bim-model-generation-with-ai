@@ -244,3 +244,114 @@ describe('clips (looping videos on a slide)', () => {
     expect(() => key('ArrowRight')).not.toThrow()
   })
 })
+
+describe('builds (a slide revealed one click at a time)', () => {
+  let slides
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/')
+    document.body.dataset.track = 'leaders'
+    document.body.dataset.presentation = 'presentacion-01'
+    document.body.innerHTML = `
+      <nav class="rail"></nav>
+      <main class="deck">
+        <section class="slide">one</section>
+        <section class="slide">
+          <p class="a" data-build="1">a</p><p class="b" data-build="1">b</p>
+          <li class="s" data-build-state="2">state</li>
+          <p class="c" data-build="3">c</p>
+        </section>
+        <section class="slide">three</section>
+      </main>`
+    mountDeck(window, { presentations })
+    slides = [...document.querySelectorAll('section.slide')]
+  })
+  const key = (k) => document.dispatchEvent(new KeyboardEvent('keydown', { key: k }))
+  const shown = () => slides.findIndex((s) => !s.hidden)
+  const $ = (sel) => slides[1].querySelector(sel)
+
+  it('a slide without builds is complete from the start', () => {
+    expect(slides[0].dataset.step).toBe('0')
+    expect(slides[0].dataset.complete).toBe('')
+  })
+  it('a slide with builds comes in at step 0, nothing built yet', () => {
+    key('ArrowRight')
+    expect(shown()).toBe(1)
+    expect(slides[1].dataset.step).toBe('0')
+    expect(slides[1].dataset.complete).toBeUndefined()
+    expect($('.a').dataset.built).toBeUndefined()
+  })
+  it('each right arrow builds the next step and stays on the slide', () => {
+    key('ArrowRight'); key('ArrowRight')
+    expect(shown()).toBe(1)
+    expect(window.location.hash).toBe('#2')
+    expect($('.a').dataset.built).toBe('')
+    expect($('.a').dataset.now).toBe('')
+    expect($('.s').dataset.built).toBeUndefined()
+    key('ArrowRight')
+    expect($('.s').dataset.built).toBe('')
+    expect($('.s').dataset.now).toBe('')
+    expect($('.a').dataset.now).toBeUndefined()
+    expect($('.a').dataset.built).toBe('')
+  })
+  it('the last step marks the slide complete, and the next arrow moves on', () => {
+    key('ArrowRight'); key('ArrowRight'); key('ArrowRight'); key('ArrowRight')
+    expect(slides[1].dataset.step).toBe('3')
+    expect(slides[1].dataset.complete).toBe('')
+    key('ArrowRight')
+    expect(shown()).toBe(2)
+  })
+  it('the left arrow takes back one step, then goes to the previous slide', () => {
+    key('ArrowRight'); key('ArrowRight')
+    key('ArrowLeft')
+    expect(shown()).toBe(1)
+    expect($('.a').dataset.built).toBeUndefined()
+    key('ArrowLeft')
+    expect(shown()).toBe(0)
+  })
+  it('coming back to a slide shows it complete', () => {
+    key('ArrowRight'); key('ArrowRight'); key('ArrowRight'); key('ArrowRight'); key('ArrowRight')
+    expect(shown()).toBe(2)
+    key('ArrowLeft')
+    expect(shown()).toBe(1)
+    expect(slides[1].dataset.complete).toBe('')
+    expect($('.c').dataset.built).toBe('')
+  })
+  it('a dot opens its slide complete', () => {
+    document.querySelectorAll('.deck__dot')[1].click()
+    expect(shown()).toBe(1)
+    expect(slides[1].dataset.complete).toBe('')
+  })
+  it('numbers the pieces of one step in order, for a stagger', () => {
+    key('ArrowRight'); key('ArrowRight')
+    expect($('.a').style.getPropertyValue('--d')).toBe('0')
+    expect($('.b').style.getPropertyValue('--d')).toBe('1')
+  })
+})
+
+describe('builds when embedded', () => {
+  beforeEach(() => {
+    vi.spyOn(window.parent, 'postMessage').mockImplementation(() => {})
+    window.history.replaceState(null, '', '/?embed')
+    document.body.dataset.track = 'leaders'
+    document.body.dataset.presentation = 'presentacion-01'
+    document.body.innerHTML = `
+      <nav class="rail"></nav>
+      <main class="deck">
+        <section class="slide">one</section>
+        <section class="slide"><p class="a" data-build="1">a</p></section>
+        <section class="slide">three</section>
+      </main>`
+    mountDeck(window, { presentations })
+  })
+  afterEach(() => {
+    vi.restoreAllMocks()
+    window.history.replaceState(null, '', '/')
+  })
+  it('shows every slide complete and moves slide by slide: the map has no one presenting', () => {
+    const slides = [...document.querySelectorAll('section.slide')]
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+    expect(slides[1].dataset.complete).toBe('')
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+    expect(slides.findIndex((s) => !s.hidden)).toBe(2)
+  })
+})

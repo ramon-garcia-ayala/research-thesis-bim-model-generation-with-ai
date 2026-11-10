@@ -28,12 +28,15 @@ Lengths in the JSON stay in Revit's internal feet.
 |---|---|---|
 | Levels | 5 | 5 |
 | Walls | 180 | 179 |
-| Floors | 16 | 14 |
+| Floors | 16 | 16; 2 of them with 7% more area |
 | Doors | 83 | 83, all on the matching wall |
 | Windows | 24 | 24, all on the matching wall |
 | Rooms | 91 | 91 by name and position, only 37 with the same area (±1%) |
 
 - Wall area rose 5% and floor area 4%, although nearly all of them are in place.
+- Floors first read 14 of 16: `compare.py` added the area difference to the position gap, so the two floors whose area
+  grew (same outline, 0 m apart) counted as out of place. Fixed on 2026-11-09; position and area are now compared
+  apart, and `out/diff.json` lists every element that changed, by id.
 - The tested categories hold 412 of the model's 7,704 elements. Columns, ceilings, furniture, room separation lines and
   18 doors with no location point are left out.
 - The likely cause of the room areas is the missing room separation lines. That is not tested yet.
