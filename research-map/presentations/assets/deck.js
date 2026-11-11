@@ -4,6 +4,7 @@
 import { APP_NAME, PRESENTATIONS, TRACKS } from './site.js'
 import { initialLang, safeStorage, setLang } from './i18n.js'
 import { effectiveTheme, initTheme, toggleTheme } from './theme.js'
+import { mountPitch } from './pitch.js'
 
 /** How long the pointer rests before the controls hide (only in full screen: deck.css). */
 export const IDLE_MS = 2500
@@ -252,8 +253,14 @@ export function mountDeck(win, opts = {}) {
   lang.addEventListener('click', () =>
     setLang(doc, storage, doc.documentElement.dataset.lang === 'es' ? 'en' : 'es'))
 
+  /** A pitch (`<body data-pitch>`, never embedded) times the slides and is offered every key first. */
+  let pitch = null
   doc.addEventListener('keydown', (e) => {
     if (e.altKey || e.ctrlKey || e.metaKey || e.target?.closest?.('select, input, textarea')) return
+    if (pitch?.key(e)) {
+      e.preventDefault?.()
+      return
+    }
     const keys = {
       ArrowRight: forward, PageDown: forward, ' ': forward,
       ArrowLeft: back, PageUp: back,
@@ -276,7 +283,9 @@ export function mountDeck(win, opts = {}) {
   win.addEventListener('hashchange', () => show(slideFromHash(win.location.hash, slides.length), false))
 
   if (slides.length) show(slideFromHash(win.location.hash, slides.length), true, 0)
-  return { slides, index: () => current, show }
+  const api = { slides, index: () => current, show }
+  if (slides.length && !embed && doc.body.hasAttribute('data-pitch')) pitch = mountPitch(win, api)
+  return api
 }
 
 /** How many steps a slide builds in: the highest `data-build` or `data-build-state` on it, 0 for none. */
