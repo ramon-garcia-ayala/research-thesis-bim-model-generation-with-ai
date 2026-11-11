@@ -3511,3 +3511,178 @@ html[data-embed] .deck__bar {
   height: auto;
   margin-bottom: 4.2cqw;
 }
+
+/* ======================================================================
+ * Pitch mode (<body data-pitch>): a Pecha Kucha, 15 slides of 20 s that advance by themselves (pitch.js).
+ * The stage holds the panel, so the slides are see-through and the building's canvas (pitch-building.js) shows
+ * behind them; a bar of chapters runs along the foot of the stage. Motion belongs to the slide and runs by
+ * time inside its 20 s: keyframes with only a `from`, so a slide shown complete (ready, embedded, reduced motion)
+ * simply is its final state.
+ * ==================================================================== */
+
+body[data-pitch] .stage {
+  --pitch-bar-h: 3.4cqw;
+  position: relative;
+  background: var(--panel);
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0 1px var(--separator), var(--shadow-glass);
+  overflow: hidden;
+}
+
+.slide--pitch {
+  z-index: 1;
+  justify-content: center;
+  padding: var(--pad) var(--pad) calc(var(--pad) + var(--pitch-bar-h));
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.slide--pitch::after {
+  content: none; /* no folio: the bar says where the pitch is */
+}
+
+.slide--pitch h1 {
+  max-width: 62%;
+  font-family: var(--font-serif);
+  font-size: 4.4cqw;
+  font-weight: 400;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.pitch__lede {
+  max-width: 48%;
+  font-size: 1.8cqw;
+  line-height: 1.4;
+  color: var(--ink-secondary);
+  text-wrap: pretty;
+}
+
+/* what a slide draws that is not built yet: "the plan", "illustrative", "goal by the end of the thesis" */
+.pitch__tag {
+  align-self: flex-start;
+  padding: 0.35cqw 0.9cqw;
+  border: 1px solid var(--separator);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 1cqw;
+  letter-spacing: 0.04em;
+  color: var(--ink-secondary);
+}
+
+/* a slide's diagram block: a title never overlaps it */
+.pitch__fig {
+  position: relative;
+}
+
+/* sources sit above the bar */
+.slide--pitch .refs {
+  bottom: calc(var(--frame) + var(--pitch-bar-h));
+}
+
+/* the building's canvas: behind the slides, over the panel */
+.pitch-building {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* the chapter bar: one segment per chapter, as wide as it has slides, filling with the pitch's time */
+.pitch__bar {
+  position: absolute;
+  left: var(--frame, 2.6cqw);
+  right: var(--frame, 2.6cqw);
+  bottom: 1.2cqw;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: 2cqw;
+  height: var(--pitch-bar-h);
+  font-family: var(--font-mono);
+  font-size: 0.95cqw;
+  line-height: 1.3;
+  color: var(--ink-tertiary);
+}
+
+.pitch__chapters {
+  display: flex;
+  flex: 1;
+  gap: 0.5cqw;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pitch__seg {
+  position: relative;
+  flex: var(--n, 1) 1 0;
+  min-width: 0;
+  padding-top: 0.9cqw;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transition: color 0.4s;
+}
+
+.pitch__seg > i {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.28cqw;
+  border-radius: 1cqw;
+  background: var(--separator);
+  overflow: hidden;
+}
+
+.pitch__seg > i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  transform-origin: left;
+  transform: scaleX(var(--fill, 0));
+}
+
+.pitch__seg[aria-current] {
+  color: var(--ink);
+}
+
+.pitch__clock,
+.pitch__hint {
+  flex: none;
+  padding-top: 0.9cqw;
+  font-variant-numeric: tabular-nums;
+}
+
+.pitch__hint[hidden] {
+  display: none;
+}
+
+/* entrance: an element comes in at `--at` seconds of its slide */
+@keyframes pitch-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.2cqw);
+  }
+}
+
+.pitch-in {
+  animation: pitch-in 0.8s cubic-bezier(0.3, 0, 0.2, 1) both;
+  animation-delay: calc(var(--at, 0) * 1s);
+}
+
+/* the pitch pauses, and waits complete on its ready screen; embedded, no one is presenting */
+body[data-pitch-state='paused'] .slide *,
+body[data-pitch-state='done'] .slide * {
+  animation-play-state: paused !important;
+}
+
+body[data-pitch-state='ready'] .slide *,
+html[data-embed] .slide--pitch * {
+  animation: none !important;
+}
