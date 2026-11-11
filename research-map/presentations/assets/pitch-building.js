@@ -146,3 +146,229 @@ export function targetOf(pt, phase, ctx) {
       return { ...base, a: 0 }
   }
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// The canvas
+// ---------------------------------------------------------------------------------------------------------------
+
+const DUR = 1400 // ms a phase change takes (the portfolio's morphs: 1.15–1.6 s, easeInOutSine)
+const STAGGER = 300 // ms of extra start, spread by `delayOf`
+const GAP = 6 // metres between strata when exploded
+const PITCH = 0.62 // how far the view looks down, radians
+const YAW0 = 0.6
+const YAW_RATE = 0.04 // radians per second
+
+/** A plan point (x, y; z up) seen from a turntable camera: `x` right, `y` down on the screen, `depth` away from the eye. */
+export function project3(p, cam) {
+  const cy = Math.cos(cam.yaw)
+  const sy = Math.sin(cam.yaw)
+  const xr = p.x * cy - p.y * sy
+  const yr = p.x * sy + p.y * cy
+  const cp = Math.cos(cam.pitch)
+  const sp = Math.sin(cam.pitch)
+  return { x: xr, y: -(p.z * cp + yr * sp), depth: yr * cp - p.z * sp }
+}
+
+const lerp = (a, b, t) => a + (b - a) * t
+
+/**
+ * Mounts the building as a canvas at the back of the deck's `.stage`, and follows the slides: each slide's `data-phase`
+ * (see PHASES) and `data-place` (see PLACES) say what the building does and where it stands. Phase changes tween;
+ * the time only runs while the pitch runs (`body[data-pitch-state]` is `running`, or absent on a deck that is not a pitch).
+ * Ready, paused, done, embedded and reduced-motion states show each phase at once, without tweening.
+ * Returns null without a stage or a 2D context.
+ * @param {Window} win
+ * @param {{ source: object }} model  the deck's `model.json`
+ * @returns {{ phase(): string, place(): string, visible(): number, destroy(): void } | null}  `visible` counts the points showing
+ */
+export function mountBuilding(win, model, opts = {}) {
+  const doc = win.document
+  const stage = doc.querySelector('.stage')
+  if (!stage) return null
+  const canvas = doc.createElement('canvas')
+  canvas.className = 'pitch-building'
+  canvas.setAttribute('aria-hidden', 'true')
+  const g = canvas.getContext('2d')
+  if (!g) return null
+  stage.prepend(canvas)
+
+  const pts = pointsOf(model, opts)
+  const ctx = { gap: GAP }
+  const firstOf = new Map()
+  pts.forEach((p, i) => p.first && firstOf.set(p.id, i))
+  const edgeAt = edgesOf(model)
+    .map((e) => [firstOf.get(e.a), firstOf.get(e.b)])
+    .filter(([a, b]) => a != null && b != null)
+
+  // the view is centred on, and sized for, the exploded building: the biggest it gets
+  const open = pts.map((p) => targetOf(p, 'exploded', ctx))
+  const span = (k) => [Math.min(...open.map((o) => o[k])), Math.max(...open.map((o) => o[k]))]
+  const mid = ['x', 'y', 'z'].map((k) => (span(k)[0] + span(k)[1]) / 2)
+  const radius = Math.max(1, ...open.map((o) => Math.hypot(o.x - mid[0], o.y - mid[1], o.z - mid[2])))
+
+  const cur = pts.map((p) => targetOf(p, 'off', ctx))
+  const from = cur.map((c) => ({ ...c }))
+  const goal = cur.map((c) => ({ ...c }))
+  let phase = 'off'
+  let placeName = 'full'
+  let placeFrom = { ...PLACES.full }
+  let placeGoal = { ...PLACES.full }
+  let placeCur = { ...PLACES.full }
+  let edgeFrom = 0
+  let edgeGoal = 0
+  let edgeCur = 0
+  let clock = 0
+  let tweenAt = 0
+  let dirty = true
+  let alive = true
+  let last = null
+  let timer = 0
+
+  const reduced = () => win.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true
+  const state = () => doc.body.dataset.pitchState
+  const animating = () => !reduced() && !doc.documentElement.hasAttribute('data-embed') && (state() === 'running' || state() === undefined)
+
+  const token = (name, fallback) => win.getComputedStyle(doc.documentElement).getPropertyValue(name).trim() || fallback
+  let colours = { ink: '#1d1d1f', line: '#6e6e73', accent: '#7d3bd8' }
+  const readColours = () => {
+    colours = { ink: token('--ink', '#1d1d1f'), line: token('--ink-secondary', '#6e6e73'), accent: token('--flow-engine', '#7d3bd8') }
+  }
+  readColours()
+
+  const settle = () => {
+    cur.forEach((c, i) => Object.assign(c, goal[i]))
+    placeCur = { ...placeGoal }
+    edgeCur = edgeGoal
+  }
+
+  const setPhase = (name, place) => {
+    phase = PHASES.includes(name) ? name : 'off'
+    placeName = place in PLACES ? place : 'full'
+    pts.forEach((p, i) => {
+      from[i] = { ...cur[i] }
+      goal[i] = targetOf(p, phase, ctx)
+    })
+    placeFrom = { ...placeCur }
+    placeGoal = { ...placeOf(placeName) }
+    edgeFrom = edgeCur
+    edgeGoal = phase === 'graph' || phase === 'masked' ? 1 : 0
+    tweenAt = clock
+    if (!animating()) settle()
+    dirty = true
+  }
+
+  const step = () => {
+    const t = clock - tweenAt
+    pts.forEach((p, i) => {
+      const q = ease((t - delayOf(p) * STAGGER) / DUR)
+      cur[i].x = lerp(from[i].x, goal[i].x, q)
+      cur[i].y = lerp(from[i].y, goal[i].y, q)
+      cur[i].z = lerp(from[i].z, goal[i].z, q)
+      cur[i].a = lerp(from[i].a, goal[i].a, q)
+    })
+    const q = ease(t / DUR)
+    placeCur = { cx: lerp(placeFrom.cx, placeGoal.cx, q), cy: lerp(placeFrom.cy, placeGoal.cy, q), scale: lerp(placeFrom.scale, placeGoal.scale, q) }
+    edgeCur = lerp(edgeFrom, edgeGoal, q)
+  }
+
+  const draw = () => {
+    const W = stage.clientWidth
+    const H = stage.clientHeight
+    const dpr = win.devicePixelRatio || 1
+    if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
+      canvas.width = Math.round(W * dpr)
+      canvas.height = Math.round(H * dpr)
+    }
+    g.setTransform(dpr, 0, 0, dpr, 0, 0)
+    g.clearRect(0, 0, W, H)
+    const k = (H * placeCur.scale * 0.5 * 0.92) / radius
+    const cam = { yaw: YAW0 + (clock / 1000) * YAW_RATE, pitch: PITCH }
+    const at = (c) => {
+      const s = project3({ x: c.x - mid[0], y: c.y - mid[1], z: c.z - mid[2] }, cam)
+      return [placeCur.cx * W + s.x * k, placeCur.cy * H + s.y * k]
+    }
+    if (edgeCur > 0.01) {
+      g.strokeStyle = colours.line
+      g.lineWidth = 1
+      for (const [a, b] of edgeAt) {
+        g.globalAlpha = edgeCur * Math.min(cur[a].a, cur[b].a) * 0.35
+        if (g.globalAlpha < 0.01) continue
+        const [ax, ay] = at(cur[a])
+        const [bx, by] = at(cur[b])
+        g.beginPath()
+        g.moveTo(ax, ay)
+        g.lineTo(bx, by)
+        g.stroke()
+      }
+    }
+    const d = Math.max(1.2, W * 0.0018)
+    const marked = phase === 'masked' || phase === 'rebuilt'
+    for (const accent of [false, true]) {
+      g.fillStyle = accent ? colours.accent : colours.ink
+      pts.forEach((p, i) => {
+        if (cur[i].a < 0.01 || (marked && isMasked(p)) !== accent) return
+        g.globalAlpha = cur[i].a
+        const [x, y] = at(cur[i])
+        g.fillRect(x - d / 2, y - d / 2, d, d)
+      })
+    }
+    g.globalAlpha = 1
+  }
+
+  const schedule = (fn) => (win.requestAnimationFrame ? win.requestAnimationFrame(fn) : win.setTimeout(() => fn(win.performance?.now?.() ?? Date.now()), 16))
+  const cancel = (id) => (win.cancelAnimationFrame ? win.cancelAnimationFrame(id) : win.clearTimeout(id))
+  const frame = (now) => {
+    if (!alive) return
+    timer = schedule(frame)
+    const dt = last == null ? 0 : Math.min(now - last, 100)
+    last = now
+    if (animating()) {
+      clock += dt
+      step()
+    }
+    if (animating() || dirty) {
+      draw()
+      dirty = false
+    }
+  }
+
+  const follow = (slide) => slide && stage.contains(slide) && setPhase(slide.dataset.phase, slide.dataset.place)
+  const onSlide = (e) => follow(e.detail?.slide)
+  const refresh = () => {
+    readColours()
+    dirty = true
+  }
+  // a pitch that returns to `ready` (a restart) shows every slide complete: a tween cut short must not freeze half-way
+  const onState = () => {
+    if (state() === 'ready') settle()
+    refresh()
+  }
+  const slides = [...stage.querySelectorAll('section.slide')]
+  follow(slides.find((s) => !s.hidden) ?? slides[0])
+
+  doc.addEventListener('deck:slide', onSlide)
+  win.addEventListener('resize', refresh)
+  const watchers = [
+    win.MutationObserver && new win.MutationObserver(refresh),
+    win.MutationObserver && new win.MutationObserver(onState),
+    win.ResizeObserver && new win.ResizeObserver(refresh),
+  ].filter(Boolean)
+  watchers[0]?.observe(doc.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-embed'] })
+  watchers[1]?.observe(doc.body, { attributes: true, attributeFilter: ['data-pitch-state'] })
+  watchers[2]?.observe(stage)
+  timer = schedule(frame)
+
+  return {
+    phase: () => phase,
+    place: () => placeName,
+    visible: () => cur.filter((c) => c.a > 0.01).length,
+    destroy() {
+      alive = false
+      cancel(timer)
+      doc.removeEventListener('deck:slide', onSlide)
+      win.removeEventListener('resize', refresh)
+      watchers.forEach((w) => w.disconnect())
+      canvas.remove()
+    },
+  }
+}
