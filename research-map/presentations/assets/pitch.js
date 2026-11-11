@@ -167,3 +167,28 @@ export function mountPitch(win, api) {
   setState('ready')
   return { key, state: () => state, slideElapsed: () => elapsed }
 }
+
+const gcd = (a, b) => (b ? gcd(b, a % b) : a)
+
+/**
+ * Fills each `.dotfield[data-total][data-lit]` with `data-total` dots, `data-lit` of them lit (all, without data-lit),
+ * scattered by a stride coprime with the total so they are not a block. Each dot holds its number in `--i`, which
+ * deck.css staggers the dimming of the unlit ones by. Safe to call twice.
+ */
+export function mountDotFields(doc) {
+  for (const field of doc.querySelectorAll('.dotfield[data-total]')) {
+    const total = Number.parseInt(field.dataset.total, 10)
+    if (!(total > 0)) continue
+    const lit = field.dataset.lit == null ? total : Math.min(Number.parseInt(field.dataset.lit, 10) || 0, total)
+    const stride = [7, 11, 13, 17, 19, 23, 29, 31, 37, 41].find((s) => gcd(s, total) === 1) ?? 1
+    const on = new Set(Array.from({ length: lit }, (_, j) => (j * stride) % total))
+    field.replaceChildren(
+      ...Array.from({ length: total }, (_, i) => {
+        const dot = doc.createElement('i')
+        dot.style.setProperty('--i', String(i))
+        if (on.has(i)) dot.dataset.lit = ''
+        return dot
+      }),
+    )
+  }
+}

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mountDeck } from '../../presentations/assets/deck.js'
-import { SLIDE_MS, TICK_MS, chaptersOf, clock, fillsOf, mountPitch } from '../../presentations/assets/pitch.js'
+import { SLIDE_MS, TICK_MS, chaptersOf, clock, fillsOf, mountDotFields, mountPitch } from '../../presentations/assets/pitch.js'
 
 const SIZES = [3, 3, 1, 3, 3, 2]
 const NAMES = ['Topic & context', 'Innovation', 'Actors', 'Exploit', 'Impact', 'Readiness & next']
@@ -231,5 +231,41 @@ describe('the pitch hook of mountDeck', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
     expect(document.body.dataset.pitchState).toBe('running')
     expect(api.index()).toBe(0)
+  })
+})
+
+describe('mountDotFields', () => {
+  const field = (attrs) => {
+    document.body.innerHTML = `<div class="dotfield" ${attrs}></div>`
+    mountDotFields(document)
+    return document.querySelector('.dotfield')
+  }
+
+  it('creates data-total dots', () => {
+    expect(field('data-total="57" data-lit="10"').children).toHaveLength(57)
+  })
+
+  it('marks exactly data-lit of them as lit, scattered, not the first ten', () => {
+    const dots = [...field('data-total="57" data-lit="10"').children]
+    const lit = dots.map((d, i) => (d.hasAttribute('data-lit') ? i : -1)).filter((i) => i >= 0)
+    expect(lit).toHaveLength(10)
+    expect(lit).not.toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    expect(field('data-total="50" data-lit="22"').querySelectorAll('[data-lit]')).toHaveLength(22)
+  })
+
+  it('numbers the dots for their staggered dimming', () => {
+    const dots = [...field('data-total="5" data-lit="2"').children]
+    expect(dots.map((d) => d.style.getPropertyValue('--i'))).toEqual(['0', '1', '2', '3', '4'])
+  })
+
+  it('lights them all when data-lit is missing, and does not double up when mounted twice', () => {
+    const f = field('data-total="6"')
+    expect(f.querySelectorAll('[data-lit]')).toHaveLength(6)
+    mountDotFields(document)
+    expect(f.children).toHaveLength(6)
+  })
+
+  it('does nothing to an element without data-total', () => {
+    expect(field('').children).toHaveLength(0)
   })
 })
