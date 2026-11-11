@@ -119,6 +119,28 @@ describe('mountDeck', () => {
   })
 })
 
+describe('an English-only deck (body data-lang-only="en")', () => {
+  beforeEach(() => {
+    window.location.hash = ''
+    window.localStorage.setItem('research-map-lang', 'es')
+    document.body.dataset.track = 'thesis'
+    document.body.dataset.presentation = 'presentacion-02'
+    document.body.dataset.langOnly = 'en'
+    document.body.innerHTML = '<nav class="rail"></nav><main class="deck"><section class="slide">one</section></main>'
+    mountDeck(window, { presentations })
+  })
+  afterEach(() => {
+    delete document.body.dataset.langOnly
+    window.localStorage.removeItem('research-map-lang')
+  })
+
+  it('shows English, hides the language button and leaves the stored choice alone', () => {
+    expect(document.documentElement.dataset.lang).toBe('en')
+    expect(document.querySelector('[data-lang-toggle]').hidden).toBe(true)
+    expect(window.localStorage.getItem('research-map-lang')).toBe('es')
+  })
+})
+
 describe('watchIdle', () => {
   beforeEach(() => {
     vi.useFakeTimers()

@@ -117,7 +117,10 @@ export function mountDeck(win, opts = {}) {
   if (embed) doc.documentElement.dataset.embed = ''
   const list = opts.presentations ?? PRESENTATIONS[track] ?? []
   const storage = safeStorage(win)
-  setLang(doc, storage, initialLang(storage, win.navigator.language))
+  // an English-only deck (a pitch held in English) shows English whatever was chosen elsewhere, and does not remember it
+  const englishOnly = doc.body.dataset.langOnly === 'en'
+  if (englishOnly) setLang(doc, null, 'en')
+  else setLang(doc, storage, initialLang(storage, win.navigator.language))
   initTheme(doc, win)
 
   for (const el of doc.querySelectorAll('[data-app-name]')) el.textContent = APP_NAME
@@ -150,6 +153,7 @@ export function mountDeck(win, opts = {}) {
   lang.dataset.langToggle = ''
   lang.append(both(doc, { en: 'ES', es: 'EN' }))
   lang.setAttribute('aria-label', 'Español / English')
+  lang.hidden = englishOnly
   // the button names the theme it switches to
   const theme = button(doc, '', { en: 'Light / dark', es: 'Claro / oscuro' })
   theme.dataset.themeToggle = ''

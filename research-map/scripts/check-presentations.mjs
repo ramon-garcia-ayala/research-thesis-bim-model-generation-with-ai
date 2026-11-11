@@ -22,9 +22,13 @@ const snippet = (el) => (el.textContent || el.outerHTML).trim().replace(/\s+/g, 
 
 function checkLanguages(doc, file, errors) {
   const empty = (el) => !el.textContent.trim() && !el.querySelector(MEDIA) && !el.matches(MEDIA)
+  // an English-only page (a pitch for a class held in English) has no Spanish to pair with
+  const englishOnly = doc.body.dataset.langOnly === 'en'
   for (const el of doc.body.querySelectorAll('[lang]')) {
     const lang = el.getAttribute('lang')
-    if (lang === 'en') {
+    if (englishOnly) {
+      if (lang === 'es') errors.push(`${file}: English-only page has Spanish text "${snippet(el)}"`)
+    } else if (lang === 'en') {
       const pair = el.nextElementSibling
       if (pair?.getAttribute('lang') !== 'es') errors.push(`${file}: "${snippet(el)}" has no Spanish sibling`)
     } else if (lang === 'es') {

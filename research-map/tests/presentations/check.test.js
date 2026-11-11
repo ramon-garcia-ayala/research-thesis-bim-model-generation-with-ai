@@ -62,6 +62,26 @@ describe('checkSite', () => {
     expect((await checkSite(root)).join('\n')).toMatch(/empty/i)
   })
 
+  describe('an English-only page (body data-lang-only="en")', () => {
+    const englishOnly = (body) => page(body).replace('<body ', '<body data-lang-only="en" ')
+    const file = (body) => ({ 'leaders/presentacion-01/index.html': englishOnly(body) })
+
+    it('passes with the mark and no Spanish', async () => {
+      const root = site({ files: file('<section class="slide"><h1><span lang="en">Only English</span></h1></section>') })
+      expect(await checkSite(root)).toEqual([])
+    })
+
+    it('fails when Spanish text is still there', async () => {
+      const root = site({ files: file('<section class="slide"><h1><span lang="en">Hi</span><span lang="es">Hola</span></h1></section>') })
+      expect((await checkSite(root)).join('\n')).toMatch(/English-only/)
+    })
+
+    it('still fails an empty English text', async () => {
+      const root = site({ files: file('<section class="slide"><h1><span lang="en"> </span></h1></section>') })
+      expect((await checkSite(root)).join('\n')).toMatch(/empty/i)
+    })
+  })
+
   it('fails a presentation folder that is not listed', async () => {
     const root = site({ files: { 'thesis/presentacion-02/index.html': page(goodSlide, 'thesis') } })
     expect((await checkSite(root)).join('\n')).toMatch(/thesis\/presentacion-02.*not in PRESENTATIONS/)
