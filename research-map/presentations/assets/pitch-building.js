@@ -11,8 +11,8 @@ export const PHASES = ['off', 'exploded', 'graph', 'masked', 'rebuilt', 'motif']
 
 /** Where the building sits in the stage, as fractions of it, with `scale` its share of the stage's height (`data-place`). */
 export const PLACES = {
-  right: { cx: 0.68, cy: 0.5, scale: 0.9 },
-  left: { cx: 0.3, cy: 0.5, scale: 0.9 },
+  right: { cx: 0.74, cy: 0.5, scale: 0.86 },
+  left: { cx: 0.26, cy: 0.5, scale: 0.86 },
   full: { cx: 0.5, cy: 0.5, scale: 1 },
   corner: { cx: 0.9, cy: 0.82, scale: 0.3 },
 }
