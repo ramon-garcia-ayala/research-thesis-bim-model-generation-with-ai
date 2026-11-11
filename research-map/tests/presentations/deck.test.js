@@ -119,6 +119,35 @@ describe('mountDeck', () => {
   })
 })
 
+describe('mountDeck API and slide event', () => {
+  let api
+  beforeEach(() => {
+    window.location.hash = ''
+    document.body.dataset.track = 'thesis'
+    document.body.dataset.presentation = 'presentacion-02'
+    document.body.innerHTML = `<nav class="rail"></nav><main class="deck">
+      <section class="slide">one</section><section class="slide">two</section><section class="slide">three</section></main>`
+    api = mountDeck(window, { presentations })
+  })
+
+  it('returns the slides and the current index', () => {
+    expect(api.slides).toHaveLength(3)
+    expect(api.index()).toBe(0)
+  })
+
+  it('showing a slide dispatches deck:slide with its index and element', () => {
+    // decks mounted by earlier tests still listen on document: keep only the events of this deck's slides
+    const seen = []
+    document.addEventListener('deck:slide', (e) => { if (api.slides.includes(e.detail.slide)) seen.push(e.detail) })
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+    expect(seen).toHaveLength(1)
+    expect(seen[0].index).toBe(1)
+    expect(seen[0].total).toBe(3)
+    expect(seen[0].slide).toBe(api.slides[1])
+    expect(api.index()).toBe(1)
+  })
+})
+
 describe('an English-only deck (body data-lang-only="en")', () => {
   beforeEach(() => {
     window.location.hash = ''

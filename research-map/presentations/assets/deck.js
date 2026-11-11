@@ -108,6 +108,7 @@ function renderRail(doc, rail, track, currentId, list) {
  * Mounts the deck of the page. `opts.presentations` replaces the track's published presentations (tests).
  * @param {Window} win
  * @param {{ presentations?: import('./site.js').Presentation[] }} [opts]
+ * @returns {{ slides: HTMLElement[], index: () => number, show: (i: number, writeHash?: boolean, at?: number) => void }}
  */
 export function mountDeck(win, opts = {}) {
   const doc = win.document
@@ -212,6 +213,8 @@ export function mountDeck(win, opts = {}) {
     if (writeHash) win.history.replaceState(null, '', `#${current + 1}`)
     syncClips()
     announce()
+    // what a slide needs to follow the deck without owning it (a persistent canvas, a timer)
+    doc.dispatchEvent(new win.CustomEvent('deck:slide', { detail: { index: current, slide: slides[current], total: slides.length } }))
   }
   /** → builds the next step of the slide, or moves on to the next slide at its first step. */
   const forward = () => {
@@ -273,6 +276,7 @@ export function mountDeck(win, opts = {}) {
   win.addEventListener('hashchange', () => show(slideFromHash(win.location.hash, slides.length), false))
 
   if (slides.length) show(slideFromHash(win.location.hash, slides.length), true, 0)
+  return { slides, index: () => current, show }
 }
 
 /** How many steps a slide builds in: the highest `data-build` or `data-build-state` on it, 0 for none. */
