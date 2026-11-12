@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { mountBuilding, project3 } from '../../presentations/assets/pitch-building.js'
+import { mountBuilding } from '../../presentations/assets/pitch-building.js'
 
 const model = () => ({
   source: {
@@ -12,8 +12,12 @@ const model = () => ({
   },
 })
 
-/** A 2D context that records nothing and accepts everything. */
-const fakeContext = () => new Proxy({}, { get: (t, k) => (k in t ? t[k] : () => {}), set: (t, k, v) => ((t[k] = v), true) })
+/** A 2D context that accepts every call and property; every call returns another such object (a gradient, a metric). */
+const fakeContext = () =>
+  new Proxy(
+    {},
+    { get: (t, k) => (k in t ? t[k] : () => fakeContext()), set: (t, k, v) => ((t[k] = v), true) },
+  )
 
 const stageWith = () => {
   document.body.innerHTML = `<main class="deck"><div class="stage">
@@ -82,21 +86,5 @@ describe('mountBuilding', () => {
     document.dispatchEvent(new CustomEvent('deck:slide', { detail: { index: 1, slide: second, total: 2 } }))
     expect(building.phase()).toBe('graph')
     building = null
-  })
-})
-
-describe('project3', () => {
-  it('at yaw 0 and pitch 0 maps plan x to screen x and z up to screen y negative', () => {
-    expect(project3({ x: 2, y: 5, z: 3 }, { yaw: 0, pitch: 0 })).toEqual({ x: 2, y: -3, depth: 5 })
-  })
-  it('a quarter turn of yaw swaps the plan axes', () => {
-    const p = project3({ x: 2, y: 0, z: 0 }, { yaw: Math.PI / 2, pitch: 0 })
-    expect(p.x).toBeCloseTo(0, 10)
-    expect(p.depth).toBeCloseTo(2, 10)
-  })
-  it('looking down (pitch) pushes the far side of the plan up the screen', () => {
-    const near = project3({ x: 0, y: 0, z: 0 }, { yaw: 0, pitch: 0.5 })
-    const far = project3({ x: 0, y: 10, z: 0 }, { yaw: 0, pitch: 0.5 })
-    expect(far.y).toBeLessThan(near.y)
   })
 })

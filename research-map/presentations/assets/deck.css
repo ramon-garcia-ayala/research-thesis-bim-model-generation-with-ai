@@ -3514,74 +3514,106 @@ html[data-embed] .deck__bar {
 
 /* ======================================================================
  * Pitch mode (<body data-pitch>): a Pecha Kucha, 15 slides of 20 s that advance by themselves (pitch.js).
- * The stage holds the panel, so the slides are see-through and the building's canvas (pitch-building.js) shows
- * behind them; a bar of chapters runs along the foot of the stage. Motion belongs to the slide and runs by
- * time inside its 20 s: keyframes with only a `from`, so a slide shown complete (ready, embedded, reduced motion)
- * simply is its final state.
+ * Its own graphic language, after the author's portfolio intro: a slate field with a warm glow and grain (a warm
+ * paper in the light theme), corner marks, hairlines, mono labels, serif titles with their key words in italic and
+ * in the accent. Ink is what is real; the accent marks the emphasis and what the AI does. The stage holds the field,
+ * so the slides are see-through and the building's canvas (pitch-building.js) shows behind them; a bar of chapters
+ * runs along the foot. Motion belongs to the slide and runs inside its 20 s: keyframes with only a `from`, so a slide
+ * shown complete (ready, embedded, reduced motion) simply is its final state.
  * ==================================================================== */
+
+body[data-pitch] {
+  --p-bg: #f3f1ec;
+  --p-bg-2: #e8e4dc;
+  --p-glow-warm: rgba(210, 74, 34, 0.1);
+  --p-glow-cool: rgba(70, 104, 116, 0.12);
+  --p-ink: #1b262c;
+  --p-ink-2: rgba(27, 38, 44, 0.68);
+  --p-ink-3: rgba(27, 38, 44, 0.44);
+  --p-line: rgba(27, 38, 44, 0.13);
+  --p-line-2: rgba(27, 38, 44, 0.26);
+  --p-ember: #cf4a22;
+  --p-ember-soft: rgba(207, 74, 34, 0.13);
+  --p-grain: 0.08;
+}
+
+:root[data-theme='dark'] body[data-pitch] {
+  --p-bg: #24323a;
+  --p-bg-2: #172126;
+  --p-glow-warm: rgba(190, 84, 52, 0.45);
+  --p-glow-cool: rgba(104, 126, 132, 0.34);
+  --p-ink: #eeede9;
+  --p-ink-2: rgba(238, 237, 233, 0.68);
+  --p-ink-3: rgba(238, 237, 233, 0.42);
+  --p-line: rgba(238, 237, 233, 0.13);
+  --p-line-2: rgba(238, 237, 233, 0.26);
+  --p-ember: #f0603a;
+  --p-ember-soft: rgba(240, 96, 58, 0.16);
+  --p-grain: 0.2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) body[data-pitch] {
+    --p-bg: #24323a;
+    --p-bg-2: #172126;
+    --p-glow-warm: rgba(190, 84, 52, 0.45);
+    --p-glow-cool: rgba(104, 126, 132, 0.34);
+    --p-ink: #eeede9;
+    --p-ink-2: rgba(238, 237, 233, 0.68);
+    --p-ink-3: rgba(238, 237, 233, 0.42);
+    --p-line: rgba(238, 237, 233, 0.13);
+    --p-line-2: rgba(238, 237, 233, 0.26);
+    --p-ember: #f0603a;
+    --p-ember-soft: rgba(240, 96, 58, 0.16);
+    --p-grain: 0.2;
+  }
+}
+
+/* ---- the stage: the field, its grain and its corner marks ---- */
 
 body[data-pitch] .stage {
   --pitch-bar-h: 3.4cqw;
   position: relative;
-  background: var(--panel);
-  border-radius: 0.25rem;
-  box-shadow: 0 0 0 1px var(--separator), var(--shadow-glass);
   overflow: hidden;
+  border-radius: 0.35rem;
+  box-shadow: 0 0 0 1px var(--separator), var(--shadow-glass);
+  background:
+    radial-gradient(70% 80% at 100% 100%, var(--p-glow-warm), transparent 70%),
+    radial-gradient(70% 75% at 0% 0%, var(--p-glow-cool), transparent 70%),
+    linear-gradient(160deg, var(--p-bg), var(--p-bg-2));
+  color: var(--p-ink);
 }
 
-.slide--pitch {
-  z-index: 1;
-  justify-content: center;
-  padding: var(--pad) var(--pad) calc(var(--pad) + var(--pitch-bar-h));
-  background: transparent;
-  border-radius: 0;
-  box-shadow: none;
+body[data-pitch] .stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: var(--p-grain);
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-.slide--pitch::after {
-  content: none; /* no folio: the bar says where the pitch is */
+body[data-pitch] .stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  --m: var(--p-line-2);
+  background:
+    linear-gradient(var(--m), var(--m)) left 1.1cqw top 1.7cqw / 1.2cqw 1px no-repeat,
+    linear-gradient(var(--m), var(--m)) left 1.7cqw top 1.1cqw / 1px 1.2cqw no-repeat,
+    linear-gradient(var(--m), var(--m)) right 1.1cqw top 1.7cqw / 1.2cqw 1px no-repeat,
+    linear-gradient(var(--m), var(--m)) right 1.7cqw top 1.1cqw / 1px 1.2cqw no-repeat,
+    linear-gradient(var(--m), var(--m)) left 1.1cqw bottom 1.7cqw / 1.2cqw 1px no-repeat,
+    linear-gradient(var(--m), var(--m)) left 1.7cqw bottom 1.1cqw / 1px 1.2cqw no-repeat,
+    linear-gradient(var(--m), var(--m)) right 1.1cqw bottom 1.7cqw / 1.2cqw 1px no-repeat,
+    linear-gradient(var(--m), var(--m)) right 1.7cqw bottom 1.1cqw / 1px 1.2cqw no-repeat;
 }
 
-.slide--pitch h1 {
-  max-width: 62%;
-  font-family: var(--font-serif);
-  font-size: 4.4cqw;
-  font-weight: 400;
-  line-height: 1.04;
-  text-wrap: balance;
-}
-
-.pitch__lede {
-  max-width: 48%;
-  font-size: 1.8cqw;
-  line-height: 1.4;
-  color: var(--ink-secondary);
-  text-wrap: pretty;
-}
-
-/* what a slide draws that is not built yet: "the plan", "illustrative", "goal by the end of the thesis" */
-.pitch__tag {
-  align-self: flex-start;
-  padding: 0.35cqw 0.9cqw;
-  border: 1px solid var(--separator);
-  border-radius: 999px;
-  font-family: var(--font-mono);
-  font-size: 1cqw;
-  letter-spacing: 0.04em;
-  color: var(--ink-secondary);
-}
-
-/* a slide's diagram block: a title never overlaps it */
-.pitch__fig {
-  position: relative;
-}
-
-/* sources sit above the bar */
-.slide--pitch .refs {
-  bottom: calc(var(--frame) + var(--pitch-bar-h));
-}
-
-/* the building's canvas: behind the slides, over the panel */
+/* the building's canvas: behind the slides, over the field */
 .pitch-building {
   position: absolute;
   inset: 0;
@@ -3591,27 +3623,196 @@ body[data-pitch] .stage {
   pointer-events: none;
 }
 
-/* the chapter bar: one segment per chapter, as wide as it has slides, filling with the pitch's time */
+/* ---- the slide: a running head, a title, a few marks ---- */
+
+.slide--pitch {
+  z-index: 1;
+  justify-content: center;
+  gap: 1.5cqw;
+  padding: 7cqw 7cqw calc(6cqw + var(--pitch-bar-h));
+  color: var(--p-ink);
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.slide--pitch[data-place='right'] {
+  padding-right: 51cqw;
+}
+
+.slide--pitch::before,
+.slide--pitch::after {
+  position: absolute;
+  top: 2.6cqw;
+  font-family: var(--font-mono);
+  font-size: 0.8cqw;
+  line-height: 1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--p-ink-3);
+}
+
+.slide--pitch::before {
+  content: attr(data-chapter);
+  left: 4cqw;
+}
+
+.slide--pitch::after {
+  content: attr(data-folio) ' / 15';
+  right: 4cqw;
+}
+
+.slide--pitch h1 {
+  max-width: 66cqw;
+  font-family: var(--font-serif);
+  font-size: 4.7cqw;
+  font-weight: 400;
+  line-height: 1.03;
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+}
+
+.slide--pitch[data-place='right'] h1 {
+  max-width: none;
+  font-size: 3.6cqw;
+}
+
+.slide--pitch h1 em {
+  font-style: italic;
+  color: var(--p-ember);
+}
+
+.pitch__kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.9cqw;
+  font-family: var(--font-mono);
+  font-size: 0.85cqw;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--p-ember);
+}
+
+.pitch__kicker::before {
+  content: '';
+  width: 2.4cqw;
+  height: 1px;
+  background: currentColor;
+}
+
+.pitch__kicker--quiet {
+  margin-top: 1.2cqw;
+  color: var(--p-ink-3);
+}
+
+.pitch__lede {
+  max-width: 46cqw;
+  font-size: 1.6cqw;
+  line-height: 1.45;
+  color: var(--p-ink-2);
+  text-wrap: pretty;
+}
+
+.slide--pitch[data-place='right'] .pitch__lede {
+  max-width: none;
+}
+
+.pitch__note {
+  max-width: 46cqw;
+  padding-left: 1.2cqw;
+  border-left: 1px solid var(--p-ember);
+  font-size: 1.3cqw;
+  line-height: 1.45;
+  color: var(--p-ink-2);
+}
+
+.pitch__note b {
+  font-weight: 500;
+  color: var(--p-ink);
+}
+
+/* what is drawn but not built yet: "the plan", "illustrative", "goal by the end of the thesis" */
+.pitch__tag {
+  align-self: flex-start;
+  padding: 0.4cqw 1cqw;
+  border: 1px dashed var(--p-ember);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.78cqw;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--p-ember);
+}
+
+/* a fact about the data, not a claim: solid and quiet */
+.pitch__tag--fact {
+  border: 1px solid var(--p-line-2);
+  color: var(--p-ink-2);
+}
+
+/* a slide's diagram block: a title never overlaps it */
+.pitch__fig {
+  position: relative;
+}
+
+.pitch__fig figcaption {
+  margin-top: 1cqw;
+  font-family: var(--font-mono);
+  font-size: 0.88cqw;
+  line-height: 1.5;
+  color: var(--p-ink-2);
+}
+
+.pitch__fig figcaption b {
+  font-weight: 500;
+  color: var(--p-ink);
+}
+
+/* sources: tiny, at the foot, above the bar */
+.slide--pitch .refs {
+  left: 4cqw;
+  right: 4cqw;
+  bottom: calc(2.4cqw + var(--pitch-bar-h));
+  font-size: 0.72cqw;
+  color: var(--p-ink-3);
+}
+
+.slide--pitch .refs a {
+  text-decoration-color: var(--p-line-2);
+}
+
+.refs .refs__note {
+  counter-increment: none;
+}
+
+.refs .refs__note::before {
+  content: '';
+}
+
+/* ---- the chapter bar: one segment per chapter, as wide as it has slides, filling with the pitch's time ---- */
+
 .pitch__bar {
   position: absolute;
-  left: var(--frame, 2.6cqw);
-  right: var(--frame, 2.6cqw);
-  bottom: 1.2cqw;
+  left: 4cqw;
+  right: 4cqw;
+  bottom: 2cqw;
   z-index: 2;
   display: flex;
   align-items: flex-end;
-  gap: 2cqw;
+  gap: 2.4cqw;
   height: var(--pitch-bar-h);
   font-family: var(--font-mono);
-  font-size: 0.95cqw;
+  font-size: 0.74cqw;
   line-height: 1.3;
-  color: var(--ink-tertiary);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--p-ink-3);
 }
 
 .pitch__chapters {
   display: flex;
   flex: 1;
-  gap: 0.5cqw;
+  gap: 0.6cqw;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -3621,7 +3822,7 @@ body[data-pitch] .stage {
   position: relative;
   flex: var(--n, 1) 1 0;
   min-width: 0;
-  padding-top: 0.9cqw;
+  padding-top: 1cqw;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -3633,9 +3834,8 @@ body[data-pitch] .stage {
   top: 0;
   left: 0;
   right: 0;
-  height: 0.28cqw;
-  border-radius: 1cqw;
-  background: var(--separator);
+  height: 2px;
+  background: var(--p-line);
   overflow: hidden;
 }
 
@@ -3643,27 +3843,36 @@ body[data-pitch] .stage {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--ink);
+  background: var(--p-ink-2);
   transform-origin: left;
   transform: scaleX(var(--fill, 0));
 }
 
 .pitch__seg[aria-current] {
-  color: var(--ink);
+  color: var(--p-ink);
+}
+
+.pitch__seg[aria-current] > i::after {
+  background: var(--p-ember);
 }
 
 .pitch__clock,
 .pitch__hint {
   flex: none;
-  padding-top: 0.9cqw;
+  padding-top: 1cqw;
   font-variant-numeric: tabular-nums;
+}
+
+.pitch__hint {
+  color: var(--p-ember);
 }
 
 .pitch__hint[hidden] {
   display: none;
 }
 
-/* entrance: an element comes in at `--at` seconds of its slide */
+/* ---- motion ---- */
+
 @keyframes pitch-in {
   from {
     opacity: 0;
@@ -3672,8 +3881,20 @@ body[data-pitch] .stage {
 }
 
 .pitch-in {
-  animation: pitch-in 0.8s cubic-bezier(0.3, 0, 0.2, 1) both;
+  animation: pitch-in 0.9s cubic-bezier(0.3, 0, 0.2, 1) both;
   animation-delay: calc(var(--at, 0) * 1s);
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes bar-grow-x {
+  from {
+    transform: scaleX(0);
+  }
 }
 
 /* the pitch pauses, and waits complete on its ready screen; embedded, no one is presenting */
@@ -3687,572 +3908,803 @@ html[data-embed] .slide--pitch * {
   animation: none !important;
 }
 
-/* a dot field: n dots, a few stay lit, the rest dim one after another (pitch.js mountDotFields) */
-.dotfield {
-  display: grid;
-  grid-template-columns: repeat(var(--cols, 10), 1fr);
-  gap: 0.5cqw;
-  width: calc(var(--cols, 10) * 1.5cqw);
-}
+/* ---- 1 · the need: two studies, each its own field of models, most of them going dark ---- */
 
-.dotfield > i {
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--ink);
-}
-
-.dotfield > i:not([data-lit]) {
-  background: var(--separator);
-  animation: dot-dim 0.7s both;
-  animation-delay: calc(var(--i) * 22ms + var(--at, 1) * 1s);
-}
-
-@keyframes dot-dim {
-  from {
-    background: var(--ink);
-  }
-}
-
-/* the building takes the side its slide gives it; the text keeps the other */
-.slide--pitch[data-place='right'] {
-  padding-right: 52cqw;
-}
-
-.slide--pitch[data-place='left'] {
-  padding-left: 52cqw;
-}
-
-.slide--pitch[data-place='right'] :is(h1, .pitch__lede),
-.slide--pitch[data-place='left'] :is(h1, .pitch__lede) {
-  max-width: none;
-}
-
-.slide--pitch h1 em {
-  font-style: italic;
-}
-
-.pitch__figs {
+.evidence {
   display: flex;
-  align-items: flex-end;
-  gap: 6cqw;
+  gap: 7cqw;
   margin-top: 2.4cqw;
 }
 
-.pitch__fig figcaption {
-  margin-top: 1cqw;
-  max-width: 24cqw;
-  font-family: var(--font-mono);
-  font-size: 1.05cqw;
-  line-height: 1.4;
-  color: var(--ink-secondary);
-}
-
-.pitch__fig figcaption b {
-  color: var(--ink);
-  font-weight: 500;
-}
-
-/* a reference line that is a note, not a source: no number */
-.refs .refs__note {
-  counter-increment: none;
-}
-
-.refs .refs__note::before {
-  content: '';
-}
-
-/* the office: a room holding a stack of project files */
-.office {
-  display: block;
-  width: 24cqw;
-  height: auto;
-  fill: none;
-  stroke: var(--ink-secondary);
-  stroke-width: 1.2;
-}
-
-.office__files rect {
-  fill: var(--panel);
-  stroke: var(--ink);
-}
-
-.office text {
-  fill: var(--ink-secondary);
-  stroke: none;
-  font-family: var(--font-mono);
-  font-size: 7px;
-}
-
-/* what one project taught, carried to another: the bars fall */
-.fallbars {
+.evidence__n {
   display: flex;
-  align-items: flex-end;
-  gap: 1.4cqw;
-  height: 15cqw;
+  align-items: baseline;
+  gap: 0.8cqw;
+  margin-bottom: 1.3cqw !important;
 }
 
-.fallbar {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  width: 8.4cqw;
-  height: 100%;
-  font-family: var(--font-mono);
-  font-size: 0.95cqw;
-  line-height: 1.3;
-  color: var(--ink-secondary);
-}
-
-.fallbar > i {
-  height: calc(var(--v) * 11.5cqw);
-  margin-bottom: 0.6cqw;
-  border-radius: 0.3cqw 0.3cqw 0 0;
-  background: var(--ink);
-  transform-origin: bottom;
-  animation: bar-grow 0.9s cubic-bezier(0.3, 0, 0.2, 1) both;
-  animation-delay: calc(var(--at, 0) * 1s);
-}
-
-.fallbar:nth-child(n + 2) > i {
-  background: var(--ink-secondary);
-}
-
-.fallbar b {
-  display: block;
-  color: var(--ink);
-  font-weight: 500;
-}
-
-@keyframes bar-grow {
-  from {
-    transform: scaleY(0);
-  }
-}
-
-/* the method slides sit beside the building: a smaller title, so the column holds what it tells */
-.slide--pitch[data-place='right'] h1 {
-  font-size: 3.8cqw;
-}
-
-/* round-trip figures */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.6cqw 2cqw;
-  margin-top: 0.6cqw;
-}
-
-.stat > b {
-  display: block;
+.evidence__n b {
   font-family: var(--font-serif);
-  font-size: 3.4cqw;
+  font-size: 4.4cqw;
   font-weight: 400;
   line-height: 1;
 }
 
-.stat > span {
+.evidence__n span {
   font-family: var(--font-mono);
-  font-size: 1.05cqw;
-  color: var(--ink-secondary);
+  font-size: 0.9cqw;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--p-ink-3);
 }
 
-/* the three ways to place: each row fills its squares in its own order */
-.tracks {
-  display: flex;
-  flex-direction: column;
-  gap: 1.1cqw;
-  margin: 0.8cqw 0;
-}
-
-.track {
-  display: flex;
-  align-items: center;
-  gap: 1.4cqw;
-}
-
-.track > span {
-  width: 13cqw;
-  font-family: var(--font-mono);
-  font-size: 1.05cqw;
-  color: var(--ink-secondary);
-}
-
-.track__cells {
-  display: flex;
+.dotfield {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 10), 0.62cqw);
   gap: 0.5cqw;
 }
 
-.track__cells > i {
-  width: 1.7cqw;
-  height: 1.7cqw;
-  border-radius: 0.25cqw;
-  background: var(--ink);
-  animation: track-fill 0.5s both;
-  animation-delay: calc(var(--at, 0) * 1s + 0.6s + var(--o, 0) * 0.5s);
+.dotfield > i {
+  width: 0.62cqw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--p-ember);
 }
 
-@keyframes track-fill {
+.dotfield > i:not([data-lit]) {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--p-line-2);
+  animation: dot-dim 0.8s ease both;
+  animation-delay: calc(var(--at, 1) * 1s + var(--i) * 16ms);
+}
+
+@keyframes dot-dim {
   from {
-    background: var(--separator);
+    background: var(--p-ember);
+    box-shadow: inset 0 0 0 1px transparent;
   }
 }
 
-/* actors: who holds the data, what turns it, who builds the tools; what moves between them */
+/* ---- 2 · the paradox: an office holds its models; what one project taught falls on the next ---- */
+
+.paradox {
+  display: flex;
+  align-items: flex-end;
+  gap: 7cqw;
+  margin-top: 2.4cqw;
+}
+
+.lake svg,
+.inhouse svg {
+  display: block;
+  height: auto;
+  overflow: visible;
+}
+
+.lake svg {
+  width: 21cqw;
+}
+
+.lake__office {
+  fill: none;
+  stroke: var(--p-line-2);
+  stroke-dasharray: 4 4;
+}
+
+.lake__sheets path {
+  fill: var(--p-bg);
+  fill-opacity: 0.6;
+  stroke: var(--p-ink);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.drop__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2.4cqw;
+  height: 14cqw;
+  border-bottom: 1px solid var(--p-line-2);
+}
+
+.drop__bar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 7cqw;
+  height: 100%;
+}
+
+.drop__bar > b {
+  margin-bottom: 0.6cqw;
+  font-family: var(--font-serif);
+  font-size: 2.1cqw;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.drop__bar > i {
+  width: 2.4cqw;
+  height: calc(var(--v) * 10cqw);
+  background: var(--p-ink-2);
+  transform-origin: bottom;
+  animation: bar-grow 1s cubic-bezier(0.3, 0, 0.2, 1) both;
+  animation-delay: calc(var(--at, 0) * 1s);
+}
+
+.drop__bar--low > i {
+  background: var(--p-ember);
+}
+
+.drop__bar--low > b {
+  color: var(--p-ember);
+}
+
+.drop__bar > span {
+  position: absolute;
+  top: calc(100% + 0.8cqw);
+  left: 0;
+  width: 8.6cqw;
+  font-family: var(--font-mono);
+  font-size: 0.8cqw;
+  line-height: 1.35;
+  color: var(--p-ink-2);
+}
+
+.drop figcaption {
+  margin-top: 4cqw;
+}
+
+/* ---- 4 · the round trip, figure by figure ---- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.8cqw 3cqw;
+  margin: 1cqw 0 0;
+}
+
+.stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  padding-top: 1cqw;
+  border-top: 1px solid var(--p-line-2);
+}
+
+.stats dd {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 3cqw;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats dt {
+  margin-top: 0.6cqw;
+  font-family: var(--font-mono);
+  font-size: 0.85cqw;
+  color: var(--p-ink-2);
+}
+
+/* ---- 5 · what pretraining by masking bought in the literature ---- */
+
+.pitch-compare {
+  margin-top: 1.2cqw;
+}
+
+.pitch-compare__row {
+  display: grid;
+  grid-template-columns: 10cqw 1fr 3.6cqw;
+  align-items: center;
+  gap: 1cqw;
+  height: 2.6cqw;
+}
+
+.pitch-compare__row > span {
+  font-family: var(--font-mono);
+  font-size: 0.85cqw;
+  color: var(--p-ink-2);
+}
+
+.pitch-compare__row > i {
+  width: calc(var(--v) * 100%);
+  height: 0.45cqw;
+  border-radius: 1cqw;
+  background: var(--p-ink);
+  transform-origin: left;
+  animation: bar-grow-x 1s cubic-bezier(0.3, 0, 0.2, 1) both;
+  animation-delay: calc(var(--at, 0) * 1s);
+}
+
+.pitch-compare__row--base > i {
+  background: var(--p-line-2);
+}
+
+.pitch-compare__row > b {
+  font-family: var(--font-serif);
+  font-size: 1.8cqw;
+  font-weight: 400;
+}
+
+/* ---- 6 · three orders of placing: each row lights its nodes in its own order ---- */
+
+.tracks {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5cqw;
+  margin: 1.4cqw 0 0.4cqw;
+}
+
+.track {
+  display: grid;
+  grid-template-columns: 13cqw auto;
+  align-items: center;
+}
+
+.track > span {
+  font-family: var(--font-mono);
+  font-size: 0.85cqw;
+  color: var(--p-ink-2);
+}
+
+.track__nodes {
+  position: relative;
+  display: flex;
+  gap: 1.7cqw;
+}
+
+.track__nodes::before {
+  content: '';
+  position: absolute;
+  left: 0.5cqw;
+  right: 0.5cqw;
+  top: 50%;
+  height: 1px;
+  background: var(--p-line-2);
+}
+
+.track__nodes > i {
+  position: relative;
+  width: 1cqw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--p-ember);
+  box-shadow: 0 0 0 0.35cqw var(--p-ember-soft);
+  animation: node-on 0.5s both;
+  animation-delay: calc(var(--at, 0) * 1s + 0.6s + var(--o, 0) * 0.45s);
+}
+
+@keyframes node-on {
+  from {
+    background: var(--p-bg);
+    box-shadow: inset 0 0 0 1px var(--p-line-2);
+  }
+}
+
+/* ---- 7 · two actors and the thesis between them ---- */
+
 .actors {
   display: flex;
-  align-items: center;
-  gap: 1.2cqw;
+  align-items: stretch;
   margin-top: 3cqw;
 }
 
 .actor {
   display: flex;
+  flex: none;
   flex-direction: column;
-  gap: 0.5cqw;
-  padding: 1.6cqw 1.8cqw;
-  border: 1px solid var(--separator);
-  border-radius: 1cqw;
-  background: var(--panel-sunken);
+  gap: 0.6cqw;
+  width: 17cqw;
+  padding: 1.6cqw 1.6cqw 1.4cqw;
+  border-top: 1px solid var(--p-ink);
+}
+
+.actor > small {
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--p-ink-3);
 }
 
 .actor > b {
   font-family: var(--font-serif);
-  font-size: 2.1cqw;
+  font-size: 2.3cqw;
   font-weight: 400;
+  line-height: 1.05;
 }
 
 .actor > span {
   font-family: var(--font-mono);
-  font-size: 1cqw;
-  color: var(--ink-secondary);
+  font-size: 0.85cqw;
+  color: var(--p-ink-2);
 }
 
 .actor--core {
-  border-color: var(--ink-secondary);
+  border-top-color: var(--p-ember);
+  background: linear-gradient(to bottom, var(--p-ember-soft), transparent);
 }
 
-.actors__arrow {
+.actor--core > small {
+  color: var(--p-ember);
+}
+
+.actors__flow {
   display: flex;
+  flex: 1;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 0.4cqw;
-  min-width: 8cqw;
+  gap: 0.6cqw;
+  padding: 0 1cqw;
   font-family: var(--font-mono);
-  font-size: 1cqw;
-  color: var(--ink-secondary);
+  font-size: 0.8cqw;
+  color: var(--p-ink-2);
 }
 
-.actors__arrow > i {
+.actors__flow > i {
   position: relative;
   width: 100%;
   height: 1px;
-  background: var(--ink-secondary);
+  background: var(--p-line-2);
   transform-origin: left;
-  animation: bar-grow-x 0.8s cubic-bezier(0.3, 0, 0.2, 1) both;
+  animation: bar-grow-x 0.9s cubic-bezier(0.3, 0, 0.2, 1) both;
   animation-delay: calc(var(--at, 0) * 1s);
 }
 
-.actors__arrow > i::after {
+.actors__flow > i::after {
   content: '';
   position: absolute;
   right: 0;
   top: -0.3cqw;
   width: 0.6cqw;
   height: 0.6cqw;
-  border-top: 1px solid var(--ink-secondary);
-  border-right: 1px solid var(--ink-secondary);
+  border-top: 1px solid var(--p-ink-2);
+  border-right: 1px solid var(--p-ink-2);
   transform: rotate(45deg);
 }
 
-.actors__arrow > span {
-  animation-delay: calc(var(--at, 0) * 1s);
-}
+/* ---- 8 · the parts: a catalogue of elements from real models, some of them masked ---- */
 
-@keyframes bar-grow-x {
-  from {
-    transform: scaleX(0);
-  }
-}
-
-/* the parts: a catalogue of elements taken from real models, some of them masked */
 .parts {
   display: grid;
-  grid-template-columns: repeat(10, 4.4cqw);
-  gap: 1cqw;
-  margin-top: 1.4cqw;
+  grid-template-columns: repeat(10, 4.2cqw);
+  gap: 0.9cqw;
+  margin-top: 2cqw;
 }
 
 .part {
   position: relative;
   aspect-ratio: 1;
-  border: 1px solid var(--separator);
-  border-radius: 0.5cqw;
+  border: 1px solid var(--p-line);
+  border-radius: 0.4cqw;
   animation: pitch-in 0.6s both;
   animation-delay: calc(var(--at, 0) * 1s + var(--i) * 70ms);
 }
 
-.part::before {
+.part::before,
+.part::after {
   content: '';
   position: absolute;
-  background: var(--ink);
 }
 
 .part--wall::before {
-  inset: 42% 12%;
+  inset: 46% 16%;
+  background: var(--p-ink);
 }
 
 .part--floor::before {
-  inset: 30% 14% 54%;
-  background: var(--ink-secondary);
+  inset: 30% 22%;
+  border: 1px solid var(--p-ink);
+  transform: skewX(-24deg);
 }
 
 .part--door::before {
-  inset: 18% 28%;
-  background: none;
-  border: 2px solid var(--ink);
-  border-radius: 0.3cqw 0.3cqw 0 0;
+  inset: 20% 32% 20%;
+  border: 1px solid var(--p-ink);
+  border-bottom: 0;
+  border-radius: 0.2cqw 0.2cqw 0 0;
 }
 
 .part--window::before {
-  inset: 28% 22%;
-  background: none;
-  border: 2px solid var(--ink-secondary);
+  inset: 30% 24%;
+  border: 1px solid var(--p-ink);
+}
+
+.part--window::after {
+  left: 50%;
+  top: 30%;
+  bottom: 30%;
+  width: 1px;
+  background: var(--p-ink);
 }
 
 .part--room::before {
-  inset: 26%;
+  inset: 34%;
+  border: 1px solid var(--p-ink);
   border-radius: 50%;
-  background: var(--separator);
 }
 
 .part--masked {
-  border-style: dashed;
-  border-color: var(--flow-engine);
+  border: 1px dashed var(--p-ember);
+  background: var(--p-ember-soft);
 }
 
-.part--masked::before {
-  opacity: 0.18;
+.part--masked::before,
+.part--masked::after {
+  opacity: 0.12;
 }
 
-/* in the office: models stay, the dataset leaves */
-.inhouse {
-  display: block;
-  width: 50cqw;
-  height: auto;
+/* ---- 9 · in the office: the models stay, the dataset leaves ---- */
+
+.inhouse svg {
+  width: 46cqw;
   margin-top: 1cqw;
-  fill: none;
-  stroke: var(--ink-secondary);
-  stroke-width: 1.2;
-}
-
-.inhouse__box {
-  fill: var(--panel-sunken);
-  stroke: var(--ink);
-}
-
-.inhouse__data circle {
-  fill: var(--ink);
-  stroke: none;
 }
 
 .inhouse__flow {
-  stroke: var(--ink);
-  stroke-dasharray: 3 3;
+  fill: none;
+  stroke: var(--p-ink-2);
+  stroke-dasharray: 3 4;
+}
+
+.inhouse__out {
+  stroke: var(--p-ember);
+}
+
+.inhouse__core {
+  fill: var(--p-ember-soft);
+  stroke: var(--p-ember);
+}
+
+.inhouse__data circle {
+  fill: var(--p-ink);
 }
 
 .inhouse text {
-  fill: var(--ink-secondary);
-  stroke: none;
+  fill: var(--p-ink-2);
   font-family: var(--font-mono);
-  font-size: 7px;
+  font-size: 8px;
+  letter-spacing: 0.08em;
 }
 
-/* the two beneficiaries, one after the other */
-.pitch__steps {
+/* ---- 10 · the order of the beneficiaries ---- */
+
+.pitch-order {
   display: flex;
-  gap: 1.4cqw;
-  margin-top: 1.4cqw;
+  gap: 2.4cqw;
+  margin-top: 2cqw !important;
+  padding: 0;
+  list-style: none;
 }
 
-.pitch__step {
-  padding: 0.7cqw 1.6cqw;
-  border: 1px solid var(--ink);
-  border-radius: 999px;
+.pitch-order > li {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 1.2cqw;
+  align-items: baseline;
+  min-width: 20cqw;
+  padding-top: 1.2cqw;
+  border-top: 1px solid var(--p-ember);
+}
+
+.pitch-order b {
+  grid-row: span 2;
+  font-family: var(--font-serif);
+  font-size: 3.6cqw;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--p-ember);
+}
+
+.pitch-order span {
+  font-family: var(--font-serif);
+  font-size: 2cqw;
+}
+
+.pitch-order small {
   font-family: var(--font-mono);
-  font-size: 1.15cqw;
+  font-size: 0.75cqw;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--p-ink-3);
 }
 
-.pitch__step--later {
-  border-color: var(--separator);
-  color: var(--ink-secondary);
+.pitch-order__later {
+  border-top-color: var(--p-line-2) !important;
 }
 
-/* the horizon: now, the end of the thesis, later; a marker on the one the slide is about */
+.pitch-order__later b {
+  color: var(--p-ink-3);
+}
+
+/* ---- 11–12 · the horizon: now, the end of the thesis, later ---- */
+
 .horizon {
   position: relative;
-  width: 58cqw;
-  height: 5cqw;
-  margin-top: 3cqw;
+  width: 54cqw;
+  height: 5.6cqw;
+  margin: 2.6cqw 0 0 1cqw;
 }
 
-.horizon::before {
+.horizon::before,
+.horizon::after {
   content: '';
   position: absolute;
   left: 0;
-  right: 0;
-  top: 1.2cqw;
+  top: 1.4cqw;
   height: 1px;
-  background: var(--ink-tertiary);
+}
+
+.horizon::before {
+  right: 0;
+  background: var(--p-line-2);
+}
+
+.horizon::after {
+  width: var(--p);
+  background: var(--p-ember);
+  transform-origin: left;
+  animation: bar-grow-x 1.6s cubic-bezier(0.3, 0, 0.2, 1) both;
+  animation-delay: calc(var(--at, 0) * 1s + 0.4s);
 }
 
 .horizon > span {
   position: absolute;
-  top: 2.4cqw;
+  top: 2.6cqw;
   transform: translateX(-50%);
   white-space: nowrap;
   font-family: var(--font-mono);
-  font-size: 1cqw;
-  color: var(--ink-secondary);
+  font-size: 0.8cqw;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--p-ink-3);
+}
+
+.horizon > span::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -1.6cqw;
+  width: 1px;
+  height: 0.8cqw;
+  background: var(--p-line-2);
 }
 
 .horizon > i {
   position: absolute;
-  top: 0.7cqw;
+  z-index: 1;
+  top: 1.4cqw;
   left: var(--p);
-  width: 1.1cqw;
-  height: 1.1cqw;
-  margin-left: -0.55cqw;
+  width: 1.2cqw;
+  height: 1.2cqw;
+  margin: -0.6cqw 0 0 -0.6cqw;
   border-radius: 50%;
-  background: var(--ink);
+  background: var(--p-ember);
+  box-shadow: 0 0 0 0.5cqw var(--p-ember-soft);
   animation: horizon-go 1.6s cubic-bezier(0.3, 0, 0.2, 1) both;
   animation-delay: calc(var(--at, 0) * 1s + 0.4s);
 }
 
 @keyframes horizon-go {
   from {
-    left: 4%;
+    left: 0%;
   }
 }
 
-/* impact: two dimensions, side by side */
+/* ---- 13 · two dimensions of impact ---- */
+
 .dims {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 29cqw);
   gap: 4cqw;
   margin-top: 3cqw;
 }
 
 .dim {
-  width: 28cqw;
-  padding-top: 1.2cqw;
-  border-top: 1px solid var(--ink);
+  padding-top: 1.4cqw;
+  border-top: 1px solid var(--p-ink);
+}
+
+.dim > small {
+  font-family: var(--font-mono);
+  font-size: 0.85cqw;
+  letter-spacing: 0.16em;
+  color: var(--p-ember);
 }
 
 .dim > b {
   display: block;
+  margin-top: 0.8cqw;
   font-family: var(--font-serif);
-  font-size: 2.4cqw;
+  font-size: 2.5cqw;
   font-weight: 400;
 }
 
 .dim > p {
-  margin-top: 0.8cqw;
-  font-size: 1.5cqw;
-  line-height: 1.4;
-  color: var(--ink-secondary);
+  margin-top: 0.8cqw !important;
+  font-size: 1.35cqw;
+  line-height: 1.45;
+  color: var(--p-ink-2);
 }
 
-/* technology readiness: the 1–9 scale, where it stands, where the thesis ends, and the steps between */
+/* ---- 14 · technology readiness: the 1–9 scale, where it stands, where the thesis ends ---- */
+
 .trl {
-  display: grid;
-  grid-template-columns: repeat(9, 4.6cqw);
-  gap: 0.6cqw;
-  margin-top: 2cqw;
+  position: relative;
+  width: 56cqw;
+  margin-top: 2.4cqw;
+  padding-top: 2.6cqw;
 }
 
-.trl__cells {
-  display: contents;
+.trl__scale {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  border-top: 1px solid var(--p-line-2);
 }
 
-.trl__cells > b {
-  display: grid;
-  place-items: center;
-  height: 4.6cqw;
-  border: 1px solid var(--separator);
-  border-radius: 0.5cqw;
+/* done: 1 → 3, in ink */
+.trl__scale::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: calc(100% / 18);
+  width: calc(100% * 2 / 9);
+  height: 2px;
+  background: var(--p-ink);
+}
+
+/* the thesis: 3 → 4, dashed in the accent */
+.trl__scale::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: calc(100% * 5 / 18);
+  width: calc(100% / 9);
+  height: 2px;
+  background: repeating-linear-gradient(90deg, var(--p-ember) 0 0.5cqw, transparent 0.5cqw 0.9cqw);
+}
+
+.trl__scale > b {
+  position: relative;
+  padding-top: 1.2cqw;
+  text-align: center;
   font-family: var(--font-mono);
-  font-size: 1.2cqw;
+  font-size: 0.9cqw;
   font-weight: 400;
-  color: var(--ink-tertiary);
-  animation: pitch-in 0.6s both;
-  animation-delay: calc(var(--at, 0) * 1s);
+  color: var(--p-ink-3);
 }
 
-.trl__cells > .is-done {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: var(--panel);
+.trl__scale > b::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: -0.45cqw;
+  left: 50%;
+  width: 0.9cqw;
+  height: 0.9cqw;
+  margin-left: -0.45cqw;
+  border-radius: 50%;
+  background: var(--p-bg-2);
+  box-shadow: inset 0 0 0 1px var(--p-line-2);
 }
 
-.trl__cells > .is-goal {
-  border: 1px dashed var(--ink);
-  color: var(--ink);
+.trl__scale > b:nth-child(-n + 3) {
+  color: var(--p-ink);
+}
+
+.trl__scale > b:nth-child(-n + 3)::before {
+  background: var(--p-ink);
+  box-shadow: none;
+}
+
+.trl__scale > .is-goal {
+  color: var(--p-ember);
+}
+
+.trl__scale > .is-goal::before {
+  top: -0.6cqw;
+  width: 1.2cqw;
+  height: 1.2cqw;
+  margin-left: -0.6cqw;
+  background: var(--p-ember-soft);
+  box-shadow: inset 0 0 0 1.5px var(--p-ember);
 }
 
 .trl__now,
 .trl__goal {
-  grid-row: 2;
-  margin-top: 0.6cqw;
-  font-family: var(--font-mono);
-  font-size: 1.05cqw;
-  color: var(--ink-secondary);
+  position: absolute;
+  top: 0;
   white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.85cqw;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .trl__now {
-  grid-column: 1 / 4;
-  padding-right: 1.4cqw;
-  text-align: right;
+  left: calc(100% * 5 / 18);
+  transform: translateX(-100%);
+  padding-right: 0.8cqw;
+  color: var(--p-ink);
 }
 
 .trl__goal {
-  grid-column: 4 / 10;
-  color: var(--ink);
+  left: calc(100% * 7 / 18);
+  transform: translateX(-0.6cqw);
+  color: var(--p-ember);
 }
 
 .trl__steps {
   display: grid;
-  grid-template-columns: repeat(2, 24cqw);
-  gap: 0.8cqw 3cqw;
-  margin: 3.6cqw 0 0;
+  grid-template-columns: repeat(2, 26cqw);
+  gap: 1.2cqw 3cqw;
+  margin-top: 3cqw !important;
   padding: 0;
   list-style: none;
+  counter-reset: step;
 }
 
 .trl__steps > li {
-  padding-top: 0.8cqw;
-  border-top: 1px solid var(--separator);
-  font-family: var(--font-mono);
-  font-size: 1.15cqw;
-  color: var(--ink-secondary);
+  display: flex;
+  gap: 1cqw;
+  padding-top: 0.9cqw;
+  border-top: 1px solid var(--p-line);
+  font-size: 1.25cqw;
+  color: var(--p-ink-2);
+  counter-increment: step;
 }
 
-/* the close: what is asked, and by whom */
+.trl__steps > li::before {
+  content: counter(step, decimal-leading-zero);
+  padding-top: 0.25cqw;
+  font-family: var(--font-mono);
+  font-size: 0.8cqw;
+  color: var(--p-ember);
+}
+
+/* ---- 15 · what is asked, and by whom ---- */
+
 .asks {
   display: flex;
   flex-direction: column;
-  gap: 1.6cqw;
-  margin-top: 2cqw;
+  gap: 1.2cqw;
+  max-width: 62cqw;
+  margin-top: 2.4cqw !important;
+  padding: 0;
+  list-style: none;
+  counter-reset: ask;
 }
 
-.ask {
+.asks > li {
+  display: flex;
+  align-items: baseline;
+  gap: 1.6cqw;
+  padding-top: 1.2cqw;
+  border-top: 1px solid var(--p-line);
   font-family: var(--font-serif);
   font-size: 2.8cqw;
   line-height: 1.15;
+  counter-increment: ask;
+}
+
+.asks > li::before {
+  content: 'Q' counter(ask);
+  flex: none;
+  width: 2.4cqw;
+  font-family: var(--font-mono);
+  font-size: 0.9cqw;
+  letter-spacing: 0.1em;
+  color: var(--p-ember);
 }
 
 .pitch__who {
-  margin-top: 1.6cqw;
+  margin-top: 2cqw;
   font-family: var(--font-mono);
-  font-size: 1.1cqw;
-  color: var(--ink-secondary);
+  font-size: 0.85cqw;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--p-ink-3);
 }
