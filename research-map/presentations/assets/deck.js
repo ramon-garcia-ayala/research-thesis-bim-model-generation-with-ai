@@ -4,6 +4,7 @@
 import { APP_NAME, PRESENTATIONS, TRACKS } from './site.js'
 import { initialLang, safeStorage, setLang } from './i18n.js'
 import { effectiveTheme, initTheme, toggleTheme } from './theme.js'
+import { mountPitch } from './pitch.js'
 
 /** How long the pointer rests before the controls hide (only in full screen: deck.css). */
 export const IDLE_MS = 2500
@@ -108,6 +109,7 @@ function renderRail(doc, rail, track, currentId, list) {
  * Mounts the deck of the page. `opts.presentations` replaces the track's published presentations (tests).
  * @param {Window} win
  * @param {{ presentations?: import('./site.js').Presentation[] }} [opts]
+ * @returns {{ slides: HTMLElement[], index: () => number, show: (i: number, writeHash?: boolean, at?: number) => void }}
  */
 export function mountDeck(win, opts = {}) {
   const doc = win.document
@@ -117,7 +119,10 @@ export function mountDeck(win, opts = {}) {
   if (embed) doc.documentElement.dataset.embed = ''
   const list = opts.presentations ?? PRESENTATIONS[track] ?? []
   const storage = safeStorage(win)
-  setLang(doc, storage, initialLang(storage, win.navigator.language))
+  // an English-only deck (a pitch held in English) shows English whatever was chosen elsewhere, and does not remember it
+  const englishOnly = doc.body.dataset.langOnly === 'en'
+  if (englishOnly) setLang(doc, null, 'en')
+  else setLang(doc, storage, initialLang(storage, win.navigator.language))
   initTheme(doc, win)
 
   for (const el of doc.querySelectorAll('[data-app-name]')) el.textContent = APP_NAME
@@ -150,6 +155,7 @@ export function mountDeck(win, opts = {}) {
   lang.dataset.langToggle = ''
   lang.append(both(doc, { en: 'ES', es: 'EN' }))
   lang.setAttribute('aria-label', 'Español / English')
+  lang.hidden = englishOnly
   // the button names the theme it switches to
   const theme = button(doc, '', { en: 'Light / dark', es: 'Claro / oscuro' })
   theme.dataset.themeToggle = ''
@@ -208,6 +214,8 @@ export function mountDeck(win, opts = {}) {
     if (writeHash) win.history.replaceState(null, '', `#${current + 1}`)
     syncClips()
     announce()
+    // what a slide needs to follow the deck without owning it (a persistent canvas, a timer)
+    doc.dispatchEvent(new win.CustomEvent('deck:slide', { detail: { index: current, slide: slides[current], total: slides.length } }))
   }
   /** → builds the next step of the slide, or moves on to the next slide at its first step. */
   const forward = () => {
@@ -245,8 +253,14 @@ export function mountDeck(win, opts = {}) {
   lang.addEventListener('click', () =>
     setLang(doc, storage, doc.documentElement.dataset.lang === 'es' ? 'en' : 'es'))
 
+  /** A pitch (`<body data-pitch>`, never embedded) times the slides and is offered every key first. */
+  let pitch = null
   doc.addEventListener('keydown', (e) => {
     if (e.altKey || e.ctrlKey || e.metaKey || e.target?.closest?.('select, input, textarea')) return
+    if (pitch?.key(e)) {
+      e.preventDefault?.()
+      return
+    }
     const keys = {
       ArrowRight: forward, PageDown: forward, ' ': forward,
       ArrowLeft: back, PageUp: back,
@@ -269,6 +283,9 @@ export function mountDeck(win, opts = {}) {
   win.addEventListener('hashchange', () => show(slideFromHash(win.location.hash, slides.length), false))
 
   if (slides.length) show(slideFromHash(win.location.hash, slides.length), true, 0)
+  const api = { slides, index: () => current, show }
+  if (slides.length && !embed && doc.body.hasAttribute('data-pitch')) pitch = mountPitch(win, api)
+  return api
 }
 
 /** How many steps a slide builds in: the highest `data-build` or `data-build-state` on it, 0 for none. */

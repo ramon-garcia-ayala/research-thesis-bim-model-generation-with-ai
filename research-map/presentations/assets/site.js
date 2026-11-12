@@ -25,5 +25,6 @@ export const PRESENTATIONS = {
     { id: 'presentacion-03', date: '2026-10-27', title: { en: 'Introduction and state of the art', es: 'Introducción y estado del arte' } },
     { id: 'presentacion-04', date: '2026-11-10', title: { en: 'Datasets from BIM models', es: 'Datasets desde modelos BIM' } },
     { id: 'presentacion-05', title: { en: 'Masking and MCP', es: 'Masking y MCP' } },
+    { id: 'presentacion-06', title: { en: 'Pecha Kucha pitch', es: 'Pitch Pecha Kucha' } },
   ],
 }
