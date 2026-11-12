@@ -1,5 +1,5 @@
 // The structure of deck 06 (the Pecha Kucha pitch): what the spec fixes and the page must keep, whatever its copy.
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -76,5 +76,45 @@ describe('deck 06', () => {
         expect(allowed(Number.parseFloat(m[0])), `slide ${i + 1} shows ${m[0]}`).toBe(true)
       }
     })
+  })
+})
+
+describe('the rehearsal script (script.md)', () => {
+  const path = join(DIR, 'script.md')
+  const text = existsSync(path) ? readFileSync(path, 'utf8') : ''
+  // a section per slide: "## 3 · The question", its spoken text until the next heading
+  const sections = text.split(/^## /m).slice(1).map((s) => {
+    const [head, ...body] = s.split('\n')
+    return { head, body: body.join('\n').trim() }
+  })
+  const words = (s) => s.replace(/\*\*/g, '').split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length
+
+  it('has one section per slide, in order', () => {
+    expect(sections.map((s) => Number.parseInt(s.head, 10))).toEqual(Array.from({ length: 15 }, (_, i) => i + 1))
+  })
+
+  it('gives each slide 40 to 60 spoken words, about 20 seconds', () => {
+    sections.forEach((s) => {
+      const n = words(s.body)
+      expect(n, `section ${s.head} has ${n} words`).toBeGreaterThanOrEqual(40)
+      expect(n, `section ${s.head} has ${n} words`).toBeLessThanOrEqual(60)
+    })
+  })
+
+  it('marks the key words to read at a glance, two to six per slide', () => {
+    sections.forEach((s) => {
+      const marks = (s.body.match(/\*\*[^*]+\*\*/g) ?? []).length
+      expect(marks, `section ${s.head} marks ${marks}`).toBeGreaterThanOrEqual(2)
+      expect(marks, `section ${s.head} marks ${marks}`).toBeLessThanOrEqual(6)
+    })
+  })
+
+  it('carries the two caveats of the hook', () => {
+    expect(sections[0]?.body).toMatch(/six-class filter/)
+    expect(sections[0]?.body).toMatch(/one project/)
+  })
+
+  it('never says the 10 models exist', () => {
+    expect(text).not.toMatch(/we have 10|our 10|10 models in hand|I have (10|ten) models/i)
   })
 })
