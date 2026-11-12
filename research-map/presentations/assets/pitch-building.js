@@ -45,7 +45,7 @@ export function edgesOf(model) {
 
 /**
  * The model ready to draw. Its strata are the levels that hold something, bottom up, named without their number
- * prefix ("01 - Entry Level" → "Entry Level") and counted. Every element carries the index of its stratum; each
+ * prefix ("01 - Entry Level" → "Entry Level"). Every element carries the index of its stratum; each
  * opening carries the index of its host wall (-1 without one). `bounds` is the plan and the height; `center` the plan's.
  */
 export function geometryOf(model) {
@@ -65,8 +65,6 @@ export function geometryOf(model) {
   const strata = used.map((at) => ({
     name: String(levels[at]?.name ?? '').replace(/^\s*\d+\s*-\s*/, ''),
     z: levels[at]?.z ?? 0,
-    walls: W.filter((w) => w.at === at).length,
-    openings: O.filter((o) => o.at === at).length,
   }))
   const restrat = (e) => ({ ...e, level: stratum.get(e.at) ?? 0 })
 
@@ -446,7 +444,7 @@ export function mountBuilding(win, model) {
       const ys = []
       let limit = Infinity
       for (const i of order) {
-        ys[i] = Math.min(anchors[i][1], limit - 34 * s)
+        ys[i] = Math.min(anchors[i][1], limit - 24 * s)
         limit = ys[i]
       }
       g.textBaseline = 'middle'
@@ -465,10 +463,7 @@ export function mountBuilding(win, model) {
         g.fill()
         g.font = `500 ${(11 * s).toFixed(1)}px "Geist Mono", ui-monospace, monospace`
         g.fillStyle = rgba(ink, 0.82 * L)
-        g.fillText(`${String(i + 1).padStart(2, '0')}  ${lv.name.toUpperCase()}`, lx, y - 7 * s)
-        g.font = `400 ${(10 * s).toFixed(1)}px "Geist Mono", ui-monospace, monospace`
-        g.fillStyle = rgba(ink, 0.42 * L)
-        g.fillText(`${lv.walls} walls · ${lv.openings} openings`, lx, y + 8 * s)
+        g.fillText(`${String(i + 1).padStart(2, '0')}  ${lv.name.toUpperCase()}`, lx, y)
       })
     }
   }

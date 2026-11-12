@@ -169,6 +169,57 @@ describe('mountPitch', () => {
     expect(pitch.state()).toBe('ready')
   })
 
+  it('a slide reached while paused is shown complete, and plays again once resumed', () => {
+    const { api, pitch } = setup()
+    press(pitch, ' ')
+    vi.advanceTimersByTime(5000)
+    press(pitch, ' ') // paused
+    press(pitch, 'ArrowRight')
+    expect(api.slides[1].hasAttribute('data-pitch-still')).toBe(true)
+    press(pitch, ' ') // resumed: the slide plays from its start, with its own 20 s
+    expect(api.slides[1].hasAttribute('data-pitch-still')).toBe(false)
+  })
+
+  it('after the end, ← shows the previous slide complete', () => {
+    const { api, pitch } = setup()
+    press(pitch, ' ')
+    vi.advanceTimersByTime(15 * SLIDE_MS)
+    expect(pitch.state()).toBe('done')
+    press(pitch, 'ArrowLeft')
+    expect(api.index()).toBe(13)
+    expect(api.slides[13].hasAttribute('data-pitch-still')).toBe(true)
+  })
+
+  it('a slide that moving running does not change is not marked still', () => {
+    const { api, pitch } = setup()
+    press(pitch, ' ')
+    vi.advanceTimersByTime(SLIDE_MS)
+    expect(api.slides[1].hasAttribute('data-pitch-still')).toBe(false)
+  })
+
+  it('→ on the last slide keeps its clock: it still ends 20 s after it began', () => {
+    const { api, pitch } = setup()
+    press(pitch, ' ')
+    api.show(14)
+    vi.advanceTimersByTime(10000)
+    press(pitch, 'ArrowRight') // nowhere to go
+    vi.advanceTimersByTime(9900)
+    expect(pitch.state()).toBe('running')
+    vi.advanceTimersByTime(200)
+    expect(pitch.state()).toBe('done')
+  })
+
+  it('← on the first slide keeps its clock: it still moves on 20 s after it began', () => {
+    const { api, pitch } = setup()
+    press(pitch, ' ')
+    vi.advanceTimersByTime(10000)
+    press(pitch, 'ArrowLeft') // nowhere to go
+    vi.advanceTimersByTime(9900)
+    expect(api.index()).toBe(0)
+    vi.advanceTimersByTime(200)
+    expect(api.index()).toBe(1)
+  })
+
   it('a key it does not own is not handled', () => {
     const { pitch } = setup()
     expect(press(pitch, 'f')).toBe(false)

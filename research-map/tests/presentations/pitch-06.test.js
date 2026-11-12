@@ -66,6 +66,30 @@ describe('deck 06', () => {
     })
   })
 
+  it('names whose "usable" it is on slide 1 and who asked whom', () => {
+    const text = spoken(slides[0])
+    expect(text).toMatch(/usable for its graph/)
+    expect(text).toMatch(/148 offices asked/)
+  })
+
+  it("says on slides 4 and 14 that the building is Autodesk's sample project", () => {
+    for (const n of [4, 14]) {
+      const tag = [...slides[n - 1].querySelectorAll('.pitch__tag')].map((x) => x.textContent).join(' ')
+      expect(tag, `slide ${n}`).toMatch(/Autodesk/)
+    }
+  })
+
+  it('stops the motion of pseudo-elements too: paused, ready, embedded and reduced motion', () => {
+    const css = readFileSync(join(DIR, '..', '..', 'assets', 'deck.css'), 'utf8').replace(/\r\n/g, '\n')
+    const rules = [
+      /body\[data-pitch-state='paused'\] \.slide \*::after/,
+      /body\[data-pitch-state='ready'\] \.slide \*::after/,
+      /html\[data-embed\] \.slide--pitch \*::after/,
+      /prefers-reduced-motion: reduce\)[^}]*\{[^}]*\.slide--pitch \*::after/,
+    ]
+    for (const r of rules) expect(css).toMatch(r)
+  })
+
   it('never says the 10 models exist', () => {
     expect(slides.map(spoken).join(' ')).not.toMatch(/we have 10|our 10|10 models in hand|I have 10/i)
   })

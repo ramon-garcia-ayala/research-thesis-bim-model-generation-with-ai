@@ -39,10 +39,10 @@ const model = () => ({
 describe('geometryOf', () => {
   it('groups the elements by level and names the levels without their number prefix', () => {
     const g = geometryOf(model())
-    expect(g.levels.map((l) => [l.name, l.walls, l.openings])).toEqual([
-      ['Entry Level', 1, 1],
-      ['Floor', 1, 1],
-    ])
+    expect(g.levels.map((l) => l.name)).toEqual(['Entry Level', 'Floor'])
+    // no counts per stratum: an opening takes its host wall's level, so they would not match the pipeline's own
+    expect(g.levels[0]).not.toHaveProperty('walls')
+    expect(g.levels[0]).not.toHaveProperty('openings')
     expect(g.walls.map((w) => w.level)).toEqual([0, 1])
     expect(g.floors.map((f) => f.level)).toEqual([0, 1])
     expect(g.openings.map((o) => [o.kind, o.level])).toEqual([

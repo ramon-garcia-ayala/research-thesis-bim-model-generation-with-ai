@@ -94,6 +94,7 @@ export function mountPitch(win, api) {
     render()
   }
   const start = () => {
+    slides.forEach((s) => delete s.dataset.pitchStill) // a still slide plays again, from its start
     last = Date.now()
     setState('running')
   }
@@ -106,6 +107,10 @@ export function mountPitch(win, api) {
     last = Date.now()
     if (state === 'done' && api.index() < total - 1) state = 'paused'
     doc.body.dataset.pitchState = state
+    // a slide reached while the pitch is not running (a presenter answering a question) is shown complete: its
+    // entrance would otherwise wait, paused, at opacity 0 (deck.css keys the rule on this mark)
+    slides.forEach((s) => delete s.dataset.pitchStill)
+    if (state === 'paused' || state === 'done') e.detail.slide.dataset.pitchStill = ''
     render()
   })
   doc.addEventListener('click', (e) => {
@@ -147,11 +152,11 @@ export function mountPitch(win, api) {
       case 'ArrowRight':
       case 'PageDown':
         if (state === 'ready') start()
-        else if (state !== 'done') go(api.index() + 1)
+        else if (state !== 'done' && api.index() < total - 1) go(api.index() + 1) // an end keeps its clock
         return true
       case 'ArrowLeft':
       case 'PageUp':
-        if (state !== 'ready') go(api.index() - 1)
+        if (state !== 'ready' && api.index() > 0) go(api.index() - 1)
         return true
       case 'r':
       case 'R':

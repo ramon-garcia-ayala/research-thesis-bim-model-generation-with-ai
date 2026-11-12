@@ -3899,13 +3899,40 @@ body[data-pitch] .stage::before {
 
 /* the pitch pauses, and waits complete on its ready screen; embedded, no one is presenting */
 body[data-pitch-state='paused'] .slide *,
-body[data-pitch-state='done'] .slide * {
+body[data-pitch-state='paused'] .slide *::before,
+body[data-pitch-state='paused'] .slide *::after,
+body[data-pitch-state='done'] .slide *,
+body[data-pitch-state='done'] .slide *::before,
+body[data-pitch-state='done'] .slide *::after {
   animation-play-state: paused !important;
 }
 
-body[data-pitch-state='ready'] .slide *,
-html[data-embed] .slide--pitch * {
+/* a slide reached while paused or after the end is shown complete (pitch.js marks it) */
+body[data-pitch-state='paused'] .slide[data-pitch-still] *,
+body[data-pitch-state='paused'] .slide[data-pitch-still] *::before,
+body[data-pitch-state='paused'] .slide[data-pitch-still] *::after,
+body[data-pitch-state='done'] .slide[data-pitch-still] *,
+body[data-pitch-state='done'] .slide[data-pitch-still] *::before,
+body[data-pitch-state='done'] .slide[data-pitch-still] *::after {
   animation: none !important;
+}
+
+body[data-pitch-state='ready'] .slide *,
+body[data-pitch-state='ready'] .slide *::before,
+body[data-pitch-state='ready'] .slide *::after,
+html[data-embed] .slide--pitch *,
+html[data-embed] .slide--pitch *::before,
+html[data-embed] .slide--pitch *::after {
+  animation: none !important;
+}
+
+/* the global reduced-motion rule does not reach pseudo-elements */
+@media (prefers-reduced-motion: reduce) {
+  .slide--pitch *,
+  .slide--pitch *::before,
+  .slide--pitch *::after {
+    animation: none !important;
+  }
 }
 
 /* ---- 1 · the need: two studies, each its own field of models, most of them going dark ---- */
