@@ -1,0 +1,842 @@
+{
+  "version": 1,
+  "node": "tian-2023",
+  "title": "Heterogeneous Graph Masked Autoencoders",
+  "source": "files/Heterogeneous Graph Masked Autoencoders.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Generative self-supervised learning (SSL), especially masked autoencoders, has become one of the most exciting learning paradigms and has shown great potential in handling graph data. However, real-world graphs are always heterogeneous, which poses three critical challenges that existing methods ignore: 1) how to capture complex graph structure? 2) how to incorporate various node attributes? and 3) how to encode different node positions? In light of this, we study the problem of generative SSL on heterogeneous graphs and propose HGMAE, a novel heterogeneous graph masked autoencoder model to address these challenges. HGMAE captures comprehensive graph information via two innovative masking techniques and three unique training strategies. In particular, we ﬁrst develop metapath masking and adaptive attribute masking with dynamic mask rate to enable effective and stable learning on heterogeneous graphs. We then design several training strategies including metapath-based edge reconstruction to adopt complex structural information, target attribute restoration to incorporate various node attributes, and positional feature prediction to encode node positional information. Extensive experiments demonstrate that HGMAE outperforms both contrastive and generative state-of-the-art baselines on several tasks across multiple datasets. Codes are available at https://github.com/meettyj/HGMAE.",
+            "es": "El aprendizaje autosupervisado (self-supervised learning, SSL) generativo, especialmente los autocodificadores enmascarados (masked autoencoders), se ha convertido en uno de los paradigmas de aprendizaje más emocionantes y ha mostrado un gran potencial para manejar datos de grafos. Sin embargo, los grafos del mundo real son siempre heterogéneos (heterogeneous), lo que plantea tres desafíos críticos que los métodos existentes ignoran: 1) ¿cómo capturar la estructura compleja del grafo? 2) ¿cómo incorporar los diversos atributos de los nodos? y 3) ¿cómo codificar las distintas posiciones de los nodos? Ante esto, estudiamos el problema del SSL generativo en grafos heterogéneos y proponemos HGMAE, un novedoso modelo de autocodificador enmascarado para grafos heterogéneos que aborda estos desafíos. HGMAE captura información integral del grafo mediante dos técnicas innovadoras de enmascaramiento y tres estrategias de entrenamiento singulares. En particular, primero desarrollamos el enmascaramiento de metarrutas (metapath masking) y el enmascaramiento adaptativo de atributos (adaptive attribute masking) con una tasa de enmascaramiento dinámica (dynamic mask rate) para permitir un aprendizaje eficaz y estable en grafos heterogéneos. Después diseñamos varias estrategias de entrenamiento, entre ellas la reconstrucción de aristas basada en metarrutas para adoptar información estructural compleja, la restauración de atributos objetivo para incorporar diversos atributos de los nodos y la predicción de características posicionales para codificar la información posicional de los nodos. Experimentos exhaustivos demuestran que HGMAE supera a los modelos de referencia (baselines) del estado del arte, tanto contrastivos como generativos, en varias tareas y en múltiples conjuntos de datos. El código está disponible en https://github.com/meettyj/HGMAE."
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Introduction Heterogeneous graphs are ubiquitous in the real world with their ability to model heterogeneous relationships among different types of nodes, such as academic graphs (Wang et al. 2019), social graphs (Cao et al. 2021), biomedical graphs (Bai et al. 2021), and food graphs (Tian et al. 2022b). Accordingly, many heterogeneous graph neural networks (HGNNs) are proposed (Hu et al. 2020; Tian et al. 2021; Zhang et al. 2019) to capture the complex structure and rich semantics in heterogeneous graphs. Generally, HGNNs achieve great success in handling graph heterogeneity and have been applied in various real-world applications such as recommendation systems (Tian et al. 2022a) and healthcare systems (Wang et al. 2021b). However, most HGNNs adhere to the supervised or semi-supervised learning paradigms (Wang et al. 2021a), in which the learning process is guided by labeled data. Nevertheless, the strict requirement for labels",
+            "es": "Introducción Los grafos heterogéneos son omnipresentes en el mundo real por su capacidad de modelar relaciones heterogéneas entre distintos tipos de nodos, como los grafos académicos (Wang et al. 2019), los grafos sociales (Cao et al. 2021), los grafos biomédicos (Bai et al. 2021) y los grafos de alimentos (Tian et al. 2022b). En consecuencia, se han propuesto muchas redes neuronales de grafos heterogéneos (heterogeneous graph neural networks, HGNNs) (Hu et al. 2020; Tian et al. 2021; Zhang et al. 2019) para capturar la estructura compleja y la semántica rica de los grafos heterogéneos. En general, las HGNNs logran un gran éxito al manejar la heterogeneidad de los grafos y se han aplicado en diversas aplicaciones del mundo real, como los sistemas de recomendación (Tian et al. 2022a) y los sistemas de atención médica (Wang et al. 2021b). Sin embargo, la mayoría de las HGNNs se adhieren a los paradigmas de aprendizaje supervisado o semisupervisado (Wang et al. 2021a), en los que el proceso de aprendizaje es guiado por datos etiquetados. No obstante, el estricto requisito de etiquetas"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Copyright © 2023, Association for the Advancement of Artiﬁcial Intelligence (www.aaai.org). All rights reserved. is impractical because acquiring labels in real applications is always challenging and expensive (Wang et al. 2020). Therefore, self-supervised learning (SSL), which attempts to extract information from the data itself, becomes a promising solution when no or few explicit labels are provided.",
+            "es": "Copyright © 2023, Association for the Advancement of Artificial Intelligence (www.aaai.org). Todos los derechos reservados. es poco práctico, porque adquirir etiquetas en aplicaciones reales es siempre difícil y costoso (Wang et al. 2020). Por lo tanto, el aprendizaje autosupervisado (SSL), que intenta extraer información de los propios datos, se convierte en una solución prometedora cuando no se proporcionan etiquetas explícitas o se proporcionan muy pocas."
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "In the context of SSL on graphs, contrastive SSL methods are the dominant approaches (Qiu et al. 2020; You et al. 2020). The success of contrastive methods is largely built upon manually selected high-quality data augmentations and complex optimization algorithms (Hou et al. 2022). However, most of the augmentations on graphs are based on heuristics, with performance varying signiﬁcantly across different graphs and tasks (You et al. 2021; Ding et al. 2022; You et al. 2020). On the other hand, complicated optimization algorithms such as momentum and exponential moving average for parameter update are always required due to the computational constraint and the need for stable training (Qiu et al. 2020; Thakoor et al. 2022). In addition, negative sampling, as a necessity for the majority of contrastive objectives, often involves laborious designs and arduous constructions from graphs. Therefore, there is no assurance that contrastive methods will achieve satisfactory results.",
+            "es": "En el contexto del SSL en grafos, los métodos de SSL contrastivo (contrastive) son los enfoques dominantes (Qiu et al. 2020; You et al. 2020). El éxito de los métodos contrastivos se construye en gran medida sobre aumentos de datos (data augmentations) de alta calidad seleccionados manualmente y sobre algoritmos de optimización complejos (Hou et al. 2022). Sin embargo, la mayoría de los aumentos en grafos se basan en heurísticas, y su desempeño varía significativamente entre distintos grafos y tareas (You et al. 2021; Ding et al. 2022; You et al. 2020). Por otro lado, casi siempre se requieren algoritmos de optimización complicados, como el momentum y el promedio móvil exponencial para la actualización de parámetros, debido a las restricciones computacionales y a la necesidad de un entrenamiento estable (Qiu et al. 2020; Thakoor et al. 2022). Además, el muestreo negativo (negative sampling), una necesidad para la mayoría de los objetivos contrastivos, suele implicar diseños laboriosos y construcciones arduas a partir de los grafos. Por lo tanto, no hay garantía de que los métodos contrastivos logren resultados satisfactorios."
+          }
+        },
+        {
+          "id": "s0-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Generative SSL naturally avoids the aforementioned issues of contrastive methods, by focusing on directly reconstructing the input graph data without considering complicated augmentations and negative sampling (Liu et al. 2020; Wu et al. 2021a). Recently, masked autoencoders demonstrate strong learning capability in computer vision (He et al. 2022) and natural language processing (Devlin et al. 2019) by removing a large proportion of the input data and using the removed content to guide the training. Inspired by this, GraphMAE (Hou et al. 2022) proposes to reconstruct node features with masking on graphs. Although GraphMAE shows excellent performance in certain graph learning tasks, it ignores the following challenges faced for real-world graphs and limits its applicability to real applications.",
+            "es": "El SSL generativo evita de forma natural los problemas mencionados de los métodos contrastivos, al centrarse en reconstruir directamente los datos del grafo de entrada sin considerar aumentos complicados ni muestreo negativo (Liu et al. 2020; Wu et al. 2021a). Recientemente, los autocodificadores enmascarados han demostrado una fuerte capacidad de aprendizaje en visión por computadora (He et al. 2022) y en procesamiento de lenguaje natural (Devlin et al. 2019), al eliminar una gran proporción de los datos de entrada y usar el contenido eliminado para guiar el entrenamiento. Inspirado en esto, GraphMAE (Hou et al. 2022) propone reconstruir las características de los nodos mediante enmascaramiento en grafos. Aunque GraphMAE muestra un excelente desempeño en ciertas tareas de aprendizaje en grafos, ignora los siguientes desafíos que enfrentan los grafos del mundo real y limita su aplicabilidad a aplicaciones reales."
+          }
+        },
+        {
+          "id": "s0-p6",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "• C1: Real-world graphs are usually heterogeneous, with multiple types of nodes and edges, which naturally implies their complex structure. To learn effective node embeddings that fully consider the semantics involved in this complex structure, simply reconstructing the masked features is far from sufﬁcient. Thus the challenge 1 is: how to capture the complex graph structure that contains informative semantics, as indicated by C1 in Figure 1.",
+            "es": "• C1: Los grafos del mundo real suelen ser heterogéneos, con múltiples tipos de nodos y aristas, lo que implica de forma natural una estructura compleja. Para aprender incrustaciones de nodos (node embeddings) eficaces que consideren plenamente la semántica involucrada en esta estructura compleja, reconstruir simplemente las características enmascaradas está lejos de ser suficiente. Así, el desafío 1 es: cómo capturar la estructura compleja del grafo que contiene semántica informativa, como indica C1 en la Figura 1."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: The illustration of three challenges in real-world graphs: C1 - complex structure with heterogeneous types of edges; C2 - various attributes that each node type associates; C3 - different positions that every node holds in the graph.",
+            "es": "Figura 1: Ilustración de tres desafíos en los grafos del mundo real: C1 - estructura compleja con tipos heterogéneos de aristas; C2 - diversos atributos que se asocian a cada tipo de nodo; C3 - distintas posiciones que cada nodo ocupa en el grafo."
+          }
+        },
+        {
+          "id": "s0-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• C2: Different types of nodes are associated with various types of attributes. It is inappropriate to ﬁxate the attributes of every node type and apply the same masking strategy on top of them. Thus the challenge 2 is: how to determine which node type to mask and how to design a suitable masking strategy, as indicated by C2 in Figure 1. • C3: Different nodes can carry different structural roles and be inﬂuenced by other nodes with respect to their positions in the graph. In addition to graph structure and attributes, it is important to encode the node positional information from the graph. Thus the challenge 3 is: how to incorporate different node positions and design learning objectives on top of it, as indicated by C3 in Figure 1.",
+            "es": "• C2: Distintos tipos de nodos se asocian con diversos tipos de atributos. No es apropiado fijar los atributos de cada tipo de nodo y aplicar la misma estrategia de enmascaramiento sobre ellos. Así, el desafío 2 es: cómo determinar qué tipo de nodo enmascarar y cómo diseñar una estrategia de enmascaramiento adecuada, como indica C2 en la Figura 1. • C3: Distintos nodos pueden tener diferentes roles estructurales y ser influenciados por otros nodos según sus posiciones en el grafo. Además de la estructura y los atributos del grafo, es importante codificar la información posicional de los nodos a partir del grafo. Así, el desafío 3 es: cómo incorporar las diferentes posiciones de los nodos y diseñar objetivos de aprendizaje a partir de ellas, como indica C3 en la Figura 1."
+          }
+        },
+        {
+          "id": "s0-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To address these challenges, we propose HGMAE, a novel heterogeneous graph masked autoencoder for generative SSL on graphs. HGMAE contains two innovative masking techniques and three unique training strategies. Speciﬁcally, we ﬁrst develop metapath masking and adaptive attribute masking to enable the encoding of complex information in heterogeneous graphs. We also employ a dynamic mask rate in adaptive attribute masking to ensure more effective and stable learning. In addition, we validate the effectiveness of leaving unchanged and replacing for masking in the graph domain, and reach a conclusion that differs from GraphMAE. Then, we design a metapath-based edge reconstruction strategy to capture the high-order relations through metapaths and encode complex graph structural information. Next, we introduce a target attribute restoration strategy to reconstruct the attributes of target nodes. The model is encouraged to fully grasp the knowledge in attributes and maintain the learning capability across different masking settings. After that, we develop a positional feature prediction strategy to fully capture the node positional information. Finally, we design a novel combined objective function of different strategies to optimize the model. To summarize, our major contributions in this paper are as follows:",
+            "es": "Para abordar estos desafíos, proponemos HGMAE, un novedoso autocodificador enmascarado para grafos heterogéneos orientado al SSL generativo en grafos. HGMAE contiene dos técnicas innovadoras de enmascaramiento y tres estrategias de entrenamiento singulares. En concreto, primero desarrollamos el enmascaramiento de metarrutas y el enmascaramiento adaptativo de atributos para permitir la codificación de información compleja en grafos heterogéneos. También empleamos una tasa de enmascaramiento dinámica en el enmascaramiento adaptativo de atributos para garantizar un aprendizaje más eficaz y estable. Además, validamos la eficacia de dejar sin cambios (leaving unchanged) y reemplazar (replacing) en el enmascaramiento en el dominio de los grafos, y llegamos a una conclusión que difiere de la de GraphMAE. Luego, diseñamos una estrategia de reconstrucción de aristas basada en metarrutas para capturar las relaciones de orden superior a través de metarrutas y codificar información estructural compleja del grafo. A continuación, introducimos una estrategia de restauración de atributos objetivo para reconstruir los atributos de los nodos objetivo. Se incentiva al modelo a captar plenamente el conocimiento contenido en los atributos y a mantener su capacidad de aprendizaje con distintas configuraciones de enmascaramiento. Después de eso, desarrollamos una estrategia de predicción de características posicionales para capturar plenamente la información posicional de los nodos. Finalmente, diseñamos una novedosa función objetivo combinada de las diferentes estrategias para optimizar el modelo. En resumen, nuestras principales contribuciones en este artículo son las siguientes:"
+          }
+        },
+        {
+          "id": "s0-p9",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• To our best knowledge, this is the ﬁrst attempt to study generative self-supervised learning on heterogeneous graphs. We identify and address three critical challenges pertaining to this problem. • We develop two novel masking techniques including metapath masking and adaptive attribute masking. In addition, we introduce a dynamic mask rate and verify the effectiveness of leaving unchanged and replacing in the graph domain, which contradicts to previous ﬁndings. • We propose HGMAE, a novel heterogeneous graph masked autoencoder model to address the challenges. HGMAE can capture comprehensive graph information including complex structure, various attributes and different node positions via several training strategies. • Extensive experiments demonstrate the superiority of HGMAE compared to contrastive and generative state-of-the-art baselines on several tasks across multiple datasets.",
+            "es": "• Hasta donde sabemos, este es el primer intento de estudiar el aprendizaje autosupervisado generativo en grafos heterogéneos. Identificamos y abordamos tres desafíos críticos relacionados con este problema. • Desarrollamos dos técnicas novedosas de enmascaramiento: el enmascaramiento de metarrutas y el enmascaramiento adaptativo de atributos. Además, introducimos una tasa de enmascaramiento dinámica y verificamos la eficacia de dejar sin cambios y reemplazar en el dominio de los grafos, lo cual contradice hallazgos previos. • Proponemos HGMAE, un novedoso modelo de autocodificador enmascarado para grafos heterogéneos que aborda estos desafíos. HGMAE puede capturar información integral del grafo, incluyendo la estructura compleja, los diversos atributos y las distintas posiciones de los nodos, mediante varias estrategias de entrenamiento. • Experimentos exhaustivos demuestran la superioridad de HGMAE en comparación con los modelos de referencia del estado del arte, contrastivos y generativos, en varias tareas y en múltiples conjuntos de datos."
+          }
+        },
+        {
+          "id": "s0-p10",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Related Work This work is closely related to heterogeneous graph neural networks and self-supervised learning on graphs. Heterogeneous Graph Neural Networks. In the past few years, many heterogeneous graph neural networks have been developed to learn node representations in heterogeneous graphs (Yang et al. 2020; Wang et al. 2022). For example, HAN (Wang et al. 2019) proposes hierarchical attention to encode node-level and semantic-level structures. MAGNN (Fu et al. 2020) leverages the node attributes and intermediate nodes of metapaths to encapsulate rich semantic information of heterogeneous graphs. HGT (Hu et al. 2020) introduces a transformer-based architecture to handle webscale heterogeneous graphs. HetGNN (Zhang et al. 2019) proposes to capture both structure and content information in heterogeneous graphs. However, the aforementioned methods can only learn when node labels are provided and are unable to extract supervised signals from the data itself to learn general node embeddings. Therefore, how to exploit the complex information involved in heterogeneous graphs as self-supervised guidance remains a question. Self-supervised Learning on Graphs. Self-supervised methods on graphs can be naturally divided into contrastive and generative approaches (Liu et al. 2022; Wu et al. 2021b). Contrastive graph learning encourages alignment between different augmentations or distributions. For example, GCC (Qiu et al. 2020) focuses on aligning different local structures of two sampled subgraphs. GraphCL (You et al. 2020) introduces the alignment between different graph augmentations. HeCo (Wang et al. 2021a) applies two network structures to align both local schema and global metapath information. However, the performance of these contrastive graph learning models highly depends on the manually selected data augmentations, which vary from graph to graph. On the other hand, generative graph learning aims to recover missing parts of the input data. In previous research, the performance of generative methods falls behind the contrastive methods (Kipf and Welling 2016; Park et al. 2019; Garcia Duran and Niepert 2017). Recently,",
+            "es": "Trabajos relacionados Este trabajo está estrechamente relacionado con las redes neuronales de grafos heterogéneos y con el aprendizaje autosupervisado en grafos. Redes neuronales de grafos heterogéneos. En los últimos años se han desarrollado muchas redes neuronales de grafos heterogéneos para aprender representaciones de nodos en grafos heterogéneos (Yang et al. 2020; Wang et al. 2022). Por ejemplo, HAN (Wang et al. 2019) propone una atención jerárquica para codificar estructuras a nivel de nodo y a nivel semántico. MAGNN (Fu et al. 2020) aprovecha los atributos de los nodos y los nodos intermedios de las metarrutas para encapsular la rica información semántica de los grafos heterogéneos. HGT (Hu et al. 2020) introduce una arquitectura basada en transformadores (transformer) para manejar grafos heterogéneos a escala web. HetGNN (Zhang et al. 2019) propone capturar tanto la información de estructura como la de contenido en grafos heterogéneos. Sin embargo, los métodos mencionados solo pueden aprender cuando se proporcionan etiquetas de nodos y no pueden extraer señales supervisadas de los propios datos para aprender incrustaciones de nodos generales. Por lo tanto, sigue siendo una pregunta abierta cómo aprovechar la información compleja involucrada en los grafos heterogéneos como guía autosupervisada. Aprendizaje autosupervisado en grafos. Los métodos autosupervisados en grafos pueden dividirse de forma natural en enfoques contrastivos y generativos (Liu et al. 2022; Wu et al. 2021b). El aprendizaje contrastivo en grafos fomenta la alineación entre distintos aumentos o distribuciones. Por ejemplo, GCC (Qiu et al. 2020) se centra en alinear distintas estructuras locales de dos subgrafos muestreados. GraphCL (You et al. 2020) introduce la alineación entre distintos aumentos del grafo. HeCo (Wang et al. 2021a) aplica dos estructuras de red para alinear tanto el esquema local como la información global de metarrutas. Sin embargo, el desempeño de estos modelos de aprendizaje contrastivo en grafos depende en gran medida de los aumentos de datos seleccionados manualmente, que varían de un grafo a otro. Por otro lado, el aprendizaje generativo en grafos busca recuperar las partes faltantes de los datos de entrada. En investigaciones previas, el desempeño de los métodos generativos queda por detrás del de los métodos contrastivos (Kipf and Welling 2016; Park et al. 2019; Garcia Duran and Niepert 2017). Recientemente,"
+          }
+        },
+        {
+          "id": "s0-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "GraphMAE (Hou et al. 2022) leverages masked autoencoder to reconstruct features, achieving outstanding performance. However, GraphMAE disregards several challenges in realworld data such as the complex structure, various attributes and different node positions, which we address in this paper.",
+            "es": "GraphMAE (Hou et al. 2022) aprovecha un autocodificador enmascarado para reconstruir características y logra un desempeño sobresaliente. Sin embargo, GraphMAE desatiende varios desafíos de los datos del mundo real, como la estructura compleja, los diversos atributos y las distintas posiciones de los nodos, que abordamos en este artículo."
+          }
+        },
+        {
+          "id": "s0-p12",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Problem Deﬁnition In this section, we describe the concept of heterogeneous graph and formally deﬁne the problem of generative selfsupervised learning on heterogeneous graphs. Deﬁnition 1. Heterogeneous Graph. A heterogeneous graph is deﬁned as a graph G = (V, A, TV, TE, X, Φ) with multiple types of nodes V and adjacency matrix A, where TV represent the set of node types and TE is the set of edge types in A. X denotes the attributes and Φ represents the metapaths. A metapath φ ∈Φ is a path that connects different types of nodes with distinct types of edges, i.e.,",
+            "es": "Definición del problema En esta sección describimos el concepto de grafo heterogéneo y definimos formalmente el problema del aprendizaje autosupervisado generativo en grafos heterogéneos. Definición 1. Grafo heterogéneo. Un grafo heterogéneo se define como un grafo G = (V, A, TV, TE, X, Φ) con múltiples tipos de nodos V y matriz de adyacencia A, donde TV representa el conjunto de tipos de nodos y TE es el conjunto de tipos de aristas en A. X denota los atributos y Φ representa las metarrutas. Una metarruta φ ∈Φ es una ruta que conecta distintos tipos de nodos con distintos tipos de aristas, es decir,"
+          }
+        },
+        {
+          "id": "s0-p13",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "TEl −→TV(l+1), where l is path length. Problem 1. Generative Self-supervised Learning on Heterogeneous Graphs. Given a heterogeneous graph G = (V, A, TV, TE, X, Φ), the task is to ﬁrst design an encoder",
+            "es": "TEl −→TV(l+1), donde l es la longitud de la ruta. Problema 1. Aprendizaje autosupervisado generativo en grafos heterogéneos. Dado un grafo heterogéneo G = (V, A, TV, TE, X, Φ), la tarea consiste en diseñar primero un codificador (encoder)"
+          }
+        },
+        {
+          "id": "s0-p14",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "TE1 −→TV2",
+            "es": "TE1 −→TV2"
+          }
+        },
+        {
+          "id": "s0-p15",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "TE2 −→. . .",
+            "es": "TE2 −→. . ."
+          }
+        },
+        {
+          "id": "s0-p16",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "TV1 fE that learns node embeddings H = fE(G), which encodes complex heterogeneous graph information such as structure, attributes, and node positions. Then, a decoder fD is designed to reconstruct the input, indicated as G′ = fD(H), where G′ can be either reconstructed adjacency matrix, attributes or node positions. The learned embeddings H can be utilized in various downstream graph mining tasks, such as node classiﬁcation and node clustering.",
+            "es": "TV1 fE que aprenda incrustaciones de nodos H = fE(G), las cuales codifican información compleja del grafo heterogéneo, como la estructura, los atributos y las posiciones de los nodos. Luego se diseña un decodificador (decoder) fD para reconstruir la entrada, indicado como G′ = fD(H), donde G′ puede ser la matriz de adyacencia reconstruida, los atributos o las posiciones de los nodos. Las incrustaciones aprendidas H pueden utilizarse en diversas tareas posteriores de minería de grafos, como la clasificación de nodos y el agrupamiento de nodos (node clustering)."
+          }
+        },
+        {
+          "id": "s0-p17",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Heterogeneous Graph Masked Autoencoders In this section, we formally present HGMAE to resolve the challenges described in Introduction. In particular, HGMAE introduces two masking techniques and contains three training strategies: (1) metapath-based edge reconstruction; (2) target attribute restoration; (3) positional feature prediction. Figure 2 illustrates the framework of HGMAE.",
+            "es": "Autocodificadores enmascarados para grafos heterogéneos En esta sección presentamos formalmente HGMAE para resolver los desafíos descritos en la Introducción. En particular, HGMAE introduce dos técnicas de enmascaramiento y contiene tres estrategias de entrenamiento: (1) reconstrucción de aristas basada en metarrutas; (2) restauración de atributos objetivo; (3) predicción de características posicionales. La Figura 2 ilustra el marco de trabajo de HGMAE."
+          }
+        },
+        {
+          "id": "s0-p18",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Metapath-based Edge Reconstruction In order to capture the semantics involved in the complex graph structure, we design the metapath-based edge reconstruction strategy to explore the high-order relations through metapaths and encode the complex graph structural information. Speciﬁcally, masking the metapath-based edges breaks the short-range semantic connections between nodes, forcing the model to look elsewhere to predict the relations that are masked out. As a result, it can exploit the structure-dependency patterns more effectively and capture the high-order proximity naturally. In particular, given a heterogeneous graph G = (V, A, TV, TE, X, Φ), we create the metapath-based adjacency matrix Aφ for each metapath φ ∈Φ via metapath sampling (Dong, Chawla, and Swami 2017). Since different metapaths contain different semantic information, we take them into account separately by masking and reconstructing each metapath-based adjacency matrix individually. Concretely, for each Aφ, we create a binary mask following the Bernoulli distribution M φ",
+            "es": "Reconstrucción de aristas basada en metarrutas Con el fin de capturar la semántica involucrada en la estructura compleja del grafo, diseñamos la estrategia de reconstrucción de aristas basada en metarrutas para explorar las relaciones de orden superior a través de metarrutas y codificar la información estructural compleja del grafo. En concreto, enmascarar las aristas basadas en metarrutas rompe las conexiones semánticas de corto alcance entre nodos, lo que obliga al modelo a buscar en otra parte para predecir las relaciones que han sido enmascaradas. Como resultado, puede aprovechar con mayor eficacia los patrones de dependencia estructural y capturar de forma natural la proximidad de orden superior. En particular, dado un grafo heterogéneo G = (V, A, TV, TE, X, Φ), creamos la matriz de adyacencia basada en metarrutas Aφ para cada metarruta φ ∈Φ mediante muestreo de metarrutas (Dong, Chawla, and Swami 2017). Dado que distintas metarrutas contienen distinta información semántica, las consideramos por separado, enmascarando y reconstruyendo cada matriz de adyacencia basada en metarrutas de forma individual. Concretamente, para cada Aφ creamos una máscara binaria que sigue la distribución de Bernoulli M φ"
+          }
+        },
+        {
+          "id": "s0-p19",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "A ∼",
+            "es": "A ∼"
+          }
+        },
+        {
+          "id": "s0-p20",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Bernoulli(pe), where pe < 1 is the edge masking rate. Then, we leverage the M φ",
+            "es": "Bernoulli(pe), donde pe < 1 es la tasa de enmascaramiento de aristas. Luego, aprovechamos M φ"
+          }
+        },
+        {
+          "id": "s0-p21",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "A to obtain the masked metapath-based adjacency matrix e Aφ = M φ",
+            "es": "A para obtener la matriz de adyacencia enmascarada basada en metarrutas e Aφ = M φ"
+          }
+        },
+        {
+          "id": "s0-p22",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "A · Aφ. After that, we feed e Aφ and node attributes X into encoder fE to obtain the latent node embeddings Hφ",
+            "es": "A · Aφ. Después de eso, introducimos e Aφ y los atributos de los nodos X en el codificador fE para obtener las incrustaciones latentes de los nodos Hφ"
+          }
+        },
+        {
+          "id": "s0-p23",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "1 . The process is formulated as follows:",
+            "es": "1 . El proceso se formula como sigue:"
+          }
+        },
+        {
+          "id": "s0-p24",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Hφ",
+            "es": "Hφ"
+          }
+        },
+        {
+          "id": "s0-e1",
+          "type": "equation",
+          "page": 3,
+          "text": {
+            "en": "1 = fE( e Aφ, X). (1)"
+          }
+        },
+        {
+          "id": "s0-p25",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "1 with e Aφ into the decoder fD to generate the decoded node embeddings Hφ",
+            "es": "1 con e Aφ en el decodificador fD para generar las incrustaciones de nodos decodificadas Hφ"
+          }
+        },
+        {
+          "id": "s0-p26",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "After that, we send Hφ",
+            "es": "Después de eso, enviamos Hφ"
+          }
+        },
+        {
+          "id": "s0-p27",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "2 . Later, we leverage Hφ",
+            "es": "2 . Posteriormente, aprovechamos Hφ"
+          }
+        },
+        {
+          "id": "s0-p28",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "2 to reconstruct the adjacency matrix:",
+            "es": "2 para reconstruir la matriz de adyacencia:"
+          }
+        },
+        {
+          "id": "s0-p29",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "2 )T · Hφ 2 ), (2)",
+            "es": "2 )T · Hφ 2 ), (2)"
+          }
+        },
+        {
+          "id": "s0-p30",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "1 ), Aφ′ = σ((Hφ",
+            "es": "1 ), Aφ′ = σ((Hφ"
+          }
+        },
+        {
+          "id": "s0-p31",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Hφ",
+            "es": "Hφ"
+          }
+        },
+        {
+          "id": "s0-p32",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "2 = fD( e Aφ, Hφ where Aφ′ is the reconstructed metapath-based adjacency matrix and σ is the sigmoid activation function. Next, we compare the target Aφ and the reconstruction Aφ′ by each node using a scaled cosine error: v · Aφ′",
+            "es": "2 = fD( e Aφ, Hφ donde Aφ′ es la matriz de adyacencia reconstruida basada en metarrutas y σ es la función de activación sigmoide. A continuación, comparamos el objetivo Aφ y la reconstrucción Aφ′ por cada nodo mediante un error coseno escalado (scaled cosine error): v · Aφ′"
+          }
+        },
+        {
+          "id": "s0-p33",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "(1 − Aφ",
+            "es": "(1 − Aφ"
+          }
+        },
+        {
+          "id": "s0-p34",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Lφ = 1 |Aφ|",
+            "es": "Lφ = 1 |Aφ|"
+          }
+        },
+        {
+          "id": "s0-p35",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "X v ∥Aφ",
+            "es": "X v ∥Aφ"
+          }
+        },
+        {
+          "id": "s0-p36",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": ")γ1, (3) v∥× ∥Aφ′ v ∥ v∈V where Lφ is the loss for metapath φ and γ1 is the scaling factor. To combine Lφ for each metapath φ ∈Φ, we ﬁrst introduce a semantic-level attention vector q to automatically learn the important score sφ of each metapath. Then, we normalize the scores of all metapaths using softmax function to obtain the weight of metapath φ, denoted as αφ. The process is shown as follows:",
+            "es": ")γ1, (3) v∥× ∥Aφ′ v ∥ v∈V donde Lφ es la pérdida para la metarruta φ y γ1 es el factor de escala. Para combinar Lφ de cada metarruta φ ∈Φ, primero introducimos un vector de atención a nivel semántico q para aprender automáticamente la puntuación de importancia sφ de cada metarruta. Luego, normalizamos las puntuaciones de todas las metarrutas mediante la función softmax para obtener el peso de la metarruta φ, denotado como αφ. El proceso se muestra a continuación:"
+          }
+        },
+        {
+          "id": "s0-p37",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "1 +b), αφ = exp(sφ) P sφ = qT ·tanh(W ·Hφ φ∈Φ exp(sφ), (4) where W is the weight matrix and b is the bias vector. After that, we fuse the loss for each metapath to obtain the combined loss LMER for metapath-based edge reconstruction: αφ · Lφ. (5)",
+            "es": "1 +b), αφ = exp(sφ) P sφ = qT ·tanh(W ·Hφ φ∈Φ exp(sφ), (4) donde W es la matriz de pesos y b es el vector de sesgo. Después de eso, fusionamos la pérdida de cada metarruta para obtener la pérdida combinada LMER de la reconstrucción de aristas basada en metarrutas: αφ · Lφ. (5)"
+          }
+        },
+        {
+          "id": "s0-p38",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "X",
+            "es": "X"
+          }
+        },
+        {
+          "id": "s0-p39",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "LMER = φ∈Φ",
+            "es": "LMER = φ∈Φ"
+          }
+        },
+        {
+          "id": "s0-p40",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Target Attribute Restoration In order to explore the content information involved in node attributes and facilitate the model to focus on the target node type, we design the target attribute restoration strategy. In particular, we mask the attributes for nodes of target type, and let the model reconstruct the masked attributes. Considering the node attributes play a vital role in deriving the node embeddings, the model can beneﬁt from restoring the attributes and preserving the meaningful content information in the training loop. In addition, we develop an adaptive attribute masking technique that includes dynamic mask rate, leaving unchanged and replacing to ensure more effective and stable learning. Dynamic Mask Rate. Masking a variable percentage of attributes instead of using a ﬁxed mask rate enables the model to maintain stable performance despite the changeable amount of input information (Gupta et al. 2022). Concretely, we gradually increase the attribute mask rate according to a linear mask scheduling function so that the model can adaptively learn from easy to difﬁcult. Formally, let δ(m) represent the mask scheduling function that computes the attribute mask rate pa with respect to training epoch m, where m ∈{0, 1, ..., M} and M is the total number of training epochs. We choose δ(m) such that it is linearly increasing by step ∆for each epoch m, namely, δ(m + 1) = δ(m) + ∆. We further set δ(0) = MINpa, δ(M) = MAXpa, and δ(m) ≤δ(M) to ensure our model converges, where ∆, MINpa, MAXpa are hyper-parameters adjustable over different datasets. After we get the attribute mask rate pa = δ(m) given epoch m, we ﬁrst sample a subset of nodes eV ∈Vt with rate pa for target node type t. We then mask each of their attributes using a learnable mask token [M]. Correspondingly, for each v ∈Vt, the node attribute exv in the masked attribute matrix e X can be deﬁned as: x[M] if v ∈eV xv if v /∈eV. (6) exv =",
+            "es": "Restauración de atributos objetivo (Target Attribute Restoration). Para explorar la información de contenido contenida en los atributos de los nodos (node attributes) y facilitar que el modelo se concentre en el tipo de nodo objetivo, diseñamos la estrategia de restauración de atributos objetivo. En particular, enmascaramos los atributos de los nodos del tipo objetivo y dejamos que el modelo reconstruya los atributos enmascarados. Dado que los atributos de los nodos desempeñan un papel vital en la obtención de los embeddings de nodos (node embeddings), el modelo puede beneficiarse de restaurar los atributos y de preservar la información de contenido significativa durante el ciclo de entrenamiento. Además, desarrollamos una técnica adaptativa de enmascaramiento de atributos que incluye una tasa de enmascaramiento dinámica, dejar sin cambios y reemplazar, para lograr un aprendizaje más efectivo y estable. Tasa de enmascaramiento dinámica (Dynamic Mask Rate). Enmascarar un porcentaje variable de atributos en lugar de usar una tasa de enmascaramiento fija permite que el modelo mantenga un desempeño estable a pesar de la cantidad cambiante de información de entrada (Gupta et al. 2022). En concreto, aumentamos gradualmente la tasa de enmascaramiento de atributos según una función lineal de programación del enmascaramiento, de modo que el modelo pueda aprender de manera adaptativa de lo fácil a lo difícil. Formalmente, sea δ(m) la función de programación del enmascaramiento que calcula la tasa de enmascaramiento de atributos pa con respecto a la época de entrenamiento m, donde m ∈{0, 1, ..., M} y M es el número total de épocas de entrenamiento. Elegimos δ(m) de modo que aumente linealmente en un paso ∆ por cada época m, es decir, δ(m + 1) = δ(m) + ∆. Además, establecemos δ(0) = MINpa, δ(M) = MAXpa y δ(m) ≤δ(M) para asegurar que nuestro modelo converja, donde ∆, MINpa, MAXpa son hiperparámetros ajustables según el conjunto de datos. Después de obtener la tasa de enmascaramiento de atributos pa = δ(m) dada la época m, primero muestreamos un subconjunto de nodos eV ∈Vt con tasa pa para el tipo de nodo objetivo t. Luego enmascaramos cada uno de sus atributos usando un token de máscara (mask token) aprendible [M]. En consecuencia, para cada v ∈Vt, el atributo del nodo exv en la matriz de atributos enmascarada e X puede definirse como: x[M] si v ∈eV xv si v /∈eV. (6) exv ="
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: The overall framework of HGMAE: we ﬁrst extract the metapath-based adjacency matrices, node attributes and positional features from the graph. We then design two masking techniques (i.e., metapath masking and adaptive attribute masking) to mask the inputs. Later, we feed the masked inputs into the encoder and decoders sequentially, and optimize them via three training strategies (i.e., metapath-based edge reconstruction, target attribute restoration, and positional feature prediction). The proposed strategies enable the model to capture comprehensive graph information and address identiﬁed challenges.",
+            "es": "Figura 2: El marco general de HGMAE: primero extraemos del grafo las matrices de adyacencia basadas en metacaminos, los atributos de los nodos y las características posicionales. Luego diseñamos dos técnicas de enmascaramiento (es decir, enmascaramiento de metacaminos y enmascaramiento adaptativo de atributos) para enmascarar las entradas. Después, alimentamos las entradas enmascaradas al codificador y a los decodificadores de forma secuencial, y los optimizamos mediante tres estrategias de entrenamiento (es decir, reconstrucción de aristas basada en metacaminos, restauración de atributos objetivo y predicción de características posicionales). Las estrategias propuestas permiten que el modelo capture información integral del grafo y aborde los desafíos identificados."
+          }
+        },
+        {
+          "id": "s0-p41",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Leaving Unchanged and Replacing. Due to the fact that the mask token [M] does not appear during inference, a mismatch between training and inference can occur, jeopardizing the model’s ability to learn (Yang et al. 2019). Therefore, we introduce the Leaving Unchanged and Replacing methods. Speciﬁcally, we ﬁrst replace a percentage of mask tokens by random tokens, with the replace rate pr. In addition, we select another percentage of nodes with rate pu and leave them unchanged by utilizing the origin attribute xv, while pu indicates the leave unchanged rate. The idea of leaving unchanged and replacing is simple, yet as we will see, effective and practical, which is also the opposite of what GraphMAE claims. After that, we send node attributes e X and graph adjacency matrix A into encoder fE to obtain the latent node embeddings H3. To enforce the encoder learns informative embeddings without relying on the decoder’s capability for restoration, we apply another mask token [DM] to H3 before sending it into the decoder. The process is formulated as follows: h[DM] if vi ∈eV hi if vi /∈eV, (7)",
+            "es": "Dejar sin cambios y reemplazar (Leaving Unchanged and Replacing). Debido a que el token de máscara [M] no aparece durante la inferencia, puede producirse una discrepancia entre el entrenamiento y la inferencia, lo que compromete la capacidad de aprendizaje del modelo (Yang et al. 2019). Por ello, introducimos los métodos de dejar sin cambios y reemplazar. En concreto, primero reemplazamos un porcentaje de los tokens de máscara por tokens aleatorios, con la tasa de reemplazo pr. Además, seleccionamos otro porcentaje de nodos con tasa pu y los dejamos sin cambios utilizando el atributo original xv, donde pu indica la tasa de dejar sin cambios. La idea de dejar sin cambios y reemplazar es simple, pero, como veremos, efectiva y práctica, y además es lo opuesto a lo que afirma GraphMAE. Después de eso, enviamos los atributos de los nodos e X y la matriz de adyacencia del grafo A al codificador fE para obtener los embeddings latentes de los nodos H3. Para forzar que el codificador aprenda embeddings informativos sin depender de la capacidad de restauración del decodificador, aplicamos otro token de máscara [DM] a H3 antes de enviarlo al decodificador. El proceso se formula de la siguiente manera: h[DM] si vi ∈eV hi si vi /∈eV, (7)"
+          }
+        },
+        {
+          "id": "s0-p42",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "H3 = fE(A, e X), eH3 = where eH3 denotes the masked latent node embeddings. Next, we send A and eH3 into the decoder fD to obtain the restored node attributes Z:",
+            "es": "H3 = fE(A, e X), eH3 = donde eH3 denota los embeddings latentes de los nodos enmascarados. A continuación, enviamos A y eH3 al decodificador fD para obtener los atributos de los nodos restaurados Z:"
+          }
+        },
+        {
+          "id": "s0-e2",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "Z = fD(A, eH3). (8)"
+          }
+        },
+        {
+          "id": "s0-p43",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Subsequently, we deﬁne the loss of target attribute restoration LTAR by comparing masked attribute matrix e X and Z with scaling factor γ2. The loss function is described as follows: e Xv · Zv ∥e Xv∥× ∥Zv∥",
+            "es": "Posteriormente, definimos la pérdida de restauración de atributos objetivo LTAR comparando la matriz de atributos enmascarada e X y Z con el factor de escala γ2. La función de pérdida se describe de la siguiente manera: e Xv · Zv ∥e Xv∥× ∥Zv∥"
+          }
+        },
+        {
+          "id": "s0-p44",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "LTAR = 1",
+            "es": "LTAR = 1"
+          }
+        },
+        {
+          "id": "s0-p45",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "X",
+            "es": "X"
+          }
+        },
+        {
+          "id": "s0-p46",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": ")γ2. (9)",
+            "es": ")γ2. (9)"
+          }
+        },
+        {
+          "id": "s0-p47",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "(1 −",
+            "es": "(1 −"
+          }
+        },
+        {
+          "id": "s0-p48",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "|eV| v∈eV",
+            "es": "|eV| v∈eV"
+          }
+        },
+        {
+          "id": "s0-p49",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Positional Feature Prediction In order to incorporate the positional information for each node, we design the positional feature prediction strategy. In particular, we ﬁrst extract metapath aware positional features P using Mp2vec (Dong, Chawla, and Swami 2017). Then, we let the model predict the positional features while only using the latent node embeddings H3 from the encoder fE. To encourage the encoder to take positional information into account during training, we abandon the graph structure input for decoding and instead employ the traditional multilayer perceptron (MLP) fMLP as the decoder. Correspondingly, the encoder is able to capture node positional information within a broader context of the graph structure. The process is formulated as follows:",
+            "es": "Predicción de características posicionales (Positional Feature Prediction). Con el fin de incorporar la información posicional de cada nodo, diseñamos la estrategia de predicción de características posicionales. En particular, primero extraemos características posicionales P conscientes de los metacaminos (metapath aware) usando Mp2vec (Dong, Chawla, and Swami 2017). Luego, hacemos que el modelo prediga las características posicionales utilizando únicamente los embeddings latentes de los nodos H3 provenientes del codificador fE. Para animar al codificador a tomar en cuenta la información posicional durante el entrenamiento, abandonamos la entrada de la estructura del grafo para la decodificación y en su lugar empleamos el perceptrón multicapa (multilayer perceptron, MLP) tradicional fMLP como decodificador. En consecuencia, el codificador es capaz de capturar la información posicional de los nodos dentro de un contexto más amplio de la estructura del grafo. El proceso se formula de la siguiente manera:"
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 5,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: Node classiﬁcation performance comparison. The best results are highlighted in bold.",
+            "es": "Tabla 1: Comparación del desempeño en clasificación de nodos. Los mejores resultados están resaltados en negrita."
+          }
+        },
+        {
+          "id": "s0-e3",
+          "type": "equation",
+          "page": 5,
+          "text": {
+            "en": "P ′ = fMLP(H3), (10)"
+          }
+        },
+        {
+          "id": "s0-p50",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "where P ′ denotes the predicted node positional features. Then, the loss of positional feature prediction LPFP is determined by comparing the target positional features P and the predicted positional features P ′:",
+            "es": "donde P ′ denota las características posicionales de los nodos predichas. Entonces, la pérdida de predicción de características posicionales LPFP se determina comparando las características posicionales objetivo P y las características posicionales predichas P ′:"
+          }
+        },
+        {
+          "id": "s0-p51",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "(1 − Pv · P ′",
+            "es": "(1 − Pv · P ′"
+          }
+        },
+        {
+          "id": "s0-p52",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "LPFP = 1",
+            "es": "LPFP = 1"
+          }
+        },
+        {
+          "id": "s0-p53",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "X v ∥Pv∥× ∥P ′v∥)γ3, (11)",
+            "es": "X v ∥Pv∥× ∥P ′v∥)γ3, (11)"
+          }
+        },
+        {
+          "id": "s0-p54",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "|V| v∈V where γ3 is the scaling factor. The ﬁnal objective function L is deﬁned as the weighted combination of the metapath-based edge reconstruction loss LMER, the target attribute restoration loss LTAR and the positional feature prediction loss LPFP:",
+            "es": "|V| v∈V donde γ3 es el factor de escala. La función objetivo final L se define como la combinación ponderada de la pérdida de reconstrucción de aristas basada en metacaminos LMER, la pérdida de restauración de atributos objetivo LTAR y la pérdida de predicción de características posicionales LPFP:"
+          }
+        },
+        {
+          "id": "s0-e4",
+          "type": "equation",
+          "page": 5,
+          "text": {
+            "en": "L = λLMER + µLTAR + ηLPFP, (12)"
+          }
+        },
+        {
+          "id": "s0-p55",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "where λ, µ and η are trade-off weights for balancing LMER, LTAR and LPFP, respectively.",
+            "es": "donde λ, µ y η son pesos de compromiso (trade-off) para equilibrar LMER, LTAR y LPFP, respectivamente."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "Experiments",
+        "es": "Experimentos"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In this section, we conduct extensive experiments to compare the performances of different models. We also show ablation studies, parameter sensitivity, and embedding visualization to demonstrate the superiority of HGMAE.",
+            "es": "En esta sección, realizamos experimentos extensos para comparar el desempeño de distintos modelos. También presentamos estudios de ablación, sensibilidad de parámetros y visualización de embeddings para demostrar la superioridad de HGMAE."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "Experimental Setup",
+        "es": "Configuración experimental"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Datasets and Baselines. We employ four real datasets to evaluate the proposed model, including DBLP (Fu et al. 2020), Freebase (Li et al. 2020), ACM (Zhao et al. 2020), and AMiner (Hu, Fang, and Shi 2019). We compare with 10 baselines including unsupervised homogeneous methods GraphSAGE (Hamilton, Ying, and Leskovec 2017), GAE (Kipf and Welling 2016), DGI (Velickovic et al. 2019), GraphMAE (Hou et al. 2022), unsupervised/semi-supervised heterogeneous methods Mp2vec (Dong, Chawla, and Swami 2017), HERec (Shi et al. 2019), HetGNN (Zhang et al. 2019), DMGI (Park et al. 2020), HeCo (Wang et al. 2021a), and HAN (Wang et al. 2019). Implementation Details. For baselines, we adhere to the settings described in their original papers and follow the setup in HeCo (Wang et al. 2021a). For the proposed HGMAE, we use HAN (Wang et al. 2019) as the default encoder and decoder. We search the learning rate from 1e-4 to 5e-3, tune the patience for early stopping from 5 to 20, and test the leave unchanged and replaced rates from 0 to 0.5 with step 0.1. For dynamic mask rate, we set MINpa to 0.5, MAXpa to 0.8 and ∆equals 0.005. For all methods, we report the mean and standard deviation of 10 runs with different random seeds.",
+            "es": "Conjuntos de datos y líneas base (Datasets and Baselines). Empleamos cuatro conjuntos de datos reales para evaluar el modelo propuesto: DBLP (Fu et al. 2020), Freebase (Li et al. 2020), ACM (Zhao et al. 2020) y AMiner (Hu, Fang, and Shi 2019). Comparamos con 10 líneas base, que incluyen los métodos homogéneos no supervisados GraphSAGE (Hamilton, Ying, and Leskovec 2017), GAE (Kipf and Welling 2016), DGI (Velickovic et al. 2019), GraphMAE (Hou et al. 2022), y los métodos heterogéneos no supervisados/semisupervisados Mp2vec (Dong, Chawla, and Swami 2017), HERec (Shi et al. 2019), HetGNN (Zhang et al. 2019), DMGI (Park et al. 2020), HeCo (Wang et al. 2021a) y HAN (Wang et al. 2019). Detalles de implementación (Implementation Details). Para las líneas base, nos apegamos a las configuraciones descritas en sus artículos originales y seguimos la configuración de HeCo (Wang et al. 2021a). Para el HGMAE propuesto, usamos HAN (Wang et al. 2019) como codificador y decodificador por defecto. Buscamos la tasa de aprendizaje de 1e-4 a 5e-3, ajustamos la paciencia para la parada temprana de 5 a 20, y probamos las tasas de dejar sin cambios y de reemplazo de 0 a 0.5 con paso de 0.1. Para la tasa de enmascaramiento dinámica, establecemos MINpa en 0.5, MAXpa en 0.8 y ∆ es igual a 0.005. Para todos los métodos, reportamos la media y la desviación estándar de 10 ejecuciones con diferentes semillas aleatorias."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 6,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2: Node clustering performance comparison. The best results are highlighted in bold.",
+            "es": "Tabla 2: Comparación del desempeño en agrupamiento de nodos. Los mejores resultados están resaltados en negrita."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "Node Classiﬁcation",
+        "es": "Clasificación de nodos"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We ﬁrst evaluate different models for the node classiﬁcation task and report their performances in Table 1. Speciﬁcally, we use 20, 40, 60 labeled nodes per class as training set and 1000 nodes each for validation and test sets. We use Micro-F1, Macro-F1 and AUC as evaluation metrics. According to the table, we ﬁnd that our model HGMAE outperforms all the baselines across various datasets except for few cases. In AMiner, HGMAE has a small difference compared to the best baseline HeCo on few F1 values, but still remains the second best among all models. Considering AMiner has fewer edges and metapaths compared to other datasets, it is understandable that HGMAE could be biased with simple generative losses, while HeCo performs better by employing the complex contrastive loss on intricate graph views. However, HGMAE is more stable and performs better across various datasets and experimental settings. In addition, GraphMAE performs poorly on all datasets. This further demonstrates the signiﬁcance of addressing the identiﬁed challenges and proves the effectiveness of our model.",
+            "es": "Primero evaluamos diferentes modelos en la tarea de clasificación de nodos y reportamos su desempeño en la Tabla 1. En concreto, usamos 20, 40 y 60 nodos etiquetados por clase como conjunto de entrenamiento y 1000 nodos para cada uno de los conjuntos de validación y de prueba. Usamos Micro-F1, Macro-F1 y AUC como métricas de evaluación. De acuerdo con la tabla, encontramos que nuestro modelo HGMAE supera a todas las líneas base en los distintos conjuntos de datos, salvo en pocos casos. En AMiner, HGMAE tiene una pequeña diferencia frente a la mejor línea base, HeCo, en algunos valores de F1, pero aun así sigue siendo el segundo mejor entre todos los modelos. Considerando que AMiner tiene menos aristas y metacaminos que los otros conjuntos de datos, es comprensible que HGMAE pueda verse sesgado con pérdidas generativas simples, mientras que HeCo obtiene un mejor desempeño al emplear la compleja pérdida contrastiva sobre vistas intrincadas del grafo. Sin embargo, HGMAE es más estable y tiene un mejor desempeño en distintos conjuntos de datos y configuraciones experimentales. Además, GraphMAE tiene un desempeño pobre en todos los conjuntos de datos. Esto demuestra aún más la importancia de abordar los desafíos identificados y prueba la efectividad de nuestro modelo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "Node Clustering",
+        "es": "Agrupamiento de nodos"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We further evaluate different models for node clustering task and report their performances in Table 2. In particular, we apply K-means as the learning algorithm and utilize normalized mutual information (NMI) and adjusted rand index (ARI) as the evaluation metrics. From the table, we can ﬁnd that HGMAE consistently achieves the best results on all datasets, which validates the effectiveness of HGMAE from a different perspective. Concretely, HGMAE maintains superior learning capability and outperforms existing baselines by a large margin in most cases. For example, compared with the best baseline HeCo, HGMAE improves NMI by +17% and ARI by +25% on ACM dataset, as well as 27% and 33% on AMiner dataset. This further demonstrates the superiority of our model.",
+            "es": "Además, evaluamos diferentes modelos en la tarea de agrupamiento de nodos y reportamos su desempeño en la Tabla 2. En particular, aplicamos K-means como algoritmo de aprendizaje y utilizamos la información mutua normalizada (normalized mutual information, NMI) y el índice de Rand ajustado (adjusted rand index, ARI) como métricas de evaluación. A partir de la tabla, encontramos que HGMAE logra consistentemente los mejores resultados en todos los conjuntos de datos, lo que valida la efectividad de HGMAE desde una perspectiva distinta. En concreto, HGMAE mantiene una capacidad de aprendizaje superior y supera a las líneas base existentes por un amplio margen en la mayoría de los casos. Por ejemplo, en comparación con la mejor línea base, HeCo, HGMAE mejora NMI en +17% y ARI en +25% en el conjunto de datos ACM, así como 27% y 33% en el conjunto de datos AMiner. Esto demuestra aún más la superioridad de nuestro modelo."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 6,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3: Results of different model variants.",
+            "es": "Tabla 3: Resultados de diferentes variantes del modelo."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: Performance of HGMAE w.r.t. different mask rates.",
+            "es": "Figura 3: Desempeño de HGMAE con respecto a diferentes tasas de enmascaramiento."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "Ablation Study",
+        "es": "Estudio de ablación"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Since HGMAE contains various training strategies (i.e., metapath-based edge reconstruction (MER), target attribute restoration (TAR), and positional feature prediction (PFP)), we conduct ablation studies on the node classiﬁcation task to analyze the contributions of different strategies by removing each of them independently (see Table 3). Speciﬁcally, removing MER signiﬁcantly affects the performance, showing that MER has large contribution to HGMAE. In addition, the decreasing performances of removing TAR and PFP demonstrate the effectiveness of TAR and PFP in enhancing the model, respectively. Finally, HGMAE achieves the best results in all cases, indicating the strong capability of different strategies in our model.",
+            "es": "Dado que HGMAE contiene varias estrategias de entrenamiento (es decir, reconstrucción de aristas basada en metacaminos (MER), restauración de atributos objetivo (TAR) y predicción de características posicionales (PFP)), realizamos estudios de ablación (ablation studies) en la tarea de clasificación de nodos para analizar las contribuciones de las diferentes estrategias eliminando cada una de ellas de forma independiente (véase la Tabla 3). En concreto, eliminar MER afecta significativamente el desempeño, lo que muestra que MER tiene una gran contribución a HGMAE. Además, la disminución del desempeño al eliminar TAR y PFP demuestra la efectividad de TAR y PFP para mejorar el modelo, respectivamente. Finalmente, HGMAE logra los mejores resultados en todos los casos, lo que indica la sólida capacidad de las diferentes estrategias de nuestro modelo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "Impact of Dynamic Mask Rate",
+        "es": "Impacto de la tasa de enmascaramiento dinámica"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "A salient property of HGMAE is the incorporation of the dynamic mask rate (DMR), which masks a variable percentage of attributes to encourage the stable learning across various masking settings. To better understand the effectiveness of DMR, we provide a detailed analysis by comparing the performance of DMR with ﬁxed mask rates, as shown in Figure 3. We ﬁnd that DMR can always achieve the best result, demonstrating its superiority compared to other mask rates. In general, the performance increases when increasing the mask rate, which indicates that a suitable mask rate will lead to better model performances. However, a mask rate that is suitable for one dataset might not be the optimal choice for other datasets. For example, without DMR, ﬁxed mask rate 0.9 is the optimal rate for Freebase, but it performs poorly on DBLP. Consequently, it is essential that the model learns adaptively across various mask rates. In addition, DMR enables the model to learn effectively without the need for manual mask rate determination.",
+            "es": "Una propiedad destacada de HGMAE es la incorporación de la tasa de enmascaramiento dinámica (DMR), que enmascara un porcentaje variable de atributos para fomentar un aprendizaje estable en diversas configuraciones de enmascaramiento. Para comprender mejor la efectividad de DMR, presentamos un análisis detallado comparando el desempeño de DMR con tasas de enmascaramiento fijas, como se muestra en la Figura 3. Encontramos que DMR siempre puede lograr el mejor resultado, lo que demuestra su superioridad frente a otras tasas de enmascaramiento. En general, el desempeño aumenta al incrementar la tasa de enmascaramiento, lo que indica que una tasa de enmascaramiento adecuada conducirá a un mejor desempeño del modelo. Sin embargo, una tasa de enmascaramiento adecuada para un conjunto de datos podría no ser la elección óptima para otros conjuntos de datos. Por ejemplo, sin DMR, la tasa de enmascaramiento fija de 0.9 es la tasa óptima para Freebase, pero tiene un desempeño pobre en DBLP. En consecuencia, es esencial que el modelo aprenda de manera adaptativa a través de diversas tasas de enmascaramiento. Además, DMR permite que el modelo aprenda de manera efectiva sin necesidad de determinar manualmente la tasa de enmascaramiento."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4: Performance of HGMAE w.r.t. leave unchanged and replace rates.",
+            "es": "Figura 4: Desempeño de HGMAE con respecto a las tasas de dejar sin cambios y de reemplazo."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5: Performance of HGMAE w.r.t. hidden dimensions.",
+            "es": "Figura 5: Desempeño de HGMAE con respecto a las dimensiones ocultas."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Impact of Leaving Unchanged and Replacing We conduct experiments to show the effectiveness of leaving unchanged and replacing in Figure 4. We surprisedly discover that the use of these two techniques always improves the model’s ability to learn better node embeddings, which is opposite to the statement in GraphMAE (Hou et al. 2022). Speciﬁcally, HGMAE achieves the optimal performance in DBLP when leave unchanged and replace rates are set to 0.3 and 0.1, and performs the best in Freebase when they are set to 0.0 and 0.1, respectively. In general, we observe that for DBLP, a high leave unchanged rate and a low replace rate are usually beneﬁcial, whereas for Freebase, the opposite is true. This demonstrates the effectiveness of leaving unchanged and replacing, and indicates that different rates may have different impacts across datasets. Correspondingly, determining appropriate rates can result in a better model performance.",
+            "es": "Impacto de dejar sin cambios y reemplazar. Realizamos experimentos para mostrar la efectividad de dejar sin cambios y reemplazar en la Figura 4. Descubrimos, con sorpresa, que el uso de estas dos técnicas siempre mejora la capacidad del modelo para aprender mejores embeddings de nodos, lo cual es opuesto a lo que se afirma en GraphMAE (Hou et al. 2022). En concreto, HGMAE logra el desempeño óptimo en DBLP cuando las tasas de dejar sin cambios y de reemplazo se establecen en 0.3 y 0.1, y tiene el mejor desempeño en Freebase cuando se establecen en 0.0 y 0.1, respectivamente. En general, observamos que para DBLP, una tasa alta de dejar sin cambios y una tasa baja de reemplazo suelen ser beneficiosas, mientras que para Freebase ocurre lo contrario. Esto demuestra la efectividad de dejar sin cambios y reemplazar, e indica que diferentes tasas pueden tener diferentes impactos según el conjunto de datos. En consecuencia, determinar tasas apropiadas puede resultar en un mejor desempeño del modelo."
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Parameter Sensitivity We further perform parameters sensitivity analysis to show the impact of hidden dimensions in Figure 5. In particular, we search the number of hidden dimensions from {128, 256, 512, 1024}. By analyzing the ﬁgure, we ﬁnd that the optimal hidden dimension can be different across datasets. In addition, increasing the hidden dimension generally enhances the performance. We ascribe this improvement to the comprehensive modeling of the data itself, while using a small hidden dimension could prevent the model from fully capturing the knowledge. However, further increasing the hidden dimension (e.g., 1024) degrades the performance. This is because applying a too wide hidden layer could decentralize the model’s focus on meaningful information. Therefore, using the standard hidden dimensions (e.g., 256 or 512) is sufﬁcient for the proposed model to capture complex information and achieve superior performance.",
+            "es": "Sensibilidad de parámetros. Además, realizamos un análisis de sensibilidad de parámetros para mostrar el impacto de las dimensiones ocultas en la Figura 5. En particular, buscamos el número de dimensiones ocultas en {128, 256, 512, 1024}. Al analizar la figura, encontramos que la dimensión oculta óptima puede ser diferente según el conjunto de datos. Además, aumentar la dimensión oculta generalmente mejora el desempeño. Atribuimos esta mejora al modelado integral de los propios datos, mientras que usar una dimensión oculta pequeña podría impedir que el modelo capture plenamente el conocimiento. Sin embargo, aumentar aún más la dimensión oculta (por ejemplo, 1024) degrada el desempeño. Esto se debe a que aplicar una capa oculta demasiado ancha podría descentralizar el enfoque del modelo sobre la información significativa. Por lo tanto, usar las dimensiones ocultas estándar (por ejemplo, 256 o 512) es suficiente para que el modelo propuesto capture información compleja y logre un desempeño superior."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6: Embedding visualization of DBLP dataset. Different colors indicate different node category labels.",
+            "es": "Figura 6: Visualización de embeddings del conjunto de datos DBLP. Los diferentes colores indican diferentes etiquetas de categoría de los nodos."
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Embedding Visualization For a more intuitive understanding and comparison, we visualize the learned node embeddings of different models using t-SNE. As shown in Figure 6, Mp2vec does not perform well. Nodes from different categories are mixed together. HeCo can successfully distinguish different categories, but fail to cluster nodes that share the same category. GraphMAE can separate each category well, but the nodes tend to stay close to each other and form small chunks, while the difference between chunks is large, even when chunks belong to the same category. However, our model HGMAE can clearly identify each category and maintain a clear boundary between them. In addition, nodes with the same category form an exclusive dense cluster, instead of splitting into numerous chunks as shown in other methods. This again demonstrates the effectiveness of HGMAE and the capability of learning discriminative node embeddings.",
+            "es": "Visualización de embeddings. Para una comprensión y comparación más intuitivas, visualizamos los embeddings de nodos aprendidos por diferentes modelos usando t-SNE. Como se muestra en la Figura 6, Mp2vec no tiene un buen desempeño. Los nodos de diferentes categorías aparecen mezclados. HeCo puede distinguir con éxito las diferentes categorías, pero no logra agrupar los nodos que comparten la misma categoría. GraphMAE puede separar bien cada categoría, pero los nodos tienden a permanecer cerca unos de otros y a formar pequeños fragmentos, mientras que la diferencia entre fragmentos es grande, incluso cuando los fragmentos pertenecen a la misma categoría. Sin embargo, nuestro modelo HGMAE puede identificar claramente cada categoría y mantener un límite claro entre ellas. Además, los nodos con la misma categoría forman un grupo denso exclusivo, en lugar de dividirse en numerosos fragmentos como se muestra en otros métodos. Esto demuestra de nuevo la efectividad de HGMAE y su capacidad para aprender embeddings de nodos discriminativos."
+          }
+        },
+        {
+          "id": "s6-p5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Conclusion In this paper, we propose and formalize the problem of generative self-supervised learning on heterogeneous graphs. To solve this problem, we propose HGMAE, a novel heterogeneous graph masked autoencoder model. HGMAE jointly considers the complex graph structure, various node attributes, and different node positions via two innovative masking techniques and three unique training strategies. Extensive experiments on multiple datasets and several tasks demonstrate the superiority of HGMAE compared to stateof-the-art methods.",
+            "es": "Conclusión. En este artículo, proponemos y formalizamos el problema del aprendizaje autosupervisado generativo (generative self-supervised learning) en grafos heterogéneos. Para resolver este problema, proponemos HGMAE, un novedoso modelo de autocodificador enmascarado para grafos heterogéneos (heterogeneous graph masked autoencoder). HGMAE considera conjuntamente la compleja estructura del grafo, los diversos atributos de los nodos y las diferentes posiciones de los nodos mediante dos técnicas innovadoras de enmascaramiento y tres estrategias de entrenamiento únicas. Experimentos extensos en múltiples conjuntos de datos y varias tareas demuestran la superioridad de HGMAE en comparación con los métodos del estado del arte."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Bai, Y.; Ying, Z.; Ren, H.; and Leskovec, J. 2021. Modeling heterogeneous hierarchies with relation-speciﬁc hyperbolic cones. NeurIPS. Cao, Y.; Peng, H.; Wu, J.; Dou, Y.; Li, J.; and Yu, P. S. 2021. Knowledge-preserving incremental social event detection via heterogeneous gnns. In WWW. Devlin, J.; Chang, M.-W.; Lee, K.; and Toutanova, K. 2019. BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. In NAACL. Ding, K.; Xu, Z.; Tong, H.; and Liu, H. 2022. Data augmentation for deep graph learning: A survey. arXiv preprint arXiv:2202.08235. Dong, Y.; Chawla, N. V.; and Swami, A. 2017. metapath2vec: Scalable Representation Learning for Heterogeneous Networks. In KDD. Fu, X.; Zhang, J.; Meng, Z.; and King, I. 2020. MAGNN: Metapath Aggregated Graph Neural Network for Heterogeneous Graph Embedding. In WWW. Garcia Duran, A.; and Niepert, M. 2017. Learning graph representations with embedding propagation. NeurIPS. Gupta, A.; Tian, S.; Zhang, Y.; Wu, J.; Martin-Martin, R.; and Fei-Fei, L. 2022. MaskViT: Masked Visual Pre-Training for Video Prediction. arXiv preprint arXiv:2206.11894. Hamilton, W. L.; Ying, Z.; and Leskovec, J. 2017. Inductive Representation Learning on Large Graphs. In NeurIPS. He, K.; Chen, X.; Xie, S.; Li, Y.; Dollar, P.; and Girshick, R. 2022. Masked autoencoders are scalable vision learners. In CVPR. Hou, Z.; Liu, X.; Dong, Y.; Wang, C.; Tang, J.; et al. 2022. GraphMAE: Self-Supervised Masked Graph Autoencoders. KDD. Hu, B.; Fang, Y.; and Shi, C. 2019. Adversarial Learning on Heterogeneous Information Networks. In KDD. Hu, Z.; Dong, Y.; Wang, K.; and Sun, Y. 2020. Heterogeneous Graph Transformer. In WWW. Kipf, T. N.; and Welling, M. 2016. Variational graph autoencoders. arXiv preprint arXiv:1611.07308. Li, X.; Ding, D.; Kao, B.; Sun, Y.; and Mamoulis, N. 2020. Leveraging Meta-path Contexts for Classiﬁcation in Heterogeneous Information Networks. arXiv preprint Liu, X.; Zhang, F.; Hou, Z.; Wang, Z.; Mian, L.; Zhang, J.; and Tang, J. 2020. Self-supervised learning: Generative or contrastive. arXiv preprint arXiv:2006.08218. Liu, Y.; Jin, M.; Pan, S.; Zhou, C.; Zheng, Y.; Xia, F.; and Yu, P. 2022. Graph self-supervised learning: A survey. IEEE Transactions on Knowledge and Data Engineering."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Park, C.; Kim, D.; Han, J.; and Yu, H. 2020. Unsupervised Attributed Multiplex Network Embedding. In AAAI. Park, J.; Lee, M.; Chang, H. J.; Lee, K.; and Choi, J. Y. 2019. Symmetric graph convolutional autoencoder for unsupervised graph representation learning. In ICCV."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Qiu, J.; Chen, Q.; Dong, Y.; Zhang, J.; Yang, H.; Ding, M.; Wang, K.; and Tang, J. 2020. GCC: Graph Contrastive Coding for Graph Neural Network Pre-Training. In KDD. Shi, C.; Hu, B.; Zhao, W. X.; and Yu, P. S. 2019. Heterogeneous Information Network Embedding for Recommendation. IEEE Transactions on Knowledge and Data Engineering. Thakoor, S.; Tallec, C.; Azar, M. G.; Munos, R.; Velickovic, P.; and Valko, M. 2022. Large-Scale Representation Learning on Graphs via Bootstrapping. In ICLR. Tian, Y.; Zhang, C.; Guo, Z.; Huang, C.; Metoyer, R.; and Chawla, N. V. 2022a. RecipeRec: A Heterogeneous Graph Learning Model for Recipe Recommendation. In IJCAI. Tian, Y.; Zhang, C.; Guo, Z.; Ma, Y.; Metoyer, R.; and Chawla, N. V. 2022b. Recipe2Vec: Multi-modal Recipe Representation Learning with Graph Neural Networks. In IJCAI. Tian, Y.; Zhang, C.; Metoyer, R.; and Chawla, N. V. 2021. Recipe representation learning with networks. In CIKM. Velickovic, P.; Fedus, W.; Hamilton, W. L.; Lio, P.; Bengio, Y.; and Hjelm, R. D. 2019. Deep Graph Infomax. In ICLR."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Wang, B.; Li, A.; Li, H.; and Chen, Y. 2020. GraphFL: A Federated Learning Framework for Semi-Supervised Node Classiﬁcation on Graphs. arXiv preprint arXiv:2012.04187. Wang, X.; Bo, D.; Shi, C.; Fan, S.; Ye, Y.; and Philip, S. Y. 2022. A survey on heterogeneous graph embedding: methods, techniques, applications and sources. IEEE Transactions on Big Data. Wang, X.; Ji, H.; Shi, C.; Wang, B.; Ye, Y.; Cui, P.; and Yu, P. S. 2019. Heterogeneous Graph Attention Network. In WWW."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Wang, X.; Liu, N.; Han, H.; and Shi, C. 2021a. Self-supervised heterogeneous graph neural network with cocontrastive learning. In KDD. Wang, Z.; Wen, R.; Chen, X.; Cao, S.; Huang, S.-L.; Qian, B.; and Zheng, Y. 2021b. Online Disease Diagnosis with Inductive Heterogeneous Graph Convolutional Networks. In WWW."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Wu, L.; Lin, H.; Tan, C.; Gao, Z.; and Li, S. Z. 2021a. Self-supervised learning on graphs: Contrastive, generative, or predictive. IEEE Transactions on Knowledge and Data Engineering. Wu, L.; Lin, H.; Tan, C.; Gao, Z.; and Li, S. Z. 2021b. Self-supervised learning on graphs: Contrastive, generative, or predictive. IEEE Transactions on Knowledge and Data Engineering. Yang, C.; Xiao, Y.; Zhang, Y.; Sun, Y.; and Han, J. 2020. Heterogeneous Network Representation Learning: A Uniﬁed Framework with Survey and Benchmark. IEEE Transactions on Knowledge and Data Engineering. Yang, Z.; Dai, Z.; Yang, Y.; Carbonell, J.; Salakhutdinov, R. R.; and Le, Q. V. 2019. Xlnet: Generalized autoregressive pretraining for language understanding. NeurIPS. You, Y.; Chen, T.; Shen, Y.; and Wang, Z. 2021. Graph contrastive learning automated. In ICML."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "You, Y.; Chen, T.; Sui, Y.; Chen, T.; Wang, Z.; and Shen, Y. 2020. Graph contrastive learning with augmentations. NeurIPS. Zhang, C.; Song, D.; Huang, C.; Swami, A.; and Chawla, N. V. 2019. Heterogeneous Graph Neural Network. In KDD. Zhao, J.; Wang, X.; Shi, C.; Liu, Z.; and Ye, Y. 2020. Network Schema Preserving Heterogeneous Information Network Embedding. In IJCAI."
+          }
+        }
+      ]
+    }
+  ]
+}

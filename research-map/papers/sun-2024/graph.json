@@ -1,0 +1,638 @@
+{
+  "version": 1,
+  "node": "sun-2024",
+  "built": {
+    "date": "2026-11-15",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can giving an autoregressive model a meaningful order for the scene objects, instead of an arbitrary one, make indoor scene synthesis more realistic?",
+      "es": "¿Puede un modelo autorregresivo generar escenas interiores más realistas si se le da un orden con sentido para los objetos de la escena, en lugar de uno arbitrario?",
+      "blocks": [
+        "s0-p1",
+        "s1-p3"
+      ],
+      "key": "order-prior",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "A scene is a set of oriented bounding boxes, each with a semantic class, a 3D translation, a size and a rotation angle. To feed a transformer, the set must be turned into a sequence by choosing a permutation.",
+      "es": "Una escena es un conjunto de cajas orientadas, cada una con una clase semántica, una traslación 3D, un tamaño y un ángulo de rotación. Para alimentar un transformer hay que convertir el conjunto en una secuencia eligiendo una permutación.",
+      "blocks": [
+        "s3-p2"
+      ],
+      "key": "scene-as-boxes",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Early scene synthesis encoded hand-crafted rules and priors (like couches facing TVs), which are time-consuming, skill-dependent and not flexible for complex scenes. Deep generative models instead learn the priors directly from data.",
+      "es": "La síntesis de escenas temprana codificaba reglas y priors hechos a mano (como sillones frente a televisores), que consumen tiempo, dependen de la habilidad de quien los escribe y no son flexibles en escenas complejas. Los modelos generativos profundos aprenden esos priors directamente de los datos.",
+      "blocks": [
+        "s1-p1",
+        "s1-p2",
+        "s2-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "claim",
+      "en": "Autoregressive models place objects in an arbitrary order that ignores the relationships and hierarchies of real scenes. The paper says ATISS (shuffled order), COFS (masked language model) and DiffuScene (fully-connected graph) do not account for inherent ordering, which leads to objects placed too close and to intersections.",
+      "es": "Los modelos autorregresivos colocan los objetos en un orden arbitrario que ignora las relaciones y jerarquías de las escenas reales. El artículo dice que ATISS (orden barajado), COFS (modelo de lenguaje enmascarado) y DiffuScene (grafo totalmente conectado) no toman en cuenta el orden inherente, y eso lleva a objetos muy juntos y a intersecciones.",
+      "blocks": [
+        "s1-p2",
+        "s4-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "concept",
+      "en": "The scene tree: each subtree is a functional zone (relaxation, dining), with the main piece as the parent and the secondary objects as children. Primary objects are placed first, then their associated items.",
+      "es": "El árbol de escena: cada subárbol es una zona funcional (descanso, comedor), con la pieza principal como padre y los objetos secundarios como hijos. Primero se colocan los objetos principales y después los que se asocian a ellos.",
+      "blocks": [
+        "s3-p2",
+        "s1-p3",
+        "fig-1"
+      ],
+      "key": "scene-tree",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "The tree is built with Modified Euclidean Distance Clustering: on top-down 2D boxes, the distance between two objects is the center distance plus λ·(1 − GIoU). DBSCAN (eps 0.15, min-samples 2, λ=0.02) groups furniture into clusters and flags outliers, and the largest object in each cluster becomes the root.",
+      "es": "El árbol se construye con Modified Euclidean Distance Clustering: sobre las cajas 2D vistas desde arriba, la distancia entre dos objetos es la distancia entre centros más λ·(1 − GIoU). DBSCAN (eps 0.15, min-samples 2, λ=0.02) agrupa el mobiliario en clústeres y marca los atípicos, y el objeto más grande de cada clúster es la raíz.",
+      "blocks": [
+        "s3-p3",
+        "s3-e1",
+        "s3-p4",
+        "s3-p19"
+      ],
+      "key": "medc-dbscan",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "Siblings under the same parent are shuffled randomly, and then breadth-first search flattens the tree into a sequence. This puts the dominant furniture before its secondary objects.",
+      "es": "Los hermanos bajo el mismo padre se barajan al azar y después una búsqueda en anchura aplana el árbol en una secuencia. Así el mobiliario dominante queda antes que sus objetos secundarios.",
+      "blocks": [
+        "s3-p4",
+        "fig-2"
+      ],
+      "key": "bfs-linearization",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "concept",
+      "en": "Flexible furniture like cabinets can belong to the relaxation zone, the dining zone or the whole room. The scene forest attaches each such outlier to every possible parent, giving an ensemble of trees, and training picks one tree at random to flatten with BFS, which widens the permutation space.",
+      "es": "El mobiliario flexible, como los gabinetes, puede pertenecer a la zona de descanso, a la de comedor o a todo el cuarto. El bosque de escena une cada uno de esos atípicos a cada padre posible y da un conjunto de árboles; en el entrenamiento se elige un árbol al azar y se aplana con BFS, lo que amplía el espacio de permutaciones.",
+      "blocks": [
+        "s3-p5",
+        "fig-3",
+        "fig-1"
+      ],
+      "key": "scene-forest",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "A small ViT layout encoder turns the 64×64 binary floor mask into a start token, an object encoder turns each object into a 512-dim token, and a GPT-2-like causal decoder (6 layers, 6 heads, hidden size 192) predicts the next object's embedding from the start token and all previous objects.",
+      "es": "Un encoder ViT pequeño convierte la máscara binaria de piso de 64×64 en un token inicial, un encoder de objetos convierte cada objeto en un token de 512 dimensiones, y un decoder causal tipo GPT-2 (6 capas, 6 cabezas, tamaño oculto de 192) predice el embedding del siguiente objeto a partir del token inicial y de todos los objetos anteriores.",
+      "blocks": [
+        "s3-p6",
+        "s3-p7",
+        "s3-p8",
+        "s3-e2",
+        "forest2seq-revitalizing-order-prior-for-p10"
+      ],
+      "key": "causal-decoder-next-object",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Continuous attributes (position, size, orientation) are predicted as a mixture of logistic distributions (10 components), and the class with a softmax. Training minimizes the negative log-likelihood of the sequence, factorized as the product of next-object conditionals.",
+      "es": "Los atributos continuos (posición, tamaño, orientación) se predicen como una mezcla de distribuciones logísticas (10 componentes) y la clase con un softmax. El entrenamiento minimiza el logaritmo negativo de la verosimilitud de la secuencia, factorizada como producto de condicionales del siguiente objeto.",
+      "blocks": [
+        "s3-p10",
+        "s3-p11",
+        "s3-p14",
+        "s3-e5",
+        "s3-p18",
+        "s3-p19"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "Denoising training: 5% of the object embeddings are replaced with a [MASK] token and 5% of the ground-truth categories are swapped for random ones, instead of pure teacher forcing. The paper uses this to reduce overfitting and error propagation in sequential prediction.",
+      "es": "Entrenamiento con ruido: el 5% de los embeddings de objetos se reemplaza por un token [MASK] y el 5% de las categorías reales se cambia por categorías al azar, en lugar de usar teacher forcing puro. El artículo lo usa para reducir el sobreajuste y la propagación de errores en la predicción secuencial.",
+      "blocks": [
+        "s3-p12"
+      ],
+      "key": "masked-token-noise",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "At inference the model starts from the layout token and samples the attributes of each next object autoregressively until it produces the end token. Each sampled labeled box is then matched to the closest-size furniture instance of its category in 3D-FUTURE.",
+      "es": "En la inferencia el modelo parte del token de layout y muestrea los atributos de cada objeto siguiente de forma autorregresiva hasta producir el token final. Cada caja con etiqueta se asocia después con la instancia de mobiliario de tamaño más cercano dentro de su categoría en 3D-FUTURE.",
+      "blocks": [
+        "s3-p13"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "dataset",
+      "en": "3D-FRONT has around 10k professional 3D indoor scenes. Following ATISS, the train/validation split is 3879/162 bedrooms, 230/56 libraries, 621/270 living rooms and 723/177 dining rooms, and the bedroom model initializes the weights for the other room types.",
+      "es": "3D-FRONT tiene cerca de 10k escenas interiores 3D profesionales. Siguiendo a ATISS, la división entrenamiento/validación es 3879/162 recámaras, 230/56 bibliotecas, 621/270 salas y 723/177 comedores, y el modelo de recámaras inicializa los pesos de los otros tipos de cuarto.",
+      "blocks": [
+        "s4-p1"
+      ],
+      "key": "3d-front",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "Scenes are rendered as 256×256 orthographic maps and scored with FID, classification accuracy score (CAS) and categorical KL divergence. Baselines are FastSynth, SceneFormer, ATISS, COFS, LayoutGPT and DiffuScene, and the last two were re-run with their official code for fairness.",
+      "es": "Las escenas se renderizan como mapas ortográficos de 256×256 y se evalúan con FID, classification accuracy score (CAS) y divergencia KL categórica. Los baselines son FastSynth, SceneFormer, ATISS, COFS, LayoutGPT y DiffuScene, y los dos últimos se volvieron a correr con su código oficial para una comparación justa.",
+      "blocks": [
+        "s4-p1"
+      ],
+      "key": "scene-synthesis-metrics",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "result",
+      "en": "On 3D-FRONT, Forest2Seq beats the top-performing baseline with an average margin of FID score of 2.58 and a KL score of 1.78. It has the best KL, FID and CAS, and the paper says the gain is larger for living rooms and dining rooms, which have the most nodes and trees.",
+      "es": "En 3D-FRONT, Forest2Seq supera al mejor baseline con un margen promedio de FID de 2.58 y de KL de 1.78. Tiene el mejor KL, FID y CAS, y el artículo dice que la mejora es mayor en salas y comedores, que tienen más nodos y árboles.",
+      "blocks": [
+        "s1-p5",
+        "s4-p3",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "Forest2Seq has competitive inference times and requires the fewest parameters of all compared methods, 48% fewer than the model with the second fewest. The paper credits a compact transformer decoder and a small ViT layout encoder.",
+      "es": "Forest2Seq tiene tiempos de inferencia competitivos y necesita el menor número de parámetros de todos los métodos comparados, 48% menos que el modelo con el segundo menor número. El artículo lo atribuye a un decoder transformer compacto y a un encoder de layout ViT pequeño.",
+      "blocks": [
+        "s4-p3",
+        "tab-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "In a user study, 37 participants judged the realism of scenes from DiffuScene, ATISS, COFS and Forest2Seq on 51 randomly selected rooms of each type. More than 50% of Forest2Seq living rooms and dining rooms were considered more realistic than the others, and it gained a predominant preference in bedrooms and libraries.",
+      "es": "En un estudio con usuarios, 37 participantes juzgaron el realismo de escenas de DiffuScene, ATISS, COFS y Forest2Seq en 51 cuartos elegidos al azar de cada tipo. Más del 50% de las salas y comedores de Forest2Seq se consideraron más realistas que los demás, y obtuvo una preferencia predominante en recámaras y bibliotecas.",
+      "blocks": [
+        "s4-p3",
+        "tab-3",
+        "forest2seq-revitalizing-order-prior-for-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "Order ablation on living rooms (KL / FID / CAS): random single order 20.0 / 49.4 / 83.7, fixed frequency order 17.9 / 49.8 / 80.1, tree+BFS 7.90 / 36.1 / 68.1, and forest+BFS 5.90 / 35.2 / 68.0. Tree-guided order beats random and fixed, and the forest improves KL further over the tree.",
+      "es": "Ablación del orden en salas (KL / FID / CAS): orden aleatorio único 20.0 / 49.4 / 83.7, orden fijo por frecuencia 17.9 / 49.8 / 80.1, árbol+BFS 7.90 / 36.1 / 68.1 y bosque+BFS 5.90 / 35.2 / 68.0. El orden guiado por árbol supera al aleatorio y al fijo, y el bosque mejora aún más el KL respecto al árbol.",
+      "blocks": [
+        "s4-p5",
+        "s4-p6",
+        "s4-p7",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "BFS beats DFS on forest sequences: forest+DFS scores KL 9.40, FID 40.5, CAS 71.7 against 5.90, 35.2 and 68.0 for forest+BFS. The paper attributes this to more consistent BFS sequences (inconsistency 1.87 against 4.01) and notes primary furniture is placed less accurately with DFS.",
+      "es": "BFS supera a DFS en las secuencias del bosque: bosque+DFS obtiene KL 9.40, FID 40.5 y CAS 71.7 frente a 5.90, 35.2 y 68.0 de bosque+BFS. El artículo lo atribuye a que las secuencias BFS son más consistentes (inconsistencia de 1.87 contra 4.01) y señala que con DFS el mobiliario principal se coloca con menos precisión.",
+      "blocks": [
+        "s4-p6",
+        "s4-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Shuffling the sequence as ATISS does (random multiple orders, diversity ∞) improves over a single random order, with KL 13.1 against 20.0, which the paper attributes to data augmentation and high diversity. Its performance is still limited by sequence inconsistency of 9.54.",
+      "es": "Barajar la secuencia como lo hace ATISS (órdenes aleatorios múltiples, diversidad ∞) mejora respecto a un solo orden aleatorio, con KL de 13.1 contra 20.0, y el artículo lo atribuye al aumento de datos y a la alta diversidad. Su desempeño sigue limitado por una inconsistencia de secuencias de 9.54.",
+      "blocks": [
+        "s4-p6",
+        "s4-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "method",
+      "en": "Two statistics describe a set of orderings per scene: diversity is the average number of ordered sequences (2.83 for forests), and inconsistency is the average Hamming distance between pairs of sequences in the set (zero when there is only one sequence).",
+      "es": "Dos estadísticas describen el conjunto de órdenes de cada escena: la diversidad es el número promedio de secuencias ordenadas (2.83 en los bosques) y la inconsistencia es la distancia de Hamming promedio entre pares de secuencias del conjunto (cero cuando solo hay una secuencia).",
+      "blocks": [
+        "s4-p5",
+        "s4-p6",
+        "forest2seq-revitalizing-order-prior-for-p16",
+        "forest2seq-revitalizing-order-prior-for-p17",
+        "forest2seq-revitalizing-order-prior-for-p18"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "To check how well the hierarchy is recovered, pure Euclidean clustering, MEDC and the learned VCTree are compared with Average Hierarchical Distance against human-annotated trees on 60 scenes. The paper says MEDC, though simple, captures the underlying semantic relationships and is computationally efficient (scores in Table 5a).",
+      "es": "Para ver qué tan bien se recupera la jerarquía, se comparan el clustering euclidiano puro, MEDC y el VCTree aprendido con la Average Hierarchical Distance frente a árboles anotados por personas en 60 escenas. El artículo dice que MEDC, aunque sencillo, captura las relaciones semánticas de fondo y es eficiente en cómputo (puntajes en la Tabla 5a).",
+      "blocks": [
+        "s4-p8",
+        "tab-5",
+        "forest2seq-revitalizing-order-prior-for-p12",
+        "forest2seq-revitalizing-order-prior-for-p16"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "Positional encoding helps the decoder learn order: variants with relative or absolute encoding do better than one without, and absolute encoding is marginally better.",
+      "es": "El positional encoding ayuda al decoder a aprender el orden: las variantes con codificación relativa o absoluta funcionan mejor que la que no la tiene, y la absoluta es ligeramente mejor.",
+      "blocks": [
+        "s4-p9",
+        "tab-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "A small mask/noise rate of 0.05 or 0.1 prevents overfitting and improves generalization, while at 0.2 it becomes hard for the training loss to converge.",
+      "es": "Una tasa pequeña de máscara/ruido de 0.05 o 0.1 evita el sobreajuste y mejora la generalización, mientras que con 0.2 se vuelve difícil que la pérdida de entrenamiento converja.",
+      "blocks": [
+        "s4-p9",
+        "tab-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "Layout encoder ablation (parameters in M, KL / FID / CAS): PointNet 1.13, 8.3 / 40.5 / 77.4; ResNet18 11.1, 6.2 / 36.7 / 70.1; ViT-S 2.56, 5.9 / 35.2 / 68.0. The ViT has the second-fewest parameters and the best scores.",
+      "es": "Ablación del encoder de layout (parámetros en M, KL / FID / CAS): PointNet 1.13, 8.3 / 40.5 / 77.4; ResNet18 11.1, 6.2 / 36.7 / 70.1; ViT-S 2.56, 5.9 / 35.2 / 68.0. El ViT tiene el segundo menor número de parámetros y los mejores puntajes.",
+      "blocks": [
+        "forest2seq-revitalizing-order-prior-for-p3",
+        "forest2seq-revitalizing-order-prior-for-p7",
+        "tab-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "claim",
+      "en": "The paper names three strategies against overfitting: the scene forest gives an a priori order that guides generation, a decoder-only architecture has less capacity and generates better than encoder-decoder models like BART, and the denoising training improves generalization.",
+      "es": "El artículo nombra tres estrategias contra el sobreajuste: el bosque de escena da un orden a priori que guía la generación, una arquitectura solo decoder tiene menos capacidad y genera mejor que los modelos encoder-decoder como BART, y el entrenamiento con ruido mejora la generalización.",
+      "blocks": [
+        "s4-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "Scene completion: the ground truth of the first N objects is kept and the model predicts the rest autoregressively. Compared with DiffuScene and COFS, which omit essential items like lights and misplace dining tables and cabinets, Forest2Seq gives clean, coherent scenes thanks to its awareness of key furniture placement.",
+      "es": "Completar escenas: se conservan los primeros N objetos reales y el modelo predice el resto de forma autorregresiva. Frente a DiffuScene y COFS, que omiten elementos esenciales como las luces y colocan mal mesas de comedor y gabinetes, Forest2Seq da escenas limpias y coherentes gracias a que reconoce la colocación del mobiliario clave.",
+      "blocks": [
+        "s4-p10",
+        "s4-p13",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "result",
+      "en": "Scene rearrangement: the model corrects one or several failure cases by resampling the position of an object given the other inputs. It adjusted a night stand and placed a bookshelf and chairs, which DiffuScene could not correct.",
+      "es": "Reacomodo de escenas: el modelo corrige uno o varios casos fallidos volviendo a muestrear la posición de un objeto dados los demás datos. Ajustó un buró y colocó un librero y sillas, algo que DiffuScene no pudo corregir.",
+      "blocks": [
+        "s4-p13",
+        "fig-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "limitation",
+      "en": "The model does not take doors and windows as extra conditions, so a cabinet can end up blocking a window.",
+      "es": "El modelo no toma puertas y ventanas como condiciones adicionales, así que un gabinete puede terminar tapando una ventana.",
+      "blocks": [
+        "s5-p2",
+        "fig-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "limitation",
+      "en": "Objects occasionally overlap because there are no spatial constraints on relative positioning.",
+      "es": "Los objetos a veces se traslapan porque no hay restricciones espaciales sobre el posicionamiento relativo.",
+      "blocks": [
+        "s5-p2",
+        "fig-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "limitation",
+      "en": "The model struggles to give plausible results for highly complex or non-standard layouts, partly because of the limited diversity of the training data.",
+      "es": "El modelo tiene dificultades para dar resultados plausibles en layouts muy complejos o no estándar, en parte por la diversidad limitada de los datos de entrenamiento.",
+      "blocks": [
+        "s5-p2",
+        "fig-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "future",
+      "en": "Future work should look for the optimal order for sequential generation, for example by adding a learning-to-order module to an end-to-end network that jointly optimizes the ordering and the likelihood objective.",
+      "es": "El trabajo futuro debería buscar el orden óptimo para la generación secuencial, por ejemplo integrando un módulo que aprenda el orden en una red de extremo a extremo que optimice conjuntamente el orden y el objetivo de verosimilitud.",
+      "blocks": [
+        "s5-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "claim",
+      "en": "The paper concludes that order matters in scene modeling: using the implicit hierarchy of the scene through a tree or forest and BFS, and training in an order-aware way, improves synthesis, completion and rearrangement.",
+      "es": "El artículo concluye que el orden importa en el modelado de escenas: aprovechar la jerarquía implícita de la escena mediante un árbol o bosque y BFS, y entrenar con conciencia del orden, mejora la síntesis, la compleción y el reacomodo.",
+      "blocks": [
+        "s5-p1",
+        "s0-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "concept",
+      "en": "Scenes give no explicit ordering, so the paper follows Set2Seq and searches for a good prior order for sequential modeling. Set2Seq's results show that order matters in various tasks.",
+      "es": "Las escenas no traen un orden explícito, así que el artículo sigue a Set2Seq y busca un buen orden previo para el modelado secuencial. Los resultados de Set2Seq muestran que el orden importa en varias tareas.",
+      "blocks": [
+        "s2-p1"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i4",
+      "to": "i1",
+      "type": "supports",
+      "why": "The arbitrary-order problem is what motivates asking whether a meaningful order helps."
+    },
+    {
+      "from": "i34",
+      "to": "i1",
+      "type": "supports",
+      "why": "Set2Seq already showed that order matters in other tasks, which motivates trying it on scenes."
+    },
+    {
+      "from": "i5",
+      "to": "i6",
+      "type": "uses",
+      "why": "The scene tree is built by MEDC clustering with DBSCAN."
+    },
+    {
+      "from": "i7",
+      "to": "i5",
+      "type": "uses",
+      "why": "BFS flattens the scene tree into the sequence the transformer reads."
+    },
+    {
+      "from": "i5",
+      "to": "i8",
+      "type": "part-of",
+      "why": "A scene forest is an ensemble of scene trees."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "uses",
+      "why": "The decoder is trained on sequences from a randomly selected tree of the forest."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "part-of",
+      "why": "The logistic mixture and softmax outputs are the model's attribute extractor."
+    },
+    {
+      "from": "i11",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Input corruption is part of how the decoder is trained."
+    },
+    {
+      "from": "i12",
+      "to": "i9",
+      "type": "uses",
+      "why": "Inference samples from the trained next-object decoder."
+    },
+    {
+      "from": "i9",
+      "to": "i13",
+      "type": "uses",
+      "why": "The model is trained and evaluated on 3D-FRONT scenes."
+    },
+    {
+      "from": "i14",
+      "to": "i15",
+      "type": "measures",
+      "why": "FID, CAS and KL against the listed baselines give the main result."
+    },
+    {
+      "from": "i15",
+      "to": "i33",
+      "type": "supports",
+      "why": "Better scores than the top baselines back the claim that order helps."
+    },
+    {
+      "from": "i17",
+      "to": "i33",
+      "type": "supports",
+      "why": "People judged the scenes more realistic, an independent check of the metric gains."
+    },
+    {
+      "from": "i18",
+      "to": "i8",
+      "type": "supports",
+      "why": "KL improves from tree+BFS (7.90) to forest+BFS (5.90), the paper's evidence for modeling flexible objects with a forest."
+    },
+    {
+      "from": "i18",
+      "to": "i33",
+      "type": "supports",
+      "why": "Random and fixed orders score far worse than tree-guided order in the same model."
+    },
+    {
+      "from": "i19",
+      "to": "i7",
+      "type": "supports",
+      "why": "BFS beats DFS because its sequences are more consistent."
+    },
+    {
+      "from": "i21",
+      "to": "i19",
+      "type": "measures",
+      "why": "Inconsistency (1.87 against 4.01) is the number used to explain BFS over DFS."
+    },
+    {
+      "from": "i20",
+      "to": "i4",
+      "type": "supports",
+      "why": "Random shuffling, as in ATISS, is still limited by inconsistency 9.54."
+    },
+    {
+      "from": "i22",
+      "to": "i6",
+      "type": "measures",
+      "why": "Average Hierarchical Distance scores how well MEDC recovers the human-annotated hierarchy."
+    },
+    {
+      "from": "i23",
+      "to": "i9",
+      "type": "supports",
+      "why": "The decoder needs positional encoding to learn the order."
+    },
+    {
+      "from": "i24",
+      "to": "i11",
+      "type": "supports",
+      "why": "The 0.05 and 0.1 rates work and 0.2 does not converge, which fixes the noise setting."
+    },
+    {
+      "from": "i24",
+      "to": "i26",
+      "type": "supports",
+      "why": "Denoising is one of the three anti-overfitting strategies."
+    },
+    {
+      "from": "i25",
+      "to": "i9",
+      "type": "supports",
+      "why": "The ViT layout encoder gave the best scores among the encoders tried."
+    },
+    {
+      "from": "i27",
+      "to": "i12",
+      "type": "uses",
+      "why": "Completion continues autoregressive sampling after the first N objects."
+    },
+    {
+      "from": "i27",
+      "to": "i33",
+      "type": "supports",
+      "why": "A downstream task where the ordered model gives more coherent scenes."
+    },
+    {
+      "from": "i28",
+      "to": "i12",
+      "type": "uses",
+      "why": "Rearrangement resamples an object's position with the same sampling procedure."
+    },
+    {
+      "from": "i28",
+      "to": "i33",
+      "type": "supports",
+      "why": "Another downstream task where DiffuScene could not correct the placements."
+    },
+    {
+      "from": "i30",
+      "to": "i15",
+      "type": "contradicts",
+      "why": "Occasional overlaps remain despite the better realism scores."
+    },
+    {
+      "from": "i18",
+      "to": "i32",
+      "type": "supports",
+      "why": "If order changes KL from 20.0 to 5.90, finding the best order is the natural next step."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i2",
+      "to": "ifc-to-graph-recipe",
+      "why": "A scene is a set of elements with class, position, size and rotation, close to elements as nodes; here the relations are not given but mined from geometry."
+    },
+    {
+      "idea": "i5",
+      "to": "hypothesis",
+      "why": "Supports the idea that elements plus a relation structure help the AI: a parent-child hierarchy mined from distances took KL from 20.0 (random order) to 7.90, though with furniture, not BIM."
+    },
+    {
+      "idea": "i19",
+      "to": "placement-order-experiments",
+      "why": "Direct evidence that the order of placement matters (dominant pieces first, BFS KL 5.90 against DFS KL 9.40), to compare with the thesis orders."
+    },
+    {
+      "idea": "i9",
+      "to": "assemble-node-by-node",
+      "why": "Same family of method: a causal decoder predicts the next element from the context and all previous ones, one at a time."
+    },
+    {
+      "idea": "i11",
+      "to": "masking-training",
+      "why": "A contrast: here masking is only 5% input noise to regularize (0.2 was hard to converge), not hiding a part of the model for the AI to fill."
+    },
+    {
+      "idea": "i8",
+      "to": "deconstruct-for-training",
+      "why": "One scene gives several valid sequences (diversity 2.83), a way to get more training examples from each model."
+    },
+    {
+      "idea": "i3",
+      "to": "explicit-vs-learned",
+      "why": "Frames hand-crafted rules against learned priors, and Forest2Seq puts an explicit ordering rule inside a learned model."
+    },
+    {
+      "idea": "i30",
+      "to": "locks-beside-learned-part",
+      "why": "Overlaps and cabinets blocking windows are failures a learned generator leaves, the kind explicit checks beside the learned part could catch."
+    },
+    {
+      "idea": "i13",
+      "to": "real-or-synthetic-data",
+      "why": "Real professional scenes are few for some room types (230 library scenes), so the bedroom model initializes the rest, and the authors tie failures to limited training diversity."
+    },
+    {
+      "idea": "i15",
+      "to": "new-not-replicated",
+      "why": "A gap: quality is scored with FID, KL, CAS and a user study, and the text has no test of whether generated scenes copy training ones."
+    }
+  ]
+}

@@ -1,0 +1,1169 @@
+{
+  "version": 1,
+  "node": "mahmood-2021",
+  "title": "Masked graph modeling for molecule generation",
+  "source": "files/Masked graph modeling for molecule generation.pdf",
+  "sections": [
+    {
+      "id": "s1",
+      "title": {
+        "en": "ARTICLE",
+        "es": "ARTÍCULO"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "https://doi.org/10.1038/s41467-021-23415-2 OPEN",
+            "es": "https://doi.org/10.1038/s41467-021-23415-2 OPEN"
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Omar Mahmood 1, Elman Mansimov2, Richard Bonneau 3 & Kyunghyun Cho 2✉",
+            "es": "Omar Mahmood 1, Elman Mansimov2, Richard Bonneau 3 & Kyunghyun Cho 2✉"
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "De novo, in-silico design of molecules is a challenging problem with applications in drug discovery and material design. We introduce a masked graph model, which learns a distribution over graphs by capturing conditional distributions over unobserved nodes (atoms) and edges (bonds) given observed ones. We train and then sample from our model by iteratively masking and replacing different parts of initialized graphs. We evaluate our approach on the QM9 and ChEMBL datasets using the GuacaMol distribution-learning benchmark. We ﬁnd that validity, KL-divergence and Fréchet ChemNet Distance scores are anti-correlated with novelty, and that we can trade off between these metrics more effectively than existing models. On distributional metrics, our model outperforms previously proposed graph-based approaches and is competitive with SMILES-based approaches. Finally, we show our model generates molecules with desired values of speciﬁed properties while maintaining physiochemical similarity to the training distribution.",
+            "es": "El diseño de moléculas de novo e in silico es un problema desafiante con aplicaciones en el descubrimiento de fármacos y el diseño de materiales. Presentamos un modelo de grafos enmascarados (masked graph model), que aprende una distribución sobre grafos al capturar distribuciones condicionales sobre nodos (átomos) y aristas (enlaces) no observados dados los observados. Entrenamos nuestro modelo y luego muestreamos de él enmascarando y reemplazando iterativamente distintas partes de grafos inicializados. Evaluamos nuestro enfoque en los conjuntos de datos QM9 y ChEMBL usando el benchmark de aprendizaje de distribuciones (distribution-learning) GuacaMol. Encontramos que las puntuaciones de validez, divergencia KL (KL-divergence) y distancia Fréchet ChemNet (Fréchet ChemNet Distance) están anticorrelacionadas con la novedad, y que podemos intercambiar entre estas métricas de manera más eficaz que los modelos existentes. En métricas distribucionales, nuestro modelo supera a los enfoques basados en grafos propuestos previamente y es competitivo con los enfoques basados en SMILES. Por último, mostramos que nuestro modelo genera moléculas con los valores deseados de propiedades especificadas, manteniendo la similitud fisicoquímica con la distribución de entrenamiento."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "1234567890():,;",
+            "es": "1234567890():,;"
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "1 Center for Data Science, New York University, New York, NY, USA. 2 Department of Computer Science, Courant Institute of Mathematical Sciences, New York, NY, USA. 3 Center for Genomics and Systems Biology, New York University, New York, NY, USA. ✉email: kyunghyun.cho@nyu.edu",
+            "es": "1 Center for Data Science, New York University, New York, NY, USA. 2 Department of Computer Science, Courant Institute of Mathematical Sciences, New York, NY, USA. 3 Center for Genomics and Systems Biology, New York University, New York, NY, USA. ✉email: kyunghyun.cho@nyu.edu"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "T",
+        "es": "E"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "he design of de novo molecules in-silico with desired properties is an essential part of drug discovery and materials design but remains a challenging problem due to the very large combinatorial space of all possible synthesizable molecules1. Recently, various deep generative models for the task of molecular graph generation have been proposed, including: neural autoregressive models2,3, variational autoencoders4,5, adversarial autoencoders6, and generative adversarial networks7,8.",
+            "es": "l diseño in-silico de moléculas de novo con propiedades deseadas es una parte esencial del descubrimiento de fármacos y del diseño de materiales, pero sigue siendo un problema difícil debido al enorme espacio combinatorio de todas las moléculas sintetizables posibles1. Recientemente se han propuesto diversos modelos generativos profundos (deep generative models) para la tarea de generación de grafos moleculares, entre ellos: modelos autorregresivos neuronales (neural autoregressive models)2,3, autoencoders variacionales (variational autoencoders)4,5, autoencoders adversariales (adversarial autoencoders)6 y redes generativas adversariales (generative adversarial networks)7,8."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "A unifying theme behind these approaches is that they model the underlying distribution p⋆(G) of molecular graphs G. Once the underlying distribution is captured, new molecular graphs are sampled accordingly. As we do not have access to this underlying distribution, it is typical to explicitly model p⋆(G) by a distribution pθ(G). This is done using a function fθ so that pθ(G) = fθ(G). The parameters θ are then learned by minimizing the KL-divergence KL(p⋆∣∣pθ) between the true distribution and the parameterized distribution. Since we do not have access to p⋆(G), KL(p⋆∣∣pθ) is approximated using a training set D = (G1, G2, . . . , GM) which consists of samples from p⋆. Once the model has been trained on this distribution, it is used to carry out generation.",
+            "es": "Un tema común detrás de estos enfoques es que modelan la distribución subyacente p⋆(G) de los grafos moleculares G. Una vez que se captura la distribución subyacente, se muestrean nuevos grafos moleculares de acuerdo con ella. Como no tenemos acceso a esta distribución subyacente, lo habitual es modelar explícitamente p⋆(G) mediante una distribución pθ(G). Esto se hace usando una función fθ de modo que pθ(G) = fθ(G). Los parámetros θ se aprenden entonces minimizando la divergencia KL (KL-divergence) KL(p⋆∣∣pθ) entre la distribución verdadera y la distribución parametrizada. Dado que no tenemos acceso a p⋆(G), KL(p⋆∣∣pθ) se aproxima usando un conjunto de entrenamiento (training set) D = (G1, G2, . . . , GM) que consta de muestras de p⋆. Una vez que el modelo ha sido entrenado con esta distribución, se utiliza para llevar a cabo la generación."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Each of these approaches makes unique assumptions about the underlying probabilistic structure of a molecular graph. Autoregressive models2,3,9–12 specify an ordering of atoms and bonds in advance to model the graph. They decompose the distribution p(G) as a product of temporal conditional distributions p(gt∣G<t), where gt is the vertex or edge to be added to G at time t and G<t are the vertices and edges that have been added in previous steps. Generation from an autoregressive model is often done sequentially by ancestral sampling. Deﬁning such a distribution requires ﬁxing an ordering of the nodes and vertices of a graph in advance. Although directed acyclic graphs have canonical orderings based on breadth-ﬁrst search (BFS) and depth-ﬁrst search (DFS), graphs can take a variety of valid orderings. The choice of ordering is largely arbitrary, and it is hard to predict how a particular choice of ordering will impact the learning process13.",
+            "es": "Cada uno de estos enfoques hace supuestos particulares sobre la estructura probabilística subyacente de un grafo molecular. Los modelos autorregresivos2,3,9–12 especifican de antemano un orden de los átomos y los enlaces para modelar el grafo. Descomponen la distribución p(G) como un producto de distribuciones condicionales temporales p(gt∣G<t), donde gt es el vértice o la arista que se añadirá a G en el tiempo t y G<t son los vértices y las aristas que se añadieron en los pasos previos. La generación a partir de un modelo autorregresivo suele hacerse de forma secuencial mediante muestreo ancestral (ancestral sampling). Definir una distribución así exige fijar de antemano un orden de los nodos y los vértices de un grafo. Aunque los grafos acíclicos dirigidos (directed acyclic graphs) tienen órdenes canónicos basados en la búsqueda en anchura (breadth-first search, BFS) y la búsqueda en profundidad (depth-first search, DFS), los grafos pueden adoptar una variedad de órdenes válidos. La elección del orden es en gran medida arbitraria, y es difícil predecir cómo afectará una elección particular de orden al proceso de aprendizaje13."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Latent variable models such as variational autoencoders and adversarial autoencoders assume the existence of unobserved (latent) variables Z = {z1, z2, . . . , zk} that aim to capture dependencies among the vertices V and edges E of a graph G. Unlike an autoregressive model, a latent variable model does not necessarily require a predeﬁned ordering of the graph14. The generation process consists of ﬁrst sampling latent variables according to their prior distributions, followed by sampling vertices and edges conditioned on these latent variable samples. However, learning the parameters θ of a latent variable model is more challenging than learning the parameters of an autoregressive model. It requires marginalizing latent variables to compute the marginal probability of a graph, i.e., p(G) = ∫Zp(G∣Z)p(Z)dZ, which is often intractable. Recent approaches have focused on deriving a tractable lower-bound to the marginal probability by introducing an approximate posterior distribution q(Z) and maximizing this lowerbound instead4–6. Unlike variational autoencoders, generative adversarial networks (GAN) do not use KL-divergence to measure the discrepancy between the model distribution and data distribution and instead estimate the divergence as a part of learning.",
+            "es": "Los modelos de variables latentes (latent variable models), como los autoencoders variacionales y los autoencoders adversariales, suponen la existencia de variables no observadas (latentes) Z = {z1, z2, . . . , zk} que buscan capturar las dependencias entre los vértices V y las aristas E de un grafo G. A diferencia de un modelo autorregresivo, un modelo de variables latentes no requiere necesariamente un orden predefinido del grafo14. El proceso de generación consiste primero en muestrear las variables latentes según sus distribuciones a priori (prior distributions), y luego muestrear vértices y aristas condicionados a esas muestras de variables latentes. Sin embargo, aprender los parámetros θ de un modelo de variables latentes es más difícil que aprender los parámetros de un modelo autorregresivo. Requiere marginalizar las variables latentes para calcular la probabilidad marginal de un grafo, es decir, p(G) = ∫Zp(G∣Z)p(Z)dZ, lo cual con frecuencia es intratable. Los enfoques recientes se han centrado en derivar una cota inferior tratable de la probabilidad marginal introduciendo una distribución a posteriori aproximada (approximate posterior distribution) q(Z) y maximizando en su lugar esa cota inferior4–6. A diferencia de los autoencoders variacionales, las redes generativas adversariales (GAN) no usan la divergencia KL para medir la discrepancia entre la distribución del modelo y la distribución de los datos, sino que estiman la divergencia como parte del aprendizaje."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In addition to using a speciﬁc factorization, each model uses a speciﬁc representation of molecules; two such representations are string-based and graph-based. The ability of a language model to model molecules is limited by the string representation used15. Directly modeling molecules as graphs bypasses the need to ﬁnd better ways of serializing molecules as strings. It also allows for the use of graph-speciﬁc features such as distances between atoms, which are not readily encoded as strings. Developing datasets and benchmarks that incorporate these features would enable more informative comparisons between models that use different molecular representations.",
+            "es": "Además de usar una factorización específica, cada modelo utiliza una representación específica de las moléculas; dos de estas representaciones son las basadas en cadenas de texto (string-based) y las basadas en grafos (graph-based). La capacidad de un modelo de lenguaje (language model) para modelar moléculas está limitada por la representación en cadena utilizada15. Modelar directamente las moléculas como grafos evita la necesidad de encontrar mejores formas de serializar las moléculas como cadenas. También permite el uso de características propias de los grafos, como las distancias entre átomos, que no se codifican fácilmente como cadenas. Desarrollar conjuntos de datos y benchmarks que incorporen estas características permitiría comparaciones más informativas entre modelos que usan distintas representaciones moleculares."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Existing graph-based generative models of molecules attempt to directly model the joint distribution. Some of these models follow the autoregressive framework earlier described. Li et al.16 proposed a deep generative model of graphs that predicts a sequence of transformation operations to generate a graph. You et al.17 proposed an RNN-based autoregressive generative model that generates components of a graph in breadth-ﬁrst search (BFS) ordering. To speed up the autoregressive graph generation and improve scalability, Liao et al.18 extended autoregressive models of graphs by adding blockwise parallel generation. Dai et al.19 proposed an autoregressive generative model of graphs that utilizes sparsity to avoid generating the full adjacency matrix and generates novel graphs in log-linear time complexity. Grover et al.20 proposed a VAE-based iterative generative model for small graphs. They restrict themselves to modeling only the graph structure, not a full graph including node and edge features for molecule generation. Liu et al.21 proposed a graph neural network model based on normalizing ﬂows for memory-efﬁcient prediction and generation. Mercado et al.22 proposed a graph neural network-based generative model that learns functions corresponding to whether to add a node to a graph, connect two existing nodes or terminate generation. These learned functions are then used to generate de-novo graphs. The approach requires selecting an ordering of graph components, which the authors choose to be the BFS ordering.",
+            "es": "Los modelos generativos de moléculas basados en grafos existentes intentan modelar directamente la distribución conjunta (joint distribution). Algunos de estos modelos siguen el marco autorregresivo descrito antes. Li et al.16 propusieron un modelo generativo profundo de grafos que predice una secuencia de operaciones de transformación para generar un grafo. You et al.17 propusieron un modelo generativo autorregresivo basado en RNN que genera los componentes de un grafo en orden de búsqueda en anchura (BFS). Para acelerar la generación autorregresiva de grafos y mejorar la escalabilidad, Liao et al.18 extendieron los modelos autorregresivos de grafos añadiendo generación paralela por bloques. Dai et al.19 propusieron un modelo generativo autorregresivo de grafos que aprovecha la dispersión (sparsity) para evitar generar la matriz de adyacencia completa y genera grafos novedosos con complejidad temporal log-lineal. Grover et al.20 propusieron un modelo generativo iterativo basado en VAE para grafos pequeños. Se limitan a modelar únicamente la estructura del grafo, no un grafo completo con características de nodos y aristas para la generación de moléculas. Liu et al.21 propusieron un modelo de red neuronal de grafos (graph neural network) basado en flujos normalizadores (normalizing flows) para la predicción y la generación eficientes en memoria. Mercado et al.22 propusieron un modelo generativo basado en redes neuronales de grafos que aprende funciones correspondientes a si se debe añadir un nodo a un grafo, conectar dos nodos existentes o terminar la generación. Estas funciones aprendidas se usan luego para generar grafos de novo. El enfoque requiere seleccionar un orden de los componentes del grafo, que los autores eligen que sea el orden BFS."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "There are also latent variable methods for graph generation. For example, Simonovsky and Komodakis23 proposed a graph VAE to generate graph representations of molecules. Jin et al.24 proposed using a VAE to generate a junction tree followed by the generation of the molecule itself. This approach is likely to generate valid chemical structures as it uses a predetermined vocabulary of valid molecular substructures. Kwon et al.25 proposed a non-autoregressive graph variational autoencoder, which is trained with additional learning objectives to the standard VAE ELBO for unconditional and conditional molecular graph generation.",
+            "es": "También existen métodos de variables latentes para la generación de grafos. Por ejemplo, Simonovsky y Komodakis23 propusieron un VAE de grafos para generar representaciones de moléculas como grafos. Jin et al.24 propusieron usar un VAE para generar un árbol de uniones (junction tree) seguido de la generación de la molécula en sí. Es probable que este enfoque genere estructuras químicas válidas, ya que utiliza un vocabulario predeterminado de subestructuras moleculares válidas. Kwon et al.25 propusieron un autoencoder variacional de grafos no autorregresivo, que se entrena con objetivos de aprendizaje adicionales al ELBO estándar del VAE para la generación incondicional y condicional de grafos moleculares."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Along with these works on autoregressive and latent variable generative models of graphs, there is work applying reinforcement learning objectives to the task of molecular graph generation26–28 and reaction-driven molecule design29–31. In addition, Yang et al.32 proposed a target augmentation approach for improving molecular optimization, a model-agnostic framework that can be used with any black box model. Hence several existing works on generating graph representations of molecules (see the Supplementary Dis-cussion section of the Supplementary Information for more examples) directly model the joint distribution p(G) or incorporate additional objectives that can be used with a variety of models.",
+            "es": "Junto con estos trabajos sobre modelos generativos de grafos autorregresivos y de variables latentes, hay trabajos que aplican objetivos de aprendizaje por refuerzo (reinforcement learning) a la tarea de generación de grafos moleculares26–28 y al diseño de moléculas guiado por reacciones29–31. Además, Yang et al.32 propusieron un enfoque de aumento de objetivos (target augmentation) para mejorar la optimización molecular, un marco agnóstico al modelo que puede usarse con cualquier modelo de caja negra (black box). Por lo tanto, varios trabajos existentes sobre la generación de representaciones de moléculas como grafos (véase la sección de Discusión suplementaria de la Información suplementaria para más ejemplos) modelan directamente la distribución conjunta p(G) o incorporan objetivos adicionales que pueden usarse con una variedad de modelos."
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Here, we explore another approach to probabilistic graph generation based on the insight that we do not need to model the joint distribution p(G) directly to be able to sample from it. We propose a masked graph model, a generative model of graphs that learns the conditional distribution of masked graph components given the rest of the graph, induced by the underlying joint distribution. This allows us to use a procedure similar to Gibbs sampling to generate new molecular graphs, as Gibbs sampling requires access only to conditional distributions. Concretely, our approach, to which we refer as masked graph modeling, parameterizes and learns conditional distributions p(η∣G\\η) where η is a subset of the components (nodes and edges) of G and G\\η is a graph without those components (or equivalently with those components masked out). With these conditional distributions estimated from data, we sample a graph by iteratively updating its components. At each generation iteration, this involves choosing a subset of components, masking them, and sampling new values for them according to the corresponding conditional distribution. By using conditional distributions, we circumvent the assumptions made by previous approaches to model the unconditional distribution. We do not need to specify an arbitrary order of graph components, unlike in autoregressive models, and learning is exact, unlike in latent variable models. Our approach is inspired by masked language models33 that model the conditional distribution of masked words given the rest of a sentence, which have shown to be successful in natural language understanding tasks34–39 and text generation40. As shown in previous works40–42, sampling from a trained denoising autoencoder, which is analogous to sampling from our masked graph model, is theoretically equivalent to sampling from the full joint distribution. Therefore, even though we train our model on conditional distributions, sampling repeatedly from these distributions is equivalent to sampling from the full joint distribution of graphs.",
+            "es": "Aquí exploramos otro enfoque para la generación probabilística de grafos, basado en la idea de que no necesitamos modelar directamente la distribución conjunta p(G) para poder muestrear de ella. Proponemos un modelo de grafos enmascarados (masked graph model), un modelo generativo de grafos que aprende la distribución condicional de los componentes enmascarados del grafo dado el resto del grafo, inducida por la distribución conjunta subyacente. Esto nos permite usar un procedimiento similar al muestreo de Gibbs (Gibbs sampling) para generar nuevos grafos moleculares, ya que el muestreo de Gibbs solo requiere acceso a distribuciones condicionales. En concreto, nuestro enfoque, al que nos referimos como modelado de grafos enmascarados (masked graph modeling), parametriza y aprende distribuciones condicionales p(η∣G\\η), donde η es un subconjunto de los componentes (nodos y aristas) de G y G\\η es un grafo sin esos componentes (o, de forma equivalente, con esos componentes enmascarados). Con estas distribuciones condicionales estimadas a partir de los datos, muestreamos un grafo actualizando iterativamente sus componentes. En cada iteración de generación, esto implica elegir un subconjunto de componentes, enmascararlos y muestrear nuevos valores para ellos según la distribución condicional correspondiente. Al usar distribuciones condicionales, eludimos los supuestos que hacen los enfoques previos para modelar la distribución incondicional. No necesitamos especificar un orden arbitrario de los componentes del grafo, a diferencia de los modelos autorregresivos, y el aprendizaje es exacto, a diferencia de los modelos de variables latentes. Nuestro enfoque se inspira en los modelos de lenguaje enmascarados (masked language models)33, que modelan la distribución condicional de las palabras enmascaradas dado el resto de una oración, y que han demostrado ser exitosos en tareas de comprensión del lenguaje natural34–39 y en la generación de texto40. Como se muestra en trabajos previos40–42, muestrear de un autoencoder de eliminación de ruido (denoising autoencoder) entrenado, lo cual es análogo a muestrear de nuestro modelo de grafos enmascarados, equivale teóricamente a muestrear de la distribución conjunta completa. Por lo tanto, aunque entrenamos nuestro modelo con distribuciones condicionales, muestrear repetidamente de estas distribuciones equivale a muestrear de la distribución conjunta completa de los grafos."
+          }
+        },
+        {
+          "id": "s2-p10",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In this work, we evaluate our approach on two popular molecular graph datasets, QM943,44 and ChEMBL45, using a set of ﬁve distribution-learning metrics introduced in the GuacaMol benchmark46: the validity, uniqueness, novelty, KL-divergence47 (KLD) and Fréchet ChemNet Distance48 (FCD) scores. The KL-divergence and Fréchet ChemNet Distance scores are measures of the similarity between generated molecules and molecules from the combined training, validation and test distributions, which we call the dataset distribution. We ﬁnd that the validity, Fréchet ChemNet Distance and KL-divergence scores are highly correlated with each other and inversely correlated with the novelty score. We show that state-of-the-art autoregressive models are ineffective in controlling the trade-off between novelty and the validity, Fréchet ChemNet Distance, and KL-divergence scores, whereas our masked graph model provides effective control over this trade-off. Overall, the proposed masked graph model, trained on the graph representations of molecules, outperforms previously proposed graph-based generative models of molecules and performs comparably to several SMILES-based models. Additionally, our model achieves comparable performance on validity, uniqueness, and KL-divergence scores compared to stateof-the-art autoregressive SMILES-based models, but with lower Fréchet ChemNet Distance scores. We also carry out conditional generation to obtain molecules with target values of speciﬁed physiochemical properties. This involves predicting the masked out components of a molecular graph given the rest of the graph, conditioned on the whole graph having a speciﬁed value of the physiochemical property of interest. Example target properties for this approach include the LogP measure of lipophilicity, and molecular weight. We ﬁnd that our model produces molecules with values close to the target values of these properties without compromising other metrics. Compared with a baseline graph generation approach, the generated molecules maintain physiochemical similarity to the training distribution even as they are optimized for the speciﬁed metric. Finally, we ﬁnd that our method is computationally efﬁcient, needing little time to generate new molecules.",
+            "es": "En este trabajo evaluamos nuestro enfoque en dos conjuntos de datos populares de grafos moleculares, QM943,44 y ChEMBL45, usando un conjunto de cinco métricas de aprendizaje de distribuciones (distribution-learning metrics) introducidas en el benchmark GuacaMol46: las puntuaciones de validez (validity), unicidad (uniqueness), novedad (novelty), divergencia KL47 (KLD) y distancia ChemNet de Fréchet48 (Fréchet ChemNet Distance, FCD). Las puntuaciones de divergencia KL y de distancia ChemNet de Fréchet miden la similitud entre las moléculas generadas y las moléculas de las distribuciones combinadas de entrenamiento, validación y prueba, a las que llamamos la distribución del conjunto de datos. Encontramos que las puntuaciones de validez, de distancia ChemNet de Fréchet y de divergencia KL están muy correlacionadas entre sí e inversamente correlacionadas con la puntuación de novedad. Mostramos que los modelos autorregresivos de vanguardia (state-of-the-art) no logran controlar el equilibrio entre la novedad y las puntuaciones de validez, de distancia ChemNet de Fréchet y de divergencia KL, mientras que nuestro modelo de grafos enmascarados ofrece un control eficaz de ese equilibrio. En general, el modelo de grafos enmascarados propuesto, entrenado con las representaciones de las moléculas como grafos, supera a los modelos generativos de moléculas basados en grafos propuestos previamente y tiene un desempeño comparable al de varios modelos basados en SMILES. Además, nuestro modelo logra un desempeño comparable en las puntuaciones de validez, unicidad y divergencia KL frente a los modelos autorregresivos de vanguardia basados en SMILES, pero con puntuaciones de distancia ChemNet de Fréchet más bajas. También llevamos a cabo generación condicional para obtener moléculas con valores objetivo de propiedades fisicoquímicas especificadas. Esto implica predecir los componentes enmascarados de un grafo molecular dado el resto del grafo, condicionado a que el grafo completo tenga un valor especificado de la propiedad fisicoquímica de interés. Ejemplos de propiedades objetivo para este enfoque incluyen la medida LogP de lipofilicidad y el peso molecular. Encontramos que nuestro modelo produce moléculas con valores cercanos a los valores objetivo de estas propiedades sin comprometer otras métricas. En comparación con un enfoque base (baseline) de generación de grafos, las moléculas generadas mantienen la similitud fisicoquímica con la distribución de entrenamiento incluso cuando se optimizan para la métrica especificada. Por último, encontramos que nuestro método es computacionalmente eficiente y requiere poco tiempo para generar nuevas moléculas."
+          }
+        },
+        {
+          "id": "s2-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Results Masked graph modeling overview. A masked graph model (MGM) operates on a graph G, which consists of a set of N vertices V ¼ fvigN i¼1 and a set of edges E ¼ fei;jgN i;j¼1. A vertex is denoted by vi = (i, ti), where i is the unique index assigned to it, and ti ∈Cv = {1, . . . , T} is its type, with T the number of node types. An edge is denoted by ei,j = (i, j, ri,j), where i, j are the indices to the incidental vertices of this edge and ri,j ∈Ce = {1, . . . , R} is the type of this edge, with R the number of edge types.",
+            "es": "Resultados Descripción general del modelado de grafos enmascarados. Un modelo de grafos enmascarados (masked graph model, MGM) opera sobre un grafo G, que consta de un conjunto de N vértices V ¼ fvigN i¼1 y un conjunto de aristas E ¼ fei;jgN i;j¼1. Un vértice se denota por vi = (i, ti), donde i es el índice único que se le asigna y ti ∈Cv = {1, . . . , T} es su tipo, siendo T el número de tipos de nodo. Una arista se denota por ei,j = (i, j, ri,j), donde i, j son los índices de los vértices incidentes de esta arista y ri,j ∈Ce = {1, . . . , R} es el tipo de la arista, siendo R el número de tipos de arista."
+          }
+        },
+        {
+          "id": "s2-p12",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "We use a single graph neural network to parameterize any conditional distribution induced by a given graph. We assume that the missing components η of the conditional distribution p (η∣G\\η) are conditionally independent of each other given G\\η:",
+            "es": "Usamos una única red neuronal de grafos para parametrizar cualquier distribución condicional inducida por un grafo dado. Suponemos que los componentes faltantes η de la distribución condicional p (η∣G\\η) son condicionalmente independientes entre sí dado G\\η:"
+          }
+        },
+        {
+          "id": "s2-p13",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Y",
+            "es": "Y"
+          }
+        },
+        {
+          "id": "s2-p14",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Y pðηjGnηÞ ¼ pðvjGnηÞ pðejGnηÞ; ð1Þ v2V e2E where V and E are the sets of all vertices and all edges in η respectively.",
+            "es": "Y pðηjGnηÞ ¼ pðvjGnηÞ pðejGnηÞ; ð1Þ v2V e2E donde V y E son los conjuntos de todos los vértices y de todas las aristas en η, respectivamente."
+          }
+        },
+        {
+          "id": "s2-p15",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "To train the model, we use fully observed graphs from a training dataset D. We corrupt each graph G with a corruption process C(G\\η∣G), i.e. G\\η ~ C(G\\η∣G). In this work, following the work of Devlin et al.33 for language models, we randomly replace some of the node and edge features with the special symbol MASK. After passing G\\η through our model we obtain the conditional distribution p(η∣G\\η). We then maximize the log probability log pðηjGnηÞ of the masked components η given the rest of the graph G\\η. This is analogous to a masked language model33, which predicts the masked words given the corrupted version of a sentence. This results in the following optimization problem: θ EG\u0002DEGnη\u0002CðGnηjGÞlog pθðηjGnηÞ: ð2Þ arg max",
+            "es": "Para entrenar el modelo, usamos grafos completamente observados de un conjunto de datos de entrenamiento D. Corrompemos cada grafo G con un proceso de corrupción (corruption process) C(G\\η∣G), es decir, G\\η ~ C(G\\η∣G). En este trabajo, siguiendo el trabajo de Devlin et al.33 para modelos de lenguaje, reemplazamos aleatoriamente algunas de las características de nodos y aristas con el símbolo especial MASK. Tras pasar G\\η por nuestro modelo obtenemos la distribución condicional p(η∣G\\η). Luego maximizamos la log-probabilidad log pðηjGnηÞ de los componentes enmascarados η dado el resto del grafo G\\η. Esto es análogo a un modelo de lenguaje enmascarado33, que predice las palabras enmascaradas dada la versión corrompida de una oración. Esto da como resultado el siguiente problema de optimización: θ EG\u0002DEGnη\u0002CðGnηjGÞlog pθðηjGnηÞ: ð2Þ arg max"
+          }
+        },
+        {
+          "id": "s2-p16",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Once we have trained the model, we use it to carry out generation. To begin generation, we initialize a molecule in one of two ways, corresponding to different levels of entropy. The ﬁrst way, which we call training initialization, uses a random graph from the training data as an initial graph. The second way, which we call marginal initialization, initializes each graph component according to a categorical distribution over the values that component takes in our training set. For example, the probability of an edge having type r ∈Ce is equal to the fraction of edges in the training set of type r.",
+            "es": "Una vez entrenado el modelo, lo usamos para llevar a cabo la generación. Para comenzar la generación, inicializamos una molécula de una de dos maneras, que corresponden a distintos niveles de entropía. La primera, a la que llamamos inicialización de entrenamiento (training initialization), usa un grafo aleatorio de los datos de entrenamiento como grafo inicial. La segunda, a la que llamamos inicialización marginal (marginal initialization), inicializa cada componente del grafo según una distribución categórica (categorical distribution) sobre los valores que ese componente toma en nuestro conjunto de entrenamiento. Por ejemplo, la probabilidad de que una arista tenga el tipo r ∈Ce es igual a la fracción de aristas del conjunto de entrenamiento que son del tipo r."
+          }
+        },
+        {
+          "id": "s2-p17",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "We then use an approach motivated by Gibbs sampling to update graph components iteratively from the learned conditional distributions. At each generation step, we sample uniformly at random a fraction α of components η in the graph and replace the values of these components with the MASK symbol. We compute the conditional distribution p(η∣G\\η) by passing the partially masked graph through the model, sampling new values of the masked components according to the predicted distribution, and placing these values in the graph. We repeat this procedure for a total of K steps, where K is a hyperparameter. A schematic of this procedure is given in Supplementary Figure 4.",
+            "es": "Después usamos un enfoque motivado por el muestreo de Gibbs para actualizar iterativamente los componentes del grafo a partir de las distribuciones condicionales aprendidas. En cada paso de generación, muestreamos uniformemente al azar una fracción α de componentes η del grafo y reemplazamos los valores de estos componentes con el símbolo MASK. Calculamos la distribución condicional p(η∣G\\η) pasando el grafo parcialmente enmascarado por el modelo, muestreamos nuevos valores de los componentes enmascarados según la distribución predicha y colocamos esos valores en el grafo. Repetimos este procedimiento durante un total de K pasos, donde K es un hiperparámetro (hyperparameter). En la Figura Suplementaria 4 se da un esquema de este procedimiento."
+          }
+        },
+        {
+          "id": "s2-p18",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "We carry out conditional generation using a modiﬁed version of this approach. We frame this task as generating molecules with a target value of a given physiochemical property. We use the same training and generation procedures as for unconditional generation but with an additional, conditioning, input to the model. This input y is the molecule’s graph-level property of interest. During training, y corresponds to the ground-truth value y⋆of the molecule’s graph-level property of interest. This results in a modiﬁed version of Equation (2): θ EG\u0002DEGnη\u0002CðGnηjGÞlog pθðηjGnη; y ¼ y?Þ ð3Þ arg max",
+            "es": "Llevamos a cabo la generación condicional usando una versión modificada de este enfoque. Planteamos esta tarea como la generación de moléculas con un valor objetivo de una propiedad fisicoquímica dada. Usamos los mismos procedimientos de entrenamiento y generación que para la generación incondicional, pero con una entrada adicional de condicionamiento al modelo. Esta entrada y es la propiedad de interés a nivel de grafo de la molécula. Durante el entrenamiento, y corresponde al valor real (ground-truth) y⋆ de la propiedad de interés a nivel de grafo de la molécula. Esto da como resultado una versión modificada de la Ecuación (2): θ EG\u0002DEGnη\u0002CðGnηjGÞlog pθðηjGnη; y ¼ y?Þ ð3Þ arg max"
+          }
+        },
+        {
+          "id": "s2-p19",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "During generation, y instead corresponds to the target value ^y of this property. The initialization process is the same as for unconditional generation. Iterative sampling involves updating the graph by computing the conditional distribution pðηjGnη; y ¼ ^yÞ.",
+            "es": "Durante la generación, y corresponde en cambio al valor objetivo ^y de esta propiedad. El proceso de inicialización es el mismo que para la generación incondicional. El muestreo iterativo consiste en actualizar el grafo calculando la distribución condicional pðηjGnη; y ¼ ^yÞ."
+          }
+        },
+        {
+          "id": "s2-p20",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Mutual dependence of metrics from GuacaMol. We evaluate our model and baseline molecular generation models on unconditional molecular generation using the distributionlearning benchmark from the GuacaMol46 framework. We ﬁrst attempt to determine whether dependence exists between metrics from the Guacamol framework. We do this because we notice that some of these metrics may measure similar properties. For example, the Fréchet and KL scores are both measures of similarity between generated samples and a dataset distribution. If the metrics are not mutually independent, comparing models using a straightforward measure such as the sum of the metrics may not be a reasonable strategy.",
+            "es": "Dependencia mutua de las métricas de GuacaMol. Evaluamos nuestro modelo y los modelos base de generación molecular en la generación molecular incondicional usando el benchmark de aprendizaje de distribuciones del marco GuacaMol46. Primero intentamos determinar si existe dependencia entre las métricas del marco GuacaMol. Lo hacemos porque notamos que algunas de estas métricas pueden medir propiedades similares. Por ejemplo, las puntuaciones de Fréchet y de KL son ambas medidas de similitud entre las muestras generadas y la distribución de un conjunto de datos. Si las métricas no son mutuamente independientes, comparar modelos usando una medida sencilla, como la suma de las métricas, puede no ser una estrategia razonable."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 4,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1 Spearman’s correlation coefﬁcient between benchmark metrics for results using the masked graph model on the QM9 dataset.",
+            "es": "Tabla 1: Coeficiente de correlación de Spearman entre las métricas del benchmark para los resultados obtenidos con el modelo de grafos enmascarados en el conjunto de datos QM9."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 4,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2 Spearman’s correlation coefﬁcient between benchmark metrics for results using LSTM, Transformer Small and Transformer Regular on the QM9 dataset.",
+            "es": "Tabla 2: Coeficiente de correlación de Spearman entre las métricas del benchmark para los resultados obtenidos con LSTM, Transformer Small y Transformer Regular en el conjunto de datos QM9."
+          }
+        },
+        {
+          "id": "s2-p21",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "To determine how the ﬁve metrics are related to each other, we calculate pairwise the Spearman (rank) correlation between all metrics on the QM9 dataset43,44, presented in Table 1, while varying the masking rate, initialization strategy and number of sampling iterations K. We carry out a similar run for three baseline autoregressive SMILES-based models that we train ourselves: two Transformer models3 with different numbers of parameters (Transformer Small and Transformer Regular) and an LSTM. Each of these autoregressive models has a distribution output by a softmax layer over the SMILES vocabulary at each time step. We implement a sampling temperature parameter in this distribution to control its sharpness. By increasing the temperature, we decrease the sharpness, which increases the novelty. The Spearman correlation results for these baselines are shown in Table 2.",
+            "es": "Para determinar cómo se relacionan entre sí las cinco métricas, calculamos por pares la correlación de Spearman (Spearman rank correlation, de rangos) entre todas las métricas en el conjunto de datos QM9 43,44, presentada en la Tabla 1, variando la tasa de enmascaramiento (masking rate), la estrategia de inicialización (initialization strategy) y el número de iteraciones de muestreo (sampling iterations) K. Realizamos una ejecución similar para tres modelos base autorregresivos (autoregressive) basados en SMILES que entrenamos nosotros mismos: dos modelos Transformer 3 con diferente número de parámetros (Transformer Small y Transformer Regular) y una LSTM. Cada uno de estos modelos autorregresivos produce una distribución mediante una capa softmax (softmax layer) sobre el vocabulario de SMILES en cada paso de tiempo. Implementamos un parámetro de temperatura de muestreo (sampling temperature) en esta distribución para controlar su nitidez. Al aumentar la temperatura, disminuimos la nitidez, lo que incrementa la novedad (novelty). Los resultados de la correlación de Spearman para estos modelos base se muestran en la Tabla 2."
+          }
+        },
+        {
+          "id": "s2-p22",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "From Tables 1 and 2, we make three observations. First, the validity, KL-divergence and Fréchet Distance scores correlate highly with each other. Second, these three metrics correlate negatively with the novelty score. Finally, uniqueness does not correlate strongly with any other metric. These observations suggest that we can look at a subset of the metrics, namely the uniqueness, Fréchet and novelty scores, to gauge generation quality. We now carry out experiments to determine how well MGM and baseline models perform on the anti-correlated Fréchet and novelty scores, which are representative of four of the ﬁve evaluation metrics.",
+            "es": "A partir de las Tablas 1 y 2, hacemos tres observaciones. Primero, las puntuaciones de validez (validity), divergencia KL (KL-divergence) y distancia de Fréchet (Fréchet Distance) se correlacionan fuertemente entre sí. Segundo, estas tres métricas se correlacionan negativamente con la puntuación de novedad. Por último, la unicidad (uniqueness) no se correlaciona fuertemente con ninguna otra métrica. Estas observaciones sugieren que podemos examinar un subconjunto de las métricas, a saber, las puntuaciones de unicidad, de Fréchet y de novedad, para evaluar la calidad de la generación. Ahora realizamos experimentos para determinar qué tan bien se desempeñan MGM y los modelos base en las puntuaciones de Fréchet y de novedad, que están anticorrelacionadas y son representativas de cuatro de las cinco métricas de evaluación."
+          }
+        },
+        {
+          "id": "s2-p23",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Analysis of representative metrics. To examine how the masked graph model and baseline autoregressive models balance the Fréchet ChemNet Distance and novelty scores, we plot these two metrics against each other in Fig. 1. To obtain the points for the masked graph models, we evaluate the scores after various numbers of generation steps. For the QM9 MGM points, we use both training and marginal initializations, which start from the top left and bottom right of the graph respectively, and converge in between. For the ChEMBL MGM points, we use only training initialization.",
+            "es": "Análisis de métricas representativas. Para examinar cómo equilibran el modelo de grafos enmascarados (masked graph model) y los modelos autorregresivos base las puntuaciones de Fréchet ChemNet Distance y de novedad, graficamos estas dos métricas una contra la otra en la Fig. 1. Para obtener los puntos de los modelos de grafos enmascarados, evaluamos las puntuaciones tras distintos números de pasos de generación. Para los puntos de MGM en QM9, usamos tanto la inicialización de entrenamiento (training initialization) como la marginal (marginal initialization), que parten de la parte superior izquierda y de la inferior derecha de la gráfica, respectivamente, y convergen en un punto intermedio. Para los puntos de MGM en ChEMBL, usamos únicamente la inicialización de entrenamiento."
+          }
+        },
+        {
+          "id": "s2-p24",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "On both QM9 and ChEMBL, we see that as novelty increases, the Fréchet ChemNet Distance score decreases for the masked graph models as well as for the LSTM and Transformer models. We also see that the line’s slope, which represents the marginal change in Fréchet ChemNet Distance score per unit change in novelty score, has a lower magnitude for the masked graph model than for the autoregressive models. This shows that our model trades off novelty for similarity to the dataset distributions (as measured by the Fréchet score) more effectively relative to the baseline models. This gives us a higher degree of controllability in generating samples that are optimized towards either metric to the extent desired.",
+            "es": "Tanto en QM9 como en ChEMBL, observamos que, a medida que aumenta la novedad, la puntuación de Fréchet ChemNet Distance disminuye para los modelos de grafos enmascarados, así como para los modelos LSTM y Transformer. También observamos que la pendiente de la recta, que representa el cambio marginal en la puntuación de Fréchet ChemNet Distance por unidad de cambio en la puntuación de novedad, tiene una magnitud menor para el modelo de grafos enmascarados que para los modelos autorregresivos. Esto muestra que nuestro modelo intercambia novedad por similitud con las distribuciones del conjunto de datos (medida por la puntuación de Fréchet) de manera más eficaz en relación con los modelos base. Esto nos da un mayor grado de controlabilidad al generar muestras optimizadas hacia cualquiera de las dos métricas en la medida deseada."
+          }
+        },
+        {
+          "id": "s2-p25",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "On QM9, we see that our masked graph models with a 10% or 20% masking rate maintain a larger Fréchet ChemNet Distance score as the novelty increases, compared to the LSTM and Transformer models. Several of the MGM points on the plot are beyond the Pareto frontier formed by each baseline model. On ChEMBL, the LSTM and Transformer models generally achieve a higher combination of novelty and Fréchet ChemNet Distance score than does the masked graph model with either masking rate. However, to the bottom right of Fig. 1b, we can see a few points corresponding to the 5% masking rate that are beyond the Pareto frontier of the points formed by the Transformer Regular model.",
+            "es": "En QM9, vemos que nuestros modelos de grafos enmascarados con una tasa de enmascaramiento de 10% o 20% mantienen una puntuación de Fréchet ChemNet Distance mayor a medida que aumenta la novedad, en comparación con los modelos LSTM y Transformer. Varios de los puntos de MGM en la gráfica quedan más allá de la frontera de Pareto (Pareto frontier) formada por cada modelo base. En ChEMBL, los modelos LSTM y Transformer generalmente alcanzan una combinación mayor de novedad y puntuación de Fréchet ChemNet Distance que el modelo de grafos enmascarados con cualquiera de las dos tasas de enmascaramiento. Sin embargo, en la parte inferior derecha de la Fig. 1b, podemos ver algunos puntos correspondientes a la tasa de enmascaramiento de 5% que están más allá de la frontera de Pareto de los puntos formados por el modelo Transformer Regular."
+          }
+        },
+        {
+          "id": "s2-p26",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We also observe that for ChEMBL, which contains larger molecules, using a 1% masking rate yields points that are beyond the Pareto frontier of those obtained using a 5% masking rate. This further indicates that masking a large number of components hurts generation quality, even if this number represents a small percentage of the graph.",
+            "es": "También observamos que, para ChEMBL, que contiene moléculas más grandes, usar una tasa de enmascaramiento de 1% produce puntos que quedan más allá de la frontera de Pareto de los obtenidos con una tasa de enmascaramiento de 5%. Esto indica además que enmascarar una gran cantidad de componentes perjudica la calidad de la generación, incluso si esa cantidad representa un porcentaje pequeño del grafo."
+          }
+        },
+        {
+          "id": "s2-p27",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We plot validity against novelty in Supplementary Figure 3 and observe that the same analysis holds for the trade-off between these two metrics. Hence even though state-of-the-art autoregressive models can trade off between representative metrics by changing the sampling strategy, the trade-off is poor and leads to a rapid decline in molecule quality as the novelty increases. MGM, on the other hand, is able to maintain a similar molecule quality as the novelty increases.",
+            "es": "Graficamos la validez contra la novedad en la Figura Suplementaria 3 y observamos que el mismo análisis se cumple para el equilibrio entre estas dos métricas. Por lo tanto, aunque los modelos autorregresivos de vanguardia pueden equilibrar las métricas representativas cambiando la estrategia de muestreo, el equilibrio es deficiente y conduce a un rápido deterioro de la calidad de las moléculas a medida que aumenta la novedad. MGM, en cambio, es capaz de mantener una calidad de las moléculas similar a medida que aumenta la novedad."
+          }
+        },
+        {
+          "id": "s2-p28",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Comparison with baseline models. We now compare distributional benchmark results for MGM using our ‘best’ initialization strategy and masking rate (see the Supplementary Discussion section of the Supplementary Information for details) to baseline models. The baseline models include models we train ourselves and those for which we obtain results from the literature. The distributional benchmark results on QM9 and ChEMBL are shown in Table 3 and Table 4 respectively.",
+            "es": "Comparación con los modelos base. Ahora comparamos los resultados de las pruebas de referencia distribucionales (distributional benchmark) de MGM, usando nuestra “mejor” estrategia de inicialización y tasa de enmascaramiento (véanse los detalles en la sección Supplementary Discussion de la Supplementary Information), con los modelos base. Los modelos base incluyen modelos que entrenamos nosotros mismos y aquellos cuyos resultados obtenemos de la literatura. Los resultados de las pruebas de referencia distribucionales en QM9 y ChEMBL se muestran en la Tabla 3 y la Tabla 4, respectivamente."
+          }
+        },
+        {
+          "id": "s2-p29",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "On QM9, our model performs comparably to existing SMILES-based methods. Our approach shows higher validity and uniqueness scores compared to CharacterVAE49 and GrammarVAE50, while having a lower novelty score. Compared to the autoregressive LSTM and Transformer models, our model has lower validity, KL-divergence and Fréchet Distance scores; however it exhibits slightly higher uniqueness and signiﬁcantly higher novelty scores.",
+            "es": "En QM9, nuestro modelo tiene un desempeño comparable al de los métodos existentes basados en SMILES. Nuestro enfoque muestra puntuaciones de validez y unicidad más altas que CharacterVAE49 y GrammarVAE50, aunque con una puntuación de novedad más baja. En comparación con los modelos autorregresivos LSTM y Transformer, nuestro modelo tiene puntuaciones de validez, divergencia KL y distancia de Fréchet más bajas; sin embargo, exhibe una unicidad ligeramente mayor y puntuaciones de novedad significativamente mayores."
+          }
+        },
+        {
+          "id": "s2-p30",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Compared to the graph-based models, our approach performs similarly to or better than existing approaches. Our approach has higher validity and uniqueness scores compared to GraphVAE23 and MolGAN51, and a lower novelty score. KLD and Fréchet Distance scores are not provided for these two models. Our model outperforms the non-autoregressive graph VAE25 on all metrics except novelty.",
+            "es": "En comparación con los modelos basados en grafos, nuestro enfoque tiene un desempeño similar o mejor que el de los enfoques existentes. Nuestro enfoque tiene puntuaciones de validez y unicidad más altas que GraphVAE23 y MolGAN51, y una puntuación de novedad más baja. No se proporcionan las puntuaciones de KLD ni de distancia de Fréchet para estos dos modelos. Nuestro modelo supera al VAE de grafos no autorregresivo 25 en todas las métricas excepto en novedad."
+          }
+        },
+        {
+          "id": "s2-p31",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Fig. 1 Plots of the Fréchet ChemNet Distance score against novelty on QM9 and ChEMBL. The FCD score and novelty are two anti-correlated metrics from the GuacaMol46 distribution-learning benchmark. Each point corresponds to the values of these two metrics for a set of molecules that are generated using the same model with the same generation hyperparameters. Different points of the same color correspond to different sets of molecules, with each set generated from the same model using different generation hyperparameters (number of generation iterations and masking rate for the masked graph models, sampling temperature for autoregressive models). The percentages indicated next to MGM in the ﬁgure legends indicate the masking rate at generation time. (For example, MGM 10% indicates an MGM model with a generation masking rate of 10%.) a Plots for QM9. For each QM9 MGM model, the series of points originating at the top left of the graph corresponds to training initialization, whereas the series of points originating at the bottom right corresponds to marginal initialization. b Plots for ChEMBL. For ChEMBL, only training initialization was used to sample valid molecules due to computational constraints, as marginal initialization did not yield enough valid molecules to calculate reliable distributional metrics in a reasonable amount of time. This is likely because the masking rate is low so it would take a long time for the sampler to converge to the training distribution. Using a high masking rate would result in a large number of spurious edges, which would be problematic for the MPNN to handle. Finding a way to alleviate this issue would be a valuable direction for future work.",
+            "es": "Fig. 1: Gráficas de la puntuación de Fréchet ChemNet Distance contra la novedad en QM9 y ChEMBL. La puntuación FCD y la novedad son dos métricas anticorrelacionadas de la prueba de referencia de aprendizaje de distribuciones (distribution-learning benchmark) de GuacaMol46. Cada punto corresponde a los valores de estas dos métricas para un conjunto de moléculas generadas con el mismo modelo y los mismos hiperparámetros de generación. Los distintos puntos del mismo color corresponden a diferentes conjuntos de moléculas, y cada conjunto se genera con el mismo modelo usando distintos hiperparámetros de generación (número de iteraciones de generación y tasa de enmascaramiento para los modelos de grafos enmascarados, temperatura de muestreo para los modelos autorregresivos). Los porcentajes indicados junto a MGM en las leyendas de las figuras señalan la tasa de enmascaramiento en el momento de la generación. (Por ejemplo, MGM 10% indica un modelo MGM con una tasa de enmascaramiento de generación de 10%.) a Gráficas para QM9. Para cada modelo MGM en QM9, la serie de puntos que parte de la parte superior izquierda de la gráfica corresponde a la inicialización de entrenamiento, mientras que la serie de puntos que parte de la parte inferior derecha corresponde a la inicialización marginal. b Gráficas para ChEMBL. Para ChEMBL, solo se usó la inicialización de entrenamiento para muestrear moléculas válidas debido a limitaciones computacionales, ya que la inicialización marginal no produjo suficientes moléculas válidas para calcular métricas distribucionales confiables en un tiempo razonable. Esto probablemente se debe a que la tasa de enmascaramiento es baja, por lo que el muestreador tardaría mucho en converger a la distribución de entrenamiento. Usar una tasa de enmascaramiento alta daría como resultado una gran cantidad de aristas espurias, lo cual sería problemático para el MPNN. Encontrar una forma de mitigar este problema sería una dirección valiosa para trabajo futuro."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 5,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3 Distributional results on QM9. CharacterVAE49, GrammarVAE50, GraphVAE23 and MolGAN51 results are taken from Cao and Kipf51.",
+            "es": "Tabla 3: Resultados distribucionales en QM9. Los resultados de CharacterVAE49, GrammarVAE50, GraphVAE23 y MolGAN51 se toman de Cao y Kipf51."
+          }
+        },
+        {
+          "id": "s2-p32",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "NAT GraphVAE25 stands for non-autoregressive graph VAE. Models labelled as ‘ours’ were trained by us and subsequently used to carry out generation. Our masked graph model results correspond to a 10% masking rate and training graph initialization, which has the highest geometric mean for all ﬁve benchmark metrics. (See the Supplementary Discussion section of the Supplementary Information for details.) Values of validity(↑), uniqueness(↑), novelty(↑), KL Div(↑) and Fréchet Dist(↑) metrics are between 0 and 1.",
+            "es": "NAT GraphVAE25 significa VAE de grafos no autorregresivo (non-autoregressive graph VAE). Los modelos etiquetados como ‘ours’ fueron entrenados por nosotros y posteriormente usados para realizar la generación. Los resultados de nuestro modelo de grafos enmascarados corresponden a una tasa de enmascaramiento de 10% y a la inicialización de grafos de entrenamiento, que tiene la media geométrica más alta para las cinco métricas de referencia. (Véanse los detalles en la sección Supplementary Discussion de la Supplementary Information.) Los valores de las métricas validity(↑), uniqueness(↑), novelty(↑), KL Div(↑) y Fréchet Dist(↑) están entre 0 y 1."
+          }
+        },
+        {
+          "id": "tab-4",
+          "type": "table",
+          "page": 5,
+          "image": "fig/tab-4.png",
+          "text": {
+            "en": "Table 4 Distributional results on ChEMBL. LSTM, Graph MCTS52, AAE67, ORGAN62 and VAE49 (with a bidirectional GRU53 as encoder and autoregressive GRU53 as decoder) results are taken from Brown et al.46.",
+            "es": "Tabla 4: Resultados distribucionales en ChEMBL. Los resultados de LSTM, Graph MCTS52, AAE67, ORGAN62 y VAE49 (con una GRU53 bidireccional como codificador y una GRU53 autorregresiva como decodificador) se toman de Brown et al.46."
+          }
+        },
+        {
+          "id": "s2-p33",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "NAT GraphVAE25 stands for non-autoregressive graph VAE. Models labelled as ‘ours’ were trained by us and subsequently used to carry out generation. Our masked graph model results correspond to a 1% masking rate and training graph initialization, which has the highest geometric mean for all ﬁve benchmark metrics. (See the Supplementary Discussion section of the Supplementary Information for details.) Values of validity(↑), uniqueness(↑), novelty(↑), KL Div(↑) and Fréchet Dist(↑) metrics are between 0 and 1.",
+            "es": "NAT GraphVAE25 significa VAE de grafos no autorregresivo. Los modelos etiquetados como ‘ours’ fueron entrenados por nosotros y posteriormente usados para realizar la generación. Los resultados de nuestro modelo de grafos enmascarados corresponden a una tasa de enmascaramiento de 1% y a la inicialización de grafos de entrenamiento, que tiene la media geométrica más alta para las cinco métricas de referencia. (Véanse los detalles en la sección Supplementary Discussion de la Supplementary Information.) Los valores de las métricas validity(↑), uniqueness(↑), novelty(↑), KL Div(↑) y Fréchet Dist(↑) están entre 0 y 1."
+          }
+        },
+        {
+          "id": "s2-p34",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "On ChEMBL, our approach outperforms existing graph-based methods. Compared to graph MCTS52 and non-autoregressive graph VAE25, our approach shows lower novelty scores while having signiﬁcantly higher KL-divergence and Fréchet Distance scores. The baseline graph-based models do not capture the properties of the dataset distributions, as shown by their low KL-divergence scores and almost-zero Fréchet scores. This demonstrates that our proposed approach outperforms graph-based methods in generating novel molecules that are similar to the dataset distributions.",
+            "es": "En ChEMBL, nuestro enfoque supera a los métodos existentes basados en grafos. En comparación con graph MCTS52 y el VAE de grafos no autorregresivo 25, nuestro enfoque muestra puntuaciones de novedad más bajas, pero puntuaciones de divergencia KL y de distancia de Fréchet significativamente más altas. Los modelos base basados en grafos no capturan las propiedades de las distribuciones del conjunto de datos, como lo demuestran sus bajas puntuaciones de divergencia KL y sus puntuaciones de Fréchet casi nulas. Esto demuestra que el enfoque propuesto supera a los métodos basados en grafos en la generación de moléculas novedosas que son similares a las distribuciones del conjunto de datos."
+          }
+        },
+        {
+          "id": "s2-p35",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The proposed masked graph model is competitive with models that rely on the SMILES representations of molecules. It outperforms the GAN-based model (ORGAN) across all ﬁve metrics and outperforms the adversarial autoencoder model (AAE) on all but the uniqueness score (both have the maximum possible score) and the novelty score. It performs comparably to the VAE model with an autoregressive GRU53 decoder on all metrics except novelty. Our approach lags behind the LSTM, Transformer Small and Transfor-mer Regular SMILES-based models on the ChEMBL dataset. It outperforms both Transformer models on KL-divergence score but underperforms them on validity, novelty and Fréchet score. Our approach also results in lower scores across most of the metrics when compared to the LSTM model.",
+            "es": "El modelo de grafos enmascarados propuesto es competitivo frente a los modelos que dependen de las representaciones SMILES de las moléculas. Supera al modelo basado en GAN (ORGAN) en las cinco métricas y supera al modelo de autocodificador adversarial (adversarial autoencoder, AAE) en todas excepto en la puntuación de unicidad (ambos tienen la puntuación máxima posible) y en la puntuación de novedad. Tiene un desempeño comparable al del modelo VAE con un decodificador GRU53 autorregresivo en todas las métricas excepto en novedad. Nuestro enfoque queda rezagado respecto a los modelos basados en SMILES LSTM, Transformer Small y Transformer Regular en el conjunto de datos ChEMBL. Supera a ambos modelos Transformer en la puntuación de divergencia KL, pero tiene un desempeño inferior en validez, novedad y puntuación de Fréchet. Nuestro enfoque también obtiene puntuaciones más bajas en la mayoría de las métricas en comparación con el modelo LSTM."
+          }
+        },
+        {
+          "id": "s2-p36",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Some examples of generated molecules after the ﬁnal sampling iteration are shown in Supplementary Figures 6 and 7. Full lists of molecules can be accessed via the Data Availability section.",
+            "es": "En las Figuras Suplementarias 6 y 7 se muestran algunos ejemplos de moléculas generadas después de la última iteración de muestreo. Las listas completas de moléculas pueden consultarse en la sección Data Availability."
+          }
+        },
+        {
+          "id": "s2-p37",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Generation trajectories. We present a few sampling trajectories of molecules from the proposed masked graph model in Figs. 2–3. Each image represents the molecule after a certain number of sampling iterations; the ﬁrst image in a ﬁgure is the molecular graph initialization before any sampling steps are taken. Figure 2 shows a trajectory each for training and marginal initializations with a 10% masking rate. Figure 3 shows a trajectory each for 1% and 5% masking rates with training initialization. All molecules displayed in the ﬁgures are valid, but molecules corresponding to some of the intermediate steps not shown may not be.",
+            "es": "Trayectorias de generación. Presentamos algunas trayectorias de muestreo de moléculas del modelo de grafos enmascarados propuesto en las Figs. 2–3. Cada imagen representa la molécula después de cierto número de iteraciones de muestreo; la primera imagen de una figura es la inicialización del grafo molecular antes de realizar cualquier paso de muestreo. La Figura 2 muestra una trayectoria para la inicialización de entrenamiento y otra para la inicialización marginal, con una tasa de enmascaramiento de 10%. La Figura 3 muestra una trayectoria para las tasas de enmascaramiento de 1% y de 5%, con inicialización de entrenamiento. Todas las moléculas mostradas en las figuras son válidas, pero las moléculas correspondientes a algunos de los pasos intermedios que no se muestran podrían no serlo."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Fig. 2 Generation trajectory of a molecule each for training initialization and marginal initialization. The model is trained on QM9, and generation is carried out using a 10% masking rate. a Training initialization. b Marginal initialization.",
+            "es": "Figura 2: Trayectoria de generación de una molécula para la inicialización de entrenamiento y otra para la inicialización marginal. El modelo se entrena en QM9 y la generación se realiza con una tasa de enmascaramiento de 10%. a Inicialización de entrenamiento. b Inicialización marginal."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Fig. 3 Generation trajectory of a molecule each for a 1% and a 5% masking rate. The model is trained on ChEMBL, and generation is carried out using training initialization. a 1% masking rate. b 5% masking rate.",
+            "es": "Figura 3: Trayectoria de generación de una molécula para una tasa de enmascaramiento de 1% y otra para una de 5%. El modelo se entrena en ChEMBL y la generación se realiza con inicialización de entrenamiento. a Tasa de enmascaramiento de 1%. b Tasa de enmascaramiento de 5%."
+          }
+        },
+        {
+          "id": "s2-p38",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Figure 2a shows the trajectory of a molecule initialized as a molecule from the QM9 training set. As generation progresses, minor changes are made to the molecule, yielding novel molecules. After 100 generation steps, the molecule has converged to another non-novel molecule. Further generation steps yield novel molecules once again, with the molecule’s structure gradually moving further away from the initialized molecule.",
+            "es": "La Figura 2a muestra la trayectoria de una molécula inicializada como una molécula del conjunto de entrenamiento de QM9. A medida que avanza la generación, se hacen cambios menores a la molécula, lo que da lugar a moléculas novedosas. Después de 100 pasos de generación, la molécula ha convergido a otra molécula no novedosa. Los pasos de generación posteriores producen moléculas novedosas una vez más, y la estructura de la molécula se aleja gradualmente de la molécula inicializada."
+          }
+        },
+        {
+          "id": "s2-p39",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Figure 2b shows the trajectory of a molecule initialized from the marginal distribution of the QM9 training set. The initialized graph consists of multiple disjoint molecular fragments. Over the ﬁrst three generation steps, the various nodes are connected to form a connected graph. These changes are more drastic than those in the ﬁrst few steps of generation with training initialization. The molecule undergoes signiﬁcant changes over the next few steps until it forms a ring and a chiral center by the 10-th step. The molecule then evolves slowly until it converges to a non-novel molecule by 200 steps. Further generation steps yield a series of novel molecules once again.",
+            "es": "La Figura 2b muestra la trayectoria de una molécula inicializada a partir de la distribución marginal del conjunto de entrenamiento de QM9. El grafo inicializado consiste en múltiples fragmentos moleculares disjuntos. Durante los primeros tres pasos de generación, los distintos nodos se conectan para formar un grafo conexo. Estos cambios son más drásticos que los de los primeros pasos de generación con inicialización de entrenamiento. La molécula experimenta cambios significativos durante los siguientes pasos hasta que forma un anillo y un centro quiral (chiral center) en el paso 10. Luego, la molécula evoluciona lentamente hasta que converge a una molécula no novedosa en 200 pasos. Los pasos de generación posteriores producen una serie de moléculas novedosas una vez más."
+          }
+        },
+        {
+          "id": "s2-p40",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Figure 3a shows the trajectory of a ChEMBL molecule with a 1% masking rate. In the ﬁrst step, the molecule changes from one training molecule to another non-novel molecule, following which it undergoes minor changes over the next few steps to yield a novel molecule. Figure 3b shows the trajectory of a ChEMBL molecule with a 5% masking rate. In the ﬁrst step, this molecule also changes from one training molecule to another non-novel molecule. Following this, further changes yield a novel molecule. The molecule evolves again in further iterations, albeit forming unexpected ring structures after 300 steps.",
+            "es": "La Figura 3a muestra la trayectoria de una molécula de ChEMBL con una tasa de enmascaramiento de 1%. En el primer paso, la molécula cambia de una molécula de entrenamiento a otra molécula no novedosa, tras lo cual experimenta cambios menores durante los siguientes pasos hasta producir una molécula novedosa. La Figura 3b muestra la trayectoria de una molécula de ChEMBL con una tasa de enmascaramiento de 5%. En el primer paso, esta molécula también cambia de una molécula de entrenamiento a otra molécula no novedosa. Después de esto, otros cambios producen una molécula novedosa. La molécula vuelve a evolucionar en iteraciones posteriores, aunque formando estructuras de anillo inesperadas después de 300 pasos."
+          }
+        },
+        {
+          "id": "s2-p41",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Conditional generation. In accordance with the framework proposed by Kwon et al.25, we generate molecules conditioned on three different target values of the molecular weight (MolWt) and Wildman-Crippen partition coefﬁcient (LogP) properties. We also compute KLD scores for the generated molecules. The KLD",
+            "es": "Generación condicional (Conditional generation). De acuerdo con el marco propuesto por Kwon et al.25, generamos moléculas condicionadas a tres valores objetivo distintos de las propiedades de peso molecular (MolWt) y coeficiente de partición de Wildman-Crippen (LogP). También calculamos las puntuaciones de KLD de las moléculas generadas. La KLD"
+          }
+        },
+        {
+          "id": "tab-5",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-5.png",
+          "text": {
+            "en": "Table 5 Conditional generation results on QM9. Results for MGM are chosen from a range of sampling iterations and both initialization strategies.",
+            "es": "Tabla 5: Resultados de generación condicional en QM9. Los resultados de MGM se eligen de un rango de iteraciones de muestreo y de ambas estrategias de inicialización."
+          }
+        },
+        {
+          "id": "s2-p42",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The results shown here correspond to the best mean property value (MGM) or the ﬁnal sampling iteration with initialization chosen according to the better geometric mean among the ﬁve GuacaMol metrics (MGM—Final Step). Results for the NAT GraphVAE baseline model25 that we trained are also shown. ‘Dataset’ rows refer to molecules sampled from the dataset with MolWt within ± 1 for the MolWt conditions and LogP within ± 0.1 for the LogP conditions. G-mean refers to the geometric mean of validity, uniqueness and novelty. score is expected to decrease compared to unconditional generation since MolWt and LogP are two of the properties used to calculate this score; as these properties become skewed towards the target values, the similarity to the dataset will decrease. If a model maintains a reasonably high KLD score while achieving a mean property value close to the target value, it indicates that the other physiochemical properties of the generated molecules are similar to those of the dataset molecules. Conditional generation results for our model and the baseline Kwon et al.25 model are shown in Table 5.",
+            "es": "Los resultados mostrados aquí corresponden al mejor valor medio de la propiedad (MGM) o a la última iteración de muestreo, con la inicialización elegida según la mejor media geométrica entre las cinco métricas de GuacaMol (MGM—Final Step). También se muestran los resultados del modelo base NAT GraphVAE25 que entrenamos. Las filas ‘Dataset’ se refieren a moléculas muestreadas del conjunto de datos con MolWt dentro de ± 1 para las condiciones de MolWt y LogP dentro de ± 0.1 para las condiciones de LogP. G-mean se refiere a la media geométrica de validez, unicidad y novedad. Se espera que la puntuación disminuya en comparación con la generación incondicional, ya que MolWt y LogP son dos de las propiedades usadas para calcular esta puntuación; a medida que estas propiedades se sesgan hacia los valores objetivo, la similitud con el conjunto de datos disminuirá. Si un modelo mantiene una puntuación de KLD razonablemente alta mientras logra un valor medio de la propiedad cercano al valor objetivo, esto indica que las demás propiedades fisicoquímicas de las moléculas generadas son similares a las de las moléculas del conjunto de datos. Los resultados de generación condicional de nuestro modelo y del modelo base de Kwon et al.25 se muestran en la Tabla 5."
+          }
+        },
+        {
+          "id": "s2-p43",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "MGM generates molecules with property values close to the target value of the desired property. For the MolWt=120, MolWt=125, LogP=0.2 and LogP=0.8 conditions, the mean target property of the molecules generated by MGM is closer to the target value than of those generated by NAT GraphVAE. For the MolWt=130 and LogP=−0.4 conditions, the mean is slightly further. For LogP, MGM has lower standard deviations whereas for MolWt, NAT GraphVAE has slightly lower standard deviations. A lower standard deviation corresponds to more reliable generation of molecules with the target property. The G-means of validity, uniqueness and novelty are similar for both models on MolWt, and better for NAT GraphVAE on LogP.",
+            "es": "MGM genera moléculas con valores de propiedad cercanos al valor objetivo de la propiedad deseada. Para las condiciones MolWt=120, MolWt=125, LogP=0.2 y LogP=0.8, la propiedad objetivo media de las moléculas generadas por MGM está más cerca del valor objetivo que la de las generadas por NAT GraphVAE. Para las condiciones MolWt=130 y LogP=−0.4, la media está ligeramente más lejos. Para LogP, MGM tiene desviaciones estándar más bajas, mientras que para MolWt, NAT GraphVAE tiene desviaciones estándar ligeramente más bajas. Una desviación estándar más baja corresponde a una generación más confiable de moléculas con la propiedad objetivo. Las G-medias de validez, unicidad y novedad son similares para ambos modelos en MolWt, y mejores para NAT GraphVAE en LogP."
+          }
+        },
+        {
+          "id": "s2-p44",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The molecules generated by MGM have similar properties to the dataset molecules. This is reﬂected by the KL-divergence scores, which are generally higher for MGM than for NAT GraphVAE and greater than 0.8 in all cases but one. The KLD scores in the Dataset rows of Table 5 are considerably less than 1, showing the decrease in similarity to the full dataset as the MolWt or LogP values are skewed. MGM achieves a higher KL-divergence score than Dataset in the majority of cases. This indicates that MGM produces molecules that are optimized for the target property while maintaining physiochemical similarity to the dataset distribution.",
+            "es": "Las moléculas generadas por MGM tienen propiedades similares a las de las moléculas del conjunto de datos. Esto se refleja en las puntuaciones de divergencia KL, que generalmente son más altas para MGM que para NAT GraphVAE y mayores que 0.8 en todos los casos excepto uno. Las puntuaciones de KLD en las filas Dataset de la Tabla 5 son considerablemente menores que 1, lo que muestra la disminución de la similitud con el conjunto de datos completo a medida que los valores de MolWt o LogP se sesgan. MGM logra una puntuación de divergencia KL más alta que Dataset en la mayoría de los casos. Esto indica que MGM produce moléculas optimizadas para la propiedad objetivo que mantienen la similitud fisicoquímica con la distribución del conjunto de datos."
+          }
+        },
+        {
+          "id": "tab-6",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-6.png",
+          "text": {
+            "en": "Table 6 Time taken for training and generation.",
+            "es": "Tabla 6: Tiempo requerido para el entrenamiento y la generación."
+          }
+        },
+        {
+          "id": "s2-p45",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Generation time/sample/sampling iteration is measured as: time taken to carry out 100 sampling iterations for a batch of J samples",
+            "es": "El tiempo de generación/muestra/iteración de muestreo se mide como: el tiempo necesario para realizar 100 iteraciones de muestreo para un lote de J muestras"
+          }
+        },
+        {
+          "id": "s2-p46",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "100J For QM9, J = 2500 whereas for ChEMBL, J = 1500 due to memory constraints.",
+            "es": "100J Para QM9, J = 2500, mientras que para ChEMBL, J = 1500 debido a restricciones de memoria."
+          }
+        },
+        {
+          "id": "s2-p47",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The results for MGM—Final Step approach slightly differ from those for MGM. By design, the mean values of the target properties are a little further from the target values than for MGM. Compared with MGM, the standard deviations and G-means for MGM—Final Step are generally lower while the KL-divergence scores are higher.",
+            "es": "Los resultados del enfoque MGM—Final Step difieren ligeramente de los de MGM. Por diseño, los valores medios de las propiedades objetivo están un poco más alejados de los valores objetivo que en MGM. En comparación con MGM, las desviaciones estándar y las G-means de MGM—Final Step son en general menores, mientras que las puntuaciones de divergencia KL (KL-divergence) son mayores."
+          }
+        },
+        {
+          "id": "s2-p48",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Computational efﬁciency. Time taken to train and generate from models is shown in Table 6. For each sample, generation time per sampling iteration is low (on the order of milliseconds), as the forward pass through the neural network is computationally cheap and many molecules can be processed in parallel. The ChEMBL model takes longer than the QM9 model for generation as it has more MPNN layers and also because ChEMBL molecules are on average larger than QM9 molecules. The ChEMBL model takes longer to train per epoch than the QM9 model for the same reasons and also because ChEMBL has many more molecules than QM9. Note that training time for ChEMBL could be signiﬁcantly lowered if dynamic batching strategies are used so that the batch size is not constrained by the size of the largest molecule in the dataset. See the Datasets and Evaluation part of the Methods section for more details on the datasets. We use one Nvidia Tesla P100-SXM2 GPU with 16 GB of memory for all our experiments; the use of multiple GPUs or a GPU with larger memory would further increase computational speed.",
+            "es": "Eficiencia computacional (Computational efficiency). El tiempo necesario para entrenar los modelos y generar a partir de ellos se muestra en la Tabla 6. Para cada muestra, el tiempo de generación por iteración de muestreo es bajo (del orden de milisegundos), ya que el pase hacia adelante (forward pass) a través de la red neuronal es computacionalmente barato y muchas moléculas pueden procesarse en paralelo. El modelo de ChEMBL tarda más que el modelo de QM9 en la generación porque tiene más capas MPNN y también porque las moléculas de ChEMBL son, en promedio, más grandes que las de QM9. El modelo de ChEMBL tarda más en entrenarse por época que el modelo de QM9 por las mismas razones y también porque ChEMBL tiene muchas más moléculas que QM9. Cabe señalar que el tiempo de entrenamiento para ChEMBL podría reducirse de forma significativa si se usaran estrategias de procesamiento por lotes dinámico (dynamic batching), de modo que el tamaño del lote no esté limitado por el tamaño de la molécula más grande del conjunto de datos. Véase la parte Datasets and Evaluation de la sección Methods para más detalles sobre los conjuntos de datos. Usamos una GPU Nvidia Tesla P100-SXM2 con 16 GB de memoria para todos nuestros experimentos; el uso de varias GPU o de una GPU con más memoria aumentaría aún más la velocidad de cómputo."
+          }
+        },
+        {
+          "id": "s2-p49",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Discussion In this work, we propose a masked graph model for molecular graphs. We show that we can sample novel molecular graphs from this model by iterative sampling of subsets of graph components. Our proposed approach models the conditional distributions of subsets of graph components given the rest of the graph, avoiding many of the drawbacks of previously proposed models, such as expensive marginalization and ﬁxing an ordering of variables.",
+            "es": "Discusión En este trabajo proponemos un modelo de grafos enmascarado (masked graph model) para grafos moleculares. Mostramos que podemos muestrear grafos moleculares novedosos a partir de este modelo mediante el muestreo iterativo de subconjuntos de componentes del grafo. Nuestro enfoque propuesto modela las distribuciones condicionales de subconjuntos de componentes del grafo dado el resto del grafo, evitando muchas de las desventajas de los modelos propuestos anteriormente, como la costosa marginalización y la fijación de un orden de las variables."
+          }
+        },
+        {
+          "id": "s2-p50",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "We evaluate our approach on the GuacaMol distributionlearning benchmark on the QM9 and ChEMBL datasets. We ﬁnd that the benchmark metrics are correlated with each other, so models and generation conﬁgurations with higher validity, KL-divergence and Fréchet ChemNet Distance scores usually have lower novelty scores. Hence evaluating models based on the trade-off between different metrics may be more informative than evaluating them based on a heuristic such as the sum of the metrics. We observe that by varying generation hyperparameters, our model balances these metrics more efﬁciently than previous state-of-the-art baseline models.",
+            "es": "Evaluamos nuestro enfoque en el benchmark de aprendizaje de distribuciones (distribution-learning) de GuacaMol sobre los conjuntos de datos QM9 y ChEMBL. Encontramos que las métricas del benchmark están correlacionadas entre sí, de modo que los modelos y las configuraciones de generación con mayor validez, divergencia KL y puntuaciones de la distancia Fréchet ChemNet (Fréchet ChemNet Distance) suelen tener puntuaciones de novedad más bajas. Por lo tanto, evaluar los modelos con base en el equilibrio entre distintas métricas puede ser más informativo que evaluarlos con base en una heurística como la suma de las métricas. Observamos que, al variar los hiperparámetros (hyperparameters) de generación, nuestro modelo equilibra estas métricas de manera más eficiente que los modelos de referencia de última generación anteriores."
+          }
+        },
+        {
+          "id": "s2-p51",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "For some applications, it is convenient to evaluate results based on one masking rate rather than evaluating this trade-off. A discussion of how to choose this generation hyperparameter is given under the Model Architecture, Training and Unconditional Generation Details part of the Methods section. We recommend using a generation masking rate corresponding to masking out 5-10 edges of a complete graph having the median number of nodes in the dataset.",
+            "es": "Para algunas aplicaciones es conveniente evaluar los resultados con base en una sola tasa de enmascaramiento (masking rate) en lugar de evaluar este equilibrio. En la parte Model Architecture, Training and Unconditional Generation Details de la sección Methods se presenta una discusión sobre cómo elegir este hiperparámetro de generación. Recomendamos usar una tasa de enmascaramiento de generación que corresponda a enmascarar de 5 a 10 aristas de un grafo completo que tenga la mediana del número de nodos del conjunto de datos."
+          }
+        },
+        {
+          "id": "s2-p52",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "We show that on distribution-learning metrics, overall our model outperforms baseline graph-based methods. We also observe that our model is comparable to SMILES-based approaches on both datasets, but underperforms the LSTM, Transformer Small and Transformer Regular SMILES-based autoregressive models on ChEMBL. There are several differences between the QM9 and ChEMBL datasets (see the Datasets and Evaluation part of the Methods section) that could account for this, including number of molecules, median molecule size and presence of chirality information. There has also been extensive work in developing language models compared to graph neural networks, which may account for the greater success of the LSTM and Transformers. Furthermore, the ChEMBL dataset is provided as SMILES strings and the Gua-caMol benchmark requires that graph representations be converted into SMILES strings before evaluation. This may advantage approaches that work with SMILES strings directly rather than converting to and from graph representations of molecules. Although there are molecular benchmarks for evaluating different aspects of machine learning-based molecular generation46,54, they use string representations of molecules and do not evaluate graph-level properties. Developing datasets and benchmarks that incorporate graph-level information that is not readily encoded as strings, such as spatial information, would alleviate this issue. We leave further investigation into the reasons behind the difference in performance to future work.",
+            "es": "Mostramos que, en las métricas de aprendizaje de distribuciones, en general nuestro modelo supera a los métodos de referencia basados en grafos. También observamos que nuestro modelo es comparable a los enfoques basados en SMILES en ambos conjuntos de datos, pero tiene un desempeño inferior al de los modelos autorregresivos basados en SMILES LSTM, Transformer Small y Transformer Regular en ChEMBL. Hay varias diferencias entre los conjuntos de datos QM9 y ChEMBL (véase la parte Datasets and Evaluation de la sección Methods) que podrían explicarlo, entre ellas el número de moléculas, el tamaño mediano de las moléculas y la presencia de información de quiralidad. También se ha trabajado extensamente en el desarrollo de modelos de lenguaje en comparación con las redes neuronales de grafos, lo que puede explicar el mayor éxito de LSTM y de los Transformers. Además, el conjunto de datos ChEMBL se proporciona como cadenas SMILES y el benchmark GuacaMol exige que las representaciones de grafos se conviertan en cadenas SMILES antes de la evaluación. Esto puede favorecer a los enfoques que trabajan directamente con cadenas SMILES en lugar de convertir desde y hacia representaciones de grafos de las moléculas. Aunque existen benchmarks moleculares para evaluar distintos aspectos de la generación molecular basada en aprendizaje automático46,54, estos usan representaciones de las moléculas como cadenas y no evalúan propiedades a nivel de grafo. El desarrollo de conjuntos de datos y benchmarks que incorporen información a nivel de grafo que no se codifica fácilmente como cadenas, como la información espacial, aliviaría este problema. Dejamos para trabajo futuro una investigación más profunda de las razones de la diferencia en el desempeño."
+          }
+        },
+        {
+          "id": "s2-p53",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "From our observations of molecular trajectories, we see that molecules converge towards the space of dataset molecules regardless of whether training or marginal initialization is used.",
+            "es": "A partir de nuestras observaciones de las trayectorias moleculares, vemos que las moléculas convergen hacia el espacio de las moléculas del conjunto de datos, sin importar si se usa la inicialización por entrenamiento o la marginal."
+          }
+        },
+        {
+          "id": "s2-p54",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "This veriﬁes that the sampler produces molecules from the distribution that it was trained on. We also see that using a higher masking rate results in greater changes between sampling iterations and molecules that are less similar to the dataset used. We hypothesize that this is the case for two reasons. First, a greater proportion of the graph is updated at each step. Second, the predictive distributions are formed from a graph with a greater proportion of masked components, resulting in higher entropy.",
+            "es": "Esto verifica que el muestreador produce moléculas de la distribución con la que fue entrenado. También vemos que usar una tasa de enmascaramiento más alta produce mayores cambios entre iteraciones de muestreo y moléculas menos similares al conjunto de datos utilizado. Planteamos la hipótesis de que esto ocurre por dos razones. Primero, en cada paso se actualiza una mayor proporción del grafo. Segundo, las distribuciones predictivas se forman a partir de un grafo con una mayor proporción de componentes enmascarados, lo que resulta en una entropía más alta."
+          }
+        },
+        {
+          "id": "s2-p55",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "We carry out conditional generation, observing that our model captures the target properties of molecules better than a baseline graph-based generative model while maintaining similarity of the generated molecules to the distribution of dataset molecules.",
+            "es": "Realizamos generación condicional, y observamos que nuestro modelo captura las propiedades objetivo de las moléculas mejor que un modelo generativo de referencia basado en grafos, a la vez que mantiene la similitud de las moléculas generadas con la distribución de las moléculas del conjunto de datos."
+          }
+        },
+        {
+          "id": "s2-p56",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Finally, we observe the computational cost of our models and note that generation time per molecule is low after training the model.",
+            "es": "Por último, observamos el costo computacional de nuestros modelos y señalamos que el tiempo de generación por molécula es bajo tras entrenar el modelo."
+          }
+        },
+        {
+          "id": "s2-p57",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Future avenues of work include incorporating additional information such as inter-atomic distances into our graph representations. In the GuacaMol benchmark46, for example, the data is provided as strings and must be converted back into strings for evaluation. Hence features that are not readily encoded as strings are not used by either the text-based or graph-based models, and cannot be a part of evaluation. The development of benchmarks that account for the spatial nature of molecules, for example by incorporating 3D coordinates, would help highlight the advantages of graph-based generative models compared to SMILES-based models.",
+            "es": "Las líneas de trabajo futuras incluyen incorporar información adicional, como las distancias interatómicas, en nuestras representaciones de grafos. En el benchmark GuacaMol46, por ejemplo, los datos se proporcionan como cadenas y deben convertirse de nuevo en cadenas para la evaluación. Por lo tanto, las características que no se codifican fácilmente como cadenas no son usadas ni por los modelos basados en texto ni por los basados en grafos, y no pueden formar parte de la evaluación. El desarrollo de benchmarks que tengan en cuenta la naturaleza espacial de las moléculas, por ejemplo incorporando coordenadas 3D, ayudaría a resaltar las ventajas de los modelos generativos basados en grafos frente a los modelos basados en SMILES."
+          }
+        },
+        {
+          "id": "s2-p58",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "As discussed in the Model Architecture, Training and Unconditional Generation Details part of the Methods section, using the same masking rate for molecules of different sizes results in a disproportionately large number of ‘prospective’ edges being masked out for large molecules, which is problematic for our MPNN to handle. Finding a way to address this problem would be beneﬁcial in scaling this work to larger molecules.",
+            "es": "Como se discute en la parte Model Architecture, Training and Unconditional Generation Details de la sección Methods, usar la misma tasa de enmascaramiento para moléculas de distintos tamaños provoca que se enmascare un número desproporcionadamente grande de aristas ‘prospectivas’ en las moléculas grandes, lo cual es problemático para que nuestro MPNN lo maneje. Encontrar una manera de abordar este problema sería beneficioso para escalar este trabajo a moléculas más grandes."
+          }
+        },
+        {
+          "id": "s2-p59",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Another direction is to make our model semi-supervised. This would allow us to work with target properties for which the ground-truth cannot be easily calculated at test time and only a few training examples are labelled. Our work can also be extended to proteins, with amino acids as nodes and a contact map as an adjacency matrix. Conditional generation could be used in this framework to redesign proteins to fulﬁl desired functions. Furthermore, although we use the principle of denoising a corrupted graph for learning the joint distribution, the same procedure could be adapted for lead optimization. Finally, as our approach is broadly applicable to generic graph structures, we leave its application to non-molecular datasets to future work.",
+            "es": "Otra dirección es hacer que nuestro modelo sea semisupervisado (semi-supervised). Esto nos permitiría trabajar con propiedades objetivo cuyo valor real (ground-truth) no puede calcularse fácilmente en el momento de la prueba y para las cuales solo unos pocos ejemplos de entrenamiento están etiquetados. Nuestro trabajo también puede extenderse a las proteínas, con aminoácidos como nodos y un mapa de contactos como matriz de adyacencia. En este marco, la generación condicional podría usarse para rediseñar proteínas con el fin de que cumplan las funciones deseadas. Además, aunque usamos el principio de eliminar el ruido de un grafo corrupto para aprender la distribución conjunta, el mismo procedimiento podría adaptarse para la optimización de compuestos líder (lead optimization). Por último, como nuestro enfoque es ampliamente aplicable a estructuras de grafos genéricas, dejamos su aplicación a conjuntos de datos no moleculares para trabajo futuro."
+          }
+        },
+        {
+          "id": "s2-p60",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Methods Model architecture. A diagram of our model including featurization details is given in Fig. 4. We start by embedding the vertices and edges in the graph G\\η to get continuous representations hvi 2 Rd0 and hei;j 2 Rd0 respectively, where d0 is the dimensionality of the continuous representation space55. We then pass these representations to a message passing neural network (MPNN)56. We use an MPNN as the fundamental component of our model because of its invariance to graph isomorphism. An MPNN layer consists of an aggregation step that aggregates messages from each node’s neighboring nodes, followed by an update step that uses the aggregated messages to update each node’s representation. We stack L layers on top of each other to build an MPNN; parameters are tied across all L layers. For all except the last layer, the updated node and edge representations output from layer l are fed into layer l + 1. Unlike the original version of the MPNN, we also maintain and update each edge’s representation at each layer. Any variant of a graph neural network that effectively models the relationships between node and edge features can be used, such as an MPNN. Our speciﬁc design is described below.",
+            "es": "Métodos Arquitectura del modelo. En la Fig. 4 se presenta un diagrama de nuestro modelo, incluidos los detalles de la caracterización (featurization). Comenzamos incrustando (embedding) los vértices y las aristas del grafo G\\η para obtener representaciones continuas hvi 2 Rd0 y hei;j 2 Rd0 respectivamente, donde d0 es la dimensionalidad del espacio de representación continuo55. Luego pasamos estas representaciones a una red neuronal de paso de mensajes (message passing neural network, MPNN)56. Usamos una MPNN como componente fundamental de nuestro modelo por su invariancia al isomorfismo de grafos. Una capa MPNN consta de un paso de agregación que agrega los mensajes de los nodos vecinos de cada nodo, seguido de un paso de actualización que usa los mensajes agregados para actualizar la representación de cada nodo. Apilamos L capas una sobre otra para construir una MPNN; los parámetros se comparten entre las L capas. En todas las capas excepto la última, las representaciones actualizadas de nodos y aristas que salen de la capa l se introducen en la capa l + 1. A diferencia de la versión original de la MPNN, también mantenemos y actualizamos la representación de cada arista en cada capa. Se puede usar cualquier variante de una red neuronal de grafos que modele eficazmente las relaciones entre las características de nodos y aristas, como una MPNN. Nuestro diseño específico se describe a continuación."
+          }
+        },
+        {
+          "id": "s2-p61",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Diagrams of our MPNN’s node and edge update steps are given in Supplementary Figure 5. At each layer l of the MPNN, we ﬁrst update the hidden state of each node vi by computing its accumulated message uðlÞ vi using an aggregation function Jv and a spatial residual connection R between neighboring nodes: n o n o n o vi ¼ Jv hðl\u00031Þ vi ; hðl\u00031Þ j2NðiÞ; hðl\u00031Þ þ R hðl\u00031Þ uðlÞ",
+            "es": "Los diagramas de los pasos de actualización de nodos y aristas de nuestra MPNN se presentan en la Figura Suplementaria 5. En cada capa l de la MPNN, primero actualizamos el estado oculto de cada nodo vi calculando su mensaje acumulado uðlÞ vi mediante una función de agregación Jv y una conexión residual espacial R entre nodos vecinos: n o n o n o vi ¼ Jv hðl\u00031Þ vi ; hðl\u00031Þ j2NðiÞ; hðl\u00031Þ þ R hðl\u00031Þ uðlÞ"
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Fig. 4 Model architecture. A description of the node and edge features is given in the Property Embeddings part of the Methods section.",
+            "es": "Figura 4: Arquitectura del modelo. Una descripción de las características de nodos y aristas se presenta en la parte Property Embeddings de la sección Methods."
+          }
+        },
+        {
+          "id": "s2-p62",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "; ð4Þ vj ei;j vj j2NðiÞ j2NðiÞ n o n o",
+            "es": "; ð4Þ vj ei;j vj j2NðiÞ j2NðiÞ n o n o"
+          }
+        },
+        {
+          "id": "s2-p63",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Jv hðl\u00031Þ vi ; hðl\u00031Þ j2NðiÞ; hðl\u00031Þ j2NðiÞ hðl\u00031Þ ei;j \u0004 hðl\u00031Þ",
+            "es": "Jv hðl\u00031Þ vi ; hðl\u00031Þ j2NðiÞ; hðl\u00031Þ j2NðiÞ hðl\u00031Þ ei;j \u0004 hðl\u00031Þ"
+          }
+        },
+        {
+          "id": "s2-p64",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "¼ ∑ vj ; ð5Þ vj ei;j j2NðiÞ n o",
+            "es": "¼ ∑ vj ; ð5Þ vj ei;j j2NðiÞ n o"
+          }
+        },
+        {
+          "id": "s2-p65",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "R hðl\u00031Þ j2NðiÞ hðl\u00031Þ",
+            "es": "R hðl\u00031Þ j2NðiÞ hðl\u00031Þ"
+          }
+        },
+        {
+          "id": "s2-p66",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "¼ ∑ vj ; ð6Þ vj j2NðiÞ vi Þ \u0004 \u0005 hðlÞ vi ¼ LayerNorm GRU ðhðl\u00031Þ vi ; uðlÞ",
+            "es": "¼ ∑ vj ; ð6Þ vj j2NðiÞ vi Þ \u0004 \u0005 hðlÞ vi ¼ LayerNorm GRU ðhðl\u00031Þ vi ; uðlÞ"
+          }
+        },
+        {
+          "id": "s2-p67",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "; ð7Þ where N(i) is the set of indices corresponding to nodes that are in the one-hop neighbourhood of node vi. GRU53 refers to a gated recurrent unit which updates the representation of each node using its previous representation and accumulated message. LayerNorm57 refers to layer normalization.",
+            "es": "; ð7Þ donde N(i) es el conjunto de índices correspondientes a los nodos que están en la vecindad de un salto del nodo vi. GRU53 se refiere a una unidad recurrente con compuertas (gated recurrent unit) que actualiza la representación de cada nodo usando su representación previa y el mensaje acumulado. LayerNorm57 se refiere a la normalización por capas (layer normalization)."
+          }
+        },
+        {
+          "id": "s2-p68",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Similarly, the hidden state of each edge hei;j is updated using the following rule for all j ∈N(i): hðlÞ ei;j ¼ Je hðl\u00031Þ vi þ hðl\u00031Þ",
+            "es": "De manera similar, el estado oculto de cada arista hei;j se actualiza con la siguiente regla para todo j ∈N(i): hðlÞ ei;j ¼ Je hðl\u00031Þ vi þ hðl\u00031Þ"
+          }
+        },
+        {
+          "id": "s2-p69",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": ": ð8Þ vj",
+            "es": ": ð8Þ vj"
+          }
+        },
+        {
+          "id": "s2-p70",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The sum of the two hidden representations of the nodes incidental to the edge is passed through Je, a two-layer fully connected network with ReLU activation between the two layers58,59, to yield a new hidden edge representation.",
+            "es": "La suma de las dos representaciones ocultas de los nodos incidentes a la arista se pasa por Je, una red completamente conectada de dos capas con activación ReLU entre las dos capas58,59, para obtener una nueva representación oculta de la arista."
+          }
+        },
+        {
+          "id": "s2-p71",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The node and edge representations from the ﬁnal layer are then processed by a node projection layer Av : Rd0 ! ΛT and an edge projection layer Ae : Rd0 ! ΛR, where ΛT and ΛR are probability simplices over node and edge types respectively. The result is the distributions p(v∣G\\η) and p(e∣G\\η) for all v 2 V and all e 2 E.",
+            "es": "Las representaciones de nodos y aristas de la capa final se procesan después mediante una capa de proyección de nodos Av : Rd0 ! ΛT y una capa de proyección de aristas Ae : Rd0 ! ΛR, donde ΛT y ΛR son símplices de probabilidad sobre los tipos de nodo y de arista respectivamente. El resultado son las distribuciones p(v∣G\\η) y p(e∣G\\η) para todo v 2 V y todo e 2 E."
+          }
+        },
+        {
+          "id": "s2-p72",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Property embeddings Node property embeddings. We represent each node using six node properties indexed as fκ 2 Z : 1 ≤κ ≤6g, each with its own one-hot embedding. The properties are obtained using RDKit60. Each node in a graph corresponds to a heavy atom in a molecule. During the forward pass, each of these embeddings is multiplied by a separate weight matrix Wκ 2 RTκ ´ d0, where Tκ is the number of categories for property κ. The resulting continuous embeddings are summed together to form an overall embedding for the node. The entries of the one-hot embeddings for each of the properties are:",
+            "es": "Incrustaciones de propiedades (Property embeddings) Incrustaciones de propiedades de nodos. Representamos cada nodo mediante seis propiedades de nodo indexadas como fκ 2 Z : 1 ≤κ ≤6g, cada una con su propia incrustación one-hot. Las propiedades se obtienen con RDKit60. Cada nodo de un grafo corresponde a un átomo pesado de una molécula. Durante el pase hacia adelante, cada una de estas incrustaciones se multiplica por una matriz de pesos independiente Wκ 2 RTκ ´ d0, donde Tκ es el número de categorías de la propiedad κ. Las incrustaciones continuas resultantes se suman para formar una incrustación global del nodo. Las entradas de las incrustaciones one-hot de cada una de las propiedades son:"
+          }
+        },
+        {
+          "id": "s2-p73",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "● Atom type: chemical symbol (e.g. C, N, O) of the atom; ● Number of hydrogens: number of hydrogen atoms bonded to the atom; ● Charge: net charge on the atom, where the ﬁrst index represents the minimum charge on an atom in the dataset and the last index represents the maximum; ● Chirality type: unspeciﬁed, tetrahedral clockwise, tetrahedral counterclockwise, other; ● Is-in-ring: atom is or is not part of a ring structure; ● Is-aromatic: atom is or is not part of an aromatic ring.",
+            "es": "● Tipo de átomo: símbolo químico (p. ej., C, N, O) del átomo; ● Número de hidrógenos: número de átomos de hidrógeno enlazados al átomo; ● Carga: carga neta del átomo, donde el primer índice representa la carga mínima de un átomo en el conjunto de datos y el último índice representa la máxima; ● Tipo de quiralidad: no especificada, tetraédrica en sentido horario, tetraédrica en sentido antihorario, otra; ● Está en anillo (Is-in-ring): el átomo es o no parte de una estructura de anillo; ● Es aromático (Is-aromatic): el átomo es o no parte de un anillo aromático."
+          }
+        },
+        {
+          "id": "s2-p74",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Each one-hot embedding also has an additional entry corresponding to the MASK symbol.",
+            "es": "Cada incrustación one-hot también tiene una entrada adicional correspondiente al símbolo MASK."
+          }
+        },
+        {
+          "id": "s2-p75",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "After processing the graph with the MPNN, we pass the representation of each node through six separate fully-connected two-layer networks with ReLU activation between the layers. For each node, the output of each network is a distribution over the categories of the initial one-hot vector for one of the properties. During training, we calculate the cross-entropy loss between the predicted distribution and the ground-truth for all properties that were masked out by the corruption process.",
+            "es": "Después de procesar el grafo con la MPNN, pasamos la representación de cada nodo por seis redes independientes completamente conectadas de dos capas con activación ReLU entre las capas. Para cada nodo, la salida de cada red es una distribución sobre las categorías del vector one-hot inicial de una de las propiedades. Durante el entrenamiento, calculamos la pérdida de entropía cruzada (cross-entropy loss) entre la distribución predicha y el valor real para todas las propiedades que fueron enmascaradas por el proceso de corrupción."
+          }
+        },
+        {
+          "id": "s2-p76",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The choice of nodes for which a particular property is masked out is independent of the choice made for all other properties. The motivation for this is to allow the model to more easily learn relationships between different property types. The atom-level property information that we use in our model is the same as that provided in the SMILES string representation of a molecule. We also tried masking out all features for randomly selected nodes, but this yielded a signiﬁcantly higher cross-entropy loss driven largely by the atom type and hydrogen terms.",
+            "es": "La elección de los nodos para los que se enmascara una propiedad en particular es independiente de la elección hecha para todas las demás propiedades. La motivación de esto es permitir que el modelo aprenda con más facilidad las relaciones entre distintos tipos de propiedades. La información de propiedades a nivel de átomo que usamos en nuestro modelo es la misma que se proporciona en la representación de una molécula como cadena SMILES. También intentamos enmascarar todas las características de nodos seleccionados al azar, pero esto produjo una pérdida de entropía cruzada significativamente mayor, impulsada en gran medida por los términos del tipo de átomo y del hidrógeno."
+          }
+        },
+        {
+          "id": "s2-p77",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Since the ChEMBL dataset does not contain chirality information, the chirality type embedding is superﬂuous for ChEMBL.",
+            "es": "Dado que el conjunto de datos ChEMBL no contiene información de quiralidad, la incrustación del tipo de quiralidad es superflua para ChEMBL."
+          }
+        },
+        {
+          "id": "s2-p78",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "We note from preliminary experiments that using fewer node features, speciﬁcally only the atom type and number of hydrogens, results in a substantially higher cross-entropy loss than using all the node features listed above.",
+            "es": "A partir de experimentos preliminares, observamos que usar menos características de nodo, específicamente solo el tipo de átomo y el número de hidrógenos, produce una pérdida de entropía cruzada sustancialmente mayor que usar todas las características de nodo enumeradas arriba."
+          }
+        },
+        {
+          "id": "s2-p79",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Edge property embeddings. We use the same framework as described for node property embeddings. We only use one edge property with the weight matrix W 2 RR ´ d0, whose one-hot embedding is deﬁned as follows:",
+            "es": "Incrustaciones de propiedades de aristas. Usamos el mismo marco descrito para las incrustaciones de propiedades de nodos. Solo usamos una propiedad de arista con la matriz de pesos W 2 RR ´ d0, cuya incrustación one-hot se define de la siguiente manera:"
+          }
+        },
+        {
+          "id": "s2-p80",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "● Bond type: no, single, double, triple or aromatic bond.",
+            "es": "● Tipo de enlace: sin enlace, enlace simple, doble, triple o aromático."
+          }
+        },
+        {
+          "id": "s2-p81",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Model architecture, training and unconditional generation details. For the QM9 dataset, we use one 4-layer MPNN, with parameter sharing between layers. For the ChEMBL dataset, we use one 6-layer MPNN with parameter sharing. We experiment with using more layers for ChEMBL in case more message passing iterations are needed to cover a larger graph. The results of an extensive hyperparameter search on ChEMBL are given in Supplementary Table 2. For both datasets, we use an embedding dimensionality d0 = 2048. We use the Adam optimizer61 with learning rate set to 0.0001, β1 = 0.9 and β2 = 0.98. We use a batch size of 800 molecules for QM9 and 512 molecules for ChEMBL. For ChEMBL, we perform 16 forward-backward steps with minibatches of 32 each to compute the gradient of the minibatch of 512 molecules, in order to cope with the limited memory size on a GPU. We clip the gradient for its norm to be at most 10.",
+            "es": "Arquitectura del modelo, entrenamiento y detalles de la generación incondicional. Para el conjunto de datos QM9, usamos una MPNN de 4 capas, con parámetros compartidos entre las capas. Para el conjunto de datos ChEMBL, usamos una MPNN de 6 capas con parámetros compartidos. Experimentamos con más capas para ChEMBL por si se necesitan más iteraciones de paso de mensajes para cubrir un grafo más grande. Los resultados de una búsqueda exhaustiva de hiperparámetros en ChEMBL se presentan en la Tabla Suplementaria 2. Para ambos conjuntos de datos, usamos una dimensionalidad de incrustación d0 = 2048. Usamos el optimizador Adam61 con la tasa de aprendizaje (learning rate) fijada en 0.0001, β1 = 0.9 y β2 = 0.98. Usamos un tamaño de lote de 800 moléculas para QM9 y de 512 moléculas para ChEMBL. Para ChEMBL, realizamos 16 pasos hacia adelante y hacia atrás (forward-backward) con minilotes de 32 cada uno para calcular el gradiente del minilote de 512 moléculas, a fin de sortear el tamaño limitado de la memoria de una GPU. Recortamos el gradiente para que su norma sea como máximo 10."
+          }
+        },
+        {
+          "id": "s2-p82",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "During training, we uniformly at random mask each node feature (including atom type) and edge feature (including bond type) with probability α, while randomly varying α uniformly between 0 and 0.2. Nodes are considered as neighbors in the MPNN if they are connected by an edge that is either masked out, or does not have bond type no-bond. For the purposes of masking, the total number of edges in the graph is jVjðjVj\u00031Þ",
+            "es": "Durante el entrenamiento, enmascaramos de manera uniformemente aleatoria cada característica de nodo (incluido el tipo de átomo) y cada característica de arista (incluido el tipo de enlace) con probabilidad α, variando aleatoriamente α de manera uniforme entre 0 y 0.2. Los nodos se consideran vecinos en la MPNN si están conectados por una arista que está enmascarada o que no tiene el tipo de enlace no-bond. Para fines del enmascaramiento, el número total de aristas del grafo es jVjðjVj\u00031Þ"
+          }
+        },
+        {
+          "id": "s2-p83",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "2 i.e. every possible node pair (excluding self-loops) in the symmetric graph is considered as a ‘prospective edge’ that can be masked out. During validation, we follow the same procedure but with α ﬁxed at 0.1, so that we can clearly compare model checkpoints and choose the checkpoint with the lowest validation loss for generation.",
+            "es": "2 es decir, cada par de nodos posible (excluyendo los autociclos) en el grafo simétrico se considera una ‘arista prospectiva’ que puede enmascararse. Durante la validación, seguimos el mismo procedimiento pero con α fijo en 0.1, de modo que podamos comparar claramente los puntos de control (checkpoints) del modelo y elegir para la generación el punto de control con la menor pérdida de validación."
+          }
+        },
+        {
+          "id": "s2-p84",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "For QM9, we carry out generation experiments while using a masking rate of either 10% or 20%, corresponding to the mean and maximum masking rates during training respectively. For ChEMBL, we use a masking rate of either 1% or 5%, as we found that the higher masking rates led to low validity scores in our preliminary experiments. The number of prospective edges masked and replaced for a median ChEMBL molecule with a 1% masking rate and for a median QM9 molecule with a 10% masking rate are both approximately 4. This indicates that the absolute number rather than portion of components masked out directly impacts generation quality. For a constant masking rate, the number of masked out prospective edges scales as the square of the number of nodes in the graph. The number of bonds in a molecule does not scale in this way; larger molecules are likely to have sparser adjacency matrices than small molecules. Masking out a very large number of prospective edges could degrade performance as this would yield an unnaturally dense graph to the MPNN. This is because every prospective edge of type ‘no edge’ that is masked out would appear as an edge to the MPNN. This would result in message passing between many nodes in the input graph that are far apart in the sparse molecule. We therefore propose a masking rate corresponding to masking out a similar number of prospective edges (approximately 5–10) when using MGM on other datasets. Nevertheless, ﬁnding an automated way of setting the masking rate would be a valuable direction for future research.",
+            "es": "Para QM9, realizamos experimentos de generación con una tasa de enmascaramiento (masking rate) de 10% o de 20%, que corresponden a la tasa media y a la tasa máxima de enmascaramiento durante el entrenamiento, respectivamente. Para ChEMBL, usamos una tasa de enmascaramiento de 1% o de 5%, porque encontramos que las tasas de enmascaramiento más altas producían puntuaciones de validez bajas en nuestros experimentos preliminares. El número de aristas potenciales (prospective edges) enmascaradas y reemplazadas para una molécula mediana de ChEMBL con una tasa de enmascaramiento de 1% y para una molécula mediana de QM9 con una tasa de enmascaramiento de 10% es en ambos casos de aproximadamente 4. Esto indica que el número absoluto de componentes enmascarados, y no su proporción, es lo que influye directamente en la calidad de la generación. Para una tasa de enmascaramiento constante, el número de aristas potenciales enmascaradas crece como el cuadrado del número de nodos del grafo. El número de enlaces de una molécula no crece de esa manera; es probable que las moléculas grandes tengan matrices de adyacencia (adjacency matrices) más dispersas que las moléculas pequeñas. Enmascarar un número muy grande de aristas potenciales podría degradar el desempeño, ya que esto produciría un grafo anormalmente denso para la MPNN. Esto se debe a que cada arista potencial de tipo «sin arista» que se enmascara aparecería como una arista ante la MPNN. Esto daría lugar a un paso de mensajes (message passing) entre muchos nodos del grafo de entrada que están lejos unos de otros en la molécula dispersa. Por ello proponemos una tasa de enmascaramiento que corresponda a enmascarar un número similar de aristas potenciales (aproximadamente 5–10) al usar MGM en otros conjuntos de datos. No obstante, encontrar una forma automatizada de fijar la tasa de enmascaramiento sería una dirección valiosa para investigaciones futuras."
+          }
+        },
+        {
+          "id": "s2-p85",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "We use the same independence constraint during generation as we use during training when choosing which properties to mask out for each node or edge. We vary the initialization strategy between training and marginal initialization.",
+            "es": "Usamos durante la generación la misma restricción de independencia (independence constraint) que usamos durante el entrenamiento al elegir qué propiedades enmascarar para cada nodo o arista. Variamos la estrategia de inicialización (initialization) entre la inicialización de entrenamiento (training) y la inicialización marginal (marginal initialization)."
+          }
+        },
+        {
+          "id": "s2-p86",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "For QM9, we run 400 sampling iterations sequentially to generate a sequence of sampled graphs. For ChEMBL, we run 300 iterations. We calculate the GuacaMol evaluation metrics for our samples after every generation step for the ﬁrst 10 steps, and then every 10–20 steps, in order to observe how generation quality changes with the number of generation steps.",
+            "es": "Para QM9, ejecutamos 400 iteraciones de muestreo de forma secuencial para generar una secuencia de grafos muestreados. Para ChEMBL, ejecutamos 300 iteraciones. Calculamos las métricas de evaluación de GuacaMol para nuestras muestras después de cada paso de generación durante los primeros 10 pasos, y luego cada 10–20 pasos, con el fin de observar cómo cambia la calidad de la generación con el número de pasos de generación."
+          }
+        },
+        {
+          "id": "s2-p87",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Conditional generation details. We carry out conditional generation corresponding to two different molecular properties: molecular weight (MolWt) and the Wildman–Crippen partition coefﬁcient (LogP). We train a separate model for each property on QM9, with the same hyperparameters as used for the unconditional case. For each property, we ﬁrst normalize the property values by subtracting the mean and dividing by the standard deviation across the training data. We obtain an embedding of dimension d0 for the property by passing the one-dimensional standardized property value through a two-layer fully-connected network with ReLU activation between the two layers. We add this embedding to each node embedding and then proceed with the forward pass as in the unconditional case. For generation, we use a 10% masking rate and carry out 400 sampling iterations with both training and marginal initializations.",
+            "es": "Detalles de la generación condicional. Realizamos generación condicional correspondiente a dos propiedades moleculares distintas: el peso molecular (MolWt) y el coeficiente de partición de Wildman–Crippen (LogP). Entrenamos un modelo separado para cada propiedad en QM9, con los mismos hiperparámetros que se usaron en el caso incondicional. Para cada propiedad, primero normalizamos los valores de la propiedad restando la media y dividiendo entre la desviación estándar calculadas sobre los datos de entrenamiento. Obtenemos una incrustación (embedding) de dimensión d0 para la propiedad al pasar el valor estandarizado y unidimensional de la propiedad por una red completamente conectada de dos capas con activación ReLU entre ambas capas. Sumamos esta incrustación a la incrustación de cada nodo y luego continuamos con el paso hacia adelante (forward pass) como en el caso incondicional. Para la generación, usamos una tasa de enmascaramiento de 10% y realizamos 400 iteraciones de muestreo con las inicializaciones de entrenamiento y marginal."
+          }
+        },
+        {
+          "id": "s2-p88",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "We evaluate 10,000 generated molecules using the framework outlined by Kwon et al.25 in their work on non-autoregressive graph generation. This involves computing summary statistics of the generated molecules for target property values of 120, 125 and 130 for MolWt, and −0.4, 0.2 and 0.8 for LogP. We choose results corresponding to the initialization and number of sampling iterations that yield the mean property value that is closest to the target value. We also provide results from the ﬁnal generation step with the initialization corresponding to the higher geometric mean among the ﬁve GuacaMol metrics.",
+            "es": "Evaluamos 10,000 moléculas generadas usando el marco descrito por Kwon et al.25 en su trabajo sobre generación de grafos no autorregresiva. Esto implica calcular estadísticas resumen de las moléculas generadas para valores objetivo de la propiedad de 120, 125 y 130 para MolWt, y de −0.4, 0.2 y 0.8 para LogP. Elegimos los resultados correspondientes a la inicialización y al número de iteraciones de muestreo que producen el valor medio de la propiedad más cercano al valor objetivo. También presentamos los resultados del paso final de generación con la inicialización que corresponde a la media geométrica más alta entre las cinco métricas de GuacaMol."
+          }
+        },
+        {
+          "id": "s2-p89",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Finally, we calculate KLD scores for molecules from the QM9 dataset with property values close to the target values. For the MolWt conditions, we sample 10,000 molecules from the dataset that have a MolWt within 1 of the target MolWt. For the LogP conditions, we sample 10,000 molecules from the dataset that have LogP value within 0.1 of the target LogP value.",
+            "es": "Por último, calculamos las puntuaciones KLD para moléculas del conjunto de datos QM9 con valores de la propiedad cercanos a los valores objetivo. Para las condiciones de MolWt, muestreamos del conjunto de datos 10,000 moléculas que tienen un MolWt a una distancia de 1 del MolWt objetivo. Para las condiciones de LogP, muestreamos del conjunto de datos 10,000 moléculas que tienen un valor de LogP a una distancia de 0.1 del valor objetivo de LogP."
+          }
+        },
+        {
+          "id": "s2-p90",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Details of baseline models. We train two variants of the Transformer3 architecture: Small and Regular. The Transformer Regular architecture consists of 6 layers, 8 attention heads, embedding size of 1024, hidden dimension of 1024, and dropout of 0.1. The Transformer Small architecture consists of 4 layers, 8 attention heads, embedding size of 512, hidden dimension of 512, and dropout of 0.1. Both Transformer-Small and -Regular are trained with a batch size of 128 until the validation cross-entropy loss stops improving. We set the learning rate of the Adam optimizer to 0.0001, β1 = 0.9 and β2 = 0.98. The learning rate is decayed based on the inverse square root of the number of updates. We use the same hyperparameters for the Transformer Small and Regular models on both QM9 and ChEMBL.",
+            "es": "Detalles de los modelos de referencia (baselines). Entrenamos dos variantes de la arquitectura Transformer3: Small y Regular. La arquitectura Transformer Regular consta de 6 capas, 8 cabezas de atención, un tamaño de incrustación de 1024, una dimensión oculta de 1024 y un dropout de 0.1. La arquitectura Transformer Small consta de 4 capas, 8 cabezas de atención, un tamaño de incrustación de 512, una dimensión oculta de 512 y un dropout de 0.1. Tanto Transformer-Small como Transformer-Regular se entrenan con un tamaño de lote de 128 hasta que la pérdida de entropía cruzada de validación deja de mejorar. Fijamos la tasa de aprendizaje del optimizador Adam en 0.0001, β1 = 0.9 y β2 = 0.98. La tasa de aprendizaje decae según la raíz cuadrada inversa del número de actualizaciones. Usamos los mismos hiperparámetros para los modelos Transformer Small y Regular tanto en QM9 como en ChEMBL."
+          }
+        },
+        {
+          "id": "s2-p91",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "We follow the open-source implementation of the GuacaMol benchmark baselines at https://github.com/BenevolentAI/guacamol_baselines for training an LSTM model on QM9. Speciﬁcally, we train the LSTM with 3 layers of hidden size 1024, dropout of 0.2 and batch size of 64, using the Adam optimizer with learning rate 0.001, β1 = 0.9 and β2 = 0.999. We do not train the rest of the baseline models ourselves. For QM9: CharacterVAE49, GrammarVAE50, GraphVAE23, and MolGAN51 results are taken from Cao and Kipf51. For ChEMBL: AAE6, ORGAN62, Graph MCTS52, VAE, and LSTM results are taken from Brown et al.46. NAT GraphVAE results are taken from Kwon et al.25 for ChEMBL. To carry out unconditional and conditional generation from NAT GraphVAE on QM9, we train a model using the publicly available codebase provided by the paper’s authors at https://github.com/seokhokang/graphvae_approx.",
+            "es": "Seguimos la implementación de código abierto de los modelos de referencia del benchmark GuacaMol, disponible en https://github.com/BenevolentAI/guacamol_baselines, para entrenar un modelo LSTM en QM9. Específicamente, entrenamos el LSTM con 3 capas de tamaño oculto 1024, un dropout de 0.2 y un tamaño de lote de 64, usando el optimizador Adam con tasa de aprendizaje de 0.001, β1 = 0.9 y β2 = 0.999. No entrenamos nosotros mismos el resto de los modelos de referencia. Para QM9: los resultados de CharacterVAE49, GrammarVAE50, GraphVAE23 y MolGAN51 se toman de Cao y Kipf51. Para ChEMBL: los resultados de AAE6, ORGAN62, Graph MCTS52, VAE y LSTM se toman de Brown et al.46. Los resultados de NAT GraphVAE para ChEMBL se toman de Kwon et al.25. Para realizar la generación incondicional y condicional con NAT GraphVAE en QM9, entrenamos un modelo usando el código base disponible públicamente que proporcionan los autores del artículo en https://github.com/seokhokang/graphvae_approx."
+          }
+        },
+        {
+          "id": "s2-p92",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Datasets and evaluation. We evaluate our approach using two widely used23,49,63 datasets of small molecules: QM943,44, and a subset of the ChEMBL database45 (Version 24) as deﬁned by Fiscato et al.64 and used by Brown et al.46. All references to ChEMBL in this paper are references to this subset of the database. Heavy atoms and bonds in a molecule correspond to nodes and edges in a graph, respectively.",
+            "es": "Conjuntos de datos y evaluación. Evaluamos nuestro enfoque usando dos conjuntos de datos de moléculas pequeñas de uso muy extendido23,49,63: QM943,44 y un subconjunto de la base de datos ChEMBL45 (Versión 24), tal como lo definen Fiscato et al.64 y lo usan Brown et al.46. Todas las referencias a ChEMBL en este artículo son referencias a este subconjunto de la base de datos. Los átomos pesados y los enlaces de una molécula corresponden a los nodos y a las aristas de un grafo, respectivamente."
+          }
+        },
+        {
+          "id": "s2-p93",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "The QM9 dataset consists of approximately 132,000 molecules with a median and maximum of 9 heavy atoms each. Each atom is of one of the following T = 4 types: C, N, O, and F. Each bond is either a no-bond, single, double, triple or aromatic bond (R = 5). The ChEMBL dataset contains approximately 1,591,000 molecules with a median of 27 and a maximum of 88 heavy atoms each. It contains 12 types of atoms (T = 12): B, C, N, O, F, Si, P, S, Cl, Se, Br, and I. Each bond is either a no-bond, single, double, triple or aromatic bond (R = 5).",
+            "es": "El conjunto de datos QM9 consta de aproximadamente 132,000 moléculas, con una mediana y un máximo de 9 átomos pesados cada una. Cada átomo es de uno de los siguientes T = 4 tipos: C, N, O y F. Cada enlace es de tipo sin enlace, simple, doble, triple o aromático (R = 5). El conjunto de datos ChEMBL contiene aproximadamente 1,591,000 moléculas, con una mediana de 27 y un máximo de 88 átomos pesados cada una. Contiene 12 tipos de átomos (T = 12): B, C, N, O, F, Si, P, S, Cl, Se, Br e I. Cada enlace es de tipo sin enlace, simple, doble, triple o aromático (R = 5)."
+          }
+        },
+        {
+          "id": "s2-p94",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "The QM9 dataset is split into training and validation sets, while the ChEMBL dataset is split into training, validation and test sets. We use the term dataset distribution to refer to the distribution of the combined training and validation sets for QM9, and the combined training, validation and test sets for ChEMBL. Similarly, we use the term dataset molecule to refer to a molecule from the combined QM9 or ChEMBL dataset.",
+            "es": "El conjunto de datos QM9 se divide en conjuntos de entrenamiento y de validación, mientras que el conjunto de datos ChEMBL se divide en conjuntos de entrenamiento, de validación y de prueba. Usamos el término distribución del conjunto de datos (dataset distribution) para referirnos a la distribución de los conjuntos de entrenamiento y de validación combinados para QM9, y de los conjuntos de entrenamiento, de validación y de prueba combinados para ChEMBL. De manera similar, usamos el término molécula del conjunto de datos (dataset molecule) para referirnos a una molécula del conjunto combinado de QM9 o de ChEMBL."
+          }
+        },
+        {
+          "id": "s2-p95",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "To numerically evaluate our approach, we use the GuacaMol benchmark46, a suite of benchmarks for evaluating molecular graph generation approaches. The",
+            "es": "Para evaluar numéricamente nuestro enfoque, usamos el benchmark GuacaMol46, un conjunto de pruebas de referencia para evaluar enfoques de generación de grafos moleculares. El"
+          }
+        },
+        {
+          "id": "s2-p96",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "GuacaMol framework operates on SMILES strings, so we convert our generated graphs to SMILES strings before evaluation. Speciﬁcally, we evaluate our model using distribution-learning metrics from GuacaMol: the validity, uniqueness, novelty, KL-divergence47 and Fréchet ChemNet Distance48 scores. GuacaMol uses 10,000 randomly sampled molecules to calculate each of these scores. Validity measures the ratio of valid molecules, uniqueness estimates the proportion of generated molecules that remain after removing duplicates and novelty measures the proportion of generated molecules that are not dataset molecules. The KL-divergence score compares the distributions of a variety of physiochemical descriptors estimated from the dataset and a set of generated molecules. The Fréchet ChemNet Distance score48 measures the proximity of the distribution of generated molecules to the distribution of the dataset molecules. This proximity is measured according to the Fréchet Distance in the hidden representation space of ChemNet, which is trained to predict the chemical properties of small molecules65.",
+            "es": "marco GuacaMol opera sobre cadenas SMILES, por lo que convertimos nuestros grafos generados en cadenas SMILES antes de la evaluación. Específicamente, evaluamos nuestro modelo usando métricas de aprendizaje de distribuciones (distribution-learning) de GuacaMol: las puntuaciones de validez (validity), unicidad (uniqueness), novedad (novelty), divergencia KL (KL-divergence)47 y distancia ChemNet de Fréchet (Fréchet ChemNet Distance)48. GuacaMol usa 10,000 moléculas muestreadas al azar para calcular cada una de estas puntuaciones. La validez mide la proporción de moléculas válidas, la unicidad estima la proporción de moléculas generadas que permanecen después de eliminar los duplicados y la novedad mide la proporción de moléculas generadas que no son moléculas del conjunto de datos. La puntuación de divergencia KL compara las distribuciones de una variedad de descriptores fisicoquímicos estimados a partir del conjunto de datos y de un conjunto de moléculas generadas. La puntuación de distancia ChemNet de Fréchet48 mide la cercanía de la distribución de las moléculas generadas a la distribución de las moléculas del conjunto de datos. Esta cercanía se mide según la distancia de Fréchet en el espacio de representación oculta de ChemNet, que se entrena para predecir las propiedades químicas de moléculas pequeñas65."
+          }
+        },
+        {
+          "id": "s2-p97",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Data availability The datasets used in this work are publicly available. They are referenced in the Datasets and Evaluation part of the Methods section.",
+            "es": "Disponibilidad de datos. Los conjuntos de datos usados en este trabajo están disponibles públicamente. Se mencionan en la parte de Conjuntos de datos y evaluación de la sección de Métodos."
+          }
+        },
+        {
+          "id": "s2-p98",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Code availability Code, pretrained MGM models, training and generation scripts for MGM and baseline models, and lists of generated molecules can be found at https://github.com/nyu-dl/ dl4chem-mgm66.",
+            "es": "Disponibilidad del código. El código, los modelos MGM preentrenados, los scripts de entrenamiento y de generación para MGM y los modelos de referencia, y las listas de moléculas generadas se pueden encontrar en https://github.com/nyu-dl/ dl4chem-mgm66."
+          }
+        },
+        {
+          "id": "s2-p99",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Received: 21 January 2021; Accepted: 28 April 2021;",
+            "es": "Recibido: 21 de enero de 2021; Aceptado: 28 de abril de 2021;"
+          }
+        },
+        {
+          "id": "s2-p100",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "References 1. Bohacek, R. S., Mcmartin, C. & Guida, W. C. The art and practice of structurebased drug design: a molecular modeling perspective. Med. Res. Rev. 16, 3–50 (1996). 2. Hochreiter, S. & Schmidhuber, J. Long short-term memory. Neural Comput. 9, 1735–1780 (1997). 3. Vaswani, A. et al. Attention is all you need. arXiv, abs/1706.03762 (2017). 4. Kingma, D. P. & Max, W. Auto-encoding variational bayes. arXiv, abs.6114 (2013). 5. Rezende, D. J., Mohamed, S. & Wierstra, D. Stochastic backpropagation and approximate inference in deep generative models. In ICML (2014). 6. Makhzani, A., Shlens, J., Jaitly, N. & Goodfellow, I. J. Adversarial autoencoders. arXiv, abs/1511.05644 (2015). 7. Goodfellow, I. J. et al. Generative adversarial nets. In NIPS (2014). 8. Elton, D., Boukouvalas, Z., Fuge, M. D. & Chung, P. W. Deep learning for molecular design-a review of the state of the art. arXiv, abs/1903.04388 (2019). 9. Tomas, M. et al. RNNLM - Recurrent Neural Network Language Modeling Toolkit. In IEEE Automatic Speech Recognition and Understanding Workshop (2011). 10. Bengio, Y. & Bengio, S. Modeling high-dimensional discrete data with multilayer neural networks. In NIPS, pages 400–406 (1999). 11. Hugo, L. & Iain, M. The neural autoregressive distribution estimator. In The Proceedings of the 14th International Conference on Artiﬁcial Intelligence and Statistics (2011). 12. Segler, M. H. S., Kogej, T., Tyrchan, C. & Waller, M. P. Generating focussed molecule libraries for drug discovery with recurrent neural networks. CoRR, abs/1701.01329 (2017). 13. Vinyals, O., Bengio, S. & Kudlur, M. Order matters: Sequence to sequence for sets. arXiv, abs/1511.06391 (2016). 14. Shu, R., Lee, J., Nakayama, H. & Cho, K. Latent-variable non-autoregressive neural machine translation with deterministic inference using a delta posterior. arXiv, abs/1908.07181 (2019). 15. Mario, K. et al. Self-referencing embedded strings (selﬁes): A 100% robust molecular string representation. arXiv, abs/1905.13741 (2019). 16. Li, Y. et al. Learning deep generative models of graphs. arXiv, abs/1803.03324 (2018). 17. You, J. et al. Graphrnn: Generating realistic graphs with deep auto-regressive models. In ICML (2018). 18. Liao, R. et al. Efﬁcient graph generation with graph recurrent attention networks. In NeurIPS (2019). 19. Dai, H. et al. Scalable deep generative modeling for sparse graphs. arXiv, abs/ 2006.15502 (2020). 20. Grover, A., Zweig, A. & Ermon, S. Graphite: Iterative generative modeling of graphs. In ICML (2019). 21. Liu, J. et al. Graph normalizing ﬂows. In NeurIPS (2019). 22. Rocío, M. et al. Graph networks for molecular design. ChemRxiv (2020).",
+            "es": "Referencias 1. Bohacek, R. S., Mcmartin, C. & Guida, W. C. The art and practice of structurebased drug design: a molecular modeling perspective. Med. Res. Rev. 16, 3–50 (1996). 2. Hochreiter, S. & Schmidhuber, J. Long short-term memory. Neural Comput. 9, 1735–1780 (1997). 3. Vaswani, A. et al. Attention is all you need. arXiv, abs/1706.03762 (2017). 4. Kingma, D. P. & Max, W. Auto-encoding variational bayes. arXiv, abs.6114 (2013). 5. Rezende, D. J., Mohamed, S. & Wierstra, D. Stochastic backpropagation and approximate inference in deep generative models. In ICML (2014). 6. Makhzani, A., Shlens, J., Jaitly, N. & Goodfellow, I. J. Adversarial autoencoders. arXiv, abs/1511.05644 (2015). 7. Goodfellow, I. J. et al. Generative adversarial nets. In NIPS (2014). 8. Elton, D., Boukouvalas, Z., Fuge, M. D. & Chung, P. W. Deep learning for molecular design-a review of the state of the art. arXiv, abs/1903.04388 (2019). 9. Tomas, M. et al. RNNLM - Recurrent Neural Network Language Modeling Toolkit. In IEEE Automatic Speech Recognition and Understanding Workshop (2011). 10. Bengio, Y. & Bengio, S. Modeling high-dimensional discrete data with multilayer neural networks. In NIPS, pages 400–406 (1999). 11. Hugo, L. & Iain, M. The neural autoregressive distribution estimator. In The Proceedings of the 14th International Conference on Artiﬁcial Intelligence and Statistics (2011). 12. Segler, M. H. S., Kogej, T., Tyrchan, C. & Waller, M. P. Generating focussed molecule libraries for drug discovery with recurrent neural networks. CoRR, abs/1701.01329 (2017). 13. Vinyals, O., Bengio, S. & Kudlur, M. Order matters: Sequence to sequence for sets. arXiv, abs/1511.06391 (2016). 14. Shu, R., Lee, J., Nakayama, H. & Cho, K. Latent-variable non-autoregressive neural machine translation with deterministic inference using a delta posterior. arXiv, abs/1908.07181 (2019). 15. Mario, K. et al. Self-referencing embedded strings (selﬁes): A 100% robust molecular string representation. arXiv, abs/1905.13741 (2019). 16. Li, Y. et al. Learning deep generative models of graphs. arXiv, abs/1803.03324 (2018). 17. You, J. et al. Graphrnn: Generating realistic graphs with deep auto-regressive models. In ICML (2018). 18. Liao, R. et al. Efﬁcient graph generation with graph recurrent attention networks. In NeurIPS (2019). 19. Dai, H. et al. Scalable deep generative modeling for sparse graphs. arXiv, abs/ 2006.15502 (2020). 20. Grover, A., Zweig, A. & Ermon, S. Graphite: Iterative generative modeling of graphs. In ICML (2019). 21. Liu, J. et al. Graph normalizing ﬂows. In NeurIPS (2019). 22. Rocío, M. et al. Graph networks for molecular design. ChemRxiv (2020)."
+          }
+        },
+        {
+          "id": "s2-p101",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "23. Simonovsky, M. & Komodakis, N. Graphvae: Towards generation of small graphs using variational autoencoders. arXiv, abs/1802.03480 (2018). 24. Jin, W. Barzilay, R. & Jaakkola, T. S. Junction tree variational autoencoder for molecular graph generation. In ICML (2018). 25. Kwon, Y. et al. Efﬁcient learning of non-autoregressive graph variational autoencoders for molecular graph generation. Journal of Cheminformatics, 11 (2019). 26. Jiaxuan, Y. et al. Graph convolutional policy network for goal-directed molecular graph generation. arXiv, abs/1806.02473 (2018). 27. Zhou, Z. et al. Optimization of molecules via deep reinforcement learning. Scientiﬁc Reports, 9 (2019). 28. Simm, G. N. C., Pinsler, R. & Hernández-Lobato, J. M. Reinforcement learning for molecular design guided by quantum mechanics. arXiv, abs/2002.07717 (2020). 29. Wang, L., Zhang, C., Bai, R., Li, J. & Duan, H. Heck reaction prediction using a transformer model based on a transfer learning strategy. Chem. Commun. 56, 9368–9371 (2020). 30. Liu, B. et al. Retrosynthetic reaction prediction using neural sequence-to-sequence models. ACS Central Science 3, 1103–1113 (2017). 31. Bradshaw, J. et al. Barking up the right tree: an approach to search over molecule synthesis dags. arXiv, abs/2012.11522 (2020). 32. Yang, K. et al. Improving molecular design by stochastic iterative target augmentation. arXiv, abs/2002.04720 (2020). 33. Devlin, J., Chang, M.-W., Toutanova, K. & Lee, K. Bert: Pre-training of deep bidirectional transformers for language understanding. In NAACL (2019). 34. Wang, A. et al. Glue: A multi-task benchmark and analysis platform for natural language understanding. arXiv, abs/1804.07461 (2018). 35. Wang, A. et al. Superglue: A stickier benchmark for general-purpose language understanding systems. arXiv, abs/1905.00537 (2019). 36. Nogueira, R. & Cho, K. Passage re-ranking with bert. arXiv, abs/1901.04085 (2019). 37. Liu, Y. et al. Roberta: A robustly optimized bert pretraining approach. arXiv, abs/1907.11692 (2019). 38. Lan, Z. et al. Albert: A lite bert for self-supervised learning of language representations. arXiv, abs/1909.11942 (2020). 39. Lample, G. & Conneau, A. Cross-lingual language model pretraining. arXiv, abs/1901.07291 (2019). 40. Mansimov, E., Wang, A. & Cho, K. A generalized framework of sequence generation with application to undirected sequence models. arXiv, abs/ 1905.12790 (2019). 41. Guillaume, A. & Bengio, Y. What regularized auto-encoders learn from the data generating distribution. arXiv, abs/1211.4246 (2014). 42. Vincent, P., Larochelle, H., Lajoie, I., Bengio, Y. & Manzagol, Pierre-Antoine Stacked denoising autoencoders: Learning useful representations in a deep network with a local denoising criterion. J. Mach. Learn. Res. 11, 3371–3408 (2010). 43. Ruddigkeit, L., Deursen, R. V., Blum, L. C. & Reymond, J.-L. Enumeration of 166 billion organic small molecules in the chemical universe database GDB-17. J. Chem. Inf. Model. 52, 2864–2875 (2012). 44. Raghunathan, R., Dral, P. O., Rupp, M. & Von Lilienfeld, O. A. Quantum chemistry structures and properties of 134 kilo molecules. Sci. Data 1, 1–7 (2014). 45. Anna, G. et al. The ChEMBL database in 2017. Nucleic Acids Res. 45, D945–D954 (2016). 46. Brown, N., Fiscato, M., Segler, M. H. S. & Vaucher, A. C. Guacamol: Benchmarking models for de novo molecular design. arXiv, abs/811.09621 (2018). 47. Kullback, S. & Leibler, R. A. On information and sufﬁciency. Ann. Math. Stat. 22, 79–86 (1951). 48. Kristina, P., Renz, P., Unterthiner, T., Hochreiter, S. & Klambauer, G. Fréchet chemnet distance: a metric for generative models for molecules in drug discovery. J. Chem. Inf. Model. 58, 1736–1741 (2018). 49. Gómez-Bombarelli, R. et al. Automatic chemical design using a data-driven continuous representation of molecules. arXiv, abs/1610.02415 (2016). 50. Kusner, M. J., Paige, B. & Hernández-Lobato, J. M. Grammar variational autoencoder. In ICML (2017). 51. Cao, N. D. & Kipf, T. Molgan: An implicit generative model for small molecular graphs. arXiv, abs/1805.11973 (2018). 52. Jensen, J. H. Graph-based genetic algorithm and generative model/monte carlo tree search for the exploration of chemical space. ChemRxiv (2018). 53. Cho, K. et al. Learning phrase representations using rnn encoder-decoder for statistical machine translation. In Proceedings of the 2014 Conference on Empirical Methods in Natural Language Processing, 1724–1734 (2014). 54. Josep, A.-P. et al. Randomized smiles strings improve the quality of molecular generative models. ChemRxiv (2019).",
+            "es": "23. Simonovsky, M. & Komodakis, N. Graphvae: Towards generation of small graphs using variational autoencoders. arXiv, abs/1802.03480 (2018). 24. Jin, W. Barzilay, R. & Jaakkola, T. S. Junction tree variational autoencoder for molecular graph generation. In ICML (2018). 25. Kwon, Y. et al. Efﬁcient learning of non-autoregressive graph variational autoencoders for molecular graph generation. Journal of Cheminformatics, 11 (2019). 26. Jiaxuan, Y. et al. Graph convolutional policy network for goal-directed molecular graph generation. arXiv, abs/1806.02473 (2018). 27. Zhou, Z. et al. Optimization of molecules via deep reinforcement learning. Scientiﬁc Reports, 9 (2019). 28. Simm, G. N. C., Pinsler, R. & Hernández-Lobato, J. M. Reinforcement learning for molecular design guided by quantum mechanics. arXiv, abs/2002.07717 (2020). 29. Wang, L., Zhang, C., Bai, R., Li, J. & Duan, H. Heck reaction prediction using a transformer model based on a transfer learning strategy. Chem. Commun. 56, 9368–9371 (2020). 30. Liu, B. et al. Retrosynthetic reaction prediction using neural sequence-to-sequence models. ACS Central Science 3, 1103–1113 (2017). 31. Bradshaw, J. et al. Barking up the right tree: an approach to search over molecule synthesis dags. arXiv, abs/2012.11522 (2020). 32. Yang, K. et al. Improving molecular design by stochastic iterative target augmentation. arXiv, abs/2002.04720 (2020). 33. Devlin, J., Chang, M.-W., Toutanova, K. & Lee, K. Bert: Pre-training of deep bidirectional transformers for language understanding. In NAACL (2019). 34. Wang, A. et al. Glue: A multi-task benchmark and analysis platform for natural language understanding. arXiv, abs/1804.07461 (2018). 35. Wang, A. et al. Superglue: A stickier benchmark for general-purpose language understanding systems. arXiv, abs/1905.00537 (2019). 36. Nogueira, R. & Cho, K. Passage re-ranking with bert. arXiv, abs/1901.04085 (2019). 37. Liu, Y. et al. Roberta: A robustly optimized bert pretraining approach. arXiv, abs/1907.11692 (2019). 38. Lan, Z. et al. Albert: A lite bert for self-supervised learning of language representations. arXiv, abs/1909.11942 (2020). 39. Lample, G. & Conneau, A. Cross-lingual language model pretraining. arXiv, abs/1901.07291 (2019). 40. Mansimov, E., Wang, A. & Cho, K. A generalized framework of sequence generation with application to undirected sequence models. arXiv, abs/ 1905.12790 (2019). 41. Guillaume, A. & Bengio, Y. What regularized auto-encoders learn from the data generating distribution. arXiv, abs/1211.4246 (2014). 42. Vincent, P., Larochelle, H., Lajoie, I., Bengio, Y. & Manzagol, Pierre-Antoine Stacked denoising autoencoders: Learning useful representations in a deep network with a local denoising criterion. J. Mach. Learn. Res. 11, 3371–3408 (2010). 43. Ruddigkeit, L., Deursen, R. V., Blum, L. C. & Reymond, J.-L. Enumeration of 166 billion organic small molecules in the chemical universe database GDB-17. J. Chem. Inf. Model. 52, 2864–2875 (2012). 44. Raghunathan, R., Dral, P. O., Rupp, M. & Von Lilienfeld, O. A. Quantum chemistry structures and properties of 134 kilo molecules. Sci. Data 1, 1–7 (2014). 45. Anna, G. et al. The ChEMBL database in 2017. Nucleic Acids Res. 45, D945–D954 (2016). 46. Brown, N., Fiscato, M., Segler, M. H. S. & Vaucher, A. C. Guacamol: Benchmarking models for de novo molecular design. arXiv, abs/811.09621 (2018). 47. Kullback, S. & Leibler, R. A. On information and sufﬁciency. Ann. Math. Stat. 22, 79–86 (1951). 48. Kristina, P., Renz, P., Unterthiner, T., Hochreiter, S. & Klambauer, G. Fréchet chemnet distance: a metric for generative models for molecules in drug discovery. J. Chem. Inf. Model. 58, 1736–1741 (2018). 49. Gómez-Bombarelli, R. et al. Automatic chemical design using a data-driven continuous representation of molecules. arXiv, abs/1610.02415 (2016). 50. Kusner, M. J., Paige, B. & Hernández-Lobato, J. M. Grammar variational autoencoder. In ICML (2017). 51. Cao, N. D. & Kipf, T. Molgan: An implicit generative model for small molecular graphs. arXiv, abs/1805.11973 (2018). 52. Jensen, J. H. Graph-based genetic algorithm and generative model/monte carlo tree search for the exploration of chemical space. ChemRxiv (2018). 53. Cho, K. et al. Learning phrase representations using rnn encoder-decoder for statistical machine translation. In Proceedings of the 2014 Conference on Empirical Methods in Natural Language Processing, 1724–1734 (2014). 54. Josep, A.-P. et al. Randomized smiles strings improve the quality of molecular generative models. ChemRxiv (2019)."
+          }
+        },
+        {
+          "id": "s2-p102",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "55. Bengio, Y., Ducharme, R. éjean, Vincent, P. & Janvin, C. A neural probabilistic language model. J. Mach. Learn. Res. 3, 1137–1155 (2003). 56. Gilmer, J. et al. Neural message passing for quantum chemistry. In Proceedings of the 34th International Conference on Machine Learning, 1263–1272 (2017). 57. Ba, J. L., Kiros, J. R. & Hinton, G. E. Layer normalization. arXiv, abs/ 1607.06450 (2016). 58. Nair, V. & Hinton, G. E. Rectiﬁed linear units improve restricted boltzmann machines. In ICML, 807-814 (2010). 59. Glorot, X., Bordes, A. & Bengio, Y. Deep sparse rectiﬁer neural networks. In Proceedings of Machine Learning Research, 15, 315-323 (2011). 60. Rdkit: Open-source cheminformatics. URL http://www.rdkit.org. 61. Kingma, D. P. & Ba, J. Adam: A method for stochastic optimization. CoRR, abs/1412.6980 (2015). 62. Guimaraes, G. L. et al. Objective-reinforced generative adversarial networks (ORGAN) for sequence generation models. CoRR, abs/1705.10843 (2017). 63. Li, Y., Zhang, L. & Liu, Z. Multi-objective de novo drug design with conditional graph generative model. J. Cheminform. 10, 33 (2018). 64. Fiscato, M., Vaucher, A. C. & Segler, M. Guacamol all smiles (2018). 65. Goh, G. B., Siegel, C., Vishnu, A. & Hodas, N. O. Chemnet: A transferable and generalizable deep neural network for small-molecule property prediction. arXiv, abs/1712.02734 (2017). 66. Mahmood, O. & Cho, K. Masked Graph Modeling for Molecule Generation. nyu-dl/dl4chem-mgm: accepted. https://doi.org/10.5281/zenodo.4708242 (2021). 67. Polykovskiy, D. et al. Entangled conditional adversarial autoencoder for de novo drug discovery. Molecular Pharmaceutics (2018).",
+            "es": "55. Bengio, Y., Ducharme, R. éjean, Vincent, P. & Janvin, C. A neural probabilistic language model. J. Mach. Learn. Res. 3, 1137–1155 (2003). 56. Gilmer, J. et al. Neural message passing for quantum chemistry. In Proceedings of the 34th International Conference on Machine Learning, 1263–1272 (2017). 57. Ba, J. L., Kiros, J. R. & Hinton, G. E. Layer normalization. arXiv, abs/ 1607.06450 (2016). 58. Nair, V. & Hinton, G. E. Rectiﬁed linear units improve restricted boltzmann machines. In ICML, 807-814 (2010). 59. Glorot, X., Bordes, A. & Bengio, Y. Deep sparse rectiﬁer neural networks. In Proceedings of Machine Learning Research, 15, 315-323 (2011). 60. Rdkit: Open-source cheminformatics. URL http://www.rdkit.org. 61. Kingma, D. P. & Ba, J. Adam: A method for stochastic optimization. CoRR, abs/1412.6980 (2015). 62. Guimaraes, G. L. et al. Objective-reinforced generative adversarial networks (ORGAN) for sequence generation models. CoRR, abs/1705.10843 (2017). 63. Li, Y., Zhang, L. & Liu, Z. Multi-objective de novo drug design with conditional graph generative model. J. Cheminform. 10, 33 (2018). 64. Fiscato, M., Vaucher, A. C. & Segler, M. Guacamol all smiles (2018). 65. Goh, G. B., Siegel, C., Vishnu, A. & Hodas, N. O. Chemnet: A transferable and generalizable deep neural network for small-molecule property prediction. arXiv, abs/1712.02734 (2017). 66. Mahmood, O. & Cho, K. Masked Graph Modeling for Molecule Generation. nyu-dl/dl4chem-mgm: accepted. https://doi.org/10.5281/zenodo.4708242 (2021). 67. Polykovskiy, D. et al. Entangled conditional adversarial autoencoder for de novo drug discovery. Molecular Pharmaceutics (2018)."
+          }
+        },
+        {
+          "id": "s2-p103",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Acknowledgements O.M. would like to acknowledge NRT-HDR: FUTURE. K.C. thanks Naver, eBay and NVIDIA.",
+            "es": "Agradecimientos O.M. desea agradecer a NRT-HDR: FUTURE. K.C. agradece a Naver, eBay y NVIDIA."
+          }
+        },
+        {
+          "id": "s2-p104",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Author contributions O.M., E.M. and K.C. conceived the initial idea and started the project. O.M. wrote the code and ran most of the experiments with the help of E.M. O.M., E.M., R.B. and K.C. wrote the paper and conceived improvements to the experiments. EM worked on this project during his time at New York University.",
+            "es": "Contribuciones de los autores O.M., E.M. y K.C. concibieron la idea inicial e iniciaron el proyecto. O.M. escribió el código y ejecutó la mayoría de los experimentos con la ayuda de E.M. O.M., E.M., R.B. y K.C. redactaron el artículo y concibieron mejoras para los experimentos. EM trabajó en este proyecto durante su estancia en la New York University."
+          }
+        },
+        {
+          "id": "s2-p105",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Competing interests The authors declare no competing interests.",
+            "es": "Intereses contrapuestos Los autores declaran no tener intereses contrapuestos."
+          }
+        },
+        {
+          "id": "s2-p106",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Additional information Supplementary information The online version contains supplementary material available at https://doi.org/10.1038/s41467-021-23415-2.",
+            "es": "Información adicional Información complementaria La versión en línea contiene material complementario disponible en https://doi.org/10.1038/s41467-021-23415-2."
+          }
+        },
+        {
+          "id": "s2-p107",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Correspondence and requests for materials should be addressed to K.C.",
+            "es": "La correspondencia y las solicitudes de materiales deben dirigirse a K.C."
+          }
+        },
+        {
+          "id": "s2-p108",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Peer review information Nature Communications thanks Youngchun Kwon and the other, anonymous, reviewer(s) for their contribution to the peer review of this work. Peer reviewer reports are available.",
+            "es": "Información de la revisión por pares Nature Communications agradece a Youngchun Kwon y al otro u otros revisores anónimos su contribución a la revisión por pares de este trabajo. Los informes de los revisores están disponibles."
+          }
+        },
+        {
+          "id": "s2-p109",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Reprints and permission information is available at http://www.nature.com/reprints",
+            "es": "La información sobre reimpresiones y permisos está disponible en http://www.nature.com/reprints"
+          }
+        },
+        {
+          "id": "s2-p110",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Publisher’s note Springer Nature remains neutral with regard to jurisdictional claims in published maps and institutional afﬁliations.",
+            "es": "Nota del editor Springer Nature se mantiene neutral con respecto a las reclamaciones jurisdiccionales en los mapas publicados y las afiliaciones institucionales."
+          }
+        },
+        {
+          "id": "s2-p111",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Open Access This article is licensed under a Creative Commons Attribution 4.0 International License, which permits use, sharing, adaptation, distribution and reproduction in any medium or format, as long as you give appropriate credit to the original author(s) and the source, provide a link to the Creative Commons license, and indicate if changes were made. The images or other third party material in this article are included in the article’s Creative Commons license, unless indicated otherwise in a credit line to the material. If material is not included in the article’s Creative Commons license and your intended use is not permitted by statutory regulation or exceeds the permitted use, you will need to obtain permission directly from the copyright holder. To view a copy of this license, visit http://creativecommons.org/ licenses/by/4.0/.",
+            "es": "Acceso abierto Este artículo está bajo una licencia Creative Commons Atribución 4.0 Internacional, que permite el uso, el intercambio, la adaptación, la distribución y la reproducción en cualquier medio o formato, siempre que se dé el crédito apropiado al autor o autores originales y a la fuente, se proporcione un enlace a la licencia Creative Commons y se indique si se realizaron cambios. Las imágenes u otro material de terceros incluidos en este artículo están incluidos en la licencia Creative Commons del artículo, a menos que se indique lo contrario en una línea de crédito del material. Si el material no está incluido en la licencia Creative Commons del artículo y el uso que se pretende dar no está permitido por la normativa legal o excede el uso permitido, deberá obtener permiso directamente del titular de los derechos de autor. Para ver una copia de esta licencia, visite http://creativecommons.org/ licenses/by/4.0/."
+          }
+        },
+        {
+          "id": "s2-p112",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "© The Author(s) 2021",
+            "es": "© Los autores 2021"
+          }
+        }
+      ]
+    }
+  ]
+}

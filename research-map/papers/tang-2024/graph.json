@@ -1,0 +1,671 @@
+{
+  "version": 1,
+  "node": "tang-2024",
+  "built": {
+    "date": "2026-11-15",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can an input graph (a bubble diagram of rooms and their adjacencies) be converted into a realistic house footprint? The paper treats this as graph-constrained architectural layout generation.",
+      "es": "¿Se puede convertir un grafo de entrada (un diagrama de burbujas con cuartos y sus adyacencias) en una planta de casa realista? El artículo lo plantea como generación de layouts arquitectónicos restringida por un grafo.",
+      "blocks": [
+        "s1-p1",
+        "s3-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Convolutional generators lack an understanding of long-range dependencies in the input graph. Transformers capture global relations and graph convolutions capture local neighborhood ones, so the paper combines the two.",
+      "es": "Los generadores convolucionales no entienden las dependencias de largo alcance del grafo de entrada. Los Transformers capturan relaciones globales y las convoluciones de grafo capturan las vecindades locales, así que el artículo combina ambos.",
+      "blocks": [
+        "s1-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Each bubble diagram is a graph: a node is a room of a certain type and an edge is spatial adjacency. Each node starts as a 128-d noise vector concatenated with a 10-d one-hot room type, giving a 138-d vector.",
+      "es": "Cada diagrama de burbujas es un grafo: un nodo es un cuarto de cierto tipo y una arista es adyacencia espacial. Cada nodo empieza como un vector de ruido de 128-d concatenado con un tipo de cuarto one-hot de 10-d, para un vector de 138-d.",
+      "blocks": [
+        "s3-p2"
+      ],
+      "key": "bubble-diagram-graph",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "method",
+      "en": "The generator builds on Conv-MPN from HouseGAN, which stores each room as a feature volume (16×8×8, upsampled to 16×32×32). Each layer updates a room with attention over connected rooms, attention over non-connected rooms, sum-pooled features of both groups, and a CNN.",
+      "es": "El generador se basa en Conv-MPN de HouseGAN, que guarda cada cuarto como un volumen de características (16×8×8, escalado a 16×32×32). Cada capa actualiza un cuarto con atención sobre cuartos conectados, atención sobre cuartos no conectados, características agrupadas por suma de ambos grupos y una CNN.",
+      "blocks": [
+        "s3-p6",
+        "s3-p7",
+        "fig-1"
+      ],
+      "key": "conv-mpn",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "The graph Transformer encoder (L=8 identical blocks) uses connected node attention (CNA) and non-connected node attention (NNA). They capture global relations across rooms that are linked in the input graph and across rooms that are not, with a learnable scale initialized to 0.",
+      "es": "El codificador Transformer de grafos (L=8 bloques idénticos) usa atención de nodos conectados (CNA) y atención de nodos no conectados (NNA). Capturan relaciones globales entre cuartos ligados en el grafo de entrada y entre cuartos que no lo están, con una escala aprendible inicializada en 0.",
+      "blocks": [
+        "s3-p24",
+        "s3-p25",
+        "s3-p40",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "The graph modeling block (GMB) applies a graph convolution with the adjacency matrix and a GeLU activation. It adds fine-grained local information that CNA and NNA capture less efficiently, and it encodes the house topology inside the network.",
+      "es": "El bloque de modelado de grafos (GMB) aplica una convolución de grafo con la matriz de adyacencia y una activación GeLU. Añade información local de grano fino que CNA y NNA capturan con menos eficiencia y codifica la topología de la casa dentro de la red.",
+      "blocks": [
+        "s3-p61",
+        "s3-p62",
+        "s3-p63"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "The model uses no position embeddings, because its goal is to predict the position of each node in the generated layout. Graph nodes, not image patches, are the input to the Transformer.",
+      "es": "El modelo no usa embeddings de posición, porque su objetivo es predecir la posición de cada nodo en el layout generado. La entrada del Transformer son nodos de grafo, no parches de imagen.",
+      "blocks": [
+        "s3-p23",
+        "s3-p6",
+        "fig-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "The generation head uses three CNN layers (256, 128 and 1 channels) to produce a 1×32×32 segmentation mask per room. The paper then fits the tightest axis-aligned rectangle to each room to get the layout.",
+      "es": "La cabeza de generación usa tres capas CNN (256, 128 y 1 canales) para producir una máscara de segmentación de 1×32×32 por cuarto. Después el artículo ajusta el rectángulo alineado a los ejes más ajustado a cada cuarto para obtener el layout.",
+      "blocks": [
+        "s3-p63",
+        "s3-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "The node classification-based discriminator both tells real from generated layouts and classifies each generated room into its room type. The paper says HouseGAN cannot produce very discriminative rooms, and the room-label loss is binary cross-entropy.",
+      "es": "El discriminador basado en clasificación de nodos distingue layouts reales de generados y además clasifica cada cuarto generado en su tipo. El artículo dice que HouseGAN no produce cuartos muy discriminativos, y la pérdida de etiquetas de cuarto es entropía cruzada binaria.",
+      "blocks": [
+        "s3-p64",
+        "s3-p69",
+        "s3-p74",
+        "s1-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "The graph-based cycle-consistency loss compares two M×M weighted adjacency matrices (ground truth and generated) with the Frobenius norm. Entries come from shortest graph distance, with 0 on the diagonal and −1 for non-adjacent nodes, so disjoint rooms stay disjoint and neighbors stay neighbors.",
+      "es": "La pérdida de consistencia cíclica basada en grafos compara dos matrices de adyacencia ponderadas de M×M (la real y la generada) con la norma de Frobenius. Las entradas vienen de la distancia más corta en el grafo, con 0 en la diagonal y −1 para nodos no adyacentes, así que los cuartos disjuntos siguen disjuntos y los vecinos siguen vecinos.",
+      "blocks": [
+        "s3-p75",
+        "s3-p80",
+        "s3-e1",
+        "s3-p81"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "The objective is L = Lgan + λ1·Lclass + λ2·Lgcyc, trained like HouseGAN with WGAN-GP, Adam, learning rate 0.0001 and batch size 32. The paper adopts λ1=1 and λ2=0.1, where FID is 7.5 in both ablations.",
+      "es": "El objetivo es L = Lgan + λ1·Lclass + λ2·Lgcyc, entrenado como HouseGAN con WGAN-GP, Adam, tasa de aprendizaje 0.0001 y tamaño de lote 32. El artículo adopta λ1=1 y λ2=0.1, con las que el FID es 7.5 en ambas ablaciones.",
+      "blocks": [
+        "s3-p82",
+        "s3-e2",
+        "s3-p83",
+        "s5-p19",
+        "s5-p20"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Self-guided pre-training masks 40% of the nodes and edges of the house graph at random and reconstructs them with a graph autoencoder. A node branch and an edge branch exist, and the edge branch takes the complementary edge graph as input.",
+      "es": "El preentrenamiento autoguiado oculta al azar el 40% de los nodos y aristas del grafo de la casa y los reconstruye con un autoencoder de grafos. Hay una rama de nodos y una de aristas, y la rama de aristas toma como entrada el grafo complementario de aristas.",
+      "blocks": [
+        "s1-p6",
+        "s4-p1",
+        "s4-p2",
+        "fig-3"
+      ],
+      "key": "graph-masked-modeling",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "concept",
+      "en": "At a high masking ratio, every remaining node and edge has gaps among its neighbors, so each embedding must absorb its local context. The visible part also acts as a subgraph that has to predict the whole graph, a harder graph-to-graph task than predicting small motifs.",
+      "es": "Con una proporción alta de máscara, cada nodo y arista restante tiene huecos entre sus vecinos, así que cada embedding debe absorber su contexto local. La parte visible funciona además como un subgrafo que debe predecir el grafo completo, una tarea más difícil que predecir motivos pequeños.",
+      "blocks": [
+        "s4-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "The encoder sees only the visible nodes and edges, and the decoder gets their embeddings plus mask tokens and restores the original order with positional embeddings. The decoder is lighter (M=2 graph modeling blocks versus L=8), which cuts compute and memory in pre-training.",
+      "es": "El codificador ve solo los nodos y aristas visibles, y el decodificador recibe sus embeddings más tokens de máscara y restaura el orden original con embeddings posicionales. El decodificador es más ligero (M=2 bloques de modelado de grafos contra L=8), lo que reduce cómputo y memoria en el preentrenamiento.",
+      "blocks": [
+        "s1-p6",
+        "s4-p4",
+        "s4-p5",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "A linear layer on the decoder output predicts the attributes of masked nodes and edges. The pre-training loss is the sum of a node loss and an edge loss, each a cross-entropy computed only on the masked tokens.",
+      "es": "Una capa lineal sobre la salida del decodificador predice los atributos de los nodos y aristas ocultos. La pérdida de preentrenamiento es la suma de una pérdida de nodos y una de aristas, cada una de entropía cruzada calculada solo sobre los tokens ocultos.",
+      "blocks": [
+        "s4-p5",
+        "s4-p6",
+        "s4-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "For downstream tasks only the graph Transformer encoder is kept, because the graphs given to the model are complete and have no masking. Pre-training used incomplete graphs and both encoder and decoder.",
+      "es": "Para las tareas posteriores solo se conserva el codificador Transformer de grafos, porque los grafos que recibe el modelo están completos y sin máscara. El preentrenamiento usó grafos incompletos y tanto codificador como decodificador.",
+      "blocks": [
+        "s4-p13"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "concept",
+      "en": "Masked autoencoding hides part of the input and predicts it, as in masked language modeling and masked image modeling. The paper says it is still underexplored for graphs and cites Mahmood et al. (molecules), Hou et al. (node and graph classification) and Tian et al. (heterogeneous graphs).",
+      "es": "El autocodificado enmascarado oculta parte de la entrada y la predice, como en el modelado de lenguaje enmascarado y el modelado de imagen enmascarado. El artículo dice que sigue poco explorado en grafos y cita a Mahmood et al. (moléculas), Hou et al. (clasificación de nodos y grafos) y Tian et al. (grafos heterogéneos).",
+      "blocks": [
+        "s2-p4"
+      ],
+      "key": "masked-autoencoding",
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "dataset",
+      "en": "House layouts come from the LIFULL HOME's dataset used by HouseGAN, with 10 room types (such as living room, kitchen, bedroom, bathroom, closet, balcony and corridor). The data is split into five subsets by room count: 1-3, 4-6, 7-9, 10-12 and 13+.",
+      "es": "Los layouts de casas vienen del dataset LIFULL HOME's que usa HouseGAN, con 10 tipos de cuarto (como sala, cocina, recámara, baño, clóset, balcón y pasillo). Los datos se dividen en cinco subconjuntos por número de cuartos: 1-3, 4-6, 7-9, 10-12 y 13+.",
+      "blocks": [
+        "s5-p2"
+      ],
+      "key": "lifull-home",
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "dataset",
+      "en": "Roof generation uses the CAD-style roof geometry dataset proposed in RoofGAN. Training and test sets are split by the number of primitives (3 and 4) to prevent simply copying and pasting.",
+      "es": "La generación de techos usa el dataset de geometría de techos estilo CAD propuesto en RoofGAN. Los conjuntos de entrenamiento y prueba se separan por número de primitivas (3 y 4) para evitar el simple copiar y pegar.",
+      "blocks": [
+        "s5-p12"
+      ],
+      "key": "roof-cad-dataset",
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "dataset",
+      "en": "Building layout generation uses the BuildingGAN dataset of 120,000 volumetric designs for commercial buildings. To extend the models to 3D, the story index of each program node is appended to its feature.",
+      "es": "La generación de layouts de edificios usa el dataset de BuildingGAN de 120,000 diseños volumétricos de edificios comerciales. Para extender los modelos a 3D, se añade el índice de piso de cada nodo de programa a su característica.",
+      "blocks": [
+        "s5-p13",
+        "s5-p14"
+      ],
+      "key": "buildinggan-dataset",
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "method",
+      "en": "To keep the models from simply memorizing, the paper trains while excluding samples from the subset being generated (houses, by room count) and splits roofs by number of primitives.",
+      "es": "Para que los modelos no memoricen sin más, el artículo entrena excluyendo las muestras del subconjunto que se genera (casas, por número de cuartos) y separa los techos por número de primitivas.",
+      "blocks": [
+        "s5-p2",
+        "s5-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "method",
+      "en": "House layouts are scored on realism (average rating from 12 Ph.D. students and 10 professional architects over 75 results), diversity (FID on rasterized layouts, using 5,000 samples) and compatibility (graph editing distance between the input bubble diagram and the one rebuilt from the layout). Roofs use FID and RMMD, and buildings use FID and connectivity accuracy.",
+      "es": "Los layouts de casas se evalúan en realismo (calificación promedio de 12 estudiantes de doctorado y 10 arquitectos profesionales sobre 75 resultados), diversidad (FID sobre layouts rasterizados, con 5,000 muestras) y compatibilidad (distancia de edición de grafos entre el diagrama de burbujas de entrada y el reconstruido del layout). Los techos usan FID y RMMD, y los edificios usan FID y exactitud de conectividad.",
+      "blocks": [
+        "s5-p3",
+        "s5-p4",
+        "s5-p5",
+        "s5-p12",
+        "s5-p14"
+      ],
+      "key": "fid",
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "On house layout generation across the five subsets, the paper reports that its methods outperform CNN-only, GCN, Ashual et al., Johnson et al., HouseGAN and HouseGAN++ in all metrics (Table 1).",
+      "es": "En generación de layouts de casas sobre los cinco subconjuntos, el artículo reporta que sus métodos superan a CNN-only, GCN, Ashual et al., Johnson et al., HouseGAN y HouseGAN++ en todas las métricas (Tabla 1).",
+      "blocks": [
+        "s5-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "In the figures, HouseGAN gives improper room sizes or shapes, misaligned rooms, and poorly generated non-connected rooms, and HouseGAN++ also fails on non-connected rooms. The paper says GTGAN alleviates all three problems to a certain extent.",
+      "es": "En las figuras, HouseGAN da tamaños o formas de cuarto inadecuados, cuartos desalineados y cuartos no conectados mal generados, y HouseGAN++ también falla con los cuartos no conectados. El artículo dice que GTGAN alivia los tres problemas en cierta medida.",
+      "blocks": [
+        "s5-p6",
+        "fig-4",
+        "fig-5",
+        "fig-6",
+        "fig-7",
+        "fig-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "For each input bubble diagram the paper generates four layout variations. It says HouseGAN tends to collapse into fewer modes, while the proposed method shows better diversity with more reasonable layouts.",
+      "es": "Para cada diagrama de burbujas de entrada el artículo genera cuatro variaciones de layout. Dice que HouseGAN tiende a colapsar en menos modos, mientras que el método propuesto muestra mejor diversidad con layouts más razonables.",
+      "blocks": [
+        "s5-p6",
+        "fig-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "On roof generation, GTGAN++ gets FID 7.5 and RMMD 4.2 with 3 primitives, and FID 7.1 and RMMD 5.6 with 4 primitives (lower is better). RoofGAN gets 11.1 and 7.5 with 3 primitives, and 13.8 and 10.9 with 4 primitives.",
+      "es": "En generación de techos, GTGAN++ obtiene FID 7.5 y RMMD 4.2 con 3 primitivas, y FID 7.1 y RMMD 5.6 con 4 primitivas (menos es mejor). RoofGAN obtiene 11.1 y 7.5 con 3 primitivas, y 13.8 y 10.9 con 4 primitivas.",
+      "blocks": [
+        "s5-p9",
+        "s5-p12",
+        "fig-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "On building layout generation, GTGAN++ gets FID 0.0528 and connectivity accuracy 0.617. BuildingGAN gets 0.0845 and 0.569, GTGAN gets 0.0732 and 0.581, HouseGAN++ gets 12.1845 and 0.494, and HouseGAN gets 17.6003 and 0.403.",
+      "es": "En generación de layouts de edificios, GTGAN++ obtiene FID 0.0528 y exactitud de conectividad 0.617. BuildingGAN obtiene 0.0845 y 0.569, GTGAN obtiene 0.0732 y 0.581, HouseGAN++ obtiene 12.1845 y 0.494, y HouseGAN obtiene 17.6003 y 0.403.",
+      "blocks": [
+        "s5-p11",
+        "s5-p15"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "result",
+      "en": "The paper says GTGAN++ takes less than half the training time of GTGAN to converge. GTGAN takes about 52 hours, and GTGAN++ takes 24 hours plus 8 hours of pre-training, about 32 hours in total. HouseGAN takes 40 h and HouseGAN++ 46 h.",
+      "es": "El artículo dice que GTGAN++ tarda menos de la mitad del tiempo de entrenamiento de GTGAN en converger. GTGAN tarda unas 52 horas, y GTGAN++ tarda 24 horas más 8 horas de preentrenamiento, unas 32 horas en total. HouseGAN tarda 40 h y HouseGAN++ 46 h.",
+      "blocks": [
+        "s5-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "result",
+      "en": "Pre-training with masking ratios from 10% to 90% on house layouts, a ratio of 40% gives the best performance. Above 40% the remaining nodes and edges lack enough information to rebuild the graph, which hurts the quality of the learned embeddings.",
+      "es": "Preentrenando con proporciones de máscara de 10% a 90% en layouts de casas, una proporción de 40% da el mejor desempeño. Por encima de 40% los nodos y aristas restantes no tienen información suficiente para reconstruir el grafo, lo que daña la calidad de los embeddings aprendidos.",
+      "blocks": [
+        "s5-p20",
+        "fig-13"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "result",
+      "en": "In the ablation on the 10-12 subset, removing NNA, CNA or GMB lowers performance, and replacing Conv-MPN with Transformer layers lowers it slightly. Adding the cycle-consistency loss (B11) significantly outperforms B4, and combining node and edge masking (B14) beats either one alone.",
+      "es": "En la ablación sobre el subconjunto 10-12, quitar NNA, CNA o GMB baja el desempeño, y reemplazar Conv-MPN por capas Transformer lo baja ligeramente. Añadir la pérdida de consistencia cíclica (B11) supera de forma significativa a B4, y combinar el enmascarado de nodos y de aristas (B14) supera a cada uno por separado.",
+      "blocks": [
+        "s5-p16",
+        "s5-p17",
+        "s5-p18",
+        "fig-12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "result",
+      "en": "GTGAN++ achieves much better results than GTGAN on all metrics in both house layout and roof generation. Even with only one masking strategy (node or edge), the model greatly surpasses B11.",
+      "es": "GTGAN++ logra resultados mucho mejores que GTGAN en todas las métricas, tanto en layouts de casas como en techos. Aun con una sola estrategia de enmascarado (de nodos o de aristas), el modelo supera por mucho a B11.",
+      "blocks": [
+        "s5-p20",
+        "s5-p18",
+        "fig-14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "claim",
+      "en": "The paper claims GTGAN is the first Transformer-based framework for graph-constrained house generation, and the first graph Transformer to model local and global relations across graph nodes for this task.",
+      "es": "El artículo afirma que GTGAN es el primer marco basado en Transformers para generación de casas restringida por grafos, y el primer Transformer de grafos que modela relaciones locales y globales entre nodos para esta tarea.",
+      "blocks": [
+        "s1-p4",
+        "s1-p8",
+        "s2-p4",
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "claim",
+      "en": "The paper says its masking differs from prior graph masked autoencoders by using two interrelated autoencoders, one for nodes and one for edges. It says the method is not limited to architectural layouts and may extend to other graph-related problems.",
+      "es": "El artículo dice que su enmascarado difiere de los autoencoders de grafos enmascarados previos porque usa dos autoencoders interrelacionados, uno para nodos y otro para aristas. Dice que el método no se limita a los layouts arquitectónicos y podría extenderse a otros problemas de grafos.",
+      "blocks": [
+        "s2-p5",
+        "s1-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "limitation",
+      "en": "The datasets used in existing papers do not capture the distribution of real architectural layouts. This makes the method sensitive to the viewpoint and style of the graph representation.",
+      "es": "Los datasets usados en los artículos existentes no capturan la distribución de layouts arquitectónicos reales. Esto hace que el método sea sensible al punto de vista y al estilo de la representación en grafo.",
+      "blocks": [
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i35",
+      "kind": "future",
+      "en": "The paper proposes addressing the limitation by collecting a real dataset of architectural rooms and roofs with associated 3D building meshes.",
+      "es": "El artículo propone atender la limitación recopilando un dataset real de cuartos y techos arquitectónicos con sus mallas 3D de edificios asociadas.",
+      "blocks": [
+        "s6-p1"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i5",
+      "type": "supports",
+      "why": "The need for global plus local relations is the motivation for the encoder design."
+    },
+    {
+      "from": "i4",
+      "to": "i3",
+      "type": "uses",
+      "why": "Conv-MPN takes the room graph (noise plus room type per node) as input."
+    },
+    {
+      "from": "i5",
+      "to": "i4",
+      "type": "part-of",
+      "why": "The graph Transformer encoder is called inside each Conv-MPN layer update."
+    },
+    {
+      "from": "i6",
+      "to": "i5",
+      "type": "part-of",
+      "why": "The graph modeling block follows the node attentions inside the graph Transformer encoder."
+    },
+    {
+      "from": "i7",
+      "to": "i5",
+      "type": "part-of",
+      "why": "The no-position-embedding choice is a design detail of the encoder."
+    },
+    {
+      "from": "i8",
+      "to": "i4",
+      "type": "uses",
+      "why": "The head turns the final room feature volumes into masks and rectangles."
+    },
+    {
+      "from": "i10",
+      "to": "i3",
+      "type": "uses",
+      "why": "The loss compares adjacency matrices computed on the room graph."
+    },
+    {
+      "from": "i11",
+      "to": "i9",
+      "type": "uses",
+      "why": "The classification loss term comes from the discriminator."
+    },
+    {
+      "from": "i11",
+      "to": "i10",
+      "type": "uses",
+      "why": "The cycle-consistency loss is the third term of the objective."
+    },
+    {
+      "from": "i12",
+      "to": "i3",
+      "type": "uses",
+      "why": "Masking hides nodes and edges of the room graph."
+    },
+    {
+      "from": "i17",
+      "to": "i12",
+      "type": "supports",
+      "why": "Masked autoencoding in language and vision is the idea the graph pre-training adapts."
+    },
+    {
+      "from": "i13",
+      "to": "i12",
+      "type": "supports",
+      "why": "Explains why a high masking ratio gives richer embeddings."
+    },
+    {
+      "from": "i14",
+      "to": "i12",
+      "type": "part-of",
+      "why": "The asymmetric encoder-decoder is the architecture of the pre-training."
+    },
+    {
+      "from": "i15",
+      "to": "i12",
+      "type": "part-of",
+      "why": "The masked-token loss is the pre-training objective."
+    },
+    {
+      "from": "i16",
+      "to": "i14",
+      "type": "uses",
+      "why": "Fine-tuning keeps only the pre-trained encoder."
+    },
+    {
+      "from": "i21",
+      "to": "i18",
+      "type": "uses",
+      "why": "Training excludes the subset being generated."
+    },
+    {
+      "from": "i21",
+      "to": "i19",
+      "type": "uses",
+      "why": "Roofs are split by number of primitives."
+    },
+    {
+      "from": "i22",
+      "to": "i23",
+      "type": "measures",
+      "why": "Realism, FID and compatibility score house layouts."
+    },
+    {
+      "from": "i22",
+      "to": "i26",
+      "type": "measures",
+      "why": "FID and RMMD score roofs."
+    },
+    {
+      "from": "i22",
+      "to": "i27",
+      "type": "measures",
+      "why": "FID and connectivity accuracy score buildings."
+    },
+    {
+      "from": "i23",
+      "to": "i18",
+      "type": "uses",
+      "why": "House results come from the LIFULL HOME's subsets."
+    },
+    {
+      "from": "i26",
+      "to": "i19",
+      "type": "uses",
+      "why": "Roof results come from the CAD-style roof dataset."
+    },
+    {
+      "from": "i27",
+      "to": "i20",
+      "type": "uses",
+      "why": "Building results come from the 120,000 commercial designs."
+    },
+    {
+      "from": "i24",
+      "to": "i23",
+      "type": "supports",
+      "why": "Visual comparisons back the quantitative claim."
+    },
+    {
+      "from": "i25",
+      "to": "i23",
+      "type": "supports",
+      "why": "Diversity examples back the quantitative claim."
+    },
+    {
+      "from": "i28",
+      "to": "i14",
+      "type": "supports",
+      "why": "The paper credits the pre-training approach for the shorter total training time."
+    },
+    {
+      "from": "i29",
+      "to": "i13",
+      "type": "supports",
+      "why": "The 40% optimum and the drop beyond it match the reasoning about remaining information."
+    },
+    {
+      "from": "i29",
+      "to": "i12",
+      "type": "measures",
+      "why": "It tests the masking ratio of the pre-training."
+    },
+    {
+      "from": "i30",
+      "to": "i5",
+      "type": "supports",
+      "why": "Removing CNA, NNA or GMB lowers performance."
+    },
+    {
+      "from": "i30",
+      "to": "i10",
+      "type": "supports",
+      "why": "B11 significantly outperforms B4."
+    },
+    {
+      "from": "i31",
+      "to": "i12",
+      "type": "supports",
+      "why": "GTGAN++ beats GTGAN on all metrics for houses and roofs."
+    },
+    {
+      "from": "i5",
+      "to": "i32",
+      "type": "supports",
+      "why": "The node-attention encoder is the element the first-of-its-kind claim rests on."
+    },
+    {
+      "from": "i33",
+      "to": "i17",
+      "type": "uses",
+      "why": "It positions the paper against earlier graph masked autoencoders."
+    },
+    {
+      "from": "i35",
+      "to": "i34",
+      "type": "supports",
+      "why": "The proposed fix for the dataset limitation."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i1",
+      "to": "question",
+      "why": "It generates a layout from rooms and their relations, a decomposition into parts and links, but outputs 2D rectangles, not BIM elements."
+    },
+    {
+      "idea": "i3",
+      "to": "ifc-to-graph-recipe",
+      "why": "A typed-node, adjacency-edge graph is the input; the paper shows the recipe works with rooms, whereas BIM would need full elements and richer relations."
+    },
+    {
+      "idea": "i5",
+      "to": "one-convolution-per-relation-type",
+      "why": "It treats connected and non-connected node pairs with separate attentions, a way to handle two kinds of relation differently."
+    },
+    {
+      "idea": "i12",
+      "to": "masking-training",
+      "why": "A method to borrow: hide 40% of nodes and edges of a graph and reconstruct them, pre-training before the generation task."
+    },
+    {
+      "idea": "i29",
+      "to": "masking-training",
+      "why": "Gives a masking-rate curve on room graphs (best at 40%, worse above), a reference point for choosing a rate."
+    },
+    {
+      "idea": "i21",
+      "to": "new-not-replicated",
+      "why": "Shows a way to keep a generator from memorizing: exclude the subset being generated from training."
+    },
+    {
+      "idea": "i30",
+      "to": "hypothesis",
+      "why": "Modeling relations between parts (connected and non-connected, local and global) improves generation on room graphs, supporting the idea that patterns live in elements and relations, though not on BIM."
+    },
+    {
+      "idea": "i34",
+      "to": "real-or-synthetic-data",
+      "why": "The authors admit their datasets do not capture the distribution of real layouts and propose collecting a real dataset."
+    }
+  ]
+}

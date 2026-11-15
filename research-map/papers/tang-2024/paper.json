@@ -1,0 +1,2209 @@
+{
+  "version": 1,
+  "node": "tang-2024",
+  "title": "Graph Transformer GANs with Graph Masked Modeling for Architectural Layout Generation",
+  "source": "files/Graph Transformer GANs with Graph Masked Modeling for Architectural Layout Generation.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "Hao Tang, Ling Shao, Nicu Sebe, Luc Van Gool",
+            "es": "Hao Tang, Ling Shao, Nicu Sebe, Luc Van Gool"
+          }
+        },
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Abstract—We present a novel graph Transformer generative adversarial network (GTGAN) to learn effective graph node relations in an end-to-end fashion for challenging graph-constrained architectural layout generation tasks. The proposed graph-Transformer-based generator includes a novel graph Transformer encoder that combines graph convolutions and self-attentions in a Transformer to model both local and global interactions across connected and non-connected graph nodes. Specifically, the proposed connected node attention (CNA) and non-connected node attention (NNA) aim to capture the global relations across connected nodes and nonconnected nodes in the input graph, respectively. The proposed graph modeling block (GMB) aims to exploit local vertex interactions based on a house layout topology. Moreover, we propose a new node classification-based discriminator to preserve the high-level semantic and discriminative node features for different house components. To maintain the relative spatial relationships between ground truth and predicted graphs, we also propose a novel graph-based cycle-consistency loss. Finally, we propose a novel self-guided pretraining method for graph representation learning. This approach involves simultaneous masking of nodes and edges at an elevated mask ratio (i.e., 40%) and their subsequent reconstruction using an asymmetric graph-centric autoencoder architecture. This method markedly improves the model’s learning proficiency and expediency. Experiments on three challenging graph-constrained architectural layout generation tasks (i.e., house layout generation, house roof generation, and building layout generation) with three public datasets demonstrate the effectiveness of the proposed method in terms of objective quantitative scores and subjective visual realism. New state-of-the-art results are established by large margins on these three tasks.",
+            "es": "Resumen—Presentamos una novedosa red generativa antagónica con Transformer de grafos (graph Transformer generative adversarial network, GTGAN) para aprender relaciones efectivas entre los nodos de un grafo de manera integral (end-to-end) en tareas desafiantes de generación de distribuciones arquitectónicas (architectural layout generation) restringidas por grafos. El generador propuesto, basado en Transformer de grafos, incluye un novedoso codificador Transformer de grafos que combina convoluciones de grafos y autoatenciones (self-attentions) en un Transformer para modelar las interacciones locales y globales entre nodos del grafo, tanto conectados como no conectados. En concreto, la atención de nodos conectados (connected node attention, CNA) y la atención de nodos no conectados (non-connected node attention, NNA) propuestas buscan capturar las relaciones globales entre los nodos conectados y entre los nodos no conectados del grafo de entrada, respectivamente. El bloque de modelado de grafos (graph modeling block, GMB) propuesto busca aprovechar las interacciones locales entre vértices con base en la topología de la distribución de una casa. Además, proponemos un nuevo discriminador basado en la clasificación de nodos para preservar las características semánticas de alto nivel y discriminativas de los distintos componentes de una casa. Para mantener las relaciones espaciales relativas entre los grafos de referencia (ground truth) y los grafos predichos, proponemos también una novedosa pérdida de consistencia cíclica basada en grafos. Por último, proponemos un novedoso método de preentrenamiento autoguiado para el aprendizaje de representaciones de grafos. Este enfoque consiste en enmascarar simultáneamente nodos y aristas con una proporción de enmascaramiento elevada (es decir, 40%) y reconstruirlos posteriormente mediante una arquitectura de autocodificador asimétrico centrada en grafos. Este método mejora notablemente la capacidad y la rapidez de aprendizaje del modelo. Los experimentos en tres tareas desafiantes de generación de distribuciones arquitectónicas restringidas por grafos (es decir, generación de distribuciones de casas, generación de techos de casas y generación de distribuciones de edificios) con tres conjuntos de datos públicos demuestran la efectividad del método propuesto en términos de puntuaciones cuantitativas objetivas y de realismo visual subjetivo. Se establecen nuevos resultados de vanguardia, con amplios márgenes, en estas tres tareas."
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Index Terms—GANs, Graph, Transformer, Masked Modeling, Architectural Layout Generation.",
+            "es": "Términos de indexación—GANs, grafo, Transformer, modelado enmascarado, generación de distribuciones arquitectónicas."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 INTRODUCTION",
+        "es": "1 INTRODUCCIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "This paper focuses on converting an input graph to a realistic house footprint, as depicted in Figure 1. Existing house generation methods such as [1], [2], [3], [4], [5], [6], [7], typically rely on building convolutional layers. However, convolutional architectures lack an understanding of longrange dependencies in the input graph since inherent inductive biases exist. Several Transformer architectures [8], [9], [10], [11], [12], [13], [14], [15], [16], [17], [18] based on the selfattention mechanism have recently been proposed to encode long-range or global relations, thus learn highly expressive feature representations. On the other hand, graph convolution networks are good at exploiting local and neighborhood vertex correlations based on a graph topology. Therefore, it stands to reason to combine graph convolution networks and Transformers to model local as well as global interactions for solving graph-constrained house generation.",
+            "es": "Este artículo se centra en convertir un grafo de entrada en una planta de casa realista, como se muestra en la Figura 1. Los métodos existentes de generación de casas, como [1], [2], [3], [4], [5], [6], [7], suelen basarse en la construcción de capas convolucionales. Sin embargo, las arquitecturas convolucionales carecen de una comprensión de las dependencias de largo alcance en el grafo de entrada, ya que existen sesgos inductivos inherentes. Recientemente se han propuesto varias arquitecturas Transformer [8], [9], [10], [11], [12], [13], [14], [15], [16], [17], [18] basadas en el mecanismo de autoatención para codificar relaciones globales o de largo alcance y, de este modo, aprender representaciones de características altamente expresivas. Por otro lado, las redes de convolución de grafos (graph convolution networks) son buenas para aprovechar las correlaciones locales y de vecindad entre vértices con base en la topología de un grafo. Por lo tanto, es razonable combinar las redes de convolución de grafos y los Transformers para modelar las interacciones tanto locales como globales con el fin de resolver la generación de casas restringida por grafos."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "To this end, we propose a novel graph Transformer generative adversarial network (GTGAN), which consists of two main novel components, i.e., a graph Transformer-based generator and a node classification-based discrimina-",
+            "es": "Con este fin, proponemos una novedosa red generativa antagónica con Transformer de grafos (GTGAN), que consta de dos componentes novedosos principales, es decir, un generador basado en Transformer de grafos y un discriminador basado en la clasificación de nodos"
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "• Hao Tang and Luc Van Gool are with the Department of Informa-tion Technology and Electrical Engineering, ETH Zurich, Zurich 8092, Switzerland. E-mail: hao.tang@vision.ee.ethz.ch • Luc Van Gool is also with INSAIT, at Sofia Un. St. Kliment Ohridski in Bulgaria. • Ling Shao is with the UCAS-Terminus AI Lab, University of Chinese Academy of Sciences, Beijing 100049, China. • Nicu Sebe is with the Department of Information Engineering and Computer Science (DISI), University of Trento, Italy.",
+            "es": "• Hao Tang y Luc Van Gool pertenecen al Department of Information Technology and Electrical Engineering, ETH Zurich, Zurich 8092, Suiza. Correo electrónico: hao.tang@vision.ee.ethz.ch • Luc Van Gool también pertenece a INSAIT, en Sofia Un. St. Kliment Ohridski, en Bulgaria. • Ling Shao pertenece al UCAS-Terminus AI Lab, University of Chinese Academy of Sciences, Beijing 100049, China. • Nicu Sebe pertenece al Department of Information Engineering and Computer Science (DISI), University of Trento, Italia."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Corresponding author: Hao Tang. tor (see Figure 1). The proposed generator aims to generate a realistic house from the input graph, which consists of three components, i.e., a convolutional message passing neural network (Conv-MPN), a graph Transformer encoder (GTE), and a generation head. Specifically, Conv-MPN first receives graph nodes as inputs and aims to extract discriminative node features. Next, the embedded nodes are fed to GTE, in which the long-range and global relation reasoning is performed by the connected node attention (CNA) and nonconnected node attention (NNA) modules. Then, the output from both attention modules is fed to the proposed graph modeling block (GMB) to capture local and neighborhood relationships based on a house layout topology. Finally, the output of GTE is fed to the generative head to produce the corresponding house layout or roof. To the best of our knowledge, we are the first to use a graph Transformer to model local and global relations across graph nodes for solving graph-constrained house generation.",
+            "es": "Autor de correspondencia: Hao Tang. (véase la Figura 1). El generador propuesto busca generar una casa realista a partir del grafo de entrada y consta de tres componentes: una red neuronal de paso de mensajes convolucional (convolutional message passing neural network, Conv-MPN), un codificador Transformer de grafos (graph Transformer encoder, GTE) y una cabeza de generación (generation head). En concreto, Conv-MPN recibe primero los nodos del grafo como entradas y busca extraer características discriminativas de los nodos. A continuación, los nodos incrustados se alimentan a GTE, en el cual el razonamiento de relaciones globales y de largo alcance se realiza mediante los módulos de atención de nodos conectados (CNA) y de atención de nodos no conectados (NNA). Después, la salida de ambos módulos de atención se alimenta al bloque de modelado de grafos (GMB) propuesto para capturar las relaciones locales y de vecindad con base en la topología de la distribución de una casa. Por último, la salida de GTE se alimenta a la cabeza generativa para producir la distribución o el techo de casa correspondiente. Hasta donde sabemos, somos los primeros en usar un Transformer de grafos para modelar las relaciones locales y globales entre los nodos de un grafo con el fin de resolver la generación de casas restringida por grafos."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "In addition, the proposed discriminator aims to distinguish real and fake house layouts, which ensures that our generated house layouts or roofs look realistic. At the same time, the discriminator classifies the generated rooms to their corresponding real labels, preserving the discriminative and semantic features (e.g., size and position) for different house components. To maintain the graph-level layout, we also propose a novel graph-based cycle-consistency loss to preserve the relative spatial relationships between ground truth and predicted graphs.",
+            "es": "Además, el discriminador propuesto busca distinguir entre distribuciones de casas reales y falsas, lo que garantiza que las distribuciones o techos de casas generados se vean realistas. Al mismo tiempo, el discriminador clasifica las habitaciones generadas según sus correspondientes etiquetas reales, preservando las características discriminativas y semánticas (por ejemplo, tamaño y posición) de los distintos componentes de una casa. Para mantener la distribución a nivel de grafo, proponemos también una novedosa pérdida de consistencia cíclica basada en grafos que preserva las relaciones espaciales relativas entre los grafos de referencia y los grafos predichos."
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "We also propose a new method of pre-training graphs that considerably enhances the efficiency and potency of graph representation learning. To begin with, we establish a simple yet effective self-supervised task. This task involves masking a large portion of the nodes and edges in a graph, specifically 40%, and then reconstructing the masked parts using a graph-based autoencoder. This type of selfsupervised task, which is inherently challenging, encourages our model to delve deep into the complex structural and semantic details embedded in graphs. Building on this, we put forward an asymmetric encoder-decoder scheme for graph pre-training (see Figure 3). The encoder, which borrows from the Transformer-style architecture, is composed of several graph modeling blocks. A graph neural network (GNN) is integrated into the attention layer, designed to extract both local and global information from the graph. The encoder operates solely on the graph subset that is visible to the model, with masked tokens being excluded. On the other hand, the decoder’s role is to reconstruct the graph using the latent representation learned, in addition to the masked tokens. While its structure is similar to the encoder, it is markedly lighter. This asymmetrical encoder-decoder structure offers significant computational advantages, significantly reducing the required computational resources and shortening the total duration of pre-training.",
+            "es": "También proponemos un nuevo método de preentrenamiento de grafos que mejora considerablemente la eficiencia y la potencia del aprendizaje de representaciones de grafos. Para empezar, establecemos una tarea autosupervisada (self-supervised) sencilla pero efectiva. Esta tarea consiste en enmascarar una gran parte de los nodos y aristas de un grafo, en concreto el 40%, y luego reconstruir las partes enmascaradas mediante un autocodificador basado en grafos. Este tipo de tarea autosupervisada, que es inherentemente desafiante, incentiva a nuestro modelo a profundizar en los complejos detalles estructurales y semánticos incrustados en los grafos. Sobre esta base, presentamos un esquema asimétrico de codificador-decodificador para el preentrenamiento de grafos (véase la Figura 3). El codificador, que toma como base la arquitectura de estilo Transformer, está compuesto por varios bloques de modelado de grafos. Se integra una red neuronal de grafos (graph neural network, GNN) en la capa de atención, diseñada para extraer información tanto local como global del grafo. El codificador opera únicamente sobre el subconjunto del grafo que es visible para el modelo, y los tokens enmascarados se excluyen. Por otro lado, la función del decodificador es reconstruir el grafo a partir de la representación latente aprendida, además de los tokens enmascarados. Aunque su estructura es similar a la del codificador, es notablemente más ligero. Esta estructura asimétrica de codificador-decodificador ofrece ventajas computacionales significativas, ya que reduce considerablemente los recursos computacionales requeridos y acorta la duración total del preentrenamiento."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Fig. 1: Overview of the proposed GTGAN++ on house layout generation. It consists of a novel graph masked modeling module, a novel graph Transformer-based generator G, and a novel node classification-based discriminator D. The graph masked modeling method randomly masks graph nodes and edges from the input graph and recon- structs the missing nodes and edges in the graph space, boosting the learning process of graph representation. The generator takes graph nodes as input and aims to capture local and global relations across connected and non-connected nodes using the proposed graph modeling block and multi-head node attention, respectively. Note that we do not use position embeddings since our goal is to predict positional node information in the generated house layout. The discriminator D aims to distinguish real and generated layouts and simultaneously classify the generated house layouts to their corresponding room types. The graphbased cycle-consistency loss aligns the relative spatial relationships between ground truth and predicted nodes.",
+            "es": "Figura 1: Panorama general del GTGAN++ propuesto en la generación de distribuciones de casas. Consta de un novedoso módulo de modelado enmascarado de grafos, un novedoso generador G basado en Transformer de grafos y un novedoso discriminador D basado en la clasificación de nodos. El método de modelado enmascarado de grafos enmascara aleatoriamente nodos y aristas del grafo de entrada y reconstruye los nodos y aristas faltantes en el espacio del grafo, impulsando el proceso de aprendizaje de la representación de grafos. El generador toma los nodos del grafo como entrada y busca capturar las relaciones locales y globales entre nodos conectados y no conectados mediante el bloque de modelado de grafos y la atención de nodos de múltiples cabezas (multi-head node attention) propuestos, respectivamente. Cabe señalar que no usamos incrustaciones de posición (position embeddings), ya que nuestro objetivo es predecir la información posicional de los nodos en la distribución de casa generada. El discriminador D busca distinguir entre distribuciones reales y generadas y, simultáneamente, clasificar las distribuciones de casas generadas según sus correspondientes tipos de habitación. La pérdida de consistencia cíclica basada en grafos alinea las relaciones espaciales relativas entre los nodos de referencia y los nodos predichos."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Overall, our contributions are summarized as follows:",
+            "es": "En conjunto, nuestras contribuciones se resumen como sigue:"
+          }
+        },
+        {
+          "id": "s1-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• We propose a novel Transformer-based network (i.e., GTGAN) for the challenging graph-constrained house generation task. To the best of our knowledge, GTGAN is the first Transformer-based framework, enabling more effective relation reasoning for composing house layouts and validating adjacency constraints.",
+            "es": "• Proponemos una novedosa red basada en Transformer (es decir, GTGAN) para la desafiante tarea de generación de casas restringida por grafos. Hasta donde sabemos, GTGAN es el primer marco basado en Transformer que permite un razonamiento de relaciones más efectivo para componer distribuciones de casas y validar restricciones de adyacencia."
+          }
+        },
+        {
+          "id": "s1-p9",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• We propose a novel graph Transformer generator that combines both graph convolutional networks and Trans-formers to explicitly model global and local correlations across both connected and non-connected nodes simultaneously. We also propose a new node classificationbased discriminator to preserve high-level semantic and discriminative features for different types of rooms.",
+            "es": "• Proponemos un novedoso generador Transformer de grafos que combina redes convolucionales de grafos y Transformers para modelar explícitamente, de manera simultánea, las correlaciones globales y locales entre nodos tanto conectados como no conectados. También proponemos un nuevo discriminador basado en la clasificación de nodos para preservar las características semánticas de alto nivel y discriminativas de los distintos tipos de habitaciones."
+          }
+        },
+        {
+          "id": "s1-p10",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• We propose a novel graph-based cycle-consistency loss to guide the learning process toward accurate relative spatial distance of graph nodes.",
+            "es": "• Proponemos una novedosa pérdida de consistencia cíclica basada en grafos para guiar el proceso de aprendizaje hacia una distancia espacial relativa precisa entre los nodos del grafo."
+          }
+        },
+        {
+          "id": "s1-p11",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• We propose a new approach to graph masked modeling, which comprehends a distribution over graphs by encapsulating conditional distributions of unmasked nodes and edges, contingent on the ones that have been observed. This method profoundly boosts the learning process of graph representation.",
+            "es": "• Proponemos un nuevo enfoque de modelado enmascarado de grafos, que comprende una distribución sobre grafos al encapsular las distribuciones condicionales de los nodos y aristas no enmascarados, supeditadas a las que se han observado. Este método impulsa profundamente el proceso de aprendizaje de la representación de grafos."
+          }
+        },
+        {
+          "id": "s1-p12",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• Qualitative and quantitative experiments on three challenging graph-constrained architectural layout generation (i.e., house layout generation, house roof generation, and building layout generation) with three datasets demonstrate that the proposed method can generate better results than state-of-the-art methods, such as HouseGAN [5] RoofGAN [7], and BuildingGAN [19].",
+            "es": "• Los experimentos cualitativos y cuantitativos en tres tareas desafiantes de generación de distribuciones arquitectónicas restringidas por grafos (es decir, generación de distribuciones de casas, generación de techos de casas y generación de distribuciones de edificios) con tres conjuntos de datos demuestran que el método propuesto puede generar mejores resultados que los métodos de vanguardia, como HouseGAN [5], RoofGAN [7] y BuildingGAN [19]."
+          }
+        },
+        {
+          "id": "s1-p13",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Part of the material presented here appeared in the conference version [20]. This journal version extends [20] in several ways. (1) We present a more detailed analysis of related works by including recently published works dealing with architectural layout generation tasks. We also add related methods to introduce graph masked modeling. (2) We propose a novel graph masked modeling method for graph representation learning. Our method masks random graph nodes and edges from the input graph and reconstructs the missing nodes and edges in the graph space. Equipped with this proposed masked modeling method, our GTGAN proposed in [20] is upgraded to GTGAN++.",
+            "es": "Parte del material aquí presentado apareció en la versión de conferencia [20]. Esta versión de revista amplía [20] de varias maneras. (1) Presentamos un análisis más detallado de los trabajos relacionados, al incluir trabajos publicados recientemente que abordan tareas de generación de distribuciones arquitectónicas. También añadimos métodos relacionados para introducir el modelado enmascarado de grafos. (2) Proponemos un novedoso método de modelado enmascarado de grafos para el aprendizaje de representaciones de grafos. Nuestro método enmascara nodos y aristas aleatorios del grafo de entrada y reconstruye los nodos y aristas faltantes en el espacio del grafo. Con este método de modelado enmascarado propuesto, nuestro GTGAN propuesto en [20] se actualiza a GTGAN++."
+          }
+        },
+        {
+          "id": "s1-p14",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "(3) We conduct extensive ablation studies to demonstrate the effectiveness of the proposed methods. (4) We extend the quantitative and qualitative experiments by comparing our GTGAN and GTGAN++ with very recent works on three challenging tasks. We observe that the proposed methods achieve consistent and substantial gains compared with existing methods.",
+            "es": "(3) Realizamos extensos estudios de ablación (ablation studies) para demostrar la efectividad de los métodos propuestos. (4) Ampliamos los experimentos cuantitativos y cualitativos comparando nuestros GTGAN y GTGAN++ con trabajos muy recientes en tres tareas desafiantes. Observamos que los métodos propuestos logran mejoras consistentes y sustanciales en comparación con los métodos existentes."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 RELATED WORK",
+        "es": "2 TRABAJOS RELACIONADOS"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Generative Adversarial Networks [21] have been widely used for image generation [22], [23], [24], [25]. The vanilla GAN consists of a generator and a discriminator. The generator aims to synthesize photorealistic images from a noise vector, while the discriminator aims to distinguish between real and generated samples. To create user-specific images, the conditional GAN (CGAN) [26] was proposed. A CGAN combines a vanilla GAN and external information, such as class labels [27], text descriptions [28], [29], [30], [31], object keypoints [32], human skeletons [33], [34], [35], [36], semantic maps [37], [38], [39], [40], [41], edge maps [42], [43], or attention maps [44], [45].",
+            "es": "Las redes generativas antagónicas (Generative Adversarial Networks) [21] se han utilizado ampliamente para la generación de imágenes [22], [23], [24], [25]. La GAN básica (vanilla GAN) consta de un generador y un discriminador. El generador busca sintetizar imágenes fotorrealistas a partir de un vector de ruido, mientras que el discriminador busca distinguir entre muestras reales y generadas. Para crear imágenes específicas para el usuario, se propuso la GAN condicional (conditional GAN, CGAN) [26]. Una CGAN combina una GAN básica con información externa, como etiquetas de clase [27], descripciones de texto [28], [29], [30], [31], puntos clave de objetos [32], esqueletos humanos [33], [34], [35], [36], mapas semánticos [37], [38], [39], [40], [41], mapas de bordes [42], [43] o mapas de atención [44], [45]."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "This paper mainly focuses on the challenging graphconstrained generation task, which aims to transfer an input graph to a realistic architectural layout. Graph-Constrained Layout Generation has been a focus of research recently [1], [2], [46], [47], [48], [49], [50]. For example, Wang et al. [1] presented a layout generation framework that plans an indoor scene as a relation graph and iteratively inserts a 3D model at each node. Hu et al. [2] converted a layout graph along with a building boundary into a floorplan that fulfills both the layout and boundary constraints. Ashual et al. [3] and Johnson et al. [4] tried to generate image layouts and synthesize realistic images from input scene graphs via GCNs. Nauata et al. [5] proposed a graph-constrained generative adversarial network, whose generator and discriminator are built upon a relational architecture.",
+            "es": "Este artículo se centra principalmente en la desafiante tarea de generación restringida por grafos, que busca transferir un grafo de entrada a una distribución arquitectónica realista. La generación de distribuciones restringida por grafos (Graph-Constrained Layout Generation) ha sido recientemente un foco de investigación [1], [2], [46], [47], [48], [49], [50]. Por ejemplo, Wang et al. [1] presentaron un marco de generación de distribuciones que planifica una escena interior como un grafo de relaciones e inserta iterativamente un modelo 3D en cada nodo. Hu et al. [2] convirtieron un grafo de distribución junto con el contorno de un edificio en una planta que cumple tanto las restricciones de distribución como las de contorno. Ashual et al. [3] y Johnson et al. [4] intentaron generar distribuciones de imágenes y sintetizar imágenes realistas a partir de grafos de escena de entrada mediante GCNs. Nauata et al. [5] propusieron una red generativa antagónica restringida por grafos, cuyo generador y discriminador se construyen sobre una arquitectura relacional."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Our innovation is a novel graph Transformer GAN, where the input constraint is encoded into the graph structure of the proposed graph Transformer-based generator and node classification-based discriminator. Experimental results show the effectiveness of the proposed GTGAN over all the leading methods. Transformers in Computer Vision. The Transformer was first proposed in [8] for machine translation and has established state-of-the-art results in many natural language processing (NLP) tasks. Recently, the Vision Transformer (ViT) [9] equipped with global self-attention has achieved state-of-the-art results on the classification task. Since then, Transformer-based approaches are efficient in many computer vision tasks including image segmentation [10], [11], [12], object detection [13], [14], [51], [52], [53], depth estimation [54], pose estimation [17], [55], [56], video inpainting [57], vision-and-language navigation [18], video classification [58], human reaction generation [59], 3D pose transfer [60], [61], [62].",
+            "es": "Nuestra innovación es una novedosa GAN con Transformer de grafos, en la que la restricción de entrada se codifica en la estructura de grafo del generador basado en Transformer de grafos y del discriminador basado en la clasificación de nodos propuestos. Los resultados experimentales muestran la efectividad del GTGAN propuesto frente a todos los métodos líderes. Transformers en visión por computadora (Transformers in Computer Vision). El Transformer se propuso por primera vez en [8] para la traducción automática y ha establecido resultados de vanguardia en muchas tareas de procesamiento del lenguaje natural (natural language processing, NLP). Recientemente, el Vision Transformer (ViT) [9], equipado con autoatención global, ha logrado resultados de vanguardia en la tarea de clasificación. Desde entonces, los enfoques basados en Transformer son eficientes en muchas tareas de visión por computadora, entre ellas la segmentación de imágenes [10], [11], [12], la detección de objetos [13], [14], [51], [52], [53], la estimación de profundidad [54], la estimación de pose [17], [55], [56], la restauración de video (video inpainting) [57], la navegación visual y lingüística (vision-and-language navigation) [18], la clasificación de video [58], la generación de reacciones humanas [59] y la transferencia de pose 3D [60], [61], [62]."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Different from these methods, in this paper, we adopt a Transformer-based network to tackle graph-constrained architectural layout generation tasks. However, integrating graph convolutional networks and ViTs is not trivial. To this end, we propose a graph Transformer-based generator to capture both local and global relations across nodes in a graph. To the best of our knowledge, the proposed GTGAN is the first Transformer-based architectural layout generation framework. Graph Masked Modeling. Masked autoencoding has become a popular learning strategy in which a portion of the input signals is concealed and the hidden parts are predicted. It first achieved success in natural language processing with masked language modeling (MLM) [63], which is a fill-in-the-blank type learning task. In MLM, the model learns to represent text by accurately predicting masked words using the context provided by surrounding words. This concept was later adopted by masked image modeling (MIM) [64], [65], which enhances representation learning by predicting the absent sections at the pixel or patch level. MIM has consistently set new performance benchmarks in a wide variety of downstream tasks. Despite the popularity of masked autoencoding techniques in the field of language and vision research, their application in the graph domain is still relatively underexplored. However, a few recent studies have begun to bridge this gap. For example, Mahmood et al. [66] proposed a masked autoencoder for molecule generation, Hou et al. [67] developed a masked graph autoencoder for node classification and graph classification, and Tian et al. [68] proposed a heterogeneous graph masked autoencoder for node clustering and classification. These studies have shown that masked autoencoding can be an effective learning strategy for graph data, and there is potential for further research in this area.",
+            "es": "A diferencia de estos métodos, en este artículo adoptamos una red basada en Transformer para abordar tareas de generación de distribuciones arquitectónicas restringidas por grafos. Sin embargo, integrar redes convolucionales de grafos y ViTs no es trivial. Con este fin, proponemos un generador basado en Transformer de grafos para capturar las relaciones tanto locales como globales entre los nodos de un grafo. Hasta donde sabemos, el GTGAN propuesto es el primer marco de generación de distribuciones arquitectónicas basado en Transformer. Modelado enmascarado de grafos (Graph Masked Modeling). El autocodificado enmascarado (masked autoencoding) se ha convertido en una estrategia de aprendizaje popular en la que se oculta una porción de las señales de entrada y se predicen las partes ocultas. Primero tuvo éxito en el procesamiento del lenguaje natural con el modelado de lenguaje enmascarado (masked language modeling, MLM) [63], que es una tarea de aprendizaje de tipo completar los espacios en blanco. En MLM, el modelo aprende a representar el texto prediciendo con precisión las palabras enmascaradas a partir del contexto que proporcionan las palabras circundantes. Este concepto fue adoptado posteriormente por el modelado de imágenes enmascarado (masked image modeling, MIM) [64], [65], que mejora el aprendizaje de representaciones al predecir las secciones ausentes a nivel de píxel o de parche. MIM ha establecido de manera consistente nuevos referentes de desempeño en una amplia variedad de tareas posteriores (downstream tasks). A pesar de la popularidad de las técnicas de autocodificado enmascarado en el campo de la investigación de lenguaje y visión, su aplicación en el dominio de los grafos sigue estando relativamente poco explorada. Sin embargo, unos pocos estudios recientes han comenzado a cerrar esta brecha. Por ejemplo, Mahmood et al. [66] propusieron un autocodificador enmascarado para la generación de moléculas, Hou et al. [67] desarrollaron un autocodificador de grafos enmascarado para la clasificación de nodos y la clasificación de grafos, y Tian et al. [68] propusieron un autocodificador enmascarado de grafos heterogéneos para el agrupamiento (clustering) y la clasificación de nodos. Estos estudios han mostrado que el autocodificado enmascarado puede ser una estrategia de aprendizaje efectiva para datos de grafos, y existe potencial para más investigación en esta área."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Departing from the path of existing methodologies, we introduce two interrelated graph-based autoencoders in our proposed approach, each dedicated to masking nodes and edges respectively. The distinguishing factor of our approach is its capacity to enrich the model’s expressiveness in the context of floorplan generation tasks. Through the process of masking and consequent reconstruction of nodes and edges, the model is adept at identifying and comprehending intricate structural interdependencies. Consequently, it not only captures granular details of individual nodes and edges but also assimilates holistic, graph-level information, leading to a robust representation of floorplans. Of paramount importance is the observation that our approach is not limited to the domain of architectual layout generation tasks. Its potential extends to the resolution of other graphrelated challenges. We anticipate that our method will foster innovation and inspiration in subsequent graph-based tasks and methodologies.",
+            "es": "Alejándonos del camino de las metodologías existentes, introducimos en nuestro enfoque propuesto dos autocodificadores basados en grafos interrelacionados, cada uno dedicado a enmascarar nodos y aristas, respectivamente. El factor distintivo de nuestro enfoque es su capacidad para enriquecer la expresividad del modelo en el contexto de las tareas de generación de plantas arquitectónicas (floorplan generation). Mediante el proceso de enmascaramiento y la consiguiente reconstrucción de nodos y aristas, el modelo es capaz de identificar y comprender interdependencias estructurales intrincadas. En consecuencia, no solo captura detalles granulares de nodos y aristas individuales, sino que también asimila información holística a nivel de grafo, lo que conduce a una representación robusta de las plantas arquitectónicas. Es de suma importancia observar que nuestro enfoque no se limita al dominio de las tareas de generación de distribuciones arquitectónicas. Su potencial se extiende a la resolución de otros desafíos relacionados con grafos. Anticipamos que nuestro método fomentará la innovación y la inspiración en tareas y metodologías posteriores basadas en grafos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 THE PROPOSED GRAPH TRANSFORMER GAN",
+        "es": "3 EL GAN TRANSFORMER DE GRAFOS PROPUESTO"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "This section presents the details of the proposed GTGAN, which consists of a novel graph Transformer-based generator G, a node classification-based discriminator D, and a graph-based cycle-consistency loss. An illustration of the proposed GTGAN framework is shown in Figure 1.",
+            "es": "Esta sección presenta los detalles del GTGAN propuesto, que consta de un novedoso generador G basado en Transformer de grafos (graph Transformer), un discriminador D basado en clasificación de nodos (node classification) y una pérdida de consistencia cíclica basada en grafos (graph-based cycle-consistency loss). En la Figura 1 se muestra una ilustración del marco GTGAN propuesto."
+          }
+        },
+        {
+          "id": "s3-h1",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "3.1 Graph Transformer-Based Generator",
+            "es": "3.1 Generador basado en Transformer de grafos"
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "We only illustrate the details of our contributions on the house layout generation task for simplicity. The extension of the proposed contributions to the other two tasks is straightforward. Take house layout generation in Figure 1 as an example. The generator G receives a noise vector for each room and a bubble diagram as inputs. It then generates a house layout, where each room is represented as an axisaligned rectangle. We represent each bubble diagram as a graph, where each node represents a room of a certain type, and each edge represents the spatial adjacency. Specifically, we generate a rectangle for each room, where two rooms with a graph edge should be spatially adjacent, while two rooms without an edge should be spatially dis-adjacent. Input Graph Representation. Given a bubble diagram, we first generate a node for each room and initialize it with a 128-d noise vector sampled from a normal distribution. We then concatenate the noise vector with a 10-d room type vector −→ tr (r is a room index), encoded in the one-hot format. Therefore, we can obtain a 138-d vector −→ gr to represent the input bubble diagram as follows,",
+            "es": "Por simplicidad, solo ilustramos los detalles de nuestras contribuciones en la tarea de generación de distribuciones de casas (house layout generation). La extensión de las contribuciones propuestas a las otras dos tareas es directa. Tomemos como ejemplo la generación de distribuciones de casas de la Figura 1. El generador G recibe como entradas un vector de ruido para cada habitación y un diagrama de burbujas (bubble diagram). Luego genera una distribución de casa, donde cada habitación se representa como un rectángulo alineado con los ejes. Representamos cada diagrama de burbujas como un grafo, donde cada nodo representa una habitación de cierto tipo y cada arista representa la adyacencia espacial. En concreto, generamos un rectángulo para cada habitación, donde dos habitaciones unidas por una arista del grafo deben ser espacialmente adyacentes, mientras que dos habitaciones sin arista deben ser espacialmente no adyacentes. Representación del grafo de entrada. Dado un diagrama de burbujas, primero generamos un nodo para cada habitación y lo inicializamos con un vector de ruido de 128-d muestreado de una distribución normal. Luego concatenamos el vector de ruido con un vector de tipo de habitación de 10-d −→ tr (r es un índice de habitación), codificado en formato one-hot. Por lo tanto, podemos obtener un vector de 138-d −→ gr para representar el diagrama de burbujas de entrada como sigue,"
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "N(0, 1)128; −→ tr",
+            "es": "N(0, 1)128; −→ tr"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "−→ gr ← n o",
+            "es": "−→ gr ← n o"
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": ". (1)",
+            "es": ". (1)"
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Note that, different from the highly successful ViT [9], we use graph nodes as the input of the proposed graph Transformer instead of using image patches, which makes our framework very different. Convolutional Message Passing Neural Network. As indicated in HouseGAN [5], Conv-MPN stores feature as a 3D tensor in the output design space. We thus apply a shared linear layer to expand −→ gr into a feature volume gl=1 r of size 16×8×8, where l=1 is the feature extracted from the first Conv-MPN layer, which will be upsampled twice using a transposed convolution to become a feature volume gl=3 r of size 16×32×32.",
+            "es": "Nótese que, a diferencia del exitoso ViT [9], usamos nodos del grafo como entrada del Transformer de grafos propuesto en lugar de parches de imagen, lo que hace que nuestro marco sea muy diferente. Red neuronal convolucional de paso de mensajes (Convolutional Message Passing Neural Network). Como se indica en HouseGAN [5], Conv-MPN almacena las características como un tensor 3D en el espacio de diseño de salida. Por ello aplicamos una capa lineal compartida para expandir −→ gr en un volumen de características gl=1 r de tamaño 16×8×8, donde l=1 es la característica extraída de la primera capa Conv-MPN, que será aumentada de resolución dos veces mediante una convolución transpuesta para convertirse en un volumen de características gl=3 r de tamaño 16×32×32."
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The Conv-MPN layer updates a graph of room-wise feature volumes via a convolutional message passing [69]. Specifically, we update gl=1 r over the following steps: 1) We use a GTE to capture the long-range correlations across rooms that are connected in the input graph; 2) We employ another GTE to capture the long-range dependencies across non-connected rooms in the input graph; 3) We concatenate a sum-pooled feature across connected rooms in the input graph; 4) We concatenate a sum-pooled feature across nonconnected rooms; and 5) We apply a convolutional neural network (CNN) on the combined feature. This process can be formulated as follows, gl gl",
+            "es": "La capa Conv-MPN actualiza un grafo de volúmenes de características por habitación mediante un paso de mensajes convolucional [69]. En concreto, actualizamos gl=1 r mediante los siguientes pasos: 1) Usamos un GTE para capturar las correlaciones de largo alcance entre las habitaciones que están conectadas en el grafo de entrada; 2) Empleamos otro GTE para capturar las dependencias de largo alcance entre las habitaciones no conectadas en el grafo de entrada; 3) Concatenamos una característica agregada por suma (sum-pooled) entre las habitaciones conectadas en el grafo de entrada; 4) Concatenamos una característica agregada por suma entre las habitaciones no conectadas; y 5) Aplicamos una red neuronal convolucional (convolutional neural network, CNN) sobre la característica combinada. Este proceso puede formularse como sigue, gl gl"
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Pool s∈N(r)gl s, gl r ←CNN r + GTE r",
+            "es": "Pool s∈N(r)gl s, gl r ←CNN r + GTE r"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "(2)",
+            "es": "(2)"
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Pool s∈N(r)gl s, gl s∈N(r)gl s∈N(r)gl",
+            "es": "Pool s∈N(r)gl s, gl s∈N(r)gl s∈N(r)gl"
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "GTE",
+            "es": "GTE"
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "; Pool s; Pool r s where N(r) and N(r) denote sets of rooms that are connected and not-connected, respectively; “+” and “;” denote pixel-wise addition and channel-wise concatenation, respectively. We also explore two more variations (Eq. (3) and (4)) to validate the effectiveness of Eq. (2) as follows, gl",
+            "es": "; Pool s; Pool r s donde N(r) y N(r) denotan los conjuntos de habitaciones conectadas y no conectadas, respectivamente; “+” y “;” denotan la suma a nivel de píxel y la concatenación a nivel de canal, respectivamente. También exploramos dos variaciones más (Ec. (3) y (4)) para validar la efectividad de la Ec. (2) como sigue, gl"
+          }
+        },
+        {
+          "id": "s3-p13",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Pool s∈N(r)gl s, gl r ←CNN",
+            "es": "Pool s∈N(r)gl s, gl r ←CNN"
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "GTE r",
+            "es": "GTE r"
+          }
+        },
+        {
+          "id": "s3-p15",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "(3)",
+            "es": "(3)"
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Pool s∈N(r)gl s, gl s∈N(r)gl s∈N(r)gl",
+            "es": "Pool s∈N(r)gl s, gl s∈N(r)gl s∈N(r)gl"
+          }
+        },
+        {
+          "id": "s3-p17",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "GTE",
+            "es": "GTE"
+          }
+        },
+        {
+          "id": "s3-p18",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "; Pool s; Pool r s gl gl",
+            "es": "; Pool s; Pool r s gl gl"
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Fig. 2: Overview of the proposed graph Transformer encoder, which consists of a multi-head node attention and a graph modeling block. It can capture both global and local correlations for graph-constrained house generation. This encoder consists of L=8 identical blocks. The proposed connected node attention aims to capture long-range relations across connected nodes. Note that the proposed non-connected node attention has the same structure as the connected node attention but takes non-connected nodes as input. It aims to capture long-range relations across nonconnected nodes.",
+            "es": "Figura 2: Visión general del codificador Transformer de grafos propuesto, que consta de una atención de nodos multicabezal (multi-head node attention) y un bloque de modelado de grafos (graph modeling block). Puede capturar correlaciones tanto globales como locales para la generación de casas restringida por grafos. Este codificador consta de L=8 bloques idénticos. La atención de nodos conectados propuesta busca capturar relaciones de largo alcance entre nodos conectados. Nótese que la atención de nodos no conectados propuesta tiene la misma estructura que la atención de nodos conectados, pero toma nodos no conectados como entrada. Busca capturar relaciones de largo alcance entre nodos no conectados."
+          }
+        },
+        {
+          "id": "s3-p19",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Pool s∈N(r)gl s, gl r ←CNN r + GTE r",
+            "es": "Pool s∈N(r)gl s, gl r ←CNN r + GTE r"
+          }
+        },
+        {
+          "id": "s3-p20",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "(4)",
+            "es": "(4)"
+          }
+        },
+        {
+          "id": "s3-p21",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Pool s∈N(r)gl s, gl",
+            "es": "Pool s∈N(r)gl s, gl"
+          }
+        },
+        {
+          "id": "s3-p22",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "GTE r",
+            "es": "GTE r"
+          }
+        },
+        {
+          "id": "s3-p23",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Node Attentions in Graph Transformer Encoder. To capture local and global relationships across graph nodes, we propose a novel GTE, as shown in Figure 2. GTE combines self-attention in Transformer and graph convolution networks to capture global and local correlations, respectively. Note that we do not use position embeddings in our framework since our goal is to generate node positions in the generated house layout.",
+            "es": "Atenciones de nodos en el codificador Transformer de grafos. Para capturar las relaciones locales y globales entre los nodos del grafo, proponemos un novedoso GTE, como se muestra en la Figura 2. El GTE combina la autoatención (self-attention) del Transformer y las redes de convolución de grafos para capturar correlaciones globales y locales, respectivamente. Nótese que no usamos incrustaciones de posición (position embeddings) en nuestro marco, ya que nuestro objetivo es generar las posiciones de los nodos en la distribución de casa generada."
+          }
+        },
+        {
+          "id": "s3-p24",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The proposed GTE is quite different from the one presented in ViT [9] since the two input modalities are different, i.e., images and graph nodes. Thus, we extend the multihead self-attention in [9] to the multi-head node attention, which aims to capture the global correlations across connected rooms/nodes and the global dependencies across non-connected rooms/nodes. To this end, we propose two novel graph node attention modules, i.e., connected node attention (CNA) and non-connected node attention (NNA). Both CNA and NNA share the same network structure.",
+            "es": "El GTE propuesto es bastante diferente del presentado en ViT [9], ya que las dos modalidades de entrada son distintas, es decir, imágenes y nodos de grafo. Por ello, extendemos la autoatención multicabezal de [9] a la atención de nodos multicabezal, que busca capturar las correlaciones globales entre habitaciones/nodos conectados y las dependencias globales entre habitaciones/nodos no conectados. Con este fin, proponemos dos novedosos módulos de atención de nodos del grafo, a saber, la atención de nodos conectados (connected node attention, CNA) y la atención de nodos no conectados (non-connected node attention, NNA). Tanto CNA como NNA comparten la misma estructura de red."
+          }
+        },
+        {
+          "id": "s3-p25",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The goal of CNA (see Figure 2) is to model the global correlations across connected rooms. We perform a matrix multiplication between the transpose of Pool s∈N(r)gl s and gl r, and apply a Softmax function to calculate the connected node attention map Att",
+            "es": "El objetivo de CNA (véase la Figura 2) es modelar las correlaciones globales entre habitaciones conectadas. Realizamos una multiplicación de matrices entre la transpuesta de Pool s∈N(r)gl s y gl r, y aplicamos una función Softmax para calcular el mapa de atención de nodos conectados Att"
+          }
+        },
+        {
+          "id": "s3-p26",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "N(r),",
+            "es": "N(r),"
+          }
+        },
+        {
+          "id": "s3-p27",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "\"gl",
+            "es": "\"gl"
+          }
+        },
+        {
+          "id": "s3-p28",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Pool s∈N(r)gl r s",
+            "es": "Pool s∈N(r)gl r s"
+          }
+        },
+        {
+          "id": "s3-p29",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": ", (5)",
+            "es": ", (5)"
+          }
+        },
+        {
+          "id": "s3-p30",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Att N(r) = softmax p card(N(r)) where card(N(r)) is the number of connected graph nodes in a training batch. The connected node attention map Att",
+            "es": "Att N(r) = softmax p card(N(r)) donde card(N(r)) es el número de nodos conectados del grafo en un lote de entrenamiento. El mapa de atención de nodos conectados Att"
+          }
+        },
+        {
+          "id": "s3-p31",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "N(r) measures the connected node’s impact on other connected nodes. Then we perform matrix multiplication between gl r and the transpose of Att",
+            "es": "N(r) mide el impacto de un nodo conectado sobre otros nodos conectados. Luego realizamos una multiplicación de matrices entre gl r y la transpuesta de Att"
+          }
+        },
+        {
+          "id": "s3-p32",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "N(r). Lastly, we multiply the result by a scaling parameter α to obtain the output,",
+            "es": "N(r). Por último, multiplicamos el resultado por un parámetro de escala α para obtener la salida,"
+          }
+        },
+        {
+          "id": "s3-p33",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "N X",
+            "es": "N X"
+          }
+        },
+        {
+          "id": "s3-p34",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Pool s∈N(r)gl s, gl",
+            "es": "Pool s∈N(r)gl s, gl"
+          }
+        },
+        {
+          "id": "s3-p35",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Att N(r) · gl",
+            "es": "Att N(r) · gl"
+          }
+        },
+        {
+          "id": "s3-p36",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "GTE",
+            "es": "GTE"
+          }
+        },
+        {
+          "id": "s3-p37",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "= α",
+            "es": "= α"
+          }
+        },
+        {
+          "id": "s3-p38",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": ", (6) r r",
+            "es": ", (6) r r"
+          }
+        },
+        {
+          "id": "s3-p39",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "1 where α is a learnable parameter, initialized to 0, and learned by the model [70]. By doing so, each connected node in N(r) is a weighted sum of all the connected nodes. Thus, CNA obtains a global view of the spatial graph structure and can selectively adjust rooms according to the connected attention map, improving the house layout’s representations and high-level semantic consistency.",
+            "es": "1 donde α es un parámetro aprendible, inicializado en 0 y aprendido por el modelo [70]. De este modo, cada nodo conectado en N(r) es una suma ponderada de todos los nodos conectados. Así, CNA obtiene una visión global de la estructura espacial del grafo y puede ajustar selectivamente las habitaciones según el mapa de atención de conectados, mejorando las representaciones de la distribución de la casa y su consistencia semántica de alto nivel."
+          }
+        },
+        {
+          "id": "s3-p40",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Similarly, NNA aims to capture global relations across non-connected rooms. Specifically, we perform a matrix multiplication between the transpose of Pool s∈N(r)gl s and gl r, and apply a Softmax function to calculate the non-connected node attention map Att",
+            "es": "De manera similar, NNA busca capturar las relaciones globales entre habitaciones no conectadas. En concreto, realizamos una multiplicación de matrices entre la transpuesta de Pool s∈N(r)gl s y gl r, y aplicamos una función Softmax para calcular el mapa de atención de nodos no conectados Att"
+          }
+        },
+        {
+          "id": "s3-p41",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "N(r)",
+            "es": "N(r)"
+          }
+        },
+        {
+          "id": "s3-p42",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "\"gl",
+            "es": "\"gl"
+          }
+        },
+        {
+          "id": "s3-p43",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Pool s∈N(r)gl r s",
+            "es": "Pool s∈N(r)gl r s"
+          }
+        },
+        {
+          "id": "s3-p44",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": ", (7)",
+            "es": ", (7)"
+          }
+        },
+        {
+          "id": "s3-p45",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Att N(r) = softmax q card(N(r)) where card(N(r)) is the number of non-connected graph nodes in a training batch. The non-connected node attention map Att measures the non-connected node’s impact",
+            "es": "Att N(r) = softmax q card(N(r)) donde card(N(r)) es el número de nodos no conectados del grafo en un lote de entrenamiento. El mapa de atención de nodos no conectados Att mide el impacto de un nodo no conectado"
+          }
+        },
+        {
+          "id": "s3-p46",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "N(r) on other non-connected nodes. Then we perform matrix multiplication between gl r and the transpose of Att",
+            "es": "N(r) sobre otros nodos no conectados. Luego realizamos una multiplicación de matrices entre gl r y la transpuesta de Att"
+          }
+        },
+        {
+          "id": "s3-p47",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": ". Lastly,",
+            "es": ". Por último,"
+          }
+        },
+        {
+          "id": "s3-p48",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "N(r) we multiply the result by a scale parameter β to obtain the output as follows,",
+            "es": "N(r) multiplicamos el resultado por un parámetro de escala β para obtener la salida como sigue,"
+          }
+        },
+        {
+          "id": "s3-p49",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "N X",
+            "es": "N X"
+          }
+        },
+        {
+          "id": "s3-p50",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Pool s∈N(r)gl s, gl",
+            "es": "Pool s∈N(r)gl s, gl"
+          }
+        },
+        {
+          "id": "s3-p51",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Att N(r) · gl",
+            "es": "Att N(r) · gl"
+          }
+        },
+        {
+          "id": "s3-p52",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "GTE",
+            "es": "GTE"
+          }
+        },
+        {
+          "id": "s3-p53",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "= β",
+            "es": "= β"
+          }
+        },
+        {
+          "id": "s3-p54",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": ". (8) r r",
+            "es": ". (8) r r"
+          }
+        },
+        {
+          "id": "s3-p55",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "1",
+            "es": "1"
+          }
+        },
+        {
+          "id": "s3-p56",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "By doing so, each non-connected node in N(r) is a weighted sum of all the non-connected nodes. Finally, we perform an element-wise sum with gl r so that the updated node feature can capture both connected and non-connected spatial relations. This process can be expressed as follows, gl r ←gl",
+            "es": "De este modo, cada nodo no conectado en N(r) es una suma ponderada de todos los nodos no conectados. Finalmente, realizamos una suma elemento a elemento con gl r para que la característica actualizada del nodo pueda capturar tanto las relaciones espaciales conectadas como las no conectadas. Este proceso puede expresarse como sigue, gl r ←gl"
+          }
+        },
+        {
+          "id": "s3-p57",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Pool s∈N(r)gl s, gl",
+            "es": "Pool s∈N(r)gl s, gl"
+          }
+        },
+        {
+          "id": "s3-p58",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Pool s∈N(r)gl s, gl r + GTE",
+            "es": "Pool s∈N(r)gl s, gl r + GTE"
+          }
+        },
+        {
+          "id": "s3-p59",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "+ GTE r r",
+            "es": "+ GTE r r"
+          }
+        },
+        {
+          "id": "s3-p60",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "(9)",
+            "es": "(9)"
+          }
+        },
+        {
+          "id": "s3-p61",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Graph Modeling in Graph Transformer Encoder. While CNA and NNA are useful for extracting long-range and global dependencies, it is less efficient at capturing finegrained local information in complex house data structures. To fix this limitation, we propose a novel graph modeling block, as shown in Figure 2.",
+            "es": "Modelado de grafos en el codificador Transformer de grafos. Si bien CNA y NNA son útiles para extraer dependencias globales y de largo alcance, son menos eficientes para capturar información local de grano fino en estructuras de datos de casas complejas. Para corregir esta limitación, proponemos un novedoso bloque de modelado de grafos, como se muestra en la Figura 2."
+          }
+        },
+        {
+          "id": "s3-p62",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Specifically, given the features gl r generated in Eq. (9), we further improve the local correlations by using graph convolutional networks as follows,",
+            "es": "En concreto, dadas las características gl r generadas en la Ec. (9), mejoramos aún más las correlaciones locales mediante redes de convolución de grafos de la siguiente manera,"
+          }
+        },
+        {
+          "id": "s3-p63",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "ˆgl r = GC(A, gl r; P) = σ(Agl rP), (10) where A denotes the adjacency matrix of a graph, GC(·) represents graph convolution, and P the trainable parameters. σ(·) is the gaussian error linear unit (GeLU) proposed in [71] activation function that aims to provide the network non-linearity. We follow the structure design in GraphCMR [72] to build our graph modeling block, which can explicitly encode the graph-constrained house structure within the network and thereby improve spatial locality in the feature representations. Generation Head. We adopt three CNN layers to convert a feature volume into a room segmentation mask of size 1×32×32. The numbers of convolutional channels are 256, 128, and 1, respectively. We pass the graph of segmentation masks to the proposed discriminator D during the training stage. Finally, we fit the tightest axis-aligned rectangle for each room to generate the house layout.",
+            "es": "ˆgl r = GC(A, gl r; P) = σ(Agl rP), (10) donde A denota la matriz de adyacencia de un grafo, GC(·) representa la convolución de grafos y P los parámetros entrenables. σ(·) es la función de activación unidad lineal de error gaussiano (gaussian error linear unit, GeLU) propuesta en [71], que busca proporcionar no linealidad a la red. Seguimos el diseño estructural de GraphCMR [72] para construir nuestro bloque de modelado de grafos, que puede codificar explícitamente la estructura de la casa restringida por grafos dentro de la red y, de este modo, mejorar la localidad espacial en las representaciones de características. Cabeza de generación (Generation Head). Adoptamos tres capas CNN para convertir un volumen de características en una máscara de segmentación de habitación de tamaño 1×32×32. Los números de canales convolucionales son 256, 128 y 1, respectivamente. Pasamos el grafo de máscaras de segmentación al discriminador D propuesto durante la etapa de entrenamiento. Finalmente, ajustamos el rectángulo alineado con los ejes más ceñido para cada habitación a fin de generar la distribución de la casa."
+          }
+        },
+        {
+          "id": "s3-h2",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "3.2 Node Classification-Based Discriminator",
+            "es": "3.2 Discriminador basado en clasificación de nodos"
+          }
+        },
+        {
+          "id": "s3-p64",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The input of the proposed discriminator is a graph of room segmentation masks, either from the generator or a real one. The segmentation masks are of size 1×32×32. We also take a 10-d room type vector to preserve the room type information, and then we apply a linear layer to expand it to 8192-d. Next, we reshape it to a tensor of size 8×32×32. Thus, we use a shared three-layer CNN to convert it to a feature of size 16×32×32, followed by two rounds of Conv-MPN and downsampling. Lastly, we use another three-layer CNN to convert each room feature into a 128-d vector −→ dr. To classify ground-truth samples from the generated ones, we sum-pool over all the room vectors and then apply a single linear layer to produce a scalar ˜d1, which can be expressed as follows,",
+            "es": "La entrada del discriminador propuesto es un grafo de máscaras de segmentación de habitaciones, ya sea del generador o real. Las máscaras de segmentación son de tamaño 1×32×32. También tomamos un vector de tipo de habitación de 10-d para conservar la información del tipo de habitación, y luego aplicamos una capa lineal para expandirlo a 8192-d. A continuación, lo reformamos a un tensor de tamaño 8×32×32. Así, usamos una CNN compartida de tres capas para convertirlo en una característica de tamaño 16×32×32, seguida de dos rondas de Conv-MPN y submuestreo (downsampling). Por último, usamos otra CNN de tres capas para convertir la característica de cada habitación en un vector de 128-d −→ dr. Para clasificar las muestras reales frente a las generadas, aplicamos agregación por suma (sum-pool) sobre todos los vectores de habitación y luego aplicamos una sola capa lineal para producir un escalar ˜d1, que puede expresarse como sigue,"
+          }
+        },
+        {
+          "id": "s3-p65",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "−→ dr",
+            "es": "−→ dr"
+          }
+        },
+        {
+          "id": "s3-p66",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "˜d1 ←Linear",
+            "es": "˜d1 ←Linear"
+          }
+        },
+        {
+          "id": "s3-p67",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Pool",
+            "es": "Pool"
+          }
+        },
+        {
+          "id": "s3-p68",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": ". (11) r",
+            "es": ". (11) r"
+          }
+        },
+        {
+          "id": "s3-p69",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Moreover, we observe that HouseGAN [5] cannot produce very discriminative rooms, leading to similar generation results for different types of rooms. To provide a more diverse generation for different rooms, we propose a novel node classification loss to learn more discriminative classspecific node representations. Specifically, we sum pool over all the room vectors and add another single linear layer to output a 10-d one-hot vector ˜d2, classifying generated rooms to the corresponding room labels,",
+            "es": "Además, observamos que HouseGAN [5] no puede producir habitaciones muy discriminativas, lo que lleva a resultados de generación similares para distintos tipos de habitaciones. Para proporcionar una generación más diversa para distintas habitaciones, proponemos una novedosa pérdida de clasificación de nodos (node classification loss) para aprender representaciones de nodos más discriminativas y específicas de cada clase. En concreto, aplicamos agregación por suma sobre todos los vectores de habitación y añadimos otra capa lineal para producir un vector one-hot de 10-d ˜d2, que clasifica las habitaciones generadas en las etiquetas de habitación correspondientes,"
+          }
+        },
+        {
+          "id": "s3-p70",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "−→ dr",
+            "es": "−→ dr"
+          }
+        },
+        {
+          "id": "s3-p71",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "˜d2 ←Linear",
+            "es": "˜d2 ←Linear"
+          }
+        },
+        {
+          "id": "s3-p72",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Pool",
+            "es": "Pool"
+          }
+        },
+        {
+          "id": "s3-p73",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": ". (12) r",
+            "es": ". (12) r"
+          }
+        },
+        {
+          "id": "s3-p74",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "We use the binary cross-entropy loss between the real room label d2 and the predicted label ˜d2.",
+            "es": "Usamos la pérdida de entropía cruzada binaria (binary cross-entropy loss) entre la etiqueta de habitación real d2 y la etiqueta predicha ˜d2."
+          }
+        },
+        {
+          "id": "s3-h3",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "3.3 Graph-Based Cycle-Consistency Loss",
+            "es": "3.3 Pérdida de consistencia cíclica basada en grafos"
+          }
+        },
+        {
+          "id": "s3-p75",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Providing global graph node relationship information is helpful in generating more accurate house layouts. To differentiate this process, we propose a novel loss based on an adjacency matrix that matches the spatial relationships between ground truth and generated graphs, as shown in Figure 1. Precisely, the graphs capture the adjacency relationships between each node of different rooms, and then we enforce the matching between the ground truth and generated graphs through the proposed graph-based cycleconsistency loss. Formally, we represent the graphs using two (square) weighted adjacency matrices of size M×M,",
+            "es": "Proporcionar información global sobre las relaciones entre los nodos del grafo es útil para generar distribuciones de casas más precisas. Para diferenciar este proceso, proponemos una novedosa pérdida basada en una matriz de adyacencia que hace coincidir las relaciones espaciales entre el grafo de referencia (ground truth) y el generado, como se muestra en la Figura 1. Con precisión, los grafos capturan las relaciones de adyacencia entre cada nodo de las distintas habitaciones, y luego imponemos la coincidencia entre el grafo de referencia y el generado mediante la pérdida de consistencia cíclica basada en grafos propuesta. Formalmente, representamos los grafos mediante dos matrices de adyacencia ponderadas (cuadradas) de tamaño M×M,"
+          }
+        },
+        {
+          "id": "s3-p76",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Ggt = {ggt i,j}i=1,...,M j=1,...,M",
+            "es": "Ggt = {ggt i,j}i=1,...,M j=1,...,M"
+          }
+        },
+        {
+          "id": "s3-p77",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": ". (13)",
+            "es": ". (13)"
+          }
+        },
+        {
+          "id": "s3-p78",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Ggen = {ggen i,j }i=1,...,M j=1,...,M",
+            "es": "Ggen = {ggen i,j }i=1,...,M j=1,...,M"
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Fig. 3: This figure reveals the intricately architected self-supervised tasks embedded within GTGAN. A substantial majority of nodes or edges are randomly obscured, following which, the GTGAN undergoes a pre-training stage. During this stage, we aim to recreate the original rooms utilizing both the latent representations and masked tokens.",
+            "es": "Figura 3: Esta figura revela las tareas autosupervisadas (self-supervised tasks) intrincadamente diseñadas e incorporadas en GTGAN. Una mayoría sustancial de nodos o aristas se oculta aleatoriamente, tras lo cual GTGAN pasa por una etapa de preentrenamiento. Durante esta etapa, buscamos recrear las habitaciones originales utilizando tanto las representaciones latentes como los tokens enmascarados."
+          }
+        },
+        {
+          "id": "s3-p79",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The matrix Ggt contains the adjacency information computed on ground truth graph, while Ggen has the same information computed on the generated graph. Note that we adapt the network in [73] to obtain the Ggen from the generated house layout, followed by a fully-connected layer with the size of M×M, then reshaped it to a square matrix.",
+            "es": "La matriz Ggt contiene la información de adyacencia calculada sobre el grafo de referencia, mientras que Ggen tiene la misma información calculada sobre el grafo generado. Nótese que adaptamos la red de [73] para obtener Ggen a partir de la distribución de casa generada, seguida de una capa totalmente conectada de tamaño M×M, y luego la reformamos a una matriz cuadrada."
+          }
+        },
+        {
+          "id": "s3-p80",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "In this way, each element of the matrices provides a measure of how close the two nodes i and j are in the ground truth and the generated graph, respectively. To measure the closeness between nodes, which is a hint of the strength of the connection between them, we consider weighted matrices where each entry gi,j depends on the shortest distance between them. For example, in the ground truth graph in Figure 1, the shortest distance between the dining room and the living room is 1, the shortest distance between the dining room and the closet is 2, and the shortest distance between the bedroom and the closet is 3. Note that we do not consider self-connections, thus ggt i,i=ggen i,i =0 for i=1, . . . , M. Moreover, non-adjacent nodes have −1 as the entry. Then, we define the proposed graph-based cycleconsistency loss as the Frobenius norm between the two adjacency matrices,",
+            "es": "De esta manera, cada elemento de las matrices proporciona una medida de qué tan cercanos están los dos nodos i y j en el grafo de referencia y en el grafo generado, respectivamente. Para medir la cercanía entre nodos, que es un indicio de la fuerza de la conexión entre ellos, consideramos matrices ponderadas en las que cada entrada gi,j depende de la distancia más corta entre ellos. Por ejemplo, en el grafo de referencia de la Figura 1, la distancia más corta entre el comedor y la sala es 1, la distancia más corta entre el comedor y el clóset es 2, y la distancia más corta entre la recámara y el clóset es 3. Nótese que no consideramos autoconexiones, por lo que ggt i,i=ggen i,i =0 para i=1, . . . , M. Además, los nodos no adyacentes tienen −1 como entrada. Entonces, definimos la pérdida de consistencia cíclica basada en grafos propuesta como la norma de Frobenius entre las dos matrices de adyacencia,"
+          }
+        },
+        {
+          "id": "s3-e1",
+          "type": "equation",
+          "page": 6,
+          "text": {
+            "en": "Lgcyc = ||Ggt −Ggen||F = ||Ggt −G(Ggt)||F , (14)"
+          }
+        },
+        {
+          "id": "s3-p81",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "where G is the proposed graph Transformer-based generator. This loss function aims to faithfully maintain the reciprocal relationships between nodes. On the one hand, disjoint parts are enforced to be predicted as disjoint. On the other hand, neighboring nodes are enforced to be predicted as neighboring and to match the proximity ratios.",
+            "es": "donde G es el generador basado en Transformer de grafos propuesto. Esta función de pérdida busca mantener fielmente las relaciones recíprocas entre los nodos. Por un lado, se impone que las partes disjuntas se predigan como disjuntas. Por otro lado, se impone que los nodos vecinos se predigan como vecinos y que coincidan con las razones de proximidad."
+          }
+        },
+        {
+          "id": "s3-h4",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.4 Implementation Details",
+            "es": "3.4 Detalles de implementación"
+          }
+        },
+        {
+          "id": "s3-p82",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Optimization Objective. The optimization objective of the proposed GTGAN can be written as follows,",
+            "es": "Objetivo de optimización. El objetivo de optimización del GTGAN propuesto puede escribirse como sigue,"
+          }
+        },
+        {
+          "id": "s3-e2",
+          "type": "equation",
+          "page": 6,
+          "text": {
+            "en": "L = Lgan + λ1 · Lclass(d2, ˜d2) + λ2 · Lgcyc, (15)"
+          }
+        },
+        {
+          "id": "s3-p83",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "where Lgan, Lclass, and Lgcyc denote the adversarial loss, the graph node classification loss, and the graph-based cycle-consistency loss, respectively. Training Details. For a fair comparison, we follow House-GAN [5] and use the Adam solver [74] with β1=0.5 and β2=0.999 as our optimizer. The learning rates of our generator G and discriminator D are both set to 0.0001. We set the batch size to 32 on all the subsets for training. We also use the WGAN-GP loss as in [5] to train the network.",
+            "es": "donde Lgan, Lclass y Lgcyc denotan la pérdida adversaria (adversarial loss), la pérdida de clasificación de nodos del grafo y la pérdida de consistencia cíclica basada en grafos, respectivamente. Detalles de entrenamiento. Para una comparación justa, seguimos a House-GAN [5] y usamos el optimizador Adam [74] con β1=0.5 y β2=0.999. Las tasas de aprendizaje de nuestro generador G y del discriminador D se establecen ambas en 0.0001. Fijamos el tamaño de lote en 32 en todos los subconjuntos para el entrenamiento. También usamos la pérdida WGAN-GP como en [5] para entrenar la red."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 THE PROPOSED GRAPH MASKED MODELING",
+        "es": "4 EL MODELADO ENMASCARADO DE GRAFOS PROPUESTO"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "In this section, we delve deeper into our approach for both the pre-training stage and the ensuing fine-tuning steps. To initiate, we present an overview of the architecture. Figure 3 demonstrates our proposed model which consists of two distinct branches: one focused on graph node masking and the other centered around graph edge masking. The function of each branch is to extract embeddings from the nodes or edges of the input graph, respectively. These embeddings are later utilized during the fine-tuning phase for various downstream tasks. Our model’s design has been inspired by MAE [64] and BatmanNet [75], and we have crafted an asymmetric encoder-decoder structure for each branch in the style of a Transformer. The pre-training phase involves the application of our unique graph masking strategy. The graph Transformer encoder operates on partially observable house graph signals during this phase and transforms them into latent representations of nodes or edges. Subsequently, these latent representations, along with the mask tokens, are used by the graph Transformer decoder to reconstruct the original house graph.",
+            "es": "En esta sección profundizamos en nuestro enfoque tanto para la etapa de preentrenamiento (pre-training) como para los pasos posteriores de ajuste fino (fine-tuning). Para comenzar, presentamos una visión general de la arquitectura. La Figura 3 muestra nuestro modelo propuesto, que consta de dos ramas distintas: una enfocada en el enmascaramiento de nodos del grafo (graph node masking) y otra centrada en el enmascaramiento de aristas del grafo (graph edge masking). La función de cada rama es extraer embeddings de los nodos o de las aristas del grafo de entrada, respectivamente. Estos embeddings se utilizan más adelante, durante la fase de ajuste fino, para diversas tareas posteriores (downstream tasks). El diseño de nuestro modelo se ha inspirado en MAE [64] y BatmanNet [75], y hemos creado una estructura asimétrica de codificador-decodificador (encoder-decoder) para cada rama, al estilo de un Transformer. La fase de preentrenamiento implica la aplicación de nuestra estrategia única de enmascaramiento de grafos. Durante esta fase, el codificador Transformer de grafos (graph Transformer encoder) opera sobre señales parcialmente observables del grafo de la casa y las transforma en representaciones latentes de nodos o de aristas. Posteriormente, estas representaciones latentes, junto con los tokens de máscara (mask tokens), son utilizadas por el decodificador Transformer de grafos (graph Transformer decoder) para reconstruir el grafo original de la casa."
+          }
+        },
+        {
+          "id": "s4-h1",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "4.1 Pre-Training Strategy",
+            "es": "4.1 Estrategia de preentrenamiento"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The methodology we’ve devised functions at both individual node and comprehensive graph levels. This approach equips the model with the ability to discern and interpret not only localized attributes but also the overarching and intricate information inherent in the graph. Drawing upon principles from MAE, we design a novel task involving graph masking and reconstruction to pre-train on graph structures. As an example, when we apply our method to a house graph, we advocate for a high proportion of nodes to be randomly masked or omitted in the node branch. This mechanism forces the encoder to focus only on the unmasked nodes that persist, thus challenging it to capture the essential characteristics of these nodes. In a similar vein, we also implement a masking technique for the edge branch. However, in this case, the input is derived from the complementary edge graph of the original graph. This method pushes the model to understand the relationships between nodes, strengthening its ability to capture complex patterns and connections within the graph.",
+            "es": "La metodología que hemos ideado funciona tanto a nivel de nodos individuales como a nivel del grafo completo. Este enfoque dota al modelo de la capacidad de discernir e interpretar no solo atributos localizados, sino también la información global e intrincada inherente al grafo. Partiendo de los principios de MAE, diseñamos una tarea novedosa que implica el enmascaramiento y la reconstrucción de grafos para preentrenar sobre estructuras de grafos. Como ejemplo, cuando aplicamos nuestro método a un grafo de una casa, abogamos por que una alta proporción de nodos se enmascare u omita de forma aleatoria en la rama de nodos. Este mecanismo obliga al codificador a centrarse únicamente en los nodos no enmascarados que persisten, lo que lo desafía a capturar las características esenciales de esos nodos. De manera similar, también implementamos una técnica de enmascaramiento para la rama de aristas. Sin embargo, en este caso, la entrada se deriva del grafo de aristas complementario del grafo original. Este método impulsa al modelo a comprender las relaciones entre los nodos, fortaleciendo su capacidad de capturar patrones y conexiones complejos dentro del grafo."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "We propose that our novel graph masking and rebuilding technique allows the pre-processed node and edge embeddings to grasp the details of a house both at the individual node/edge level and at the holistic graph level. The first facet of our approach involves significantly obscuring nodes and edges, such as at a ratio of 40%, leaving every node and edge with potential gaps in their neighboring connections. To reconstruct these missing neighbors, each node and edge embedding must absorb and interpret its local context, meaning each embedding needs to understand the specific details of its immediate surroundings. Our approach of high-ratio random masking and subsequent reconstruction enables us to do away with the limitations posed by the size and shape of subgraphs used for prediction, and as a result, the node and edge embeddings derived from our task are encouraged to gain an understanding of local contextual details. Secondly, with the removal of nodes or edges at high ratios, the remaining nodes and edges could be regarded as a set of subgraphs tasked with predicting the entire graph. This presents a more intricate graph-to-graph forecasting task compared to other self-directed pre-training tasks, which generally grasp global graph details using smaller graphs or motifs as their prediction targets. Our “intense” pre-training task of graph masking and rebuilding provides us with a broader perspective for learning superior node and edge embeddings capable of capturing the intricate details of houses at both the individual node/edge and holistic graph levels. Graph Transformer Encoder. The encoder in our proposed system acts as a transformative bridge, converting the initial attributes of visible, unmasked nodes and edges into their corresponding embeddings within latent feature spaces. This process involves the node and edge aspects of the encoder which incorporate the proposed graph modeling block and a multi-head node attention mechanism. These features are designed in the vein of the Transformer architecture, which is a method renowned for its ability to effectively model sequential data. The Transformer-style design is founded on the operational procedure detailed in Figure 1 and Figure 2. To elucidate, the graph modeling block of the encoder is devised to effectively extract the intrinsic characteristics of the graph structure, taking into account the interdependencies between nodes and edges. This block aids in the creation of robust representations that encapsulate the holistic relationship dynamics within the graph. Further, the multi-head node attention mechanism affords our system the capability to focus on diverse features in the node’s local neighborhood, which can be critical for understanding the node’s context and role within the overall graph structure.",
+            "es": "Proponemos que nuestra novedosa técnica de enmascaramiento y reconstrucción de grafos permite que los embeddings de nodos y aristas preprocesados capten los detalles de una casa tanto a nivel de nodo/arista individual como a nivel del grafo completo. La primera faceta de nuestro enfoque consiste en ocultar de manera considerable nodos y aristas, por ejemplo en una proporción del 40%, de modo que cada nodo y cada arista queden con posibles vacíos en sus conexiones vecinas. Para reconstruir a estos vecinos faltantes, cada embedding de nodo y de arista debe absorber e interpretar su contexto local, es decir, cada embedding necesita comprender los detalles específicos de su entorno inmediato. Nuestro enfoque de enmascaramiento aleatorio de alta proporción y posterior reconstrucción nos permite prescindir de las limitaciones que imponen el tamaño y la forma de los subgrafos utilizados para la predicción y, como resultado, se alienta a los embeddings de nodos y aristas derivados de nuestra tarea a adquirir una comprensión de los detalles del contexto local. En segundo lugar, al eliminar nodos o aristas en proporciones altas, los nodos y aristas restantes pueden considerarse un conjunto de subgrafos encargados de predecir el grafo completo. Esto plantea una tarea de predicción de grafo a grafo más intrincada que otras tareas de preentrenamiento autosupervisadas (self-directed), que por lo general captan los detalles globales del grafo usando grafos o motivos (motifs) más pequeños como objetivos de predicción. Nuestra tarea “intensa” de preentrenamiento de enmascaramiento y reconstrucción de grafos nos proporciona una perspectiva más amplia para aprender embeddings de nodos y aristas superiores, capaces de capturar los detalles intrincados de las casas tanto a nivel de nodo/arista individual como a nivel del grafo completo. Codificador Transformer de grafos. El codificador de nuestro sistema propuesto actúa como un puente transformador que convierte los atributos iniciales de los nodos y aristas visibles, no enmascarados, en sus embeddings correspondientes dentro de espacios de características latentes. Este proceso involucra los aspectos de nodos y de aristas del codificador, que incorporan el bloque de modelado de grafos (graph modeling block) propuesto y un mecanismo de atención de nodos de múltiples cabezas (multi-head node attention). Estas características están diseñadas al estilo de la arquitectura Transformer, un método reconocido por su capacidad para modelar de manera eficaz datos secuenciales. El diseño al estilo Transformer se basa en el procedimiento operativo detallado en la Figura 1 y la Figura 2. Para aclararlo, el bloque de modelado de grafos del codificador está concebido para extraer de manera eficaz las características intrínsecas de la estructura del grafo, teniendo en cuenta las interdependencias entre nodos y aristas. Este bloque contribuye a crear representaciones robustas que encapsulan la dinámica de las relaciones holísticas dentro del grafo. Además, el mecanismo de atención de nodos de múltiples cabezas brinda a nuestro sistema la capacidad de enfocarse en diversas características de la vecindad local del nodo, lo cual puede ser crítico para comprender el contexto y el papel del nodo dentro de la estructura global del grafo."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "In this way, our encoder is not merely a tool for translating initial attributes into latent feature spaces, but also an innovative engine that incorporates specialized components to learn, understand, and capture the nuanced dynamics of the graph. Through this process, the encoder creates potent embeddings that pave the way for efficient and effective downstream task processing. Graph Transformer Decoder. Our decoding process begins with accepting an ensemble of reorganized room representations. This ensemble is comprised of two key components: (i) the embeddings of unmasked nodes and edges generated by the encoder, and (ii) the mask tokens that symbolize nodes and edges which have been excluded or removed from the initial structure. In our unique approach, the decoder not only fuses these two components but also restores their initial sequence in the source input graphs by integrating corresponding positional embeddings. While the architecture of the decoder mirrors the Transformer-style of the encoder, it is designed with more compactness in mind. Specifically, it assembles M (M=2 in our experiments) graph modeling blocks, where M is significantly less than L, the number utilized by the encoder. The reason for this design choice lies in its application: during the pre-training phase, the decoder is tasked with house reconstruction, while only the encoder is engaged to generate house representations for subsequent prediction tasks.",
+            "es": "De este modo, nuestro codificador no es meramente una herramienta para traducir atributos iniciales a espacios de características latentes, sino también un motor innovador que incorpora componentes especializados para aprender, comprender y capturar la dinámica matizada del grafo. A través de este proceso, el codificador crea embeddings potentes que allanan el camino para un procesamiento eficiente y eficaz de las tareas posteriores. Decodificador Transformer de grafos. Nuestro proceso de decodificación comienza aceptando un conjunto de representaciones de habitaciones reorganizadas. Este conjunto se compone de dos elementos clave: (i) los embeddings de nodos y aristas no enmascarados generados por el codificador, y (ii) los tokens de máscara que simbolizan los nodos y aristas que han sido excluidos o eliminados de la estructura inicial. En nuestro enfoque único, el decodificador no solo fusiona estos dos componentes, sino que también restaura su secuencia inicial en los grafos de entrada de origen mediante la integración de los embeddings posicionales (positional embeddings) correspondientes. Si bien la arquitectura del decodificador refleja el estilo Transformer del codificador, está diseñada pensando en una mayor compacidad. En concreto, ensambla M (M=2 en nuestros experimentos) bloques de modelado de grafos, donde M es significativamente menor que L, el número utilizado por el codificador. La razón de esta decisión de diseño radica en su aplicación: durante la fase de preentrenamiento, al decodificador se le encomienda la reconstrucción de la casa, mientras que solo el codificador interviene para generar las representaciones de la casa para las tareas de predicción posteriores."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "This design insight is derived from the MAE approach, suggesting that the model’s performance is not adversely impacted by a decoder that is either narrower (uses fewer nodes and edges) or shallower (uses fewer layers). As a result, in our asymmetric design of the encoder-decoder structure, the entire graph’s nodes and edges are processed only at the stage of the lightweight decoder. This strategic decision considerably reduces the model’s computational and memory requirements during the pre-training phase, ensuring efficient and sustainable processing. Optimization Objective. Both branches of our model - the node and edge branches - are tasked with reconstructing house graphs. They do this by predicting the attributes of the nodes and edges that have been masked or hidden. To achieve this, we append a linear layer to the end of each decoder’s output. The output dimensions of this linear layer are set to match the total feature size of either the node (for the node branch) or the edge (for the edge branch). This reconstruction process for both nodes and edges is a complex task, involving high-dimensional multi-label predictions. One of the advantages of this approach is that it can mitigate the issue of ambiguity in our predictions, by providing a more precise and focused predictive framework. Drawing inspiration from MAE, we calculate the pre-training loss based on the masked tokens. This approach leads us to define our final pre-training loss as follows:",
+            "es": "Esta idea de diseño proviene del enfoque de MAE, y sugiere que el rendimiento del modelo no se ve afectado negativamente por un decodificador que sea más estrecho (usa menos nodos y aristas) o menos profundo (usa menos capas). Como resultado, en nuestro diseño asimétrico de la estructura codificador-decodificador, los nodos y aristas del grafo completo se procesan únicamente en la etapa del decodificador ligero. Esta decisión estratégica reduce considerablemente los requisitos computacionales y de memoria del modelo durante la fase de preentrenamiento, lo que garantiza un procesamiento eficiente y sostenible. Objetivo de optimización. Ambas ramas de nuestro modelo, la de nodos y la de aristas, tienen la tarea de reconstruir grafos de casas. Lo hacen prediciendo los atributos de los nodos y aristas que han sido enmascarados u ocultados. Para lograrlo, añadimos una capa lineal al final de la salida de cada decodificador. Las dimensiones de salida de esta capa lineal se establecen para coincidir con el tamaño total de las características ya sea del nodo (para la rama de nodos) o de la arista (para la rama de aristas). Este proceso de reconstrucción, tanto para nodos como para aristas, es una tarea compleja que implica predicciones multietiqueta (multi-label) de alta dimensionalidad. Una de las ventajas de este enfoque es que puede mitigar el problema de la ambigüedad en nuestras predicciones, al proporcionar un marco predictivo más preciso y enfocado. Inspirándonos en MAE, calculamos la pérdida de preentrenamiento con base en los tokens enmascarados. Este enfoque nos lleva a definir nuestra pérdida de preentrenamiento final de la siguiente manera:"
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Fig. 4: Visualization results compared with HouseGAN [5] and HouseGAN++ [76] on “1-3” subset. The last three rows contain non-connected nodes.",
+            "es": "Figura 4: Resultados de visualización en comparación con HouseGAN [5] y HouseGAN++ [76] en el subconjunto “1-3”. Las últimas tres filas contienen nodos no conectados."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Lpre−training = Lnode + Ledge",
+            "es": "Lpre−training = Lnode + Ledge"
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "X",
+            "es": "X"
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Lce(Nn, Yn)",
+            "es": "Lce(Nn, Yn)"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "(16) n∈Nmask",
+            "es": "(16) n∈Nmask"
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "X",
+            "es": "X"
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Lce(E(i,j), Y(i,j)),",
+            "es": "Lce(E(i,j), Y(i,j)),"
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "(i,j)∈Emask where Lnode and Ledge denote the loss functions for the node and edge branches, respectively. Nmask and Emask symbolize the collection of masked nodes and edges, respectively. The cross-entropy loss, Lce, is derived from the contrast between the predicted node features, Nn, and their corresponding ground truths, Yn, or between the predicted edge features, E(i,j), and their corresponding ground truths, Y(i,j).",
+            "es": "(i,j)∈Emask donde Lnode y Ledge denotan las funciones de pérdida de las ramas de nodos y de aristas, respectivamente. Nmask y Emask simbolizan el conjunto de nodos y de aristas enmascarados, respectivamente. La pérdida de entropía cruzada (cross-entropy loss), Lce, se obtiene del contraste entre las características de nodo predichas, Nn, y sus correspondientes valores de referencia (ground truths), Yn, o entre las características de arista predichas, E(i,j), y sus correspondientes valores de referencia, Y(i,j)."
+          }
+        },
+        {
+          "id": "s4-h2",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "4.2 Fine-Tuning Strategy",
+            "es": "4.2 Estrategia de ajuste fino"
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "In the prior section 3, we’ve extensively explained our finetuning strategy’s methodology. For downstream tasks, our approach shifts to employ solely the graph Transformer encoder (GTE), marking a departure from the use of both encoder and decoder during the pre-training phase. This change in strategy is fundamentally driven by the nature of the data feeding into the model. During the pre-training phase, the model is presented with incomplete graphs due to the masking process. However, for downstream tasks, the scenario changes drastically. The graphs fed into the model are fully complete, devoid of any masking. This difference in input data between the pre-training and fine-tuning stages underscores the adaptability of our model. By focusing on the graph Transformer encoder during the downstream tasks, we aim to harness its capacity for handling complete graphs, extracting and processing the rich and complex data they present.",
+            "es": "En la sección 3 anterior, explicamos extensamente la metodología de nuestra estrategia de ajuste fino. Para las tareas posteriores, nuestro enfoque cambia para emplear únicamente el codificador Transformer de grafos (graph Transformer encoder, GTE), lo que marca una desviación respecto del uso de codificador y decodificador durante la fase de preentrenamiento. Este cambio de estrategia obedece fundamentalmente a la naturaleza de los datos que alimentan al modelo. Durante la fase de preentrenamiento, al modelo se le presentan grafos incompletos debido al proceso de enmascaramiento. Sin embargo, para las tareas posteriores, el escenario cambia drásticamente. Los grafos que se introducen en el modelo están completamente íntegros, sin ningún enmascaramiento. Esta diferencia en los datos de entrada entre las etapas de preentrenamiento y de ajuste fino subraya la adaptabilidad de nuestro modelo. Al centrarnos en el codificador Transformer de grafos durante las tareas posteriores, buscamos aprovechar su capacidad para manejar grafos completos, extrayendo y procesando los datos ricos y complejos que presentan."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Fig. 5: Visualization results compared with HouseGAN [5] and HouseGAN++ [76] on “4-6” subset. The last three rows contain non-connected nodes.",
+            "es": "Figura 5: Resultados de visualización en comparación con HouseGAN [5] y HouseGAN++ [76] en el subconjunto “4-6”. Las últimas tres filas contienen nodos no conectados."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 EXPERIMENTS",
+        "es": "5 EXPERIMENTOS"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The proposed method can be applied to different graphbased generative tasks such as house layout generation [5], house roof generation [7], and building layout generation [19]. In this section, we present experimental results and analysis on these three tasks.",
+            "es": "El método propuesto se puede aplicar a diferentes tareas generativas basadas en grafos, como la generación de distribuciones de casas (house layout generation) [5], la generación de techos de casas (house roof generation) [7] y la generación de distribuciones de edificios (building layout generation) [19]. En esta sección presentamos los resultados experimentales y el análisis de estas tres tareas."
+          }
+        },
+        {
+          "id": "s5-h1",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "5.1 Results on House Layout Generation",
+            "es": "5.1 Resultados en la generación de distribuciones de casas"
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Datasets. We follow HouseGAN [5] and conduct house layout generation experiments on the LIFULL HOME’s dataset, which have different rooms, i.e., living room, kitchen, bedroom, bathroom, closet, balcony, corridor, dining room, laundry room, and unknown. Evaluation Metrics. We follow HouseGAN [5] and adopt realism, diversity, and compatibility metrics to evaluate the performance of the proposed method. Specifically, we follow [5] and divide the training samples into five subsets based on the number of rooms, i.e., 1-3, 4-6, 7-9, 10-12, and 13+. When generating layouts in a subset, we train the models while excluding samples in the same subset so that they cannot simply memorize.",
+            "es": "Conjuntos de datos (Datasets). Seguimos a HouseGAN [5] y realizamos los experimentos de generación de distribuciones de casas en el conjunto de datos de LIFULL HOME, que contiene diferentes espacios, es decir, sala de estar, cocina, recámara, baño, clóset, balcón, pasillo, comedor, cuarto de lavado y desconocido. Métricas de evaluación (Evaluation Metrics). Seguimos a HouseGAN [5] y adoptamos las métricas de realismo, diversidad y compatibilidad para evaluar el desempeño del método propuesto. En concreto, siguiendo [5], dividimos las muestras de entrenamiento en cinco subconjuntos según el número de espacios, es decir, 1-3, 4-6, 7-9, 10-12 y 13+. Al generar distribuciones en un subconjunto, entrenamos los modelos excluyendo las muestras de ese mismo subconjunto, de modo que no puedan simplemente memorizar."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Fig. 6: Visualization results compared with HouseGAN [5] and HouseGAN++ [76] on “7-9” subset. The last three rows contain non-connected nodes.",
+            "es": "Figura 6: Resultados de visualización en comparación con HouseGAN [5] y HouseGAN++ [76] en el subconjunto \"7-9\". Las últimas tres filas contienen nodos no conectados."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "• 1) We use the average user rating (12 Ph.D. students and 10 professional architects) to measure realism. We provide 75 generated results with ground truths or 75 results generated by another method for comparison. A subject can give four ratings, i.e., better (+1), equally good (+1), worse (-1), or equally bad (-1).",
+            "es": "• 1) Usamos la calificación promedio de los usuarios (12 estudiantes de doctorado y 10 arquitectos profesionales) para medir el realismo. Proporcionamos 75 resultados generados con sus referencias reales (ground truths) o 75 resultados generados por otro método para compararlos. Cada sujeto puede dar cuatro calificaciones: mejor (+1), igual de bueno (+1), peor (-1) o igual de malo (-1)."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "• 2) The Fr´echet inception distance (FID) [77] measures the diversity with the rasterized layout images. We rasterize a layout by setting the background to white and then sorting the rooms in decreasing order of area, finally painting each room with a color based on its room type. We follow [5] and use 5,000 samples to compute the FID metric.",
+            "es": "• 2) La distancia de inception de Fréchet (Fréchet inception distance, FID) [77] mide la diversidad con las imágenes rasterizadas de las distribuciones. Rasterizamos una distribución fijando el fondo en blanco, ordenando después los espacios por área en orden decreciente y pintando finalmente cada espacio con un color según su tipo. Seguimos a [5] y usamos 5,000 muestras para calcular la métrica FID."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Fig. 7: Visualization results compared with HouseGAN [5] and HouseGAN++ [76] on “10-12” subset. The last three samples contain non-connected nodes.",
+            "es": "Figura 7: Resultados de visualización en comparación con HouseGAN [5] y HouseGAN++ [76] en el subconjunto \"10-12\". Las últimas tres muestras contienen nodos no conectados."
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "• 3) The compatibility of the bubble diagram is determined by the graph editing distance [78] between the input bubble diagram and the bubble diagram constructed from the generated layout.",
+            "es": "• 3) La compatibilidad del diagrama de burbujas (bubble diagram) se determina mediante la distancia de edición de grafos (graph editing distance) [78] entre el diagrama de burbujas de entrada y el diagrama de burbujas construido a partir de la distribución generada."
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Quantitative Comparisons. To evaluate the effectiveness of the proposed method on house layout generation, we compare it with several leading methods, i.e., CNN-only, GCN, Ashual et al. [3], Johnson et al. [4], HouseGAN [5], and HouseGAN++ [76]. We follow the same setups in [5] to reproduce the results of Ashual et al. [3] and Johnson et al. [4] for fair comparisons. Table 1 shows our main results on the five subsets. Note that we train HouseGAN++ [76] on this dataset using the public source code for a fair comparison, which is denoted as HouseGAN++∗. We observe that the proposed methods outperform other competing methods in all the metrics, validating the effectiveness of our methods. Qualitative Comparisons. We compare the proposed GT-GAN with the most related methods, i.e., HouseGAN [5] and HouseGAN++ [76]. The visualization results on the five subsets are shown in Figures 4, 5, 6, 7 and 8. It is easy to tell that GTGAN generates more realistic and reasonable house layouts than the leading methods, i.e., HouseGAN and HouseGAN++. For instance, HouseGAN generates improper room sizes or shapes for certain room types, e.g., the closet, the kitchen, and the closet in the last three rows of Figure 4(left), respectively, are too big. Moreover, House-GAN generates misalignment of rooms, e.g., the balcony, the kitchen, and the living room in the first three samples of Figure 4(middle) do not align well with other rooms. Lastly, both HouseGAN and HouseGAN++ cannot generate nonconnected rooms well, e.g., the corridor, the bathroom, and the bedroom in the last three samples of Figure 4(right) are not accurately generated because they are not connected to other rooms. In contrast, the proposed method alleviates all three problems to a certain extent and generates more realistic and reasonable house layouts. Diversity Generation. For each input bubble diagram, we generate four different house layout variations. The results compared with the state-of-the-art HouseGAN [5] are shown in Figure 9. We observe that HouseGAN is not capable of generating variations and tends to collapse into fewer modes. In contrast, the proposed method has a better",
+            "es": "Comparaciones cuantitativas (Quantitative Comparisons). Para evaluar la efectividad del método propuesto en la generación de distribuciones de casas, lo comparamos con varios métodos líderes, es decir, CNN-only, GCN, Ashual et al. [3], Johnson et al. [4], HouseGAN [5] y HouseGAN++ [76]. Seguimos las mismas configuraciones de [5] para reproducir los resultados de Ashual et al. [3] y Johnson et al. [4] y lograr comparaciones justas. La Tabla 1 muestra nuestros resultados principales en los cinco subconjuntos. Observe que entrenamos HouseGAN++ [76] con este conjunto de datos usando el código fuente público para una comparación justa, lo cual se denota como HouseGAN++∗. Observamos que los métodos propuestos superan a los demás métodos competidores en todas las métricas, lo que valida la efectividad de nuestros métodos. Comparaciones cualitativas (Qualitative Comparisons). Comparamos el GT-GAN propuesto con los métodos más relacionados, es decir, HouseGAN [5] y HouseGAN++ [76]. Los resultados de visualización en los cinco subconjuntos se muestran en las Figuras 4, 5, 6, 7 y 8. Es fácil distinguir que GTGAN genera distribuciones de casas más realistas y razonables que los métodos líderes, es decir, HouseGAN y HouseGAN++. Por ejemplo, HouseGAN genera tamaños o formas inadecuados para ciertos tipos de espacio; por ejemplo, el clóset, la cocina y el clóset de las últimas tres filas de la Figura 4(izquierda), respectivamente, son demasiado grandes. Además, House-GAN genera desalineación de los espacios; por ejemplo, el balcón, la cocina y la sala de estar de las primeras tres muestras de la Figura 4(centro) no se alinean bien con los demás espacios. Por último, tanto HouseGAN como HouseGAN++ no pueden generar bien los espacios no conectados; por ejemplo, el pasillo, el baño y la recámara de las últimas tres muestras de la Figura 4(derecha) no se generan con precisión porque no están conectados con otros espacios. En contraste, el método propuesto alivia los tres problemas hasta cierto punto y genera distribuciones de casas más realistas y razonables. Generación de diversidad (Diversity Generation). Para cada diagrama de burbujas de entrada, generamos cuatro variaciones diferentes de la distribución de la casa. Los resultados en comparación con el estado del arte HouseGAN [5] se muestran en la Figura 9. Observamos que HouseGAN no es capaz de generar variaciones y tiende a colapsar en menos modos. En contraste, el método propuesto tiene una mejor"
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Fig. 8: Visualization results compared with HouseGAN [5] and HouseGAN++ [76] on “13+” subset. The last three samples contain non-connected nodes.",
+            "es": "Figura 8: Resultados de visualización en comparación con HouseGAN [5] y HouseGAN++ [76] en el subconjunto \"13+\". Las últimas tres muestras contienen nodos no conectados."
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Method 3 Primitives 4 Primitives",
+            "es": "Método 3 Primitivas 4 Primitivas"
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "FID ↓ RMMD ↓ FID ↓ RMMD ↓",
+            "es": "FID ↓ RMMD ↓ FID ↓ RMMD ↓"
+          }
+        },
+        {
+          "id": "s5-p9",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "PQ-Net [6] 13.0 10.4 14.6 12.9 HouseGAN [5] 27.5 8.5 27.2 12.5 HouseGAN++ [76] 25.2 8.2 24.3 12.1 RoofGAN [7] 11.1 7.5 13.8 10.9 GTGAN [20] 9.3 5.5 9.6 7.2 GTGAN++ (Ours) 7.5 4.2 7.1 5.6 TABLE 2: Quantitative results of house roof generation on the CAD-style roof geometry dataset. The colors orange, blue, and cyan represent the first, the second, and third best results, respectively.",
+            "es": "PQ-Net [6] 13.0 10.4 14.6 12.9 HouseGAN [5] 27.5 8.5 27.2 12.5 HouseGAN++ [76] 25.2 8.2 24.3 12.1 RoofGAN [7] 11.1 7.5 13.8 10.9 GTGAN [20] 9.3 5.5 9.6 7.2 GTGAN++ (Ours) 7.5 4.2 7.1 5.6 Tabla 2: Resultados cuantitativos de la generación de techos de casas en el conjunto de datos de geometría de techos de estilo CAD. Los colores naranja, azul y cian representan los resultados primero, segundo y tercero mejores, respectivamente."
+          }
+        },
+        {
+          "id": "s5-p10",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Method FID ↓ Connectivity Accuracy ↑",
+            "es": "Método FID ↓ Precisión de conectividad ↑"
+          }
+        },
+        {
+          "id": "s5-p11",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "HouseGAN [5] 17.6003 0.403 HouseGAN++ [76] 12.1845 0.494 BuildingGAN [19] 0.0845 0.569 GTGAN [20] 0.0732 0.581 GTGAN++ (Ours) 0.0528 0.617 TABLE 3: Quantitative results of building layout generation. The colors orange, blue, and cyan represent the first, the second, and third best results, respectively. diversity generation with more reasonable house layouts. Training Time. We also provide the training time (h) in Table 1. Because of the proposed graph masked modeling method, GTGAN++ takes less than half the training time of GTGAN to converge. Specifically, GTGAN training takes about 52 hours, while GTGAN++ only takes 24 hours to complete the training, plus the 8 hours of the pre-training phase, so the total time to train GTGAN++ is about 32 hours. This is far faster than both HouseGAN (40h) and HouseGAN++ (46h) methods.",
+            "es": "HouseGAN [5] 17.6003 0.403 HouseGAN++ [76] 12.1845 0.494 BuildingGAN [19] 0.0845 0.569 GTGAN [20] 0.0732 0.581 GTGAN++ (Ours) 0.0528 0.617 Tabla 3: Resultados cuantitativos de la generación de distribuciones de edificios. Los colores naranja, azul y cian representan los resultados primero, segundo y tercero mejores, respectivamente. generación de diversidad con distribuciones de casas más razonables. Tiempo de entrenamiento (Training Time). También presentamos el tiempo de entrenamiento (h) en la Tabla 1. Gracias al método propuesto de modelado enmascarado de grafos (graph masked modeling), GTGAN++ tarda menos de la mitad del tiempo de entrenamiento de GTGAN en converger. En concreto, el entrenamiento de GTGAN toma alrededor de 52 horas, mientras que GTGAN++ solo toma 24 horas para completar el entrenamiento, más las 8 horas de la fase de preentrenamiento, por lo que el tiempo total para entrenar GTGAN++ es de alrededor de 32 horas. Esto es mucho más rápido que los métodos HouseGAN (40h) y HouseGAN++ (46h)."
+          }
+        },
+        {
+          "id": "s5-h2",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "5.2 Results on House Roof Generation",
+            "es": "5.2 Resultados en la generación de techos de casas"
+          }
+        },
+        {
+          "id": "s5-p12",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Datasets and Evaluation Metrics. We follow RoofGAN [7] and conduct extensive experiments on the CAD-style roof geometry dataset proposed in [7]. We follow [7] and use the FID [77] and the minimum matching distance (RMMD) as the evaluation metrics for a fair comparison. Quantitative Comparisons. To evaluate the effectiveness of GTGAN on house roof generation, we compare it with four leading methods, i.e., PQ-Net [6], HouseGAN [5], House-GAN++ [76], and RoofGAN [7]. Table 2 shows the comparison results on both 3 and 4 primitives. When generating roofs, we follow [7] and split the training and test sets based on the number of primitives to prevent simply copying and pasting. We observe that the proposed methods outperform the other three competing methods in both metrics, demonstrating the effectiveness of our methods. Qualitative Comparisons. We compare GTGAN with the most related method, i.e., RoofGAN [5]. The visualization results are shown in Figure 10. Clearly, we observe that GT-GAN generates more realistic and reasonable roof structures than the leading method RoofGAN. For instance, RoofGAN generates isolated, too-long, too-high, or too-thin roofs. It also produces poor relationships between different components, which results in unrealistic polygonal shapes and topology. In contrast, GTGAN alleviates all these problems to a certain extent and generates more complex and realistic combinations of roof primitives. Moreover, GTGAN also produces more diverse roofs, which is another advantage of our method.",
+            "es": "Conjuntos de datos y métricas de evaluación. Seguimos a RoofGAN [7] y realizamos experimentos exhaustivos en el conjunto de datos de geometría de techos de estilo CAD propuesto en [7]. Seguimos a [7] y usamos el FID [77] y la distancia mínima de correspondencia (minimum matching distance, RMMD) como métricas de evaluación para una comparación justa. Comparaciones cuantitativas. Para evaluar la efectividad de GTGAN en la generación de techos de casas, lo comparamos con cuatro métodos líderes, es decir, PQ-Net [6], HouseGAN [5], House-GAN++ [76] y RoofGAN [7]. La Tabla 2 muestra los resultados de la comparación tanto con 3 como con 4 primitivas. Al generar techos, seguimos a [7] y dividimos los conjuntos de entrenamiento y de prueba según el número de primitivas para evitar simplemente copiar y pegar. Observamos que los métodos propuestos superan a los otros tres métodos competidores en ambas métricas, lo que demuestra la efectividad de nuestros métodos. Comparaciones cualitativas. Comparamos GTGAN con el método más relacionado, es decir, RoofGAN [5]. Los resultados de visualización se muestran en la Figura 10. Claramente, observamos que GT-GAN genera estructuras de techo más realistas y razonables que el método líder RoofGAN. Por ejemplo, RoofGAN genera techos aislados, demasiado largos, demasiado altos o demasiado delgados. También produce relaciones deficientes entre los diferentes componentes, lo que da como resultado formas poligonales y una topología poco realistas. En contraste, GTGAN alivia todos estos problemas hasta cierto punto y genera combinaciones de primitivas de techo más complejas y realistas. Además, GTGAN también produce techos más diversos, lo cual es otra ventaja de nuestro método."
+          }
+        },
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-9.png",
+          "text": {
+            "en": "Fig. 9: Diversity evaluation compared with HouseGAN [5]. We generate four different house layout results using the same graph.",
+            "es": "Figura 9: Evaluación de la diversidad en comparación con HouseGAN [5]. Generamos cuatro resultados diferentes de distribución de casa usando el mismo grafo."
+          }
+        },
+        {
+          "id": "fig-10",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-10.png",
+          "text": {
+            "en": "Fig. 10: Visualization results compared with the proposed GTGAN (bottom two rows) and RoofGAN (top two rows). We see that GTGAN can generate more realistic roof structures than RoofGAN. Red ovals highlight non-realistic roof structures generated by RoofGAN.",
+            "es": "Figura 10: Resultados de visualización en comparación con el GTGAN propuesto (dos filas inferiores) y RoofGAN (dos filas superiores). Vemos que GTGAN puede generar estructuras de techo más realistas que RoofGAN. Los óvalos rojos resaltan las estructuras de techo poco realistas generadas por RoofGAN."
+          }
+        },
+        {
+          "id": "s5-h3",
+          "type": "heading",
+          "page": 11,
+          "text": {
+            "en": "5.3 Results on Building Layout Generation",
+            "es": "5.3 Resultados en la generación de distribuciones de edificios"
+          }
+        },
+        {
+          "id": "s5-p13",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Datasets and Evaluation Metrics. Follong BuildingGAN [19], we use the same data set for experiments to make a fair comparison. This dataset contains 120,000 volumetric designs for commercial buildings. Moreover, we follow",
+            "es": "Conjuntos de datos y métricas de evaluación. Siguiendo a BuildingGAN [19], usamos el mismo conjunto de datos para los experimentos con el fin de hacer una comparación justa. Este conjunto de datos contiene 120,000 diseños volumétricos de edificios comerciales. Además, seguimos a"
+          }
+        },
+        {
+          "id": "s5-p14",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "BuildingGAN and employ FID [77] and connectivity accuracy as our evaluation metrics. State-of-the-Art Comparisons. To evaluate the effectiveness of the proposed method on building layout generation, we compare it with three leading methods, i.e., HouseGAN [5], HouseGAN++ [76], and BuildingGAN [19]. To expand HouseGAN, HouseGAN++, GTGAN, and GTGAN++ into the realm of 3D, it involves appending the story index of",
+            "es": "BuildingGAN y empleamos el FID [77] y la precisión de conectividad (connectivity accuracy) como nuestras métricas de evaluación. Comparaciones con el estado del arte (State-of-the-Art Comparisons). Para evaluar la efectividad del método propuesto en la generación de distribuciones de edificios, lo comparamos con tres métodos líderes, es decir, HouseGAN [5], HouseGAN++ [76] y BuildingGAN [19]. Para extender HouseGAN, HouseGAN++, GTGAN y GTGAN++ al ámbito 3D, se agrega el índice de nivel del"
+          }
+        },
+        {
+          "id": "s5-p15",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "# Generator Discriminator FID ↓ Compatibility ↓ each program node to its respective feature. Results are shown in Table 3, we see that the proposed GTGAN++ achieves the best results on both metrics, validating the effectiveness of the proposed graph masked modeling method.",
+            "es": "# Generador Discriminador FID ↓ Compatibilidad ↓ cada nodo de programa a su respectiva característica. Los resultados se muestran en la Tabla 3; vemos que el GTGAN++ propuesto logra los mejores resultados en ambas métricas, lo que valida la efectividad del método propuesto de modelado enmascarado de grafos."
+          }
+        },
+        {
+          "id": "fig-11",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-11.png",
+          "text": {
+            "en": "Fig. 11: Comparison between w/o and w/ our GTGAN D.",
+            "es": "Figura 11: Comparación entre GTGAN D sin y con nuestro uso."
+          }
+        },
+        {
+          "id": "s5-h4",
+          "type": "heading",
+          "page": 12,
+          "text": {
+            "en": "5.4 Ablation Study",
+            "es": "5.4 Estudio de ablación"
+          }
+        },
+        {
+          "id": "s5-p16",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "We conduct extensive ablation studies on house layout generation (“10-12” subset) to evaluate the effectiveness of each component of the proposed method. Baselines Models. GTGAN has 14 baselines, as shown in Table 4: (1) B1 is our baseline combining HouseGAN G and HouseGAN D (i.e., the original HouseGAN [5]). (2) B2 adopts the combination of GTGAN G and HouseGAN D. (3) B3 combines HouseGAN G and GTGAN D. (4) B4 employs both GTGAN G and GTGAN D. (5) B5 is our baseline without using NNA. (6) B6 is our baseline without using CNA. (7) B7 is our baseline without using GMB. (8) B8 is our baseline using Transformer layers instead of Conv-MPN layers. (9) B9 is the variation using Eq. (3) instead of Eq. (2). (10) B10 is the variation using Eq. (4) instead of Eq. (2). (11) B11 is using the proposed graph-based cycleconsistency loss upon B4. (12) B12 uses the proposed graph node masking strategy upon B11. (13) B13 employs the proposed graph edge masking strategy upon B11. (14) B13 is our full model (i.e., GTGAN++), which employs both graph node and edge masking strategies upon B11. Ablation Analysis. The results of the ablation study, shown in Table 4, prove that our graph Transformer generator G and node classification-based discriminator D improve the generation performance over the baseline models, validating the effectiveness of the proposed framework. Specifi-cally, when using our generator, B2 yields further improvements over B1, meaning that our generator learns local and global relations across connected and non-connected nodes more effectively, confirming our design motivation. B3 outperforms B1, demonstrating the importance of using our discriminator to generate semantically consistent rooms according to the input graph nodes. We show the comparison results in Figure 11. We see that using our discriminator is helping to preserve the room information in the generated floorplans, leading to a better house layout. Moreover, we observe that B4 generates significantly better results than B2 and B3, further confirming our network design.",
+            "es": "Realizamos extensos estudios de ablación (ablation studies) sobre la generación de distribuciones de casas (subconjunto \"10-12\") para evaluar la efectividad de cada componente del método propuesto. Modelos base (Baselines Models). GTGAN tiene 14 modelos base, como se muestra en la Tabla 4: (1) B1 es nuestro modelo base que combina el G de HouseGAN y el D de HouseGAN (es decir, el HouseGAN original [5]). (2) B2 adopta la combinación del G de GTGAN y el D de HouseGAN. (3) B3 combina el G de HouseGAN y el D de GTGAN. (4) B4 emplea tanto el G de GTGAN como el D de GTGAN. (5) B5 es nuestro modelo base sin usar NNA. (6) B6 es nuestro modelo base sin usar CNA. (7) B7 es nuestro modelo base sin usar GMB. (8) B8 es nuestro modelo base que usa capas Transformer en lugar de capas Conv-MPN. (9) B9 es la variación que usa la Ec. (3) en lugar de la Ec. (2). (10) B10 es la variación que usa la Ec. (4) en lugar de la Ec. (2). (11) B11 usa la pérdida de consistencia cíclica basada en grafos propuesta sobre B4. (12) B12 usa la estrategia propuesta de enmascaramiento de nodos del grafo sobre B11. (13) B13 emplea la estrategia propuesta de enmascaramiento de aristas del grafo sobre B11. (14) B13 es nuestro modelo completo (es decir, GTGAN++), que emplea las estrategias de enmascaramiento tanto de nodos como de aristas del grafo sobre B11. Análisis de ablación (Ablation Analysis). Los resultados del estudio de ablación, mostrados en la Tabla 4, prueban que nuestro generador G de Transformer de grafos y nuestro discriminador D basado en clasificación de nodos mejoran el desempeño de generación respecto a los modelos base, lo que valida la efectividad del marco propuesto. En concreto, al usar nuestro generador, B2 produce mejoras adicionales respecto a B1, lo que significa que nuestro generador aprende de manera más efectiva las relaciones locales y globales entre nodos conectados y no conectados, confirmando nuestra motivación de diseño. B3 supera a B1, lo que demuestra la importancia de usar nuestro discriminador para generar espacios semánticamente consistentes de acuerdo con los nodos del grafo de entrada. Mostramos los resultados de la comparación en la Figura 11. Vemos que usar nuestro discriminador ayuda a preservar la información de los espacios en los planos generados, lo que da lugar a una mejor distribución de la casa. Además, observamos que B4 genera resultados significativamente mejores que B2 y B3, lo que confirma aún más el diseño de nuestra red."
+          }
+        },
+        {
+          "id": "fig-12",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-12.png",
+          "text": {
+            "en": "Fig. 12: Visualization of the learned node attention.",
+            "es": "Figura 12: Visualización de la atención de nodos aprendida."
+          }
+        },
+        {
+          "id": "s5-p17",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "We also observe that not using NNA or CNA significantly reduces performance in B5 or B6, which validates the effectiveness of both NNA and CNA. Also, without using the proposed GMB in B7, the performance drops a lot on both metrics. Meanwhile, using Transformer layers (B8) other than Conv-MPN layers slightly reduces the performance, which means that using a mixed model of CNN and Transformer can achieve better results. When we use Eq. (3) and Eq. (4) instead of Eq. (2) in B9 and B10, the performance drops slightly, which also proves the rationality of our model design. Also, B11 significantly outperforms B4, clearly demonstrating the effectiveness of the proposed graph-based cycle-consistency loss.",
+            "es": "También observamos que no usar NNA o CNA reduce significativamente el desempeño en B5 o B6, lo que valida la efectividad tanto de NNA como de CNA. Asimismo, sin usar el GMB propuesto en B7, el desempeño cae mucho en ambas métricas. Por otra parte, usar capas Transformer (B8) en lugar de capas Conv-MPN reduce ligeramente el desempeño, lo que significa que usar un modelo mixto de CNN y Transformer puede lograr mejores resultados. Cuando usamos la Ec. (3) y la Ec. (4) en lugar de la Ec. (2) en B9 y B10, el desempeño cae ligeramente, lo que también prueba la racionalidad del diseño de nuestro modelo. Además, B11 supera significativamente a B4, lo que demuestra claramente la efectividad de la pérdida de consistencia cíclica basada en grafos propuesta."
+          }
+        },
+        {
+          "id": "s5-p18",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Lastly, we see that B14 outperforms the other two baselines (i.e., B12 and B13) in terms of both metrics, suggesting the efficacy of our designed approach which combines both node and edge masking strategies. Furthermore, even with the implementation of only one masking strategy (i.e., B12 λ1 0.01 0.1 0.2 0.5 1 10",
+            "es": "Por último, vemos que B14 supera a los otros dos modelos base (es decir, B12 y B13) en ambas métricas, lo que sugiere la eficacia de nuestro enfoque diseñado, que combina las estrategias de enmascaramiento de nodos y de aristas. Además, incluso con la implementación de una sola estrategia de enmascaramiento (es decir, B12 λ1 0.01 0.1 0.2 0.5 1 10"
+          }
+        },
+        {
+          "id": "fig-13",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-13.png",
+          "text": {
+            "en": "Fig. 13: Ablation study of the masking ratio.",
+            "es": "Figura 13: Estudio de ablación de la proporción de enmascaramiento."
+          }
+        },
+        {
+          "id": "s5-p19",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "FID ↓ 9.8 11.4 17.7 10.5 7.5 13.4 TABLE 5: Ablation study of the λ1 in Eq. (15). λ2 0.01 0.1 0.2 0.5 1 10",
+            "es": "FID ↓ 9.8 11.4 17.7 10.5 7.5 13.4 Tabla 5: Estudio de ablación de λ1 en la Ec. (15). λ2 0.01 0.1 0.2 0.5 1 10"
+          }
+        },
+        {
+          "id": "s5-p20",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "FID ↓ 9.4 7.5 8.3 9.8 10.4 11.5 TABLE 6: Ablation study of the λ2 in Eq. (15). or B13), the model can still greatly surpass B11 in performance. This underlines the potency of our graph masking in absorbing and interpreting information from the house layout graphs. Visulization of Attention Weights. We show two examples of the learned node attention in Figure 12. The query nodes are colored in black, whereas the edges are colored according to the magnitude of the attention weights, which can be referred to by the color bar on the left. We can observe that the proposed method indeed learns the relationships between nodes. Influence of Hyperparameter. We first set λ2=0.1 and then investigate the influence of λ1 in Eq. (15) on the performance of our full model. As shown in Table 5, when λ1=1, our model achieves the best generation performance. Moreover, we set λ1=1, and then investigate the influence of λ2 on the performance of our full model. As shown in Table 6, when λ2=0.1, our model achieves the best generation performance. Therefore, we adopt λ1=1 and λ2=0.1 in all experiments. Influence of Masking Ratio. In an effort to assess the impact of varying masking ratios, we conduct pre-training of our proposed method using a spectrum of masking ratios from 10% to 90% specifically in the context of house layout generation. Our results in Figure 13 show that a masking ratio of 40% renders the most favorable performance. This indicates that a relatively high masking ratio for nodes and edges during pre-training provides a more extensive learning opportunity for the remaining nodes and edges to assimilate intricate information in their embeddings. How-ever, we note that when the masking ratio surpassed 40%, the residual nodes and edges lacked sufficient information to rebuild the entire graph, which started to detrimentally affect the quality of the learned embeddings. GTGAN vs. GTGAN++. From Tables 1 and 2, we can see that GTGAN++ achieves much better results than GTGAN on all metrics in both house layout generation and roof generation tasks, meaning that our proposed graph masked modeling strategy is effective. Moreover, we note that GT-GAN++ generates much better results than GTGAN on both tasks, as shown in Figure 14. This also demonstrates the effectiveness of our graph masked modeling strategy.",
+            "es": "FID ↓ 9.4 7.5 8.3 9.8 10.4 11.5 Tabla 6: Estudio de ablación de λ2 en la Ec. (15). o B13), el modelo aún puede superar ampliamente a B11 en desempeño. Esto subraya la potencia de nuestro enmascaramiento de grafos para absorber e interpretar información de los grafos de distribución de casas. Visualización de los pesos de atención (Visualization of Attention Weights). Mostramos dos ejemplos de la atención de nodos aprendida en la Figura 12. Los nodos de consulta (query) están coloreados en negro, mientras que las aristas están coloreadas según la magnitud de los pesos de atención, a la que se puede hacer referencia mediante la barra de color de la izquierda. Podemos observar que el método propuesto efectivamente aprende las relaciones entre nodos. Influencia del hiperparámetro (Influence of Hyperparameter). Primero fijamos λ2=0.1 y luego investigamos la influencia de λ1 en la Ec. (15) sobre el desempeño de nuestro modelo completo. Como se muestra en la Tabla 5, cuando λ1=1, nuestro modelo logra el mejor desempeño de generación. Además, fijamos λ1=1 y luego investigamos la influencia de λ2 sobre el desempeño de nuestro modelo completo. Como se muestra en la Tabla 6, cuando λ2=0.1, nuestro modelo logra el mejor desempeño de generación. Por lo tanto, adoptamos λ1=1 y λ2=0.1 en todos los experimentos. Influencia de la proporción de enmascaramiento (Influence of Masking Ratio). Con el fin de evaluar el impacto de distintas proporciones de enmascaramiento, preentrenamos nuestro método propuesto usando un espectro de proporciones de enmascaramiento del 10% al 90%, específicamente en el contexto de la generación de distribuciones de casas. Nuestros resultados en la Figura 13 muestran que una proporción de enmascaramiento del 40% ofrece el desempeño más favorable. Esto indica que una proporción de enmascaramiento relativamente alta para nodos y aristas durante el preentrenamiento brinda una oportunidad de aprendizaje más amplia para que los nodos y aristas restantes asimilen información compleja en sus representaciones (embeddings). Sin embargo, notamos que cuando la proporción de enmascaramiento superó el 40%, los nodos y aristas residuales carecían de información suficiente para reconstruir todo el grafo, lo que comenzó a afectar negativamente la calidad de las representaciones aprendidas. GTGAN vs. GTGAN++. De las Tablas 1 y 2 podemos ver que GTGAN++ logra resultados mucho mejores que GTGAN en todas las métricas, tanto en la generación de distribuciones de casas como en la de techos, lo que significa que nuestra estrategia propuesta de modelado enmascarado de grafos es efectiva. Además, observamos que GT-GAN++ genera resultados mucho mejores que GTGAN en ambas tareas, como se muestra en la Figura 14. Esto también demuestra la efectividad de nuestra estrategia de modelado enmascarado de grafos."
+          }
+        },
+        {
+          "id": "fig-14",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-14.png",
+          "text": {
+            "en": "Fig. 14: Comparison results of GTGAN and GTGAN++ on house layout generation (top four rows) and roof generation (bottom two rows).",
+            "es": "Figura 14: Resultados de la comparación de GTGAN y GTGAN++ en la generación de distribuciones de casas (cuatro filas superiores) y en la generación de techos (dos filas inferiores)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6 LIMITATIONS AND CONCLUSION",
+        "es": "6 LIMITACIONES Y CONCLUSIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Limitations. The datasets used in existing papers do not capture the distribution of real architectural layouts. This makes our method sensitive to the viewpoint and style of the graph representation. It is possible to address this limitation by collecting a real dataset of architectural rooms and roofs and associated 3D building meshes. Conclusion. With this work, we are the first to explore using a Transformer-based architecture for graph-constrained architectural layout generation tasks. We provide four contributions, i.e., a graph Transformer-based generator, a node classification-based discriminator, a graph-based cycle-consistency loss, and a graph masked modeling strategy. The first is employed to model local and global relations across connected and non-connected nodes in a graph. The second component is used to preserve highlevel, semantically discriminative features for different house components. The third is used to preserve relative spatial relationships between ground truth and generated graphs. The last one aims to ensure the model is wellequipped to handle downstream tasks efficiently, providing a robust foundation during the pre-training stage and flexible adaptation during the fine-tuning stage. Extensive experiments in terms of both human and automatic evaluation demonstrate that the proposed method achieves remarkably better performance than existing approaches on three challenging generation tasks. We believe that our framework makes an essential step towards automated architectural layout design.",
+            "es": "Limitaciones. Los conjuntos de datos (datasets) utilizados en los artículos existentes no capturan la distribución de las distribuciones arquitectónicas (architectural layouts) reales. Esto hace que nuestro método sea sensible al punto de vista y al estilo de la representación en grafo. Es posible abordar esta limitación recopilando un conjunto de datos real de habitaciones y techos arquitectónicos, junto con las mallas 3D de edificios asociadas. Conclusión. Con este trabajo, somos los primeros en explorar el uso de una arquitectura basada en Transformer para tareas de generación de distribuciones arquitectónicas restringidas por grafos. Aportamos cuatro contribuciones: un generador basado en Transformer de grafos (graph Transformer), un discriminador basado en clasificación de nodos (node classification), una pérdida de consistencia cíclica basada en grafos (graph-based cycle-consistency loss) y una estrategia de modelado enmascarado de grafos (graph masked modeling). El primero se emplea para modelar las relaciones locales y globales entre nodos conectados y no conectados de un grafo. El segundo componente se utiliza para preservar características de alto nivel y semánticamente discriminativas de los diferentes componentes de la casa. El tercero se utiliza para preservar las relaciones espaciales relativas entre los grafos de referencia (ground truth) y los grafos generados. El último busca asegurar que el modelo esté bien preparado para abordar tareas posteriores de manera eficiente, proporcionando una base robusta durante la etapa de preentrenamiento y una adaptación flexible durante la etapa de ajuste fino. Los experimentos exhaustivos, tanto en evaluación humana como automática, demuestran que el método propuesto logra un rendimiento notablemente mejor que los enfoques existentes en tres tareas de generación desafiantes. Creemos que nuestro marco de trabajo representa un paso esencial hacia el diseño automatizado de distribuciones arquitectónicas."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Acknowledgments. This work was partly supported by the ETH Zurich General Fund (OK), the MUR PNRR project FAIR (PE00000013) funded by the NextGenerationEU, the PRIN project CREATIVE (Prot. 2020ZSL9F9), and by the EU Horizon project ELIAS (No. 101120237).",
+            "es": "Agradecimientos. Este trabajo fue apoyado en parte por el Fondo General de ETH Zurich (OK), el proyecto MUR PNRR FAIR (PE00000013) financiado por NextGenerationEU, el proyecto PRIN CREATIVE (Prot. 2020ZSL9F9) y el proyecto EU Horizon ELIAS (No. 101120237)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "REFERENCES"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[1] K. Wang, Y.-A. Lin, B. Weissmann, M. Savva, A. X. Chang, and D. Ritchie, “Planit: Planning and instantiating indoor scenes with relation graph and spatial prior networks,” ACM TOG, vol. 38, no. 4, pp. 1–15, 2019. 1, 3"
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[2] R. Hu, Z. Huang, Y. Tang, O. Van Kaick, H. Zhang, and H. Huang, “Graph2plan: Learning floorplan generation from layout graphs,” ACM TOG, vol. 39, no. 4, pp. 118–1, 2020. 1, 3"
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[3] O. Ashual and L. Wolf, “Specifying object attributes and relations in interactive scene generation,” in ICCV, 2019. 1, 3, 9"
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[4] J. Johnson, A. Gupta, and L. Fei-Fei, “Image generation from scene graphs,” in CVPR, 2018. 1, 3, 9"
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[5] N. Nauata, K.-H. Chang, C.-Y. Cheng, G. Mori, and Y. Fu-rukawa, “House-gan: Relational generative adversarial networks for graph-constrained house layout generation,” in ECCV, 2020. 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12"
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[6] R. Wu, Y. Zhuang, K. Xu, H. Zhang, and B. Chen, “Pq-net: A generative part seq2seq network for 3d shapes,” in CVPR, 2020. 1, 10"
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[7] Y. Qian, H. Zhang, and Y. Furukawa, “Roof-gan: learning to generate roof geometry and relations for residential houses,” in CVPR, 2021. 1, 2, 8, 10"
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[8] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, and I. Polosukhin, “Attention is all you need,” in NeurIPS, 2017. 1, 3"
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[9] A. Dosovitskiy, L. Beyer, A. Kolesnikov, D. Weissenborn, X. Zhai, T. Unterthiner, M. Dehghani, M. Minderer, G. Heigold, S. Gelly et al., “An image is worth 16x16 words: Transformers for image recognition at scale,” in ICLR, 2021. 1, 3, 4"
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[10] S. Zheng, J. Lu, H. Zhao, X. Zhu, Z. Luo, Y. Wang, Y. Fu, J. Feng, T. Xiang, P. H. Torr et al., “Rethinking semantic segmentation from a sequence-to-sequence perspective with transformers,” in CVPR, 2021. 1, 3"
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[11] H. Wang, Y. Zhu, H. Adam, A. Yuille, and L.-C. Chen, “Max-deeplab: End-to-end panoptic segmentation with mask transformers,” in CVPR, 2021. 1, 3"
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[12] W. Wang, C. Chen, M. Ding, H. Yu, S. Zha, and J. Li, “Trans-bts: Multimodal brain tumor segmentation using transformer,” in MICCAI, 2021. 1, 3"
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[13] N. Carion, F. Massa, G. Synnaeve, N. Usunier, A. Kirillov, and S. Zagoruyko, “End-to-end object detection with transformers,” in ECCV, 2020. 1, 3"
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[14] X. Zhu, W. Su, L. Lu, B. Li, X. Wang, and J. Dai, “Deformable detr: Deformable transformers for end-to-end object detection,” in ICLR, 2021. 1, 3"
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[15] L. Huang, J. Tan, J. Liu, and J. Yuan, “Hand-transformer: Non-autoregressive structured modeling for 3d hand pose estimation,” in ECCV, 2020. 1"
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[16] L. Huang, J. Tan, J. Meng, J. Liu, and J. Yuan, “Hot-net: Non-autoregressive transformer for 3d hand-object pose estimation,” in ACM MM, 2020. 1"
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[17] K. Lin, L. Wang, and Z. Liu, “End-to-end human pose and mesh reconstruction with transformers,” in CVPR, 2021. 1, 3"
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[18] K. Chen, J. K. Chen, J. Chuang, M. V´azquez, and S. Savarese, “Topological planning with transformers for vision-and-language navigation,” in CVPR, 2021. 1, 3"
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[19] K.-H. Chang, C.-Y. Cheng, J. Luo, S. Murata, M. Nourbakhsh, and Y. Tsuji, “Building-gan: Graph-conditioned architectural volumetric design generation,” in ICCV, 2021. 2, 8, 10, 11"
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[20] H. Tang, Z. Zhang, H. Shi, B. Li, L. Shao, N. Sebe, R. Timofte, and L. Van Gool, “Graph transformer gans for graph-constrained house generation,” in CVPR, 2023. 2, 9, 10"
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[21] I. Goodfellow, J. Pouget-Abadie, M. Mirza, B. Xu, D. Warde-Farley, S. Ozair, A. Courville, and Y. Bengio, “Generative adversarial nets,” in NeurIPS, 2014. 3"
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[22] T. Karras, S. Laine, and T. Aila, “A style-based generator architecture for generative adversarial networks,” in CVPR, 2019. 3"
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[23] T. R. Shaham, T. Dekel, and T. Michaeli, “Singan: Learning a generative model from a single natural image,” in ICCV, 2019. 3"
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[24] H. Tang, L. Shao, P. H. Torr, and N. Sebe, “Local and global gans with semantic-aware upsampling for image generation,” IEEE TPAMI, vol. 45, no. 1, pp. 768–784, 2022. 3"
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[25] H. Tang, P. H. Torr, and N. Sebe, “Multi-channel attention selection gans for guided image-to-image translation,” IEEE TPAMI, no. 01, pp. 1–16, 2022. 3"
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[26] M. Mirza and S. Osindero, “Conditional generative adversarial nets,” arXiv preprint arXiv:1411.1784, 2014. 3"
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[27] Y. Choi, M. Choi, M. Kim, J.-W. Ha, S. Kim, and J. Choo, “Stargan: Unified generative adversarial networks for multi-domain imageto-image translation,” in CVPR, 2018. 3"
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[28] H. Zhang, T. Xu, H. Li, S. Zhang, X. Wang, X. Huang, and D. Metaxas, “Stackgan: Text to photo-realistic image synthesis with stacked generative adversarial networks,” in ICCV, 2017. 3"
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[29] M. Tao, B.-K. Bao, H. Tang, and C. Xu, “Galip: Generative adversarial clips for text-to-image synthesis,” in CVPR, 2023. 3"
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[30] M. Tao, H. Tang, F. Wu, X.-Y. Jing, B.-K. Bao, and C. Xu, “Df-gan: A simple and effective baseline for text-to-image synthesis,” in CVPR, 2022. 3"
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[31] Z. Xu, T. Lin, H. Tang, F. Li, D. He, N. Sebe, R. Timofte, L. Van Gool, and E. Ding, “Predict, prevent, and evaluate: Disentangled textdriven image manipulation empowered by pre-trained visionlanguage model,” in CVPR, 2022. 3"
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[32] S. E. Reed, Z. Akata, S. Mohan, S. Tenka, B. Schiele, and H. Lee, “Learning what and where to draw,” in NeurIPS, 2016. 3"
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[33] H. Tang, S. Bai, L. Zhang, P. H. Torr, and N. Sebe, “Xinggan for person image generation,” in ECCV, 2020. 3"
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[34] H. Tang, L. Shao, P. H. Torr, and N. Sebe, “Bipartite graph reasoning gans for person pose and facial image synthesis,” Springer IJCV, pp. 1–15, 2022. 3"
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[35] H. Tang and N. Sebe, “Total generate: Cycle in cycle generative adversarial networks for generating human faces, hands, bodies, and natural scenes,” IEEE TMM, vol. 24, pp. 2963–2974, 2021. 3"
+          }
+        },
+        {
+          "id": "refs-36",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[36] H. Tang, S. Bai, P. H. Torr, and N. Sebe, “Bipartite graph reasoning gans for person image generation,” in BMVC, 2020. 3"
+          }
+        },
+        {
+          "id": "refs-37",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[37] H. Tang, D. Xu, N. Sebe, Y. Wang, J. J. Corso, and Y. Yan, “Multi-channel attention selection gan with cascaded semantic guidance for cross-view image translation,” in CVPR, 2019. 3"
+          }
+        },
+        {
+          "id": "refs-38",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[38] T. Park, M.-Y. Liu, T.-C. Wang, and J.-Y. Zhu, “Semantic image synthesis with spatially-adaptive normalization,” in CVPR, 2019. 3"
+          }
+        },
+        {
+          "id": "refs-39",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[39] H. Tang, D. Xu, Y. Yan, P. H. Torr, and N. Sebe, “Local classspecific and global image-level generative adversarial networks for semantic-guided scene generation,” in CVPR, 2020. 3"
+          }
+        },
+        {
+          "id": "refs-40",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[40] H. Tang and N. Sebe, “Layout-to-image translation with double pooling generative adversarial networks,” IEEE TIP, vol. 30, pp. 7903–7913, 2021. 3"
+          }
+        },
+        {
+          "id": "refs-41",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[41] H. Tang, S. Bai, and N. Sebe, “Dual attention gans for semantic image synthesis,” in ACM MM, 2020. 3"
+          }
+        },
+        {
+          "id": "refs-42",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[42] H. Tang, X. Qi, G. Sun, D. Xu, N. Sebe, R. Timofte, and L. Van Gool, “Edge guided gans with contrastive learning for semantic image synthesis,” in ICLR, 2023. 3"
+          }
+        },
+        {
+          "id": "refs-43",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[43] H. Tang, G. Sun, N. Sebe, and L. Van Gool, “Edge guided gans with multi-scale contrastive learning for semantic image synthesis,” IEEE TPAMI, 2023. 3"
+          }
+        },
+        {
+          "id": "refs-44",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "[44] Y. A. Mejjati, C. Richardt, J. Tompkin, D. Cosker, and K. I. Kim, “Unsupervised attention-guided image-to-image translation,” in NeurIPS, 2018. 3"
+          }
+        },
+        {
+          "id": "refs-45",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[45] H. Tang, H. Liu, D. Xu, P. H. Torr, and N. Sebe, “Attentiongan: Unpaired image-to-image translation using attention-guided generative adversarial networks,” IEEE TNNLS, 2021. 3"
+          }
+        },
+        {
+          "id": "refs-46",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[46] H. Dhamo, F. Manhardt, N. Navab, and F. Tombari, “Graph-to-3d: End-to-end generation and manipulation of 3d scenes using scene graphs,” in ICCV, 2021. 3"
+          }
+        },
+        {
+          "id": "refs-47",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[47] A. Luo, Z. Zhang, J. Wu, and J. B. Tenenbaum, “End-to-end optimization of scene layout,” in CVPR, 2020. 3"
+          }
+        },
+        {
+          "id": "refs-48",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[48] H.-Y. Lee, L. Jiang, I. Essa, P. B. Le, H. Gong, M.-H. Yang, and W. Yang, “Neural design network: Graphic layout generation with constraints,” in ECCV, 2020. 3"
+          }
+        },
+        {
+          "id": "refs-49",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[49] K. Yamaguchi, “Canvasvae: Learning to generate vector graphic documents,” in ICCV, 2021. 3"
+          }
+        },
+        {
+          "id": "refs-50",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[50] D. M. Arroyo, J. Postels, and F. Tombari, “Variational transformer networks for layout generation,” in CVPR, 2021. 3"
+          }
+        },
+        {
+          "id": "refs-51",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[51] L. Dai, H. Liu, H. Tang, Z. Wu, and P. Song, “Ao2-detr: Arbitrary-oriented object detection transformer,” IEEE TCSVT, 2022. 3"
+          }
+        },
+        {
+          "id": "refs-52",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[52] P. Dong, Z. Kong, X. Meng, P. Yu, Y. Gong, G. Yuan, H. Tang, and Y. Wang, “Hotbev: Hardware-oriented transformer-based multiview 3d detector for bev perception,” in NeurIPS, 2023. 3"
+          }
+        },
+        {
+          "id": "refs-53",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[53] P. Dong, Z. Kong, X. Meng, P. Zhang, H. Tang, Y. Wang, and C.-H. Chou, “Speeddetr: Speed-aware transformers for end-to-end object detection,” in ICML, 2023. 3"
+          }
+        },
+        {
+          "id": "refs-54",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[54] G. Yang, H. Tang, M. Ding, N. Sebe, and E. Ricci, “Transformer-based attention networks for continuous pixel-wise prediction,” in ICCV, 2021. 3"
+          }
+        },
+        {
+          "id": "refs-55",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[55] W. Li, H. Liu, H. Tang, P. Wang, and L. Van Gool, “Mhformer: Multi-hypothesis transformer for 3d human pose estimation,” in CVPR, 2022. 3"
+          }
+        },
+        {
+          "id": "refs-56",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[56] W. Li, H. Liu, H. Tang, and P. Wang, “Multi-hypothesis representation learning for transformer-based 3d human pose estimation,” Elsevier PR, vol. 141, p. 109631, 2023. 3"
+          }
+        },
+        {
+          "id": "refs-57",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[57] Y. Zeng, J. Fu, and H. Chao, “Learning joint spatial-temporal transformations for video inpainting,” in ECCV, 2020. 3"
+          }
+        },
+        {
+          "id": "refs-58",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[58] D. Neimark, O. Bar, M. Zohar, and D. Asselmann, “Video transformer network,” in ICCV, 2021. 3"
+          }
+        },
+        {
+          "id": "refs-59",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[59] B. Chopin, H. Tang, N. Otberdout, M. Daoudi, and N. Sebe, “Interaction transformer for human reaction generation,” IEEE TMM, 2023. 3"
+          }
+        },
+        {
+          "id": "refs-60",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[60] H. Chen, H. Tang, Z. Yu, N. Sebe, and G. Zhao, “Geometry-contrastive transformer for generalized 3d pose transfer,” in AAAI, 2022. 3"
+          }
+        },
+        {
+          "id": "refs-61",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[61] H. Chen, H. Tang, N. Sebe, and G. Zhao, “Aniformer: Data-driven 3d animation with transformer,” in BMVC, 2021. 3"
+          }
+        },
+        {
+          "id": "refs-62",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[62] H. Chen, H. Tang, R. Timofte, L. Van Gool, and G. Zhao, “Lart: Neural correspondence learning with latent regularization transformer for 3d motion transfer,” in NeurIPS, 2023. 3"
+          }
+        },
+        {
+          "id": "refs-63",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[63] J. D. M.-W. C. Kenton and L. K. Toutanova, “Bert: Pre-training of deep bidirectional transformers for language understanding,” in NAACL-HLT, 2019. 3"
+          }
+        },
+        {
+          "id": "refs-64",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[64] K. He, X. Chen, S. Xie, Y. Li, P. Doll´ar, and R. Girshick, “Masked autoencoders are scalable vision learners,” in CVPR, 2022. 3, 6"
+          }
+        },
+        {
+          "id": "refs-65",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[65] Z. Xie, Z. Zhang, Y. Cao, Y. Lin, J. Bao, Z. Yao, Q. Dai, and H. Hu, “Simmim: A simple framework for masked image modeling,” in CVPR, 2022. 3"
+          }
+        },
+        {
+          "id": "refs-66",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[66] O. Mahmood, E. Mansimov, R. Bonneau, and K. Cho, “Masked graph modeling for molecule generation,” Nature communications, vol. 12, no. 1, p. 3156, 2021. 3"
+          }
+        },
+        {
+          "id": "refs-67",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[67] Z. Hou, X. Liu, Y. Cen, Y. Dong, H. Yang, C. Wang, and J. Tang, “Graphmae: Self-supervised masked graph autoencoders,” in KDD, 2022. 3"
+          }
+        },
+        {
+          "id": "refs-68",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[68] Y. Tian, K. Dong, C. Zhang, C. Zhang, and N. V. Chawla, “Hetero-geneous graph masked autoencoders,” in AAAI, 2023. 3"
+          }
+        },
+        {
+          "id": "refs-69",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[69] F. Zhang, N. Nauata, and Y. Furukawa, “Conv-mpn: Convolu-tional message passing neural network for structured outdoor architecture reconstruction,” in CVPR, 2020. 4"
+          }
+        },
+        {
+          "id": "refs-70",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[70] H. Zhang, I. Goodfellow, D. Metaxas, and A. Odena, “Self-attention generative adversarial networks,” in ICML, 2019. 5"
+          }
+        },
+        {
+          "id": "refs-71",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[71] D. Hendrycks and K. Gimpel, “Gaussian error linear units (gelus),” arXiv preprint arXiv:1606.08415, 2016. 5"
+          }
+        },
+        {
+          "id": "refs-72",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[72] N. Kolotouros, G. Pavlakos, and K. Daniilidis, “Convolutional mesh regression for single-image human shape reconstruction,” in CVPR, 2019. 5"
+          }
+        },
+        {
+          "id": "refs-73",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[73] W. Yu, X. Liang, K. Gong, C. Jiang, N. Xiao, and L. Lin, “Layout-graph reasoning for fashion landmark detection,” in CVPR, 2019. 6"
+          }
+        },
+        {
+          "id": "refs-74",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[74] D. P. Kingma and J. Ba, “Adam: A method for stochastic optimization,” in ICLR, 2015. 6"
+          }
+        },
+        {
+          "id": "refs-75",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[75] Z. Wang, Z. Feng, Y. Li, B. Li, Y. Wang, C. Sha, M. He, and X. Li, “Batmannet: bi-branch masked graph transformer autoencoder for molecular representation,” Briefings in Bioinformatics, 2024. 6"
+          }
+        },
+        {
+          "id": "refs-76",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[76] N. Nauata, S. Hosseini, K.-H. Chang, H. Chu, C.-Y. Cheng, and Y. Furukawa, “House-gan++: Generative adversarial layout refinement network towards intelligent computational agent for professional architects,” in CVPR, 2021. 8, 9, 10, 11"
+          }
+        },
+        {
+          "id": "refs-77",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[77] M. Heusel, H. Ramsauer, T. Unterthiner, B. Nessler, and S. Hochre-iter, “Gans trained by a two time-scale update rule converge to a local nash equilibrium,” in NeurIPS, 2017. 9, 10, 11"
+          }
+        },
+        {
+          "id": "refs-78",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "[78] Z. Abu-Aisheh, R. Raveaux, J.-Y. Ramel, and P. Martineau, “An exact graph edit distance algorithm for solving pattern recognition problems,” in ICPRAM, 2015. 9 Hao Tang is currently a Postdoctoral with Com-puter Vision Lab, ETH Zurich, Switzerland. He received the master’s degree from the School of Electronics and Computer Engineering, Peking University, China and the Ph.D. degree from Mul-timedia and Human Understanding Group, Uni-versity of Trento, Italy. He was a visiting scholar in the Department of Engineering Science at the University of Oxford. His research interests are deep learning, machine learning, and their applications to computer vision. Ling Shao is a Distinguished Professor with the UCAS-Terminus AI Lab, University of Chinese Academy of Sciences, Beijing, China. He was the founding CEO and Chief Scientist of the Inception Institute of Artificial Intelligence, Abu Dhabi, UAE. He was also the Initiator, founding Provost and EVP of MBZUAI, UAE. His research interests include generative AI, vision and language, and AI for healthcare. He is a fellow of the IEEE, the IAPR, the BCS and the IET. Nicu Sebe is Professor with the University of Trento, Italy, leading the research in the areas of multimedia information retrieval and human behavior understanding. He was the General Co-Chair of ACM Multimedia 2013 and 2022, and the Program Chair of ACM Multimedia 2007 and 2011, ECCV 2016, ICCV 2017 and ICPR 2020. He is a fellow of the International Association for Pattern Recognition (IAPr) and of the European Laboratory for Learning and Intelligent Systems (ELLIS). Luc Van Gool received the degree in electromechanical engineering at the Katholieke Univer-siteit Leuven, in 1981. Currently, he is a professor at the Katholieke Universiteit Leuven in Belgium, the ETH Zurich in Switzerland, and the Sofia Un. St. Kliment Ohridski in Bulgaria. He leads computer vision research at all three places. His main interests include 3D reconstruction and modeling, object recognition, tracking, and gesture analysis, and the combination of those."
+          }
+        }
+      ]
+    }
+  ]
+}
