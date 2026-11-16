@@ -248,6 +248,17 @@ describe('the papers menu', () => {
       expect(listed()).toEqual(['sample-b', 'sample-a'])
     })
 
+    it('goes back to 0% and unmarks the paper when the reader resets it, even from 100% as read', async () => {
+      const server = withProgress({ 'sample-a': '2026-11-08' }, { 'sample-a': 80 })
+      const view = await open(server)
+      await view.reader.open('sample-a')
+      expect(progress('sample-a').textContent).toContain('100%')
+      $('.reader__reset').click()
+      expect(progress('sample-a').textContent).toContain('0%')
+      expect(progress('sample-a').textContent).not.toContain('100%')
+      expect(server.setRead).toHaveBeenCalledWith('sample-a', false)
+    })
+
     it('shows the same line in the reader, for the paper that is open', async () => {
       const view = await open(withProgress({}, { 'sample-a': 42 }))
       await view.reader.open('sample-a')

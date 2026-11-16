@@ -14,6 +14,12 @@ export const emptyReading = () => ({ version: 1, position: null, reached: null, 
 const isText = (s) => typeof s === 'string'
 const list = (x) => (Array.isArray(x) ? x : [])
 
+/**
+ * The reading with its place and its furthest block forgotten, so its progress is 0 again; a new object. Underlines, chats,
+ * language and voice stay: only how far the author got is taken back.
+ */
+export const resetProgress = (r) => ({ ...r, position: null, reached: null })
+
 /** The problems of a reading, one line each; empty when it is valid. */
 export function validateReading(r) {
   if (!r || typeof r !== 'object') return ['the reading is not an object']

@@ -290,6 +290,14 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
     sync()
     paint()
   })
+  // The reader took a paper back to 0%: it counts as not read either, or the line would stay at 100%.
+  root.addEventListener('reader-reset', (e) => {
+    const id = e.detail.node
+    state.progress = { ...state.progress, [id]: 0 }
+    if (state.read[id]) setRead(id, false)
+    sync()
+    paint()
+  })
   root.addEventListener('click', (e) => {
     const mark = e.target.closest('[data-mark]')
     if (mark && state.marks) setRead(mark.dataset.mark, !state.read[mark.dataset.mark])

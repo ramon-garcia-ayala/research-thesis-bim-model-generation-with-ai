@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createClient, parseSSE } from '../assets/reading-client.js'
-import { addUnderline, emptyReading, furthestBlock, progressOf, removeUnderline, segments, validateReading } from '../assets/reading.js'
+import { addUnderline, emptyReading, furthestBlock, progressOf, removeUnderline, resetProgress, segments, validateReading } from '../assets/reading.js'
 
 describe('the reading state', () => {
   it('starts empty, in Spanish', () => {
@@ -154,6 +154,16 @@ describe('reading progress', () => {
     expect(furthestBlock(paper, null, 's1-p2')).toBe('s1-p2')
     expect(furthestBlock(paper, 's1-p2', 'nowhere')).toBe('s1-p2')
     expect(furthestBlock(paper, null, null)).toBeNull()
+  })
+
+  it('goes back to 0 when the place and the furthest block are forgotten, and keeps the rest of the reading', () => {
+    const read = { ...at('s2-p1', 's2-p1'), lang: 'en', rate: 1.5, underlines: [{ id: 'u1', block: 's1-p1', lang: 'en', start: 0, end: 3, text: 'xxx', date: '2026-11-15' }] }
+    expect(progressOf(paper, read)).toBe(100)
+    const again = resetProgress(read)
+    expect(progressOf(paper, again)).toBe(0)
+    expect(again).toMatchObject({ position: null, reached: null, lang: 'en', rate: 1.5, underlines: read.underlines })
+    expect(validateReading(again)).toEqual([])
+    expect(read.reached).toBe('s2-p1') // a new object, the first one untouched
   })
 
   it('accepts a reading with no reached (stored before it existed) and refuses one that is not a block id', () => {

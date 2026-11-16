@@ -981,6 +981,46 @@ describe('underlines and the remembered place', () => {
     expect(lastSaved().underlines).toHaveLength(1)
   })
 
+  describe('taking the progress back to 0%', () => {
+    const far = () => ({ ...emptyReading(), position: { block: 's2-p2', sentence: 0 }, reached: 's2-p2', lang: 'en' })
+
+    it('forgets the place and the furthest block, keeps the rest, and tells the menu', async () => {
+      await withClient(fakeClient(far()))
+      await read('sample-a')
+      const heard = []
+      $('.reader').addEventListener('reader-reset', (e) => heard.push(e.detail.node))
+      expect($('.reader__reset').hidden).toBe(false)
+      $('.reader__reset').click()
+      expect(lastSaved()).toMatchObject({ position: null, reached: null, lang: 'en' })
+      expect(heard).toEqual(['sample-a'])
+    })
+
+    it('says so in its own words in each language', async () => {
+      await withClient(fakeClient(far()))
+      await read('sample-a')
+      expect($('.reader__reset').title).toBe(LABELS.en.resetProgress)
+      view.reader.setLang('es')
+      expect($('.reader__reset').title).toBe(LABELS.es.resetProgress)
+    })
+
+    it('goes to the top without counting that scroll as reading', async () => {
+      await withClient(fakeClient(far()))
+      await read('sample-a')
+      const text = $('.reader__text')
+      text.scrollTop = 400
+      $('.reader__reset').click()
+      expect(text.scrollTop).toBe(0)
+      client.save.mockClear()
+      text.dispatchEvent(new Event('scroll'))
+      expect(client.save).not.toHaveBeenCalled()
+    })
+
+    it('is not offered without the server, which has no reading to reset', async () => {
+      await read('sample-a')
+      expect($('.reader__reset').hidden).toBe(true)
+    })
+  })
+
   it('saves the language chosen', async () => {
     await withClient(fakeClient())
     await read('sample-a')
