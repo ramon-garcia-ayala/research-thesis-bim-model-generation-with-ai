@@ -13,6 +13,14 @@ const STATUS = [
   ['read', 'Read'],
 ]
 
+const LEVELS = [
+  ['first', '★', 'First'],
+  ['later', '◷', 'Later'],
+]
+/** What one click on a marker does: none, then later, then first, then none again. */
+const NEXT_LEVEL = { none: 'later', later: 'first', first: null }
+const LEVEL_TITLE = { none: 'Mark to read later', later: 'Mark to read first', first: 'Clear the marker' }
+
 const ORDER = [
   ['progress', 'Most read first'],
   ['new', 'Newest first'],
@@ -27,11 +35,14 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
   const dates = Object.keys(addedCounts(papers)).sort().reverse()
   /** How far the author is in a paper: all of it when marked as read, else what the server worked out. */
   const covered = (id) => (state.read[id] ? 100 : state.progress[id] ?? 0)
-  const state = { query: '', keywords: [], status: 'all', added: [], order: '', arranged: '', progress: {}, read: {}, marks: false, words: null, loading: null }
+  const state = { query: '', keywords: [], status: 'all', added: [], levels: [], order: '', arranged: '', progress: {}, queue: {}, read: {}, marks: false, words: null, loading: null }
 
   el.innerHTML = `
     <div class="papers-menu__tools">
       <input class="papers-menu__search" type="search" placeholder="Search by word" aria-label="Search the papers by word" />
+      <div class="papers-menu__status papers-menu__levels" role="group" aria-label="Markers" hidden>
+        ${LEVELS.map(([id, glyph, name]) => `<button type="button" data-level="${id}" aria-pressed="false">${glyph} ${name} <b></b></button>`).join('')}
+      </div>
       <div class="papers-menu__status" role="group" aria-label="Read or unread" hidden>
         ${STATUS.map(([id, name]) => `<button type="button" data-status="${id}" aria-pressed="${id === 'all'}">${name} <b></b></button>`).join('')}
       </div>
@@ -65,6 +76,7 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
         .map(
           (p) => `<div class="papers-menu__row" data-paper="${esc(p.node)}">
             <button type="button" class="papers-menu__mark" data-mark="${esc(p.node)}" aria-pressed="false" hidden></button>
+            <button type="button" class="papers-menu__queue" data-queue="${esc(p.node)}" aria-pressed="false" hidden></button>
             <button type="button" data-read="${esc(p.node)}">
               <span>${esc(p.title)}${
                 p.added || (p.keywords ?? []).length
@@ -86,6 +98,8 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
     keywords: state.keywords,
     status: state.status,
     added: state.added,
+    levels: state.levels,
+    queue: state.queue,
     read: state.read,
     words: state.words,
     labels,
@@ -103,6 +117,16 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
       b.setAttribute('aria-label', action)
       if ('markLabel' in b.dataset) b.textContent = action
     }
+    for (const b of root.querySelectorAll('[data-queue]')) {
+      const level = state.queue[b.dataset.queue] ?? 'none'
+      const glyph = LEVELS.find(([id]) => id === level)?.[1] ?? '☆'
+      b.hidden = !state.marks || !b.dataset.queue
+      b.textContent = glyph
+      b.dataset.state = level
+      b.setAttribute('aria-pressed', String(level !== 'none'))
+      b.title = LEVEL_TITLE[level]
+      b.setAttribute('aria-label', LEVEL_TITLE[level])
+    }
     for (const bar of root.querySelectorAll('[data-progress]')) {
       const pct = covered(bar.dataset.progress)
       bar.hidden = !state.marks || !bar.dataset.progress
@@ -115,7 +139,7 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
   function paint() {
     const left = filterPapers(papers, filter())
     const shown = new Set(left.map((p) => p.node))
-    const sorted = sortPapers(papers, state.order, Object.fromEntries(papers.map((p) => [p.node, covered(p.node)])))
+    const sorted = sortPapers(papers, state.order, Object.fromEntries(papers.map((p) => [p.node, covered(p.node)])), state.queue)
     const arrangement = sorted.map((p) => p.node).join(' ')
     if (state.arranged !== arrangement) {
       const list = $('.papers-menu__list')
@@ -124,6 +148,12 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
       state.arranged = arrangement
     }
     for (const row of el.querySelectorAll('.papers-menu__row')) row.hidden = !shown.has(row.dataset.paper)
+
+    const anyLevel = filterPapers(papers, filter({ levels: [] }))
+    for (const b of el.querySelectorAll('[data-level]')) {
+      b.querySelector('b').textContent = anyLevel.filter((p) => state.queue[p.node] === b.dataset.level).length
+      b.setAttribute('aria-pressed', String(state.levels.includes(b.dataset.level)))
+    }
 
     const anyStatus = filterPapers(papers, filter({ status: 'all' }))
     const read = anyStatus.filter((p) => state.read[p.node]).length
@@ -156,7 +186,7 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
     const dated = $('.papers-menu__dates summary b')
     if (dated) dated.textContent = state.added.length ? `(${state.added.length})` : state.order ? '(sorted)' : ''
 
-    $('.papers-menu__clear').hidden = !state.query && !state.keywords.length && !state.added.length
+    $('.papers-menu__clear').hidden = !state.query && !state.keywords.length && !state.added.length && !state.levels.length
     $('.papers-menu__none').hidden = left.length > 0 || Boolean(state.loading)
   }
 
@@ -194,6 +224,22 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
     })
   }
 
+  function setQueue(id, level) {
+    const before = state.queue[id]
+    const { [id]: _, ...rest } = state.queue
+    state.queue = level ? { ...rest, [id]: level } : rest
+    sync()
+    paint()
+    const saving = (async () => client.setQueue(id, level))()
+    saving.catch((e) => {
+      const { [id]: __, ...without } = state.queue
+      state.queue = before ? { ...without, [id]: before } : without
+      sync()
+      paint()
+      root.dispatchEvent(new CustomEvent('reader-save-error', { detail: e.message }))
+    })
+  }
+
   search.addEventListener('input', () => {
     state.query = search.value
     if (state.query.trim() && !state.words) loadWords()
@@ -211,6 +257,12 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
       state.keywords = state.keywords.includes(id) ? state.keywords.filter((k) => k !== id) : [...state.keywords, id]
       return paint()
     }
+    const level = e.target.closest('[data-level]')
+    if (level) {
+      const id = level.dataset.level
+      state.levels = state.levels.includes(id) ? state.levels.filter((x) => x !== id) : [...state.levels, id]
+      return paint()
+    }
     const added = e.target.closest('[data-added]')
     if (added) {
       const d = added.dataset.added
@@ -226,6 +278,7 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
       state.query = ''
       state.keywords = []
       state.added = []
+      state.levels = []
       search.value = ''
       paint()
       search.focus()
@@ -240,6 +293,8 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
   root.addEventListener('click', (e) => {
     const mark = e.target.closest('[data-mark]')
     if (mark && state.marks) setRead(mark.dataset.mark, !state.read[mark.dataset.mark])
+    const queue = e.target.closest('[data-queue]')
+    if (queue && state.marks) setQueue(queue.dataset.queue, NEXT_LEVEL[state.queue[queue.dataset.queue] ?? 'none'])
   })
 
   /** What was marked before, if the server is there and can tell. */
@@ -250,6 +305,8 @@ export function mountLibrary(el, { root, papers, keywords = [], load, client = n
       const stored = await client.library()
       state.read = stored.read ?? {}
       state.progress = stored.progress ?? {}
+      state.queue = stored.queue ?? {}
+      $('.papers-menu__levels').hidden = false
       state.marks = true
       $('.papers-menu__status').hidden = false
     } catch {

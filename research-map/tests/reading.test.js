@@ -162,3 +162,16 @@ describe('reading progress', () => {
     expect(validateReading({ ...emptyReading(), reached: 3 })).toEqual(['reached is not null or a block id'])
   })
 })
+
+describe('the reading client: markers', () => {
+  it('sends a marker, or null to clear it', async () => {
+    const fetch = vi.fn(async () => ({ ok: true, json: async () => ({ ok: true }) }))
+    vi.stubGlobal('fetch', fetch)
+    const client = createClient()
+    await client.setQueue('sample-a', 'first')
+    await client.setQueue('sample-a', null)
+    expect(fetch).toHaveBeenNthCalledWith(1, 'api/library/sample-a', expect.objectContaining({ method: 'PUT', body: JSON.stringify({ queue: 'first' }) }))
+    expect(fetch).toHaveBeenNthCalledWith(2, 'api/library/sample-a', expect.objectContaining({ method: 'PUT', body: JSON.stringify({ queue: null }) }))
+    vi.unstubAllGlobals()
+  })
+})

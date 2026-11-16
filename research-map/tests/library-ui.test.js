@@ -258,6 +258,77 @@ describe('the papers menu', () => {
     })
   })
 
+  describe('the reading queue', () => {
+    const queue = (id) => $(`.papers-menu__row[data-paper="${id}"] [data-queue]`)
+    const level = (l) => $(`.papers-menu__levels [data-level="${l}"]`)
+    const listed = () => $$('.papers-menu__row').map((r) => r.dataset.paper)
+    const withQueue = (marks, server = client()) => ({ ...server, library: vi.fn(async () => ({ version: 1, read: {}, queue: marks, progress: {} })) })
+
+    it('shows each paper its marker once the server is there, and nothing without it', async () => {
+      await open(withQueue({ 'sample-b': 'first' }))
+      expect(queue('sample-b').hidden).toBe(false)
+      expect(queue('sample-b').dataset.state).toBe('first')
+      expect(queue('sample-a').dataset.state).toBe('none')
+      await open(null)
+      expect(queue('sample-a').hidden).toBe(true)
+      expect($('.papers-menu__levels').hidden).toBe(true)
+    })
+
+    it('goes from nothing to later, to first and back to nothing, saving each on the server', async () => {
+      const server = { ...client(), setQueue: vi.fn(async () => {}) }
+      await open(withQueue({}, server))
+      queue('sample-a').click()
+      expect(queue('sample-a').dataset.state).toBe('later')
+      expect(server.setQueue).toHaveBeenLastCalledWith('sample-a', 'later')
+      queue('sample-a').click()
+      expect(queue('sample-a').dataset.state).toBe('first')
+      expect(server.setQueue).toHaveBeenLastCalledWith('sample-a', 'first')
+      queue('sample-a').click()
+      expect(queue('sample-a').dataset.state).toBe('none')
+      expect(server.setQueue).toHaveBeenLastCalledWith('sample-a', null)
+    })
+
+    it('goes back when the server does not take it', async () => {
+      const server = { ...client(), setQueue: vi.fn(async () => { throw new Error('no') }) }
+      await open(withQueue({}, server))
+      queue('sample-a').click()
+      await new Promise((r) => setTimeout(r))
+      expect(queue('sample-a').dataset.state).toBe('none')
+    })
+
+    it('puts the ones marked first above the ones marked later, and both above the rest', async () => {
+      await open(withQueue({ 'sample-b': 'first' }))
+      expect(listed()).toEqual(['sample-b', 'sample-a'])
+    })
+
+    it('filters by marker, counting each, and clears with the rest', async () => {
+      await open(withQueue({ 'sample-a': 'later', 'sample-b': 'first' }))
+      expect(level('first').textContent).toContain('1')
+      expect(level('later').textContent).toContain('1')
+      level('later').click()
+      expect(shown()).toEqual(['sample-a'])
+      expect(level('later').getAttribute('aria-pressed')).toBe('true')
+      level('first').click()
+      expect(shown()).toEqual(['sample-b', 'sample-a'])
+      $('.papers-menu__clear').click()
+      expect(level('later').getAttribute('aria-pressed')).toBe('false')
+      expect(shown()).toEqual(['sample-b', 'sample-a'])
+    })
+
+    it('shows the same marker in the reader, for the paper that is open, and changes it from there', async () => {
+      const server = { ...client(), setQueue: vi.fn(async () => {}) }
+      const view = await open(withQueue({ 'sample-a': 'later' }, server))
+      await view.reader.open('sample-a')
+      const marker = $('.reader__queue')
+      expect(marker.dataset.queue).toBe('sample-a')
+      expect(marker.hidden).toBe(false)
+      expect(marker.dataset.state).toBe('later')
+      marker.click()
+      expect(server.setQueue).toHaveBeenLastCalledWith('sample-a', 'first')
+      expect(queue('sample-a').dataset.state).toBe('first')
+    })
+  })
+
   describe('read and unread', () => {
     const mark = (id) => $(`.papers-menu__row[data-paper="${id}"] [data-mark]`)
     const status = (s) => $(`.papers-menu__status [data-status="${s}"]`)

@@ -37,7 +37,7 @@ function call(method, path, json) {
 
 describe('what has been read', () => {
   it('starts empty, and keeps what is marked with its date', async () => {
-    expect((await call('GET', '/api/library')).body).toEqual({ version: 1, read: {}, progress: {} })
+    expect((await call('GET', '/api/library')).body).toEqual({ version: 1, read: {}, queue: {}, progress: {} })
     expect((await call('PUT', '/api/library/sample-a', { read: true })).status).toBe(200)
     const { read } = (await call('GET', '/api/library')).body
     expect(read['sample-a']).toMatch(/^\d{4}-\d{2}-\d{2}$/)
@@ -111,5 +111,33 @@ describe('reading progress', () => {
 
   it('refuses a reached that is not a block id', async () => {
     expect((await call('PUT', '/api/state/sample-a', { reached: 7 })).status).toBe(400)
+  })
+})
+
+describe('the reading queue', () => {
+  const queue = async () => (await call('GET', '/api/library')).body.queue
+
+  it('keeps a paper marked to read later or first, one marker at a time, and forgets it when cleared', async () => {
+    expect((await call('PUT', '/api/library/sample-a', { queue: 'later' })).status).toBe(200)
+    expect(await queue()).toEqual({ 'sample-a': 'later' })
+    await call('PUT', '/api/library/sample-a', { queue: 'first' })
+    expect(await queue()).toEqual({ 'sample-a': 'first' })
+    expect(JSON.parse(readFileSync(join(root, 'reading/_library.json'), 'utf8')).queue).toEqual({ 'sample-a': 'first' })
+    await call('PUT', '/api/library/sample-a', { queue: null })
+    expect(await queue()).toEqual({})
+  })
+
+  it('does not touch what is marked as read', async () => {
+    await call('PUT', '/api/library/sample-a', { read: true })
+    await call('PUT', '/api/library/sample-a', { queue: 'later' })
+    const { read } = (await call('GET', '/api/library')).body
+    expect(read['sample-a']).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    await call('PUT', '/api/library/sample-a', { queue: null })
+    await call('PUT', '/api/library/sample-a', { read: false })
+  })
+
+  it('refuses a marker that is not first, later or null, and a paper that is not prepared', async () => {
+    expect((await call('PUT', '/api/library/sample-a', { queue: 'soon' })).status).toBe(400)
+    expect((await call('PUT', '/api/library/sample-b', { queue: 'first' })).status).toBe(404)
   })
 })

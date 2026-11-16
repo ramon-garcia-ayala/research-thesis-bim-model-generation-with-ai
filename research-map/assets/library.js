@@ -66,11 +66,13 @@ export function wordsOf(paper, extras = []) {
 /**
  * What of `papers` is left by a word `query` (each word must begin a word of the title, a keyword's name or, once
  * loaded, the paper's `words`), by `keywords` (all of them), by `status` ('all', 'read', 'unread') and by `added` (the
- * dates it was added on, any of them; none means every date).
+ * dates it was added on, any of them; none means every date) and by `levels` (the markers of `queue`, { node: 'first' |
+ * 'later' }, that it may carry, any of them; none means every paper).
  */
-export function filterPapers(papers, { query = '', keywords = [], status = 'all', read = {}, words = null, labels = {}, added = [] } = {}) {
+export function filterPapers(papers, { query = '', keywords = [], status = 'all', read = {}, words = null, labels = {}, added = [], levels = [], queue = {} } = {}) {
   const asked = tokens(query)
   return papers.filter((p) => {
+    if (levels.length && !levels.includes(queue[p.node])) return false
     if (status === 'read' && !read[p.node]) return false
     if (status === 'unread' && read[p.node]) return false
     if (added.length && !added.includes(p.added)) return false
@@ -100,9 +102,10 @@ export function addedCounts(papers) {
  * `papers` in the order asked for. 'new' puts the newest added first, 'old' the oldest added first, 'progress' the most
  * read first (100% down to 0%, from `progress`, { node: 0..100 }); papers tied keep their order, and papers with no date
  * go last in the date orders. Any other `order` is the usual one: the papers being read first, the most read of them
- * first, then the ones not started, then the finished ones.
+ * first; then the ones marked 'first' and the ones marked 'later' in `queue`; then the ones not started; then the
+ * finished ones.
  */
-export function sortPapers(papers, order = '', progress = {}) {
+export function sortPapers(papers, order = '', progress = {}, queue = {}) {
   const pct = (p) => progress[p.node] ?? 0
   const date = (p) => (p.added ? Date.parse(p.added) : null)
   const byDate = (sign) => (a, b) => {
@@ -113,7 +116,7 @@ export function sortPapers(papers, order = '', progress = {}) {
     if (y === null) return -1
     return sign * (x - y)
   }
-  const group = (p) => (pct(p) >= 100 ? 2 : pct(p) > 0 ? 0 : 1)
+  const group = (p) => (pct(p) >= 100 ? 4 : pct(p) > 0 ? 0 : queue[p.node] === 'first' ? 1 : queue[p.node] === 'later' ? 2 : 3)
   const compare =
     order === 'new'
       ? byDate(-1)

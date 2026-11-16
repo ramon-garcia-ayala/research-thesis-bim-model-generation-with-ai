@@ -108,6 +108,14 @@ describe('filterPapers', () => {
     expect(nodes({ query: 'ifc', keywords: ['ifc'], status: 'unread', read })).toEqual(['a'])
   })
 
+  it('keeps the papers with any of the markers chosen', () => {
+    const queue = { a: 'first', b: 'later', c: 'first' }
+    const on = (levels) => filterPapers(papers, { levels, queue }).map((p) => p.node)
+    expect(on(['first'])).toEqual(['a', 'c'])
+    expect(on(['first', 'later'])).toEqual(['a', 'b', 'c'])
+    expect(on([])).toEqual(['a', 'b', 'c'])
+  })
+
   it('keeps the papers added on any of the dates chosen', () => {
     const dated = [
       { node: 'a', title: 'A', added: '2026-11-08' },
@@ -175,5 +183,23 @@ describe('sortPapers by progress', () => {
 
   it('treats a paper with no progress as not started', () => {
     expect(sortPapers([{ node: 'x' }, { node: 'y' }], '', { y: 10 }).map((p) => p.node)).toEqual(['y', 'x'])
+  })
+})
+
+describe('sortPapers with markers', () => {
+  const papers = [{ node: 'a' }, { node: 'b' }, { node: 'c' }, { node: 'd' }, { node: 'e' }, { node: 'f' }]
+  const nodes = (queue, progress = {}) => sortPapers(papers, '', progress, queue).map((p) => p.node)
+
+  it('puts the ones marked first above the ones marked later, and both above the rest', () => {
+    expect(nodes({ d: 'later', e: 'first', f: 'later' })).toEqual(['e', 'd', 'f', 'a', 'b', 'c'])
+  })
+
+  it('keeps the ones being read on top and the finished ones at the bottom, whatever their marker', () => {
+    expect(nodes({ a: 'first', b: 'first', c: 'later' }, { f: 40, a: 100 })).toEqual(['f', 'b', 'c', 'd', 'e', 'a'])
+  })
+
+  it('does not change the date orders or the order by progress', () => {
+    const queue = { e: 'first' }
+    expect(sortPapers(papers, 'progress', { b: 50 }, queue).map((p) => p.node)).toEqual(['b', 'a', 'c', 'd', 'e', 'f'])
   })
 })

@@ -281,6 +281,7 @@ export function mountReader(
       <span class="reader__voice"></span>
       <button type="button" class="reader__mode"></button>
       <button type="button" class="reader__chat-open" hidden></button>
+      <button type="button" class="reader__queue" hidden></button>
       <button type="button" class="reader__mark" hidden></button>
       <button type="button" class="reader__close">×</button>
     </header>
@@ -595,6 +596,7 @@ export function mountReader(
       el.hidden = false
       onShow()
       $('.reader__mark').dataset.mark = nodeId
+      $('.reader__queue').dataset.queue = nodeId
       $('.reader__progress').dataset.progress = paper ? nodeId : ''
       onPaper(nodeId)
       if (!paper) {

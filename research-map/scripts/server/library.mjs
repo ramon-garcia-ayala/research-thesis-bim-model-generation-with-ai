@@ -1,6 +1,7 @@
 /*
  * What the author has read: reading/_library.json, { version: 1, read: { <node id>: <date marked> } }. Unmarked papers
- * are not in it. It is the page's to change, one paper at a time. GET adds `progress`, { <node id>: 0..100 }, worked
+ * are not in it. It is the page's to change, one paper at a time. `queue` holds the markers of what to read next:
+ * { <node id>: 'first' | 'later' }, the ones left unmarked are not in it. GET adds `progress`, { <node id>: 0..100 }, worked
  * out from each paper's reading (reading/<id>.json) and its text, so it is never stored twice.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs'
@@ -44,8 +45,10 @@ function writeLibrary(root, library) {
   renameSync(tmp, file)
 }
 
+export const QUEUE_LEVELS = ['first', 'later']
+
 export const libraryRoutes = [
-  ['GET', /^\/api\/library$/, (_, { root }) => ({ ...loadLibrary(root), progress: loadProgress(root) })],
+  ['GET', /^\/api\/library$/, (_, { root }) => ({ ...loadLibrary(root), queue: loadLibrary(root).queue ?? {}, progress: loadProgress(root) })],
   [
     'PUT',
     /^\/api\/library\/([^/]+)$/,
@@ -53,6 +56,13 @@ export const libraryRoutes = [
       const id = decodeURIComponent(params[0])
       if (id === '_across') throw new HttpError(404, `"${id}" is not a prepared paper`)
       readingId(root, id)
+      if (body && 'queue' in body) {
+        if (body.queue !== null && !QUEUE_LEVELS.includes(body.queue)) throw new HttpError(400, 'queue is not first, later or null')
+        const library = loadLibrary(root)
+        const { [id]: _, ...rest } = library.queue ?? {}
+        writeLibrary(root, { ...library, queue: body.queue ? { ...rest, [id]: body.queue } : rest })
+        return { ok: true }
+      }
       if (typeof body?.read !== 'boolean') throw new HttpError(400, 'read is not true or false')
       const library = loadLibrary(root)
       const { [id]: was, ...rest } = library.read

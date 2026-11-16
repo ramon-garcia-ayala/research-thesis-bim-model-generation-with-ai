@@ -88,7 +88,7 @@ export function createClient({ fetch = (...a) => globalThis.fetch(...a), wait = 
         for (const e of parsed.events) onEvent(e.event, e.data)
       }
     },
-    /** What is marked as read: { version, read: { id: date } }. */
+    /** What is marked as read and what is queued: { version, read: { id: date }, queue: { id: 'first' | 'later' }, progress }. */
     async library() {
       const r = await fetch('api/library')
       if (!r.ok) throw new Error(await errorOf(r))
@@ -96,6 +96,11 @@ export function createClient({ fetch = (...a) => globalThis.fetch(...a), wait = 
     },
     async setRead(id, read) {
       const r = await fetch(`api/library/${encodeURIComponent(id)}`, json({ read }))
+      if (!r.ok) throw new Error(await errorOf(r))
+    },
+    /** Marks a paper to read 'first' or 'later', or clears the marker with null. */
+    async setQueue(id, level) {
+      const r = await fetch(`api/library/${encodeURIComponent(id)}`, json({ queue: level }))
       if (!r.ok) throw new Error(await errorOf(r))
     },
     async draftNote(body) {
