@@ -1,0 +1,1511 @@
+{
+  "version": 1,
+  "node": "ward-2024",
+  "title": "Data Plagiarism Index: Characterizing the Privacy Risk of Data-Copying in Tabular Generative Models",
+  "source": "files/Data Plagiarism Index Characterizing the Privacy Risk of Data-Copying in Tabular Generativ.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "Joshua Ward ∗, Chi-Hua Wang †, Guang Cheng‡",
+            "es": "Joshua Ward ∗, Chi-Hua Wang †, Guang Cheng‡"
+          }
+        },
+        {
+          "id": "s0-h2",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "June 21, 2024",
+            "es": "21 de junio de 2024"
+          }
+        },
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Abstract",
+            "es": "Resumen"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The promise of tabular generative models is to produce realistic synthetic data that can be shared and safely used without dangerous leakage of information from the training set. In evaluating these models, a variety of methods have been proposed to measure the tendency to copy data from the training dataset when generating a sample. However, these methods suffer from either not considering data-copying from a privacy threat perspective, not being motivated by recent results in the data-copying literature or being difficult to make compatible with the high dimensional, mixed type nature of tabular data. This paper proposes a new similarity metric and Membership Inference Attack called Data Plagiarism Index (DPI) for tabular data. We show that DPI evaluates a new intuitive definition of data-copying and characterizes the corresponding privacy risk. We show that the data-copying identified by DPI poses both privacy and fairness threats to common, high performing architectures; underscoring the necessity for more sophisticated generative modeling techniques to mitigate this issue.",
+            "es": "La promesa de los modelos generativos tabulares (tabular generative models) es producir datos sintéticos realistas que puedan compartirse y utilizarse de forma segura, sin una fuga peligrosa de información del conjunto de entrenamiento. Al evaluar estos modelos, se han propuesto diversos métodos para medir la tendencia a copiar datos del conjunto de entrenamiento al generar una muestra. Sin embargo, estos métodos presentan alguna de las siguientes deficiencias: no consideran la copia de datos desde la perspectiva de una amenaza a la privacidad, no están motivados por los resultados recientes de la literatura sobre copia de datos, o es difícil hacerlos compatibles con la naturaleza de alta dimensionalidad y de tipos mixtos de los datos tabulares. Este artículo propone una nueva métrica de similitud y un Ataque de Inferencia de Pertenencia (Membership Inference Attack) para datos tabulares, llamados Índice de Plagio de Datos (Data Plagiarism Index, DPI). Mostramos que el DPI evalúa una nueva definición intuitiva de copia de datos (data-copying) y caracteriza el riesgo de privacidad correspondiente. Mostramos que la copia de datos identificada por el DPI representa amenazas tanto para la privacidad como para la equidad en arquitecturas comunes y de alto desempeño, lo que subraya la necesidad de técnicas de modelado generativo más sofisticadas para mitigar este problema."
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Key Words: Data-Copying, Trustworthy AI, Membership Inference Attack, Privacy Au-diting, Synthetic Data, Tabular Generative Models.",
+            "es": "Palabras clave: copia de datos (Data-Copying), IA confiable (Trustworthy AI), Ataque de Inferencia de Pertenencia (Membership Inference Attack), auditoría de privacidad (Privacy Auditing), datos sintéticos (Synthetic Data), modelos generativos tabulares (Tabular Generative Models)."
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "∗Ph.D. Candidate, Department of Statistics and Data Science, UCLA, CA, 90095. Email: joshuaward@ucla.edu",
+            "es": "∗Candidato a doctorado, Departamento de Estadística y Ciencia de Datos, UCLA, CA, 90095. Correo electrónico: joshuaward@ucla.edu"
+          }
+        },
+        {
+          "id": "s0-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "†Postdoctoral Scholar, Department of Statistics and Data Science, UCLA, CA, 90095. Email: chihuawang@ucla.edu",
+            "es": "†Investigador posdoctoral, Departamento de Estadística y Ciencia de Datos, UCLA, CA, 90095. Correo electrónico: chihuawang@ucla.edu"
+          }
+        },
+        {
+          "id": "s0-p6",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "‡Professor, Department of Statistics and Data Science, UCLA, CA, 90095. Email: guangcheng@ucla.edu",
+            "es": "‡Profesor, Departamento de Estadística y Ciencia de Datos, UCLA, CA, 90095. Correo electrónico: guangcheng@ucla.edu"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 Introduction",
+        "es": "1 Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Data-copying is a particularly concerning manifestation of generative models overfitting [28, 6]. Historically, researchers have observed that deep learning models exhibit overfitting behaviors, sometimes generating unrealistic instances and at other times creating instances overly similar to samples in the training dataset. While the former can be lauded as ”creative and imaginative,” the latter poses a significant risk, threatening the confidentiality of training data. Indeed, previous studies [3] reveal that many prominent generative models attain high scores in terms of fidelity and diversity by memorizing or copying real samples, which compromises their effectiveness for privacy-sensitive applications. The issue of data-copying is paramount in the field of tabular generative models, especially as these models are often used in scenarios involving sensitive data and strict privacy protocols [47]. This paper focuses on the challenge of detecting and evaluating data-copying in tabular data generation, highlighting its critical role in enhancing the trust and accountability of these methods.",
+            "es": "La copia de datos (data-copying) es una manifestación particularmente preocupante del sobreajuste (overfitting) de los modelos generativos [28, 6]. Históricamente, los investigadores han observado que los modelos de aprendizaje profundo exhiben comportamientos de sobreajuste: a veces generan instancias poco realistas y otras veces crean instancias demasiado similares a las muestras del conjunto de entrenamiento. Mientras que lo primero puede elogiarse como \"creativo e imaginativo\", lo segundo supone un riesgo significativo, pues amenaza la confidencialidad de los datos de entrenamiento. De hecho, estudios previos [3] revelan que muchos modelos generativos destacados alcanzan puntuaciones altas de fidelidad y diversidad al memorizar o copiar muestras reales, lo que compromete su eficacia en aplicaciones sensibles a la privacidad. El problema de la copia de datos es primordial en el campo de los modelos generativos tabulares, especialmente porque estos modelos suelen usarse en escenarios que involucran datos sensibles y protocolos estrictos de privacidad [47]. Este artículo se centra en el desafío de detectar y evaluar la copia de datos en la generación de datos tabulares, destacando su papel crítico para aumentar la confianza y la rendición de cuentas de estos métodos."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Various paradigms have been proposed to study data-copying in generative models, including hypothesis testing [28], non-parametric statistics [6], Membership Inference Attacks [41], and ad-hoc similarity metrics [34, 3, 38]. Each of these approaches contributes unique insights into the phenomenon of data-copying in tabular generative models but have some sort of drawback. For instance, while similarity metrics used in tabular synthetic data literature offer an understanding of the geometric relationship between training and generated data, they lack a threat model to assess the privacy risks associated with these geometries (see [15]). Conversely, Membership Inference Attacks provide valuable tools for understanding privacy risks but are often disconnected from the model overfitting literature and are challenging to apply to the complex, high-dimensional and mixed-type distributions that are common in tabular data applications. The disjoint nature of the data-copying literature fails to address common practitioner questions, such as:",
+            "es": "Se han propuesto diversos paradigmas para estudiar la copia de datos en los modelos generativos, entre ellos las pruebas de hipótesis (hypothesis testing) [28], la estadística no paramétrica [6], los Ataques de Inferencia de Pertenencia [41] y las métricas de similitud ad hoc [34, 3, 38]. Cada uno de estos enfoques aporta perspectivas únicas sobre el fenómeno de la copia de datos en los modelos generativos tabulares, pero todos tienen algún tipo de inconveniente. Por ejemplo, aunque las métricas de similitud usadas en la literatura de datos sintéticos tabulares ofrecen una comprensión de la relación geométrica entre los datos de entrenamiento y los generados, carecen de un modelo de amenaza (threat model) para evaluar los riesgos de privacidad asociados con esas geometrías (véase [15]). Por el contrario, los Ataques de Inferencia de Pertenencia proporcionan herramientas valiosas para comprender los riesgos de privacidad, pero con frecuencia están desconectados de la literatura sobre sobreajuste de modelos y son difíciles de aplicar a las distribuciones complejas, de alta dimensionalidad y de tipos mixtos que son comunes en las aplicaciones con datos tabulares. La naturaleza inconexa de la literatura sobre copia de datos no logra responder preguntas habituales de los profesionales, como:"
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "’To what extent does a model copy training data, and how practically significant is this problem?’",
+            "es": "\"¿Hasta qué punto un modelo copia los datos de entrenamiento y qué tan significativo es este problema en la práctica?\""
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Unfortunately, we show that the problem is substantial, as evidenced by Figure 1.",
+            "es": "Lamentablemente, mostramos que el problema es sustancial, como lo evidencia la Figura 1."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In this paper, we study data-copying in tabular generative model from the perspective of all three of these disconnected areas (Membership Inference Attacks, ad-hoc similarity metrics and Data-Copying measures). The goal is to craft a principled, interpretable, and privacy orientated metric that can be applied to tabular generative modelling. Here, we propose Data Plagiarism Index (DPI); a theory-motivated measure of local data-copying (Section 4.1). We argue that DPI differs from other competing metrics and show how it provides a novel geometric perspective on the data-copying behavior of generative models. With the proposed privacy metric DPI, we further develop a new type of Membership In-ference Attack, named DPI MIA (Section 4.2), that bridges this data-copying measure with testable privacy risk. Our experiment (Section 5) find that DPI MIA identifies a tendency among high-fidelity tabular data generators to perform risky data-copying, raising privacy concerns.",
+            "es": "En este artículo estudiamos la copia de datos en los modelos generativos tabulares desde la perspectiva de las tres áreas desconectadas (Ataques de Inferencia de Pertenencia, métricas de similitud ad hoc y medidas de copia de datos). El objetivo es elaborar una métrica fundamentada, interpretable y orientada a la privacidad que pueda aplicarse al modelado generativo tabular. Aquí proponemos el Índice de Plagio de Datos (Data Plagiarism Index, DPI), una medida de copia de datos local (local data-copying) motivada por la teoría (Sección 4.1). Argumentamos que el DPI se diferencia de otras métricas competidoras y mostramos cómo aporta una perspectiva geométrica novedosa sobre el comportamiento de copia de datos de los modelos generativos. Con la métrica de privacidad DPI propuesta, desarrollamos además un nuevo tipo de Ataque de Inferencia de Pertenencia, llamado DPI MIA (Sección 4.2), que vincula esta medida de copia de datos con un riesgo de privacidad comprobable. Nuestro experimento (Sección 5) encuentra que el DPI MIA identifica una tendencia entre los generadores de datos tabulares de alta fidelidad a realizar copia de datos riesgosa, lo que genera preocupaciones de privacidad."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: A t-SNE plot of Tab-DDPM’s training data with corresponding top 1% DPI Scores in red on the Adult dataset. DPI identifies an outlier region in the bottom right corresponding to an extreme privileged class (married, white, middle aged, high capital gains, private industry, respondents making >50k in income). This provides evidence that Tab-DDPM copies the training data of outlier and privileged classes, creating serious fairness concerns for practitioners who use synthetic data in their downstream machine learning tasks. See Sec. 5.3 for detailed discussions.",
+            "es": "Figura 1: Gráfica t-SNE de los datos de entrenamiento de Tab-DDPM con las puntuaciones DPI del 1% superior correspondientes en rojo, en el conjunto de datos Adult. El DPI identifica una región atípica en la parte inferior derecha que corresponde a una clase privilegiada extrema (personas encuestadas casadas, blancas, de mediana edad, con altas ganancias de capital, de la industria privada y con ingresos >50k). Esto aporta evidencia de que Tab-DDPM copia los datos de entrenamiento de las clases atípicas y privilegiadas, lo que genera serias preocupaciones de equidad para los profesionales que usan datos sintéticos en sus tareas posteriores de aprendizaje automático. Véase la Sec. 5.3 para una discusión detallada."
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Furthermore, our empirical evidence (Figure 1) reveals that tabular generative models disproportionately favor certain privileged sub-populations within the synthetic sample of the classic Adult dataset, raising serious fairness concerns when practitioners use synthetic data in downstream machine learning tasks. This troubling finding underscores that the proposed Data Plagiarism Index (DPI) is not merely a technical curiosity but a critical issue that can compromise both the privacy and fairness of tabular generative models.",
+            "es": "Además, nuestra evidencia empírica (Figura 1) revela que los modelos generativos tabulares favorecen de manera desproporcionada a ciertas subpoblaciones privilegiadas dentro de la muestra sintética del conjunto de datos clásico Adult, lo que plantea serias preocupaciones de equidad cuando los profesionales usan datos sintéticos en tareas posteriores de aprendizaje automático. Este hallazgo inquietante subraya que el Índice de Plagio de Datos (DPI) propuesto no es meramente una curiosidad técnica, sino un problema crítico que puede comprometer tanto la privacidad como la equidad de los modelos generativos tabulares."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Overall, we summarize our contribution to the Trustworthy Generative Modeling literature as follows:",
+            "es": "En general, resumimos nuestra contribución a la literatura sobre Modelado Generativo Confiable (Trustworthy Generative Modeling) de la siguiente manera:"
+          }
+        },
+        {
+          "id": "s1-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "1. We propose a novel privacy measure called Data Plagiarism Index (DPI) and a corresponding Membership Inference Attack called DPI MIA that measures the privacy risk of synthetic tabular data from data-copying.",
+            "es": "1. Proponemos una novedosa medida de privacidad llamada Índice de Plagio de Datos (DPI) y un Ataque de Inferencia de Pertenencia correspondiente llamado DPI MIA, que mide el riesgo de privacidad de los datos tabulares sintéticos derivado de la copia de datos."
+          }
+        },
+        {
+          "id": "s1-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "2. We provide empirical evidence (Figure 4) that DPI identifies a positive correlation between tabular generative models’ utility and privacy risks.",
+            "es": "2. Aportamos evidencia empírica (Figura 4) de que el DPI identifica una correlación positiva entre la utilidad y los riesgos de privacidad de los modelos generativos tabulares."
+          }
+        },
+        {
+          "id": "s1-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "3. We provide empirical evidence (Figure 1) that reveals that Tab-DDPM [23] drastically copies the source training data of privileged sub-classes, creating a source of structural unfairness in the synthetic data.",
+            "es": "3. Aportamos evidencia empírica (Figura 1) que revela que Tab-DDPM [23] copia drásticamente los datos de entrenamiento de origen de las subclases privilegiadas, lo que crea una fuente de inequidad estructural en los datos sintéticos."
+          }
+        },
+        {
+          "id": "s1-p11",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "4. We show (Figure 4, Table 1) that DPI MIA can identify a different kind of data-copying undetectable by existing Membership Inference Attacks with comparable threat performance, providing a new way to deploy privacy attacks to audit synthetic data privacy.",
+            "es": "4. Mostramos (Figura 4, Tabla 1) que el DPI MIA puede identificar un tipo distinto de copia de datos que los Ataques de Inferencia de Pertenencia existentes no detectan, con un desempeño de amenaza comparable, lo que ofrece una nueva manera de emplear ataques de privacidad para auditar la privacidad de los datos sintéticos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 Related Work",
+        "es": "2 Trabajos relacionados"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In this section, we review three major literature to measure the overfitting and data-copying phenomenon of tabular generative models.",
+            "es": "En esta sección revisamos tres vertientes principales de la literatura para medir el fenómeno de sobreajuste y de copia de datos de los modelos generativos tabulares."
+          }
+        },
+        {
+          "id": "s2-h1",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "2.1 Measure Data-Copying in Generative Models",
+            "es": "2.1 Medición de la copia de datos en modelos generativos"
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Generative models’ data-copying in the literature is identified when synthetic data is excessively similar to training samples [28]. This is typically evaluated using a reference dataset, sampled from the same distribution as the training dataset. The common method involves an ”appropriate distance function” to check whether synthetic data is closer to the training data or the reference data [34]. [28] for example focuses on identifying a suitable distance function to determine whether a synthetic dataset or a reference dataset is closer to the training dataset, thus testing if generative models exhibit data-copying. They devised a nonparametric method that divides the instance space into cells, tests each cell individually, and combines the results to understand the overall degree of data-copying. This concept inspired our more sophisticated data-copying measure (See Section 3.1). [6] introduces a more advanced data-copying test, capable of detecting data-copying behaviors not identified by [28]. Both of these studies however have limitations in high-dimensional complex distributions and also do not evaluate data-copying from a privacy perspective. DPI is more practical and accurately captures the degree of local data-copying, aiding in the assessment of synthetic data privacy risks (See Fig 1).",
+            "es": "En la literatura, la copia de datos de los modelos generativos se identifica cuando los datos sintéticos son excesivamente similares a las muestras de entrenamiento [28]. Esto se evalúa normalmente con un conjunto de datos de referencia, muestreado de la misma distribución que el conjunto de entrenamiento. El método común emplea una \"función de distancia apropiada\" para comprobar si los datos sintéticos están más cerca de los datos de entrenamiento o de los datos de referencia [34]. [28], por ejemplo, se centra en identificar una función de distancia adecuada para determinar si un conjunto de datos sintético o un conjunto de datos de referencia está más cerca del conjunto de entrenamiento y, así, probar si los modelos generativos exhiben copia de datos. Idearon un método no paramétrico que divide el espacio de instancias en celdas, prueba cada celda por separado y combina los resultados para entender el grado global de copia de datos. Este concepto inspiró nuestra medida de copia de datos más sofisticada (véase la Sección 3.1). [6] introduce una prueba de copia de datos más avanzada, capaz de detectar comportamientos de copia de datos que [28] no identificó. Sin embargo, ambos estudios tienen limitaciones en distribuciones complejas de alta dimensionalidad y tampoco evalúan la copia de datos desde una perspectiva de privacidad. El DPI es más práctico y captura con precisión el grado de copia de datos local, lo que ayuda a evaluar los riesgos de privacidad de los datos sintéticos (véase la Fig. 1)."
+          }
+        },
+        {
+          "id": "s2-h2",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "2.2 Similarity Metrics between Real and Synthetic Data",
+            "es": "2.2 Métricas de similitud entre datos reales y sintéticos"
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "A variety of ad-hoc metrics have been proposed to evaluate the privacy of tabular synthetic data from a model overfitting perspective. Broadly speaking, these metrics focus on determining the level of similarity between the training and synthetic datasets ideally hoping to find that the generated data is in a ’Goldilocks’ zone: not too similar to the training data, but also not too dissimilar. These metrics will often be posed as a comparison between the training and a reference set and training and synthetic sets creating a sort of ’Null Distribution’ in which to test privacy.",
+            "es": "Se han propuesto diversas métricas ad hoc para evaluar la privacidad de los datos sintéticos tabulares desde la perspectiva del sobreajuste del modelo. En términos generales, estas métricas se centran en determinar el nivel de similitud entre los conjuntos de datos de entrenamiento y sintético, con la esperanza ideal de encontrar que los datos generados se hallan en una zona \"Ricitos de Oro\" (Goldilocks): ni demasiado similares a los datos de entrenamiento, ni tampoco demasiado distintos. Con frecuencia, estas métricas se plantean como una comparación entre el conjunto de entrenamiento y un conjunto de referencia, y entre los conjuntos de entrenamiento y sintético, lo que crea una especie de \"distribución nula\" (Null Distribution) con la cual probar la privacidad."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "A common example of an often used similarity metric is Distance to Closest Record (DCR) [31, 27, 46, 51, 16, 25] where for each training point the distance to its closest neighbor in the synthetic dataset is compared with the distance of the closest neighbor in the reference dataset. Another is Identical Matching Score [1, 2, 27] which compares the proportion of identical records in the training and synthetic observations.",
+            "es": "Un ejemplo común de una métrica de similitud muy utilizada es la Distancia al Registro Más Cercano (Distance to Closest Record, DCR) [31, 27, 46, 51, 16, 25], en la que, para cada punto de entrenamiento, la distancia a su vecino más cercano en el conjunto de datos sintético se compara con la distancia al vecino más cercano en el conjunto de datos de referencia. Otra es la Puntuación de Coincidencia Idéntica (Identical Matching Score) [1, 2, 27], que compara la proporción de registros idénticos en las observaciones de entrenamiento y sintéticas."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "There are a variety of problems with this style of privacy evaluation. The first is that these similarity metrics do not actually guarantee nor are they evaluated by any idea of privacy protections against some sort of attack. For example, passing or failing a DCR or IMS test does not provide any information for how well a privacy attack may or may not do. Secondly, posing privacy as a hypothesis testing problem is a cardinal Statistics sin in that if the null hypothesis is: ”the synthetic data are private” and the alternative is: ”the synthetic data are not private”, passing the test does not imply confirmation of the null, only that there is a failure to find sufficient evidence in which to reject the null [7]. However, while not being theoretically motivated, these metrics do provide an intuitive tool to study the geometric relationships between the training and synthetic datasets. Technically, DPI can be classified as a similarity metric and used in this way but these problems motivate DPI to adopt a Membership Inference Attack paradigm to overcome these dubious privacy interpretations.",
+            "es": "Este estilo de evaluación de la privacidad presenta diversos problemas. El primero es que estas métricas de similitud en realidad no garantizan protecciones de privacidad frente a algún tipo de ataque, ni se evalúan con base en alguna idea de ellas. Por ejemplo, aprobar o reprobar una prueba de DCR o de IMS no aporta ninguna información sobre qué tan bien podría o no desempeñarse un ataque a la privacidad. En segundo lugar, plantear la privacidad como un problema de prueba de hipótesis es un pecado capital de la Estadística, pues si la hipótesis nula es: \"los datos sintéticos son privados\" y la alternativa es: \"los datos sintéticos no son privados\", aprobar la prueba no implica la confirmación de la nula, sino solo que no se logró encontrar evidencia suficiente para rechazarla [7]. Sin embargo, aunque carecen de motivación teórica, estas métricas sí ofrecen una herramienta intuitiva para estudiar las relaciones geométricas entre los conjuntos de datos de entrenamiento y sintético. Técnicamente, el DPI puede clasificarse como una métrica de similitud y usarse de esa manera, pero estos problemas motivan al DPI a adoptar un paradigma de Ataque de Inferencia de Pertenencia para superar estas interpretaciones dudosas de la privacidad."
+          }
+        },
+        {
+          "id": "s2-h3",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "2.3 Membership Inference Attacks for Generative Models",
+            "es": "2.3 Ataques de Inferencia de Pertenencia para modelos generativos"
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Membership Inference Attacks have traditionally been studied in a supervised learning context and only relatively recently have become applied to generative models. Here, the goal of the attack is to determine whether some sample of test data x∗∈X∗was used in the training of the model based on some information about that model [37]. The scenario of what information is available for an attacker is called the threat model to which there are a variety of identified contexts for generative model MIAs. These include black box attacks [17, 18, 8] in which only generated synthetic data is available, white box attacks in which both synthetic data and the internals of a model are known, and calibrated (also called shadow) attacks in which both a synthetic dataset and then a reference dataset from the same or similar distribution as the training set are given [8, 17, 41]. Most attacks generally fall into the black box and calibrated paradigms as white box attacks are usually specific to the model architecture in question [36]. The value of MIAs is that they provide a tangible, practical scenario in which to study privacy risks. We will later frame DPI as an MIA in order to study how identifying local data-copying corresponds to privacy leakage.",
+            "es": "Los Ataques de Inferencia de Pertenencia se han estudiado tradicionalmente en un contexto de aprendizaje supervisado y solo hace relativamente poco se han aplicado a los modelos generativos. Aquí, el objetivo del ataque es determinar si alguna muestra de datos de prueba x∗∈X∗ se utilizó en el entrenamiento del modelo, con base en cierta información sobre ese modelo [37]. El escenario de qué información tiene disponible un atacante se denomina modelo de amenaza (threat model), para el cual se han identificado diversos contextos en los MIA de modelos generativos. Estos incluyen ataques de caja negra (black box) [17, 18, 8], en los que solo se dispone de los datos sintéticos generados; ataques de caja blanca (white box), en los que se conocen tanto los datos sintéticos como los componentes internos del modelo; y ataques calibrados (también llamados shadow), en los que se dispone tanto de un conjunto de datos sintético como de un conjunto de datos de referencia de la misma distribución que el conjunto de entrenamiento, o de una similar [8, 17, 41]. La mayoría de los ataques generalmente se ubican en los paradigmas de caja negra y calibrado, pues los ataques de caja blanca suelen ser específicos de la arquitectura del modelo en cuestión [36]. El valor de los MIA es que ofrecen un escenario tangible y práctico para estudiar los riesgos de privacidad. Más adelante plantearemos el DPI como un MIA para estudiar cómo la identificación de la copia de datos local se corresponde con la fuga de privacidad."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 Preliminaries",
+        "es": "3 Preliminares"
+      },
+      "blocks": [
+        {
+          "id": "s3-h1",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.1 Formal definition of Data-Copying",
+            "es": "3.1 Definición formal de copia de datos (Data-Copying)"
+          }
+        },
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We first introduce a formal definition of data-copying motivated by [28] to provide theoretical context for Data Plagiarism Index. Given a data distribution P and a region C, consider the following probability measure: P|C(A) ≡P(A ∩C)/P(C) for all measurable set A. Let R denote the distribution of reference data points and S denote the distribution of synthetic data points.",
+            "es": "Primero presentamos una definición formal de copia de datos (data-copying) motivada por [28] para proporcionar el contexto teórico del Índice de Plagio de Datos (Data Plagiarism Index). Dada una distribución de datos P y una región C, considérese la siguiente medida de probabilidad: P|C(A) ≡P(A ∩C)/P(C) para todo conjunto medible A. Sea R la distribución de los puntos de datos de referencia y S la distribución de los puntos de datos sintéticos."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Given a neighborhood D(x) of target data point x, define a one-dimensional distribution by L(R) ≡I(R ∈D(x)) and L(S) ≡I(S ∈D(x)) to denote separately the event of the reference data distribution and synthetic data distribution belonging to the neighborhood D(x). By definition, L(R) ∼R|D(x) and L(S) ∼S|D(x)",
+            "es": "Dada una vecindad D(x) de un punto de datos objetivo x, definimos una distribución unidimensional mediante L(R) ≡I(R ∈D(x)) y L(S) ≡I(S ∈D(x)) para denotar por separado el evento de que la distribución de datos de referencia y la distribución de datos sintéticos pertenezcan a la vecindad D(x). Por definición, L(R) ∼R|D(x) y L(S) ∼S|D(x)"
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Define ∆(R, S) = P(B > A|B ∼L(S), A ∼L(P) to be the event that the synthetic data points have a greater probability in belonging to neighborhood D(x) than the reference data points.",
+            "es": "Definimos ∆(R, S) = P(B > A|B ∼L(S), A ∼L(P) como el evento de que los puntos de datos sintéticos tengan una mayor probabilidad de pertenecer a la vecindad D(x) que los puntos de datos de referencia."
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "In the spirit of Definition 2.1 of [28], we define a generative model as data-copying a training data point x, if there exists a neighborhood D(x) of x such that the synthetic data distribution S is systematically closer to the training data point x than the reference data distribution R, in the sense that",
+            "es": "En el espíritu de la Definición 2.1 de [28], definimos que un modelo generativo realiza copia de datos (data-copying) de un punto de datos de entrenamiento x si existe una vecindad D(x) de x tal que la distribución de datos sintéticos S está sistemáticamente más cerca del punto de datos de entrenamiento x que la distribución de datos de referencia R, en el sentido de que"
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "∆(R|D(x), S|D(x)) < 1",
+            "es": "∆(R|D(x), S|D(x)) < 1"
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "2",
+            "es": "2"
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "See Figure 2(a) as an example.",
+            "es": "Véase la Figura 2(a) como ejemplo."
+          }
+        },
+        {
+          "id": "s3-h2",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.2 Distance to Closest Records (DCR)",
+            "es": "3.2 Distancia a los registros más cercanos (Distance to Closest Records, DCR)"
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The Distance to Closest Records (DCR) technique was developed to identify identical matches between synthetic and training data [31, 27]. However, it is essential to note that detecting identical matches and identifying data-copying are distinct tasks. While distance measures are appropriate for finding identical matches, they are not as effective for detecting datacopying, which is more appropriately viewed as a proportional measure. As discussed in Section 3.2 of [34], a DCR of zero signifies an identical match, but a non-zero DCR does not capture the extent of personal information disclosure. This inherent flaw renders DCR an unsuitable measure of synthetic data privacy, as it does not accurately assess privacy risk. Our proposed Data Plagiarism Index (DPI) provides a more effective metric for synthetic data privacy by quantifying privacy risk. We utilize DPI to construct a Membership Attack, whose results reveal the privacy risks of synthetic data. See Section 4.2.",
+            "es": "La técnica de Distancia a los registros más cercanos (Distance to Closest Records, DCR) se desarrolló para identificar coincidencias idénticas entre los datos sintéticos y los de entrenamiento [31, 27]. Sin embargo, es esencial señalar que detectar coincidencias idénticas e identificar la copia de datos son tareas distintas. Si bien las medidas de distancia son adecuadas para encontrar coincidencias idénticas, no son tan eficaces para detectar la copia de datos, que se concibe de manera más apropiada como una medida proporcional. Como se discute en la Sección 3.2 de [34], una DCR de cero indica una coincidencia idéntica, pero una DCR distinta de cero no captura el grado de divulgación de información personal. Esta falla inherente hace que la DCR sea una medida inadecuada de la privacidad de los datos sintéticos, ya que no evalúa con exactitud el riesgo de privacidad. Nuestro Índice de Plagio de Datos (DPI) propuesto ofrece una métrica más eficaz para la privacidad de los datos sintéticos al cuantificar el riesgo de privacidad. Utilizamos el DPI para construir un ataque de membresía (Membership Attack), cuyos resultados revelan los riesgos de privacidad de los datos sintéticos. Véase la Sección 4.2."
+          }
+        },
+        {
+          "id": "s3-h3",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.3 Membership Inference Attacks as Privacy Auditors",
+            "es": "3.3 Ataques de inferencia de membresía como auditores de privacidad"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Membership Inference Attacks (MIA) for synthetic data aim to determine if a given sample was a member of the original training set used to train a generative model. Consider a random variable X defined on the domain X, following a probability distribution pX(X). Let Dtrain represent a training dataset consisting of independently sampled observations from pX(X).",
+            "es": "Los ataques de inferencia de membresía (Membership Inference Attacks, MIA) para datos sintéticos buscan determinar si una muestra dada formó parte del conjunto de entrenamiento original utilizado para entrenar un modelo generativo. Considérese una variable aleatoria X definida en el dominio X, que sigue una distribución de probabilidad pX(X). Sea Dtrain un conjunto de datos de entrenamiento formado por observaciones muestreadas de manera independiente de pX(X)."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: Data Plagiarism Index (DPI): We propose a novel privacy metric named Data Plagiarism Index (DPI). For each target data point (black point), we calculate the Data Plagiarism Index ρ by first construct a k-nearest neighborhood (blue circle) around the target data point on the space with reference data points (green points) and synthetic data points (red points). The Data Plagiarism Index ρ is defined simply as the ratio of number of synthetic data points to the number of reference data points. See Sec. 4.1 for whole details.",
+            "es": "Figura 2: Índice de Plagio de Datos (Data Plagiarism Index, DPI): Proponemos una nueva métrica de privacidad llamada Índice de Plagio de Datos (DPI). Para cada punto de datos objetivo (punto negro), calculamos el Índice de Plagio de Datos ρ construyendo primero una vecindad de k vecinos más cercanos (círculo azul) alrededor del punto de datos objetivo en el espacio con puntos de datos de referencia (puntos verdes) y puntos de datos sintéticos (puntos rojos). El Índice de Plagio de Datos ρ se define simplemente como la razón entre el número de puntos de datos sintéticos y el número de puntos de datos de referencia. Véase la Sec. 4.1 para todos los detalles."
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "A generative model G is then trained on Dtrain and used to produce a synthetic dataset Dsyn. An attacker model, A : X →0, 1, has access to the synthetic dataset Dsyn, a test data point x∗drawn from the same distribution as X, and depending on the threat model, potentially other information. The attacker’s objective is to determine whether the test point x∗belongs to the original training set Dtrain. An ideal attacker would output A(x∗) = 1 if x∗∈Dtrain, and 0 otherwise. By considering privacy in this framework, MIAs allow for the practical evaluation of the risk of synthetic data release, relative to an adversarial scenario [37].",
+            "es": "Luego se entrena un modelo generativo G con Dtrain y se usa para producir un conjunto de datos sintéticos Dsyn. Un modelo atacante, A : X →0, 1, tiene acceso al conjunto de datos sintéticos Dsyn, a un punto de datos de prueba x∗ extraído de la misma distribución que X y, según el modelo de amenaza, posiblemente a otra información. El objetivo del atacante es determinar si el punto de prueba x∗ pertenece al conjunto de entrenamiento original Dtrain. Un atacante ideal devolvería A(x∗) = 1 si x∗∈Dtrain, y 0 en caso contrario. Al considerar la privacidad en este marco, los MIA permiten evaluar de manera práctica el riesgo de la publicación de datos sintéticos, en relación con un escenario adversarial [37]."
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "In this paper, we study a special case of Membership Inference Attacks in which the attacker has access to an additional reference dataset Dref sampled from same distribution as Dtrain but not used in the training of G. There are a variety of both practical and theoretical reasons for the inclusion of Dref in the attack. First, Dref represents a worsecase scenario in which the attacker has access to the most information possible in which to build an attack which makes this situation important to study from a conservative, privacy conscious data publisher’s perspective. Second, it is a real scenario that particularly tabularorientated data publishers face in that Dref can be a leaked dataset, historic data, data from a competitor, or even a dataset built from publicly available data. Lastly, the inclusion of Dref is theoretically motivated from the growing body of literature involved with testing for data-copying in a generative model in that in order most frameworks contextualize model miss-specification between Dtrain and Dsyn as being relative to a holdout dataset [28, 6, 34].",
+            "es": "En este artículo estudiamos un caso especial de los ataques de inferencia de membresía en el que el atacante tiene acceso a un conjunto de datos de referencia adicional Dref, muestreado de la misma distribución que Dtrain pero no utilizado en el entrenamiento de G. Hay diversas razones, tanto prácticas como teóricas, para incluir Dref en el ataque. Primero, Dref representa un escenario del peor caso en el que el atacante tiene acceso a la mayor cantidad de información posible para construir un ataque, lo que hace importante estudiar esta situación desde la perspectiva de un publicador de datos conservador y consciente de la privacidad. Segundo, es un escenario real al que se enfrentan en particular los publicadores de datos orientados a datos tabulares, pues Dref puede ser un conjunto de datos filtrado, datos históricos, datos de un competidor o incluso un conjunto de datos construido a partir de datos disponibles públicamente. Por último, la inclusión de Dref está motivada teóricamente por la creciente literatura sobre las pruebas de copia de datos en un modelo generativo, ya que la mayoría de los marcos contextualizan la mala especificación del modelo entre Dtrain y Dsyn como relativa a un conjunto de datos de reserva (holdout) [28, 6, 34]."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 Measuring Data-Copying Misbehavior",
+        "es": "4 Medición del comportamiento indebido de copia de datos"
+      },
+      "blocks": [
+        {
+          "id": "s4-h1",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "4.1 Data Plagiarism Index (DPI)",
+            "es": "4.1 Índice de Plagio de Datos (DPI)"
+          }
+        },
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We propose a novel privacy metric called Data Plagiarism Index (DPI), as illustrated in Figure 2. For each training data point x, we calculate the Data Plagiarism Index ρ by first constructing a K-Nearest Neighborhood D(x) around x on the space with reference data points and synthetic data points. The Data Plagiarism Index ρ is defined simply as the ratio of number of synthetic data points to the number of reference data points; that is",
+            "es": "Proponemos una nueva métrica de privacidad llamada Índice de Plagio de Datos (Data Plagiarism Index, DPI), como se ilustra en la Figura 2. Para cada punto de datos de entrenamiento x, calculamos el Índice de Plagio de Datos ρ construyendo primero una vecindad de K vecinos más cercanos (K-Nearest Neighborhood) D(x) alrededor de x en el espacio con puntos de datos de referencia y puntos de datos sintéticos. El Índice de Plagio de Datos ρ se define simplemente como la razón entre el número de puntos de datos sintéticos y el número de puntos de datos de referencia; es decir,"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "P xi∈D(x) I(xi ∈S) P ρ(x) ≡ xi∈D(x) I(xi ∈R) (1)",
+            "es": "P xi∈D(x) I(xi ∈S) P ρ(x) ≡ xi∈D(x) I(xi ∈R) (1)"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "The DPI ranges from 0 to infinity, capturing a spectrum of data generation scenarios:",
+            "es": "El DPI va de 0 a infinito y captura un espectro de escenarios de generación de datos:"
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "• DPI = 0: Indicates no synthetic data points in the neighborhood, suggesting potential under-fitting by the generative model.",
+            "es": "• DPI = 0: Indica que no hay puntos de datos sintéticos en la vecindad, lo que sugiere un posible subajuste (under-fitting) del modelo generativo."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "• DPI = 1: Represents an equal number of synthetic and reference data points, implying no data plagiarism or under-fitting, signifying a balanced data generation process.",
+            "es": "• DPI = 1: Representa un número igual de puntos de datos sintéticos y de referencia, lo que implica que no hay plagio de datos ni subajuste, y significa un proceso de generación de datos equilibrado."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "• DPI > 1: Highlights a greater presence of synthetic data points compared to reference data points, with increasing values pointing towards significant data plagiarism.",
+            "es": "• DPI > 1: Destaca una mayor presencia de puntos de datos sintéticos en comparación con los puntos de datos de referencia; los valores crecientes apuntan a un plagio de datos significativo."
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "This comprehensive range allows the DPI to effectively capture various data generation scenarios, providing critical insights into the quality and privacy of synthetic datasets.",
+            "es": "Este rango amplio permite que el DPI capture de manera eficaz diversos escenarios de generación de datos, y aporta información crítica sobre la calidad y la privacidad de los conjuntos de datos sintéticos."
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We provide 3 toy examples to help better understand how to interpret DPI values. In each example, consider the K = 10 nearest neighborhood for the target data point x, denoted by D(x) = {x1, · · · , xn}. Each element xi in the neighborhood may come from the synthetic dataset S or reference dataset R:",
+            "es": "Presentamos 3 ejemplos sencillos para ayudar a comprender mejor cómo interpretar los valores del DPI. En cada ejemplo, considérese la vecindad de los K = 10 vecinos más cercanos del punto de datos objetivo x, denotada por D(x) = {x1, · · · , xn}. Cada elemento xi de la vecindad puede provenir del conjunto de datos sintéticos S o del conjunto de datos de referencia R:"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Toy Example 1 (Data Plagiarism, Figure 2.(a)). Say 8 elements come from the synthetic dataset and 2 elements come from the reference dataset. Then the Data Plagiarism Index ρ(x) = 8/2 = 4, which means the number of synthetic data points is 4 times that of the reference data points! This marks serious data-copying behavior from that generative model.",
+            "es": "Ejemplo sencillo 1 (Plagio de datos, Figura 2.(a)). Supongamos que 8 elementos provienen del conjunto de datos sintéticos y 2 elementos provienen del conjunto de datos de referencia. Entonces el Índice de Plagio de Datos ρ(x) = 8/2 = 4, lo que significa que ¡el número de puntos de datos sintéticos es 4 veces el de los puntos de datos de referencia! Esto marca un comportamiento grave de copia de datos por parte de ese modelo generativo."
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Toy Example 2 (Generator Under-fitting, Figure 2.(b)). In this situation, say 2 elements come from the synthetic dataset and 8 elements from the reference dataset. Then the Data Plagiarism Index ρ(x) = 2/8 = 1/4, which means the number of synthetic data points is 25% of that of the reference data points! This marks little data-copying behavior, but also suggests a potential underfitting issue around the target data point x.",
+            "es": "Ejemplo sencillo 2 (Subajuste del generador, Figura 2.(b)). En esta situación, supongamos que 2 elementos provienen del conjunto de datos sintéticos y 8 elementos del conjunto de datos de referencia. Entonces el Índice de Plagio de Datos ρ(x) = 2/8 = 1/4, lo que significa que ¡el número de puntos de datos sintéticos es el 25% del de los puntos de datos de referencia! Esto marca un comportamiento de copia de datos escaso, pero también sugiere un posible problema de subajuste alrededor del punto de datos objetivo x."
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Toy Example 3 (Data-Copying Free, Figure 2.(c)). Lastly, say there are 5 items from the synthetic dataset and 5 from the reference dataset. The Data Plagiarism Index is then ρ(x) = 5/5 = 1, meaining the number of synthetic data points is equal to the number of reference data points! This marks no data plagiarism and no underfitting behavior around the target data point x.",
+            "es": "Ejemplo sencillo 3 (Libre de copia de datos, Figura 2.(c)). Por último, supongamos que hay 5 elementos del conjunto de datos sintéticos y 5 del conjunto de datos de referencia. El Índice de Plagio de Datos es entonces ρ(x) = 5/5 = 1, lo que significa que ¡el número de puntos de datos sintéticos es igual al número de puntos de datos de referencia! Esto marca que no hay plagio de datos ni comportamiento de subajuste alrededor del punto de datos objetivo x."
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "In summary, the Data Plagiarism Index offers a robust and intuitive metric for evaluating the balance between synthetic and reference data points within a specified neighborhood around a target data point. By calculating the ratio of synthetic to reference data points, the DPI effectively highlights critical instances of data plagiarism, under-fitting, or a balanced data generation process. This metric is invaluable for rigorously assessing the performance of generative models, ensuring data integrity, and proactively identifying potential issues in synthetic data generation.",
+            "es": "En resumen, el Índice de Plagio de Datos ofrece una métrica robusta e intuitiva para evaluar el equilibrio entre los puntos de datos sintéticos y los de referencia dentro de una vecindad especificada alrededor de un punto de datos objetivo. Al calcular la razón entre puntos de datos sintéticos y de referencia, el DPI resalta de manera eficaz los casos críticos de plagio de datos, subajuste o un proceso de generación de datos equilibrado. Esta métrica es invaluable para evaluar con rigor el desempeño de los modelos generativos, garantizar la integridad de los datos e identificar de forma proactiva posibles problemas en la generación de datos sintéticos."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: Data Plagiarism Index Membership Inference Attack (DPI MIA) See Sec. 4.2 for full details.",
+            "es": "Figura 3: Ataque de inferencia de membresía con el Índice de Plagio de Datos (Data Plagiarism Index Membership Inference Attack, DPI MIA). Véase la Sec. 4.2 para todos los detalles."
+          }
+        },
+        {
+          "id": "s4-h2",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "4.2 Data Plagiarism Membership Inference Attack",
+            "es": "4.2 Ataque de inferencia de membresía con el Índice de Plagio de Datos"
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "While the Data Plagiarism Index defined at Equation (1) provides insight into the local behavior of generative models, on its own it does not characterize the actual privacy risk of data-copying in tabular generative models. We therefore show that a Membership Inference Attack can be derived from DPI which is designed to measure and then attack the local data-copying of generative models to evaluate the privacy risk.",
+            "es": "Aunque el Índice de Plagio de Datos definido en la Ecuación (1) ofrece información sobre el comportamiento local de los modelos generativos, por sí solo no caracteriza el riesgo de privacidad real de la copia de datos en los modelos generativos tabulares. Por ello mostramos que se puede derivar del DPI un ataque de inferencia de membresía diseñado para medir y luego atacar la copia local de datos de los modelos generativos, con el fin de evaluar el riesgo de privacidad."
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Note that, in the literature of similarity metrics (Sec. 2.2), only the training dataset Dtrain is compared to the synthetic Dsyn and reference Dref sets. In the MIA paradigm however (Sec. 2.3), a fourth holdout dataset Dholdout is taken and combined with the training dataset post generator training: X = Dtrain ∪Dholdout. The goal of an attacker A(x) is to effectively discriminate which set each record x ∈X originated from.",
+            "es": "Obsérvese que, en la literatura sobre métricas de similitud (Sec. 2.2), solo el conjunto de datos de entrenamiento Dtrain se compara con los conjuntos sintético Dsyn y de referencia Dref. En el paradigma de los MIA (Sec. 2.3), en cambio, se toma un cuarto conjunto de datos de reserva Dholdout y se combina con el conjunto de entrenamiento después del entrenamiento del generador: X = Dtrain ∪Dholdout. El objetivo de un atacante A(x) es discriminar de manera eficaz de qué conjunto proviene cada registro x ∈X."
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "The Membership Inference Attack based on the Data Plagiarism Index can divided into three steps (See Figure 3):",
+            "es": "El ataque de inferencia de membresía basado en el Índice de Plagio de Datos puede dividirse en tres pasos (véase la Figura 3):"
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Step 1: Prepare 4 Datasets. In the initial step, four distinct datasets are prepared to facilitate an attack construction. The foundation begins with the original dataset (denoted in black), which is divided into 3 equal sized sub-sets: the Training Dataset (blue), the Holdout Dataset (Yellow) and the Reference Dataset (green). The Training Dataset is used to train the generative model, which subsequently generates the Synthetic Dataset (red). In parallel, the Holdout Dataset serves as an independent test set, deliberately excluded from the training phase.",
+            "es": "Paso 1: Preparar 4 conjuntos de datos. En el paso inicial se preparan cuatro conjuntos de datos distintos para facilitar la construcción del ataque. La base parte del conjunto de datos original (indicado en negro), que se divide en 3 subconjuntos de igual tamaño: el conjunto de entrenamiento (azul), el conjunto de reserva (amarillo) y el conjunto de referencia (verde). El conjunto de entrenamiento se utiliza para entrenar el modelo generativo, que posteriormente genera el conjunto de datos sintéticos (rojo). En paralelo, el conjunto de reserva sirve como un conjunto de prueba independiente, excluido deliberadamente de la fase de entrenamiento."
+          }
+        },
+        {
+          "id": "s4-p17",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Step 2: Compute DPI Values. The second step involves the computation of the Data Plagiarism Index (DPI) values defined at (1) for each data point within both the Holdout and Training datasets. This identifies data-copying in the local neighborhoods of test points from both datasets. The intuition here is that scores for test points from the Training set should theoretically be higher than the Holdout set if a model is vulnerable to copying data.",
+            "es": "Paso 2: Calcular los valores del DPI. El segundo paso consiste en calcular los valores del Índice de Plagio de Datos (DPI) definidos en (1) para cada punto de datos tanto del conjunto de reserva como del de entrenamiento. Esto identifica la copia de datos en las vecindades locales de los puntos de prueba de ambos conjuntos. La intuición aquí es que, en teoría, las puntuaciones de los puntos de prueba del conjunto de entrenamiento deberían ser más altas que las del conjunto de reserva si un modelo es vulnerable a la copia de datos."
+          }
+        },
+        {
+          "id": "s4-p18",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Step 3: Perform MIA for Each Test Point In Step 3, a Membership Inference Attack (MIA) is executed to evaluate the privacy risk associated with a specific target data point. This uses the DPI score of the target data point, which is compared against a predefined threshold c. The attack can be written as:",
+            "es": "Paso 3: Realizar el MIA para cada punto de prueba. En el Paso 3 se ejecuta un ataque de inferencia de membresía (MIA) para evaluar el riesgo de privacidad asociado con un punto de datos objetivo específico. Esto utiliza la puntuación DPI del punto de datos objetivo, que se compara con un umbral predefinido c. El ataque se puede escribir como:"
+          }
+        },
+        {
+          "id": "s4-e1",
+          "type": "equation",
+          "page": 10,
+          "text": {
+            "en": "A(·) = I(ρ(·) > c), (2)"
+          }
+        },
+        {
+          "id": "s4-p19",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "where A denotes the attack function, ρ(·) signifies the DPI value, and I is an indicator function assessing if the DPI surpasses the threshold c. Should the DPI value of the target data point exceed c, it indicates that the data point is likely to have been part of the training data, thereby exposing a potential privacy breach. In practice, MIAs are often benchmarked using AUCROC and so the choice of c is largely irrelevant. Our implementation chooses c as the median of ρ(x) for x for all test data.",
+            "es": "donde A denota la función de ataque, ρ(·) representa el valor del DPI e I es una función indicadora que evalúa si el DPI supera el umbral c. Si el valor del DPI del punto de datos objetivo excede c, indica que es probable que el punto de datos haya formado parte de los datos de entrenamiento, lo que expone una posible violación de la privacidad. En la práctica, los MIA suelen evaluarse con el AUCROC, por lo que la elección de c es en gran medida irrelevante. Nuestra implementación elige c como la mediana de ρ(x) para x en todos los datos de prueba."
+          }
+        },
+        {
+          "id": "s4-p20",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The proposed DPI MIA defined at Equation (2), though straightforward, is a fast and easily interpretable attack, well-suited for auditing privacy in high-dimensional, mixed-type datasets. Indeed, as it only uses a K-Nearest Neighbor Search, it can be ran with linear or logarithmic time complexity (see [14], [21]). Moreover, DPI MIA is compatible with various definitions of distance, making it versatile to many specific applications.",
+            "es": "El DPI MIA propuesto, definido en la Ecuación (2), aunque sencillo, es un ataque rápido y fácilmente interpretable, muy adecuado para auditar la privacidad en conjuntos de datos de alta dimensionalidad y de tipos mixtos. De hecho, como solo usa una búsqueda de K vecinos más cercanos (K-Nearest Neighbor Search), puede ejecutarse con complejidad temporal lineal o logarítmica (véase [14], [21]). Además, el DPI MIA es compatible con diversas definiciones de distancia, lo que lo hace versátil para muchas aplicaciones específicas."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 Results",
+        "es": "5 Resultados"
+      },
+      "blocks": [
+        {
+          "id": "s5-h1",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "5.1 Experiment Setup",
+            "es": "5.1 Configuración experimental"
+          }
+        },
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "We are interested in studying how DPI compares with other Membership Inference Attacks, to what extent different tabular data generator architectures copy data, and if there are trends in the kind of data copied. To investigate these research questions, we benchmark a variety of model architectures and MIAs on the Adult Census dataset [5]. We provide descriptions of each model and MIA in appendix B and C respectively. In each experiment, Adult is randomly split into 3 equal sized training, holdout and reference sets where the generated synthetic size is also equal to these set. We replicate each experiment 5 times and visualize or report the means and standard deviations of the measures of interest where applicable.",
+            "es": "Nos interesa estudiar cómo se compara DPI con otros ataques de inferencia de pertenencia (Membership Inference Attacks, MIA), en qué medida las distintas arquitecturas de generadores de datos tabulares copian datos, y si existen tendencias en el tipo de datos que se copian. Para investigar estas preguntas de investigación, evaluamos comparativamente una variedad de arquitecturas de modelos y MIA en el conjunto de datos Adult Census [5]. En los apéndices B y C presentamos las descripciones de cada modelo y de cada MIA, respectivamente. En cada experimento, Adult se divide aleatoriamente en 3 conjuntos de entrenamiento, de reserva (holdout) y de referencia del mismo tamaño, y el tamaño de los datos sintéticos generados también es igual al de estos conjuntos. Replicamos cada experimento 5 veces y visualizamos o reportamos las medias y las desviaciones estándar de las medidas de interés cuando corresponde."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "For DPI, K has to be chosen as a hyperparameter and for data visualization purposes we plot the best performing DPI attack (Using L2 distance and K=20). We refer to appendix ?? for an ablation study of Section 5.4 containing plots with various distance metrics and K levels but in practice, DPI is fairly stable in its results regardless of K and we observed no extreme changes in behavior based on these hyperparameters.",
+            "es": "Para DPI, K debe elegirse como hiperparámetro (hyperparameter) y, con fines de visualización de datos, graficamos el ataque DPI de mejor desempeño (con distancia L2 y K=20). Remitimos al apéndice ?? para un estudio de ablación (ablation study) de la Sección 5.4 que contiene gráficas con varias métricas de distancia y niveles de K, pero en la práctica DPI es bastante estable en sus resultados sin importar K y no observamos cambios extremos de comportamiento según estos hiperparámetros."
+          }
+        },
+        {
+          "id": "s5-h2",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "5.2 Data-Copying in Tabular Data Generators",
+            "es": "5.2 Copia de datos en generadores de datos tabulares"
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "We first wish to confirm that there is a privacy risk to data copying in common tabular generators. Here, we benchmark a wide range of tabular generator strategies including: CTGAN and TVAE [45], Normalizing Flows (NFlow) [12], Bayesian Network (BN) [4], Ad-versarial Random Forests (ARF) [44], Tab-DDPM [23], PATEGAN [49], and Ads-GAN [48].",
+            "es": "Primero queremos confirmar que la copia de datos (data copying) en los generadores tabulares comunes representa un riesgo para la privacidad. Aquí evaluamos comparativamente una amplia gama de estrategias de generadores tabulares, entre ellas: CTGAN y TVAE [45], Normalizing Flows (NFlow) [12], Bayesian Network (BN) [4], Ad-versarial Random Forests (ARF) [44], Tab-DDPM [23], PATEGAN [49] y Ads-GAN [48]."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4: Classifier AUCROC, Maximum Mean Discrepancy, and Wasserstein Distance plotted with corresponding DPI MIA AUCROC for various common architectures. Interestingly, Bayesian Network, Adversarial Random Forest, and Tab-DDPM outperform other models in these performance metrics but have higher privacy risk. See Sec. 5.2 for full details.",
+            "es": "Figura 4: AUCROC del clasificador, discrepancia máxima de medias (Maximum Mean Discrepancy) y distancia de Wasserstein graficadas junto con el AUCROC del MIA de DPI correspondiente para diversas arquitecturas comunes. Curiosamente, Bayesian Network, Adversarial Random Forest y Tab-DDPM superan a los demás modelos en estas métricas de desempeño, pero tienen un mayor riesgo para la privacidad. Véase la Sec. 5.2 para los detalles completos."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "We evaluate these models on several metrics of synthetic data quality: the Maximum Mean Discrepancy between the training and generated data (lower is better), the Wasserstein distance between the marginals of the training and generated data (lower is better), and finally the AUCROC of an XGBoost [9] classifier trained on the synthetic set and tasked to predict on a holdout set (higher is better). We deploy the DPI MIA attack as described in Section 4.2 and report its AUCROC. We visualize the mean values of utility metrics plotted against the AUCROC of DPI MIA in Figure 4. Very interestingly, we observe that there is a clear trend between model performance and privacy risk. This suggests that data-copying could be a reason for why these models perform better, but additional research would need to be conducted to see if this is a causal or correlative relationship.",
+            "es": "Evaluamos estos modelos con varias métricas de calidad de los datos sintéticos: la discrepancia máxima de medias entre los datos de entrenamiento y los generados (menor es mejor), la distancia de Wasserstein entre las marginales de los datos de entrenamiento y los generados (menor es mejor) y, por último, el AUCROC de un clasificador XGBoost [9] entrenado con el conjunto sintético y encargado de predecir sobre un conjunto de reserva (mayor es mejor). Aplicamos el ataque MIA de DPI como se describe en la Sección 4.2 y reportamos su AUCROC. Visualizamos en la Figura 4 los valores medios de las métricas de utilidad graficados contra el AUCROC del MIA de DPI. Resulta muy interesante que observamos una tendencia clara entre el desempeño del modelo y el riesgo para la privacidad. Esto sugiere que la copia de datos podría ser una razón por la que estos modelos tienen mejor desempeño, pero habría que realizar investigación adicional para ver si la relación es causal o correlacional."
+          }
+        },
+        {
+          "id": "s5-h3",
+          "type": "heading",
+          "page": 11,
+          "text": {
+            "en": "5.3 Properties of Training Data with High DPI Scores",
+            "es": "5.3 Propiedades de los datos de entrenamiento con puntuaciones DPI altas"
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "We also investigated the training data egregiously copied according to DPI. Here, we identified the top 1% highest scored training data based on synthetic data generated by Tab-DDPM [23] as it is widely used as a benchmark in the current tabular generation literature [39, 22, 50]. We visualize these data in Figure 1 as a t-SNE plot [42] with the top 1% highly scored indexes by DPI in red. Worryingly, DPI identifies an outlier region of the distribution as being subject to this extreme top percentile data-copying (the bottom right of the plot). When analyzing these observation themselves, we found that an extreme majority were all examples of married, white, middle aged, high capital gains, private industry, respondents making ¿50k in income. In the algorithmic fairness literature that often uses Adult in benchmarking, this is considered to be a minority but very privileged class [30]. This suggests that not only is there a technical and privacy concern with data-copying, but it could also exacerbate unfairness.",
+            "es": "También investigamos los datos de entrenamiento copiados de manera flagrante según DPI. Aquí identificamos el 1% de los datos de entrenamiento con las puntuaciones más altas, con base en los datos sintéticos generados por Tab-DDPM [23], ya que se usa ampliamente como referencia en la literatura actual sobre generación tabular [39, 22, 50]. Visualizamos estos datos en la Figura 1 como una gráfica t-SNE [42], con el 1% de los índices con puntuaciones más altas según DPI en rojo. De manera preocupante, DPI identifica una región atípica de la distribución como sujeta a esta copia de datos del percentil superior extremo (la parte inferior derecha de la gráfica). Al analizar estas observaciones, encontramos que una mayoría abrumadora eran ejemplos de personas encuestadas casadas, blancas, de mediana edad, con altas ganancias de capital, que trabajan en la industria privada y con ingresos ¿50k. En la literatura sobre equidad algorítmica que a menudo usa Adult como referencia, esto se considera una clase minoritaria pero muy privilegiada [30]. Esto sugiere que la copia de datos no solo plantea un problema técnico y de privacidad, sino que también podría agravar la inequidad."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5: MIA AUCROC Benchmarks by Training Set Size on Tab-DDPM. This shows that DPI MIA is more effective than other existing MIAs described at Sec. 2.3. See Sec. 5.4 for full details.",
+            "es": "Figura 5: Evaluación comparativa del AUCROC de MIA por tamaño del conjunto de entrenamiento en Tab-DDPM. Esto muestra que el MIA de DPI es más eficaz que otros MIA existentes descritos en la Sec. 2.3. Véase la Sec. 5.4 para los detalles completos."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6: Distance Based Metrics/ MIAs of Overfitting vs DPI. DCR and GAN Leaks Cali-brated evaluate overfitting based on a difference in relative distances whereas DPI evaluates data-copying based on the larger local neighborhood. This means that DPI evaluates datacopying differently than competing methods, explaining why predictions scores are not highly correlated (See Table 1). See Sec. 6.2 for full details.",
+            "es": "Figura 6: Métricas/MIA basados en distancia de sobreajuste (overfitting) frente a DPI. DCR y GAN Leaks Cali-brated evalúan el sobreajuste con base en una diferencia de distancias relativas, mientras que DPI evalúa la copia de datos con base en la vecindad local más amplia. Esto significa que DPI evalúa la copia de datos de manera distinta a los métodos competidores, lo que explica por qué las puntuaciones de predicción no están muy correlacionadas (véase la Tabla 1). Véase la Sec. 6.2 para los detalles completos."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 13,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: AUCROC for DPI and GAN Leaks Calibrated with Corresponding Pearson Corre-lations for the Predicted Scores. This tables shows that the proposed DPI identifies different types of data-copying than the one identified by the existing MIA attack. See Sec. 5.4 for whole details.",
+            "es": "Tabla 1: AUCROC de DPI y GAN Leaks Calibrated con las correlaciones de Pearson correspondientes para las puntuaciones predichas. Esta tabla muestra que el DPI propuesto identifica tipos de copia de datos distintos de los que identifica el ataque MIA existente. Véase la Sec. 5.4 para los detalles completos."
+          }
+        },
+        {
+          "id": "s5-h4",
+          "type": "heading",
+          "page": 13,
+          "text": {
+            "en": "5.4 Benchmarking the Privacy Risk of DPI",
+            "es": "5.4 Evaluación comparativa del riesgo para la privacidad de DPI"
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Lastly, we evaluate DPI in relation to other MIAs in order to understand its efficacy as an MIA strategy. We evaluate the black box attacks of MC [18], and GAN Leaks [8] as well as the calibrated attacks of LOGAN [17], GAN Leaks Calibrated [8] and DPI. We also benchmarked DOMIAS [41], but we found that its density estimation failed to converge and its results were always the equivalent of random guess and therefore we do not formally report it. Again, we evaluate these methods on Tab-DDPM [23]. In Figure 5, we display the results for each of these methods across various Dtrain/ Dref/ Dsyn sizes. For simplicity, each dataset is equal in size to its other.",
+            "es": "Por último, evaluamos DPI en relación con otros MIA para entender su eficacia como estrategia de MIA. Evaluamos los ataques de caja negra (black box) MC [18] y GAN Leaks [8], así como los ataques calibrados LOGAN [17], GAN Leaks Calibrated [8] y DPI. También evaluamos DOMIAS [41], pero encontramos que su estimación de densidad no logró converger y que sus resultados siempre equivalían a una adivinanza aleatoria, por lo que no los reportamos formalmente. De nuevo, evaluamos estos métodos en Tab-DDPM [23]. En la Figura 5 mostramos los resultados de cada uno de estos métodos para varios tamaños de Dtrain/ Dref/ Dsyn. Por simplicidad, cada conjunto de datos tiene el mismo tamaño que los demás."
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Overall, DPI is competitive with other Membership Inference Attacks compatible with these data, dominating at most testing sizes. Interestingly, GAN Leaks Calibrated performs similarly or better than DPI. However, GAN Leaks Calibrated scores test data very differently than DPI, being based on a difference in the relative distances of the closest synthetic and reference points. In Table 1 we show that for various models, while the performance of GAN Leaks Calibrated and DPI can differ, the Pearson Correlation between their scores is relatively low. This implies that while these measures are correlated, DPI is picking up on its specific data-copying definition. Indeed, the motivation of this work is not to create a State of the Art Membership Inference Attack for all architectures, but rather to characterize the unique risk DPI implies.",
+            "es": "En general, DPI es competitivo frente a otros ataques de inferencia de pertenencia compatibles con estos datos, y domina en la mayoría de los tamaños de prueba. Curiosamente, GAN Leaks Calibrated tiene un desempeño similar o mejor que DPI. Sin embargo, GAN Leaks Calibrated puntúa los datos de prueba de manera muy distinta a DPI, pues se basa en una diferencia en las distancias relativas de los puntos sintéticos y de referencia más cercanos. En la Tabla 1 mostramos que, para varios modelos, si bien el desempeño de GAN Leaks Calibrated y el de DPI pueden diferir, la correlación de Pearson entre sus puntuaciones es relativamente baja. Esto implica que, aunque estas medidas están correlacionadas, DPI capta su propia definición específica de copia de datos. De hecho, la motivación de este trabajo no es crear un ataque de inferencia de pertenencia de vanguardia (State of the Art) para todas las arquitecturas, sino caracterizar el riesgo único que implica DPI."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6 Discussions",
+        "es": "6 Discusión"
+      },
+      "blocks": [
+        {
+          "id": "s6-h1",
+          "type": "heading",
+          "page": 14,
+          "text": {
+            "en": "6.1 Implications for Privacy and Fairness in Synthetic Data",
+            "es": "6.1 Implicaciones para la privacidad y la equidad en los datos sintéticos"
+          }
+        },
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Data Plagiarism Index provides evidence that popular tabular generative models can exhibit risky data-copying behavior. This includes leaking information and favoring specific subclass outliers in the distribution of the training data. Thus, DPI can be used as a tool to audit and study model behavior. It should be noted however, that while DPI can show synthetic data are not private, it cannot prove the opposite: that particular synthetic data are private. For example, different MIAs may have various levels of success if their method targets different attributes of the synthetic data. This is proved by Table 1 where DPI and GAN Leaks Calibrated predicted scores, while correlated, were not perfectly aligned.",
+            "es": "Data Plagiarism Index aporta evidencia de que los modelos generativos tabulares populares pueden mostrar un comportamiento riesgoso de copia de datos. Esto incluye filtrar información y favorecer valores atípicos de subclases específicas en la distribución de los datos de entrenamiento. Por lo tanto, DPI puede usarse como herramienta para auditar y estudiar el comportamiento de los modelos. Sin embargo, debe notarse que, si bien DPI puede mostrar que unos datos sintéticos no son privados, no puede probar lo contrario: que unos datos sintéticos en particular sí son privados. Por ejemplo, distintos MIA pueden tener diversos niveles de éxito si su método apunta a distintos atributos de los datos sintéticos. Esto lo demuestra la Tabla 1, donde las puntuaciones predichas por DPI y por GAN Leaks Calibrated, aunque correlacionadas, no estaban perfectamente alineadas."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "On top of model auditing, DPI can be connected to Differential Privacy applications [13]. Here, DPI can be used to evaluate the practical lower bound of the privacy parameter ϵ. For example, one approach is to select a pair of neighboring training datasets D1 and D2 and produce corresponding synthetic datasets eD1 and eD2 with a generative model. With DPI, we can then create corresponding data copying score distributions to find a decision rule that, given an unknown synthetic dataset eD, identifies whether its source was D1 or D2. If the decision rule’s true positive rate is α and the false negative rate is β, based on the remark after Theorem 1 in [19], the privacy budget’s lower bound can be expressed as ϵ ≥log max n α 1−β, β 1−α o",
+            "es": "Además de la auditoría de modelos, DPI puede conectarse con aplicaciones de privacidad diferencial (Differential Privacy) [13]. Aquí, DPI puede usarse para evaluar la cota inferior práctica del parámetro de privacidad ϵ. Por ejemplo, un enfoque consiste en seleccionar un par de conjuntos de datos de entrenamiento vecinos D1 y D2 y producir los conjuntos de datos sintéticos correspondientes eD1 y eD2 con un modelo generativo. Con DPI, podemos entonces crear las distribuciones de puntuaciones de copia de datos correspondientes para encontrar una regla de decisión que, dado un conjunto de datos sintéticos desconocido eD, identifique si su fuente fue D1 o D2. Si la tasa de verdaderos positivos de la regla de decisión es α y la tasa de falsos negativos es β, con base en la observación posterior al Teorema 1 en [19], la cota inferior del presupuesto de privacidad puede expresarse como ϵ ≥log max n α 1−β, β 1−α o"
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": ". This approach quantifies the minimum differential privacy level that the generative model upholds.",
+            "es": ". Este enfoque cuantifica el nivel mínimo de privacidad diferencial que el modelo generativo mantiene."
+          }
+        },
+        {
+          "id": "s6-h2",
+          "type": "heading",
+          "page": 14,
+          "text": {
+            "en": "6.2 Methodological Differences in DPI",
+            "es": "6.2 Diferencias metodológicas en DPI"
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "DPI provides a new geometric definition for data-copying in the context of an available reference set and uniquely attacks this attribute relative to other MIAs. In Figure 6, we show a variety of scenarios in which hypothetical test data points are plotted with their closest synthetic and reference set neighbors. We show that under the Distance to Closest Record (DCR) metric and GAN Leaks Calibrated MIA [8] (which in many respects is the MIA version of DCR) understanding of data-copying, certain scenarios would be classified differently where they would label a positive instance of overfitting based on extreme differences in the distances of the nearest synthetic and reference points whereas DPI labels it based off of extreme differences in proportions. Thus, DPI evaluates data-copying in a fundamentally different way than DCR/ GAN Leaks Calibrated and provides additional insight into how the training and synthetic data are distributed.",
+            "es": "DPI aporta una nueva definición geométrica de la copia de datos en el contexto de un conjunto de referencia disponible y ataca este atributo de manera única en relación con otros MIA. En la Figura 6 mostramos una variedad de escenarios en los que se grafican puntos de datos de prueba hipotéticos junto con sus vecinos más cercanos del conjunto sintético y del conjunto de referencia. Mostramos que, bajo la métrica de distancia al registro más cercano (Distance to Closest Record, DCR) y bajo la comprensión de la copia de datos del MIA GAN Leaks Calibrated [8] (que en muchos aspectos es la versión MIA de DCR), ciertos escenarios se clasificarían de manera distinta: estos etiquetarían una instancia positiva de sobreajuste con base en diferencias extremas en las distancias de los puntos sintéticos y de referencia más cercanos, mientras que DPI la etiqueta con base en diferencias extremas en las proporciones. Por lo tanto, DPI evalúa la copia de datos de una manera fundamentalmente distinta a DCR/ GAN Leaks Calibrated y aporta información adicional sobre cómo se distribuyen los datos de entrenamiento y los sintéticos."
+          }
+        },
+        {
+          "id": "s6-h3",
+          "type": "heading",
+          "page": 14,
+          "text": {
+            "en": "6.3 Challenges in Tabular Data Generation",
+            "es": "6.3 Desafíos en la generación de datos tabulares"
+          }
+        },
+        {
+          "id": "s6-p5",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "A key challenge of generative modelling with tabular data is the unstructured, high dimensional, mixed type nature of most datasets [45]. This poses a challenge for newer results on model data-copying and Membership Inference attacks that focus on density estimation. [6] for example proposes a scheme of comparing local densities of training data and synthetic data but does not frame their work from an MIA perspective. Similarly, they provide a proof that their method is not effective on non-smooth distributions that are characteristic in the tabular domain. DOMIAS [41] evaluates overfitting as an MIA by comparing a test point to the probability densities of the synthetic and reference distributions. They propose two options for estimating these densities in using a Gaussian Kernel Density Estimator and a deep learning method called Block Neural Autoregressive Flow (BNAF) [11]. We found however that these methods have difficulty converging with high dimensional, mixed type datasets. Indeed, the highest dimensional tabular dataset that was benchmarked in DO-MIAS was a private healthcare dataset that when one-hot-encoded was 35 columns. Adult when similarly pre-processed is 109 columns. All of our experiments with DOMIAS failed to converge, leaving its results as being the equivalent of random guess. Indeed the authors note a limitation of the work is its reliance on BNAF in that it can take several hours to train. This motivates this paper to consider a computationally easier paradigm of analyzing local neighborhoods around test points.",
+            "es": "Un desafío clave del modelado generativo con datos tabulares es la naturaleza no estructurada, de alta dimensión y de tipos mixtos de la mayoría de los conjuntos de datos [45]. Esto plantea un desafío para los resultados más recientes sobre la copia de datos de los modelos y los ataques de inferencia de pertenencia que se centran en la estimación de densidad. [6], por ejemplo, propone un esquema para comparar las densidades locales de los datos de entrenamiento y de los datos sintéticos, pero no plantea su trabajo desde la perspectiva de un MIA. Asimismo, proporciona una demostración de que su método no es eficaz en distribuciones no suaves, que son características del dominio tabular. DOMIAS [41] evalúa el sobreajuste como un MIA comparando un punto de prueba con las densidades de probabilidad de las distribuciones sintética y de referencia. Proponen dos opciones para estimar estas densidades: un estimador de densidad por núcleo gaussiano (Gaussian Kernel Density Estimator) y un método de aprendizaje profundo llamado Block Neural Autoregressive Flow (BNAF) [11]. Sin embargo, encontramos que estos métodos tienen dificultades para converger con conjuntos de datos de alta dimensión y de tipos mixtos. De hecho, el conjunto de datos tabulares de mayor dimensión evaluado en DO-MIAS fue un conjunto de datos privado de atención médica que, codificado en one-hot, tenía 35 columnas. Adult, preprocesado de manera similar, tiene 109 columnas. Todos nuestros experimentos con DOMIAS no lograron converger, lo que deja sus resultados como el equivalente de una adivinanza aleatoria. De hecho, los autores señalan como limitación de su trabajo su dependencia de BNAF, ya que puede tardar varias horas en entrenarse. Esto motiva a este artículo a considerar un paradigma computacionalmente más sencillo de analizar vecindades locales alrededor de los puntos de prueba."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "title": {
+        "en": "7 Conclusion and Future Work",
+        "es": "7 Conclusión y trabajo futuro"
+      },
+      "blocks": [
+        {
+          "id": "s7-p1",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "In this paper, we propose a novel measure of data-copying and connect it to the Membership Inference Attack literature for tabular generative models. This allows the unique study of how local data-copying contributes to risks in the trustworthiness of these generators. Models that perform well in generating data with high measures of utility tend to copy training data more than models of a lower quality and thus have higher privacy risk profiles. Similarly, we have shown that Tab-DDPM, a highly cited and studied architecture egregiously copies outlier training data of privileged sub-classes in a widely used fairness benchmarking dataset. This indicates that data-copying can effect a variety of concepts, such as fairness, used to evaluate the trustworthiness of generative models.",
+            "es": "En este artículo proponemos una nueva medida de la copia de datos y la conectamos con la literatura sobre ataques de inferencia de pertenencia para modelos generativos tabulares. Esto permite estudiar de manera única cómo la copia local de datos contribuye a los riesgos para la confiabilidad de estos generadores. Los modelos que tienen buen desempeño al generar datos con altas medidas de utilidad tienden a copiar los datos de entrenamiento más que los modelos de menor calidad y, por lo tanto, tienen perfiles de riesgo de privacidad más altos. De manera similar, hemos mostrado que Tab-DDPM, una arquitectura muy citada y estudiada, copia de manera flagrante datos atípicos de entrenamiento de subclases privilegiadas en un conjunto de datos de referencia de equidad ampliamente utilizado. Esto indica que la copia de datos puede afectar diversos conceptos, como la equidad, que se usan para evaluar la confiabilidad de los modelos generativos."
+          }
+        },
+        {
+          "id": "s7-p2",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Data Plagiarism Index motivates a variety of directions for future work. The disparate nature of the data-copying literature necessitates a broader theoretical framework in which to connect data-copying to privacy. Similarly, this work has shown that data-copying can affect different axis’ in which to evaluate the trustworthiness of models. It would be interesting to further explore if it also effects other aspects of Trustworthy AI such as robustness, interpretability, and reliability. Lastly, DPI can be applied to Differential Privacy Auditing where it can be used to evaluate sharper privacy lower bounds.",
+            "es": "Data Plagiarism Index motiva una variedad de direcciones para trabajo futuro. La naturaleza dispar de la literatura sobre copia de datos hace necesario un marco teórico más amplio en el cual conectar la copia de datos con la privacidad. Asimismo, este trabajo ha mostrado que la copia de datos puede afectar distintos ejes con los cuales evaluar la confiabilidad de los modelos. Sería interesante explorar más a fondo si también afecta otros aspectos de la IA confiable (Trustworthy AI), como la robustez, la interpretabilidad y la fiabilidad. Por último, DPI puede aplicarse a la auditoría de privacidad diferencial, donde puede usarse para evaluar cotas inferiores de privacidad más precisas."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[1] Mostly AI. Truly anonymous synthetic data – evolving legal definitions and technologies (part ii). 2020."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[2] Mostly AI. How to implement data privacy? a conversation with klaudius kalcher. 2021."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[3] Ahmed Alaa, Boris Van Breugel, Evgeny S Saveliev, and Mihaela van der Schaar. How faithful is your synthetic data? sample-level metrics for evaluating and auditing generative models. In International Conference on Machine Learning, pages 290–306. PMLR, 2022."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[4] Ankur Ankan and Abinash Panda. pgmpy: Probabilistic graphical models using python. In Proceedings of the Python in Science Conference, SciPy. SciPy, 2015."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[5] Barry Becker and Ronny Kohavi. Adult. UCI Machine Learning Repository, 1996. DOI: https://doi.org/10.24432/C5XW20."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[6] Robi Bhattacharjee, Sanjoy Dasgupta, and Kamalika Chaudhuri. Data-copying in generative models: a formal framework. In International Conference on Machine Learning, pages 2364–2396. PMLR, 2023."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[7] George Casella and Roger Berger. Statistical Inference. Duxbury Resource Center, June 2001."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[8] Dingfan Chen, Ning Yu, Yang Zhang, and Mario Fritz. Gan-leaks: A taxonomy of membership inference attacks against generative models. In Proceedings of the 2020 ACM SIGSAC Conference on Computer and Communications Security, CCS ’20. ACM, October 2020."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[9] Tianqi Chen and Carlos Guestrin. Xgboost: A scalable tree boosting system. In Pro-ceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, KDD ’16, page 785–794, New York, NY, USA, 2016. Association for Computing Machinery."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[10] Yinan Cheng, Chi-Hua Wang, Vamsi K Potluru, Tucker Balch, and Guang Cheng. Downstream task-oriented generative model selections on synthetic data training for fraud detection models. arXiv preprint arXiv:2401.00974, 2024."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[11] Nicola De Cao, Ivan Titov, and Wilker Aziz. Block neural autoregressive flow. 35th Conference on Uncertainty in Artificial Intelligence (UAI19), 2019."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[12] Conor Durkan, Artur Bekasov, Iain Murray, and George Papamakarios. Neural spline flows, 2019."
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[13] Cynthia Dwork, Frank McSherry, Kobbi Nissim, and Adam Smith. Calibrating noise to sensitivity in private data analysis. In Theory of Cryptography: Third Theory of Cryp-tography Conference, TCC 2006, New York, NY, USA, March 4-7, 2006. Proceedings 3, pages 265–284. Springer, 2006."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "[14] Jerome H. Friedman, Jon Louis Bentley, and Raphael Ari Finkel. An algorithm for finding best matches in logarithmic expected time. ACM Transactions on Mathematical Software, 3(3), 7 1976."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[15] Georgi Ganev and Emiliano De Cristofaro. On the inadequacy of similarity-based privacy metrics: Reconstruction attacks against ”truly anonymous synthetic data”, 2023."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[16] Morgan Guillaudeux, Olivia Rousseau, Julien Petot, Zineb Bennis, Charles-Axel Dein, Thomas Goronflot, Matilde Karakachoff, Sophie Limou, Nicolas Vince, Matthieu Wargny, and Pierre-Antoine Gourraud. Patient-centric synthetic data generation, no reason to risk re-identification in the analysis of biomedical pseudonymised data. 05 2022."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[17] Jamie Hayes, Luca Melis, George Danezis, and Emiliano De Cristofaro. Logan: Mem-bership inference attacks against generative models. Proceedings on Privacy Enhancing Technologies, 2019:133 – 152, 2017."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[18] Benjamin Hilprecht, Martin H¨arterich, and Daniel Bernau. Monte carlo and reconstruction membership inference attacks against generative models. Proceedings on Privacy Enhancing Technologies, 2019:232 – 249, 2019."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[19] Florimond Houssiau, James Jordon, Samuel N Cohen, Owen Daniel, Andrew Elliott, James Geddes, Callum Mole, Camila Rangel-Smith, and Lukasz Szpruch. Tapas: a toolbox for adversarial privacy auditing of synthetic data. arXiv preprint arXiv:2211.06550, 2022."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[20] Din-Yin Hsieh, Chi-Hua Wang, and Guang Cheng. Improve fidelity and utility of synthetic credit card transaction time series from data-centric perspective. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[21] International Computer Science Institute and S.M. Omohundro. Five Balltree Con-struction Algorithms. Technical report (International Computer Science Institute). In-ternational Computer Science Institute, 1989."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[22] Jayoung Kim, Chaejeong Lee, and Noseong Park. STasy: Score-based tabular data synthesis. In The Eleventh International Conference on Learning Representations, 2023."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[23] Akim Kotelnikov, Dmitry Baranchuk, Ivan Rubachev, and Artem Babenko. Tabddpm: Modelling tabular data with diffusion models, 2022."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[24] Yuantong Li, Chi-Hua Wang, and Guang Cheng. Online forgetting process for linear regression models. In International Conference on Artificial Intelligence and Statistics, pages 217–225. PMLR, 2021."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[25] Tongyu Liu, Ju Fan, Guoliang Li, Nan Tang, and Xiaoyong Du. Tabular data synthesis with generative adversarial networks: design space and optimizations. The VLDB Journal, 33(2):255–280, aug 2023."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[26] Yucong Liu, Chi-Hua Wang, and Guang Cheng. On the utility recovery incapability of neural net-based differential private tabular training data synthesizer under privacy deregulation. arXiv preprint arXiv:2211.15809, 2022."
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "[27] Pei-Hsuan Lu, Pang-Chieh Wang, and Chia-Mu Yu. Empirical evaluation on synthetic data generation with generative adversarial network. In Proceedings of the 9th Interna-tional Conference on Web Intelligence, Mining and Semantics, WIMS2019, New York, NY, USA, 2019. Association for Computing Machinery."
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[28] Casey Meehan, Kamalika Chaudhuri, and Sanjoy Dasgupta. A three sample hypothesis test for evaluating generative models. In International Conference on Artificial Intelligence and Statistics, pages 3546–3556. PMLR, 2020."
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[29] Matthieu Meeus, Florent Guepin, Ana-Maria Cretu, and Yves-Alexandre de Montjoye. Achilles’ Heels: Vulnerable Record Identification in Synthetic Data Publishing, page 380–399. Springer Nature Switzerland, 2024."
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[30] Ninareh Mehrabi, Fred Morstatter, Nripsuta Saxena, Kristina Lerman, and Aram Gal-styan. A survey on bias and fairness in machine learning, 2022."
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[31] Noseong Park, Mahmoud Mohammadi, Kshitij Gorde, Sushil Jajodia, Hongkyu Park, and Youngmin Kim. Data synthesis based on generative adversarial networks. arXiv preprint arXiv:1806.03384, 2018."
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[32] Noseong Park, Mahmoud Mohammadi, Kshitij Gorde, Sushil Jajodia, Hongkyu Park, and Youngmin Kim. Data synthesis based on generative adversarial networks. Proceed-ings of the VLDB Endowment, 11(10):1071–1083, June 2018."
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[33] Elizabeth S Parker, Larry Cahill, and James L McGaugh. A case of unusual autobiographical remembering. Neurocase, 12(1):35–49, 2006."
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[34] Michael Platzer and Thomas Reutterer. Holdout-based empirical assessment of mixedtype synthetic data. Frontiers in big Data, 4:679939, 2021."
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[35] Zhaozhi Qian, Bogdan-Constantin Cebere, and Mihaela van der Schaar. Synthcity: facilitating innovative use cases of synthetic data in different data modalities, 2023."
+          }
+        },
+        {
+          "id": "refs-36",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[36] Alexandre Sablayrolles, Matthijs Douze, Cordelia Schmid, Yann Ollivier, and Herv´e J´egou. White-box vs black-box: Bayes optimal strategies for membership inference. In International Conference on Machine Learning, pages 5558–5567. PMLR, 2019."
+          }
+        },
+        {
+          "id": "refs-37",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[37] R. Shokri, M. Stronati, C. Song, and V. Shmatikov. Membership inference attacks against machine learning models. In 2017 IEEE Symposium on Security and Privacy (SP), pages 3–18, Los Alamitos, CA, USA, may 2017. IEEE Computer Society."
+          }
+        },
+        {
+          "id": "refs-38",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[38] Aivin V Solatorio and Olivier Dupriez. Realtabformer: Generating realistic relational and tabular data using transformers. arXiv preprint arXiv:2302.02041, 2023."
+          }
+        },
+        {
+          "id": "refs-39",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[39] Namjoon Suh, Xiaofeng Lin, Din-Yin Hsieh, Mehrdad Honarkhah, and Guang Cheng. Autodiff: combining auto-encoder and diffusion model for tabular data synthesizing. In NeurIPS 2023 Workshop on Synthetic Data Generation with Generative AI, 2023."
+          }
+        },
+        {
+          "id": "refs-40",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[40] Lan Tao, Shirong Xu, Chi-Hua Wang, Namjoon Suh, and Guang Cheng. Discriminative estimation of total variation distance: A fidelity auditor for generative data. arXiv preprint arXiv:2405.15337, 2024."
+          }
+        },
+        {
+          "id": "refs-41",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[41] Boris van Breugel, Hao Sun, Zhaozhi Qian, and Mihaela van der Schaar. Membership inference attacks against synthetic data through overfitting detection, 2023."
+          }
+        },
+        {
+          "id": "refs-42",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "[42] Laurens van der Maaten and Geoffrey E. Hinton. Visualizing data using t-sne. Journal of Machine Learning Research, 9:2579–2605, 2008."
+          }
+        },
+        {
+          "id": "refs-43",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "[43] Chi-Hua Wang and Guang Cheng. Badgd: A unified data-centric framework to identify gradient descent vulnerabilities. arXiv preprint arXiv:2405.15979, 2024."
+          }
+        },
+        {
+          "id": "refs-44",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "[44] David S. Watson, Kristin Blesch, Jan Kapar, and Marvin N. Wright. Adversarial random forests for density estimation and generative modeling. In Francisco Ruiz, Jennifer Dy, and Jan-Willem van de Meent, editors, Proceedings of The 26th International Con-ference on Artificial Intelligence and Statistics, volume 206 of Proceedings of Machine Learning Research, pages 5357–5375. PMLR, 25–27 Apr 2023."
+          }
+        },
+        {
+          "id": "refs-45",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "[45] Lei Xu, Maria Skoularidou, Alfredo Cuesta-Infante, and Kalyan Veeramachaneni. Mod-eling tabular data using conditional gan. In Neural Information Processing Systems, 2019."
+          }
+        },
+        {
+          "id": "refs-46",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "[46] Andrew Yale, Saloni Dash, Ritik Dutta, Isabelle Guyon, Adrien Pavao, and Kristin P. Bennett. Assessing privacy and quality of synthetic health data. In Proceedings of the Conference on Artificial Intelligence for Data Discovery and Reuse, AIDR ’19, New York, NY, USA, 2019. Association for Computing Machinery."
+          }
+        },
+        {
+          "id": "refs-47",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "[47] Jinsung Yoon, Lydia N Drumright, and Mihaela Van Der Schaar. Anonymization through data synthesis using generative adversarial networks (ads-gan). IEEE journal of biomedical and health informatics, 24(8):2378–2388, 2020."
+          }
+        },
+        {
+          "id": "refs-48",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "[48] Jinsung Yoon, Lydia N Drumright, and Mihaela van der Schaar. Anonymization through data synthesis using generative adversarial networks (ads-gan). IEEE journal of biomedical and health informatics, 24(8):2378—2388, August 2020."
+          }
+        },
+        {
+          "id": "refs-49",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "[49] Jinsung Yoon, James Jordon, and Mihaela van der Schaar. PATE-GAN: Generating synthetic data with differential privacy guarantees. In International Conference on Learning Representations, 2019."
+          }
+        },
+        {
+          "id": "refs-50",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "[50] Hengrui Zhang, Jiani Zhang, Zhengyuan Shen, Balasubramaniam Srinivasan, Xiao Qin, Christos Faloutsos, Huzefa Rangwala, and George Karypis. Mixed-type tabular data synthesis with score-based diffusion in latent space. In The Twelfth International Con-ference on Learning Representations, 2024."
+          }
+        },
+        {
+          "id": "refs-51",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "[51] Zilong Zhao, Aditya Kunar, Robert Birke, and Lydia Y. Chen. Ctab-gan: Effective table data synthesizing. In Vineeth N. Balasubramanian and Ivor Tsang, editors, Pro-ceedings of The 13th Asian Conference on Machine Learning, volume 157 of Proceedings of Machine Learning Research, pages 97–112. PMLR, 17–19 Nov 2021."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-a",
+      "title": {
+        "en": "A Ablation study",
+        "es": "A Estudio de ablación"
+      },
+      "blocks": [
+        {
+          "id": "app-a-p1",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "DPI requires a practitioner to specify a distance metric and K number of nearest neighbors in order to be deployed. This presents a hyperparameter tuning problem as to what measure of distance should be used and how large the neighbors should be. We replicate the experiment from Section 5.4 but this time with common distance metrics (L1 and L2) as well as a variety of K sizes (5, 10, 20, 30). We plot the means and standard deviations of the corresponding DPI MIA attacks in Figure 7. While the success of the attacks vary with lower sample sizes, each attack follows a clear trend with each, eventually seeing smaller deviations at the maximum sample sizes.",
+            "es": "DPI requiere que quien lo utiliza especifique una métrica de distancia y un número K de vecinos más cercanos para poder desplegarse. Esto plantea un problema de ajuste de hiperparámetros en cuanto a qué medida de distancia debe usarse y qué tan grandes deben ser las vecindades. Replicamos el experimento de la Sección 5.4, pero esta vez con métricas de distancia comunes (L1 y L2), así como una variedad de tamaños de K (5, 10, 20, 30). Graficamos las medias y las desviaciones estándar de los ataques MIA de DPI correspondientes en la Figura 7. Aunque el éxito de los ataques varía con tamaños de muestra menores, cada ataque sigue una tendencia clara y todos terminan mostrando desviaciones menores en los tamaños de muestra máximos."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 20,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7: Ablation Results for Various Distance Measures and K Size Choices.",
+            "es": "Figura 7: Resultados de ablación para diversas medidas de distancia y elecciones del tamaño de K."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-b",
+      "title": {
+        "en": "B Model Descriptions",
+        "es": "B Descripciones de los modelos"
+      },
+      "blocks": [
+        {
+          "id": "app-b-p1",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "In all experiments, we use the implementations of these models from the Python package Synthcity [35]. For benchmarking purposes we use the default hyperparameters for each model. A brief description for each model is as follows:",
+            "es": "En todos los experimentos usamos las implementaciones de estos modelos del paquete de Python Synthcity [35]. Con fines de evaluación comparativa usamos los hiperparámetros predeterminados de cada modelo. A continuación se presenta una breve descripción de cada modelo:"
+          }
+        },
+        {
+          "id": "app-b-p2",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "CTGAN [45]: (Conditional Tabular Generative Adversarial Network) uses a GAN framework with conditional generator and discriminator to capture multi-modal distributions. It uses mode normalization to better learn mixed-type distributions.",
+            "es": "CTGAN [45]: (Conditional Tabular Generative Adversarial Network, red generativa adversaria tabular condicional) usa un marco GAN con generador y discriminador condicionales para capturar distribuciones multimodales. Usa normalización por modos para aprender mejor las distribuciones de tipos mixtos."
+          }
+        },
+        {
+          "id": "app-b-p3",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "TVAE [45]: (Tabular Variational Auto-Encoder) is very similiar to CTGAN in its use of mode normalizing techniques, but rather than using a GAN architecture, instead employees A VAE.",
+            "es": "TVAE [45]: (Tabular Variational Auto-Encoder, autocodificador variacional tabular) es muy similar a CTGAN en su uso de técnicas de normalización por modos, pero en lugar de usar una arquitectura GAN, emplea un VAE."
+          }
+        },
+        {
+          "id": "app-b-p4",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "Normalizing Flows (NFlow) [12]: Normalizing flows transform a simple base distribution (e.g. Gaussian) into a more complex one matching the data by applying a sequence of invertible, differentiable mappings.",
+            "es": "Normalizing Flows (NFlow) [12]: Los flujos normalizadores transforman una distribución base simple (por ejemplo, gaussiana) en una más compleja que coincide con los datos, mediante la aplicación de una secuencia de mapeos invertibles y diferenciables."
+          }
+        },
+        {
+          "id": "app-b-p5",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "Bayesian Network (BN) [4],: Bayesian Networks use a Directed Acyclic Graph to represent the joint probability distribution over variables as a product of marginal and conditional distributions. It then samples the empiric distributions estimated from the training dataset.",
+            "es": "Bayesian Network (BN) [4],: Las redes bayesianas usan un grafo acíclico dirigido para representar la distribución de probabilidad conjunta de las variables como un producto de distribuciones marginales y condicionales. Luego muestrea a partir de las distribuciones empíricas estimadas del conjunto de datos de entrenamiento."
+          }
+        },
+        {
+          "id": "app-b-p6",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "Adversarial Random Forests (ARF) [44]: ARFs extend the random forest model by adding an adversarial stage. Random forests generate synthetic samples which are scored against the real data by a discriminator network. This score is used to re-train the forests iteratively.",
+            "es": "Adversarial Random Forests (ARF) [44]: Los ARF extienden el modelo de bosque aleatorio (random forest) al añadir una etapa adversaria. Los bosques aleatorios generan muestras sintéticas que una red discriminadora puntúa frente a los datos reales. Esta puntuación se usa para reentrenar los bosques de manera iterativa."
+          }
+        },
+        {
+          "id": "app-b-p7",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "Tab-DDPM [23]: Tabular Denoising Diffusion Probabilistic Model adapts the DDPM framework from image synthesis. It iteratively refines random noise into synthetic data by learning the data distribution through gradients of a classifier on partially corrupted samples with gaussian noise.",
+            "es": "Tab-DDPM [23]: Tabular Denoising Diffusion Probabilistic Model adapta el marco DDPM de la síntesis de imágenes. Refina iterativamente ruido aleatorio hasta convertirlo en datos sintéticos, aprendiendo la distribución de los datos mediante los gradientes de un clasificador sobre muestras parcialmente corrompidas con ruido gaussiano."
+          }
+        },
+        {
+          "id": "app-b-p8",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "PATEGAN [49]: The PATEGAN model uses a neural encoder to map discrete tabular data into a continuous latent representation which is sampled from during generation by the GAN discriminator and generator pair.",
+            "es": "PATEGAN [49]: El modelo PATEGAN usa un codificador neuronal para mapear datos tabulares discretos a una representación latente continua, de la cual muestrean el discriminador y el generador de la GAN durante la generación."
+          }
+        },
+        {
+          "id": "app-b-p9",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "Ads-GAN [47]: Ads-GAN uses a GAN architecture for tabular synthesis but also adds an identifiability metric to increase its ability to not mimic training data.",
+            "es": "Ads-GAN [47]: Ads-GAN usa una arquitectura GAN para la síntesis tabular, pero además añade una métrica de identificabilidad para aumentar su capacidad de no imitar los datos de entrenamiento."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-c",
+      "title": {
+        "en": "C Membership Inference Attack Descriptions",
+        "es": "C Descripciones de los ataques de inferencia de pertenencia"
+      },
+      "blocks": [
+        {
+          "id": "app-c-p1",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "A description of each of the Membership Inference Attacks referenced in the paper are as follows:",
+            "es": "A continuación se describe cada uno de los ataques de inferencia de pertenencia (Membership Inference Attacks, MIA) a los que se hace referencia en el artículo:"
+          }
+        },
+        {
+          "id": "app-c-p2",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "LOGAN [17]: LOGAN proposes a variety of MIA strategies. A black box version of their attack involves training a Generative Adversarial Network (GAN) on the synthetic dataset and using the discriminator to score test data. A calibrated version improves upon this by training a binary classifier to distinguish between the synthetic and reference dataset. In this paper we only benchmark the calibrated version.",
+            "es": "LOGAN [17]: LOGAN propone diversas estrategias de MIA. Una versión de caja negra (black box) de su ataque consiste en entrenar una red generativa antagónica (Generative Adversarial Network, GAN) con el conjunto de datos sintético y usar el discriminador para puntuar los datos de prueba. Una versión calibrada mejora esto al entrenar un clasificador binario para distinguir entre el conjunto de datos sintético y el conjunto de datos de referencia. En este artículo solo evaluamos comparativamente la versión calibrada."
+          }
+        },
+        {
+          "id": "app-c-p3",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "GAN Leaks/ GAN Leaks Calibrated [8]: GAN Leaks is a black box attack that scores test data based on a sigmoid score of the distance to the nearest neighbor in the synthetic dataset. GAN Leaks Calibrated improves on this with the inclusion of a reference set in which this distance is subtracted from the distance to the closest record in the reference set.",
+            "es": "GAN Leaks/ GAN Leaks Calibrated [8]: GAN Leaks es un ataque de caja negra que puntúa los datos de prueba con base en una puntuación sigmoide de la distancia al vecino más cercano en el conjunto de datos sintético. GAN Leaks Calibrated mejora esto al incluir un conjunto de referencia, de modo que esta distancia se resta de la distancia al registro más cercano en el conjunto de referencia."
+          }
+        },
+        {
+          "id": "app-c-p4",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "MC [18]: MC is based on counting the amount of observations in the synthetic dataset that fall into the neighborhood of a test point (Monte Carlo Integration). However, they do not consider a reference dataset and the choice of distance for what to consider a neighborhood is a non-trivial hyperparameter to tune.",
+            "es": "MC [18]: MC se basa en contar la cantidad de observaciones del conjunto de datos sintético que caen en la vecindad de un punto de prueba (integración de Monte Carlo). Sin embargo, no considera un conjunto de datos de referencia, y la elección de la distancia que define qué se considera una vecindad es un hiperparámetro no trivial de ajustar."
+          }
+        },
+        {
+          "id": "app-c-p5",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "DOMIAS [41]: DOMIAS is a calibrated attack which scores test data by performing density estimation on the synthetic and reference datasets to then calculate the probability ratio of the test data being from the synthetic vs reference distributions.",
+            "es": "DOMIAS [41]: DOMIAS es un ataque calibrado que puntúa los datos de prueba mediante la estimación de densidad (density estimation) sobre los conjuntos de datos sintético y de referencia, para luego calcular la razón de probabilidad de que los datos de prueba provengan de la distribución sintética frente a la de referencia."
+          }
+        }
+      ]
+    }
+  ]
+}

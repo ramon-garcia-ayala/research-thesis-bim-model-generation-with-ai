@@ -44,7 +44,7 @@ function readBody(req) {
 
 // ---- The reading state: reading/<node-id>.json, or reading/_across.json for the across-papers chat ----
 
-const READER_FIELDS = ['position', 'lang', 'voice', 'rate', 'underlines']
+const READER_FIELDS = ['position', 'reached', 'lang', 'voice', 'rate', 'underlines']
 
 /** The id of a prepared paper or `_across`; anything else is not found. */
 export function readingId(root, id) {

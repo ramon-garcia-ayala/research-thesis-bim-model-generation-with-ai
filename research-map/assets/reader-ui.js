@@ -7,7 +7,7 @@
 import { mountChat } from './chat-ui.js'
 import { citedNumbers, referencesOf } from './citations.js'
 import { blocksOf, paraLabel, textOf } from './paper.js'
-import { addUnderline, emptyReading, removeUnderline, segments } from './reading.js'
+import { addUnderline, emptyReading, furthestBlock, progressOf, removeUnderline, segments } from './reading.js'
 import { buildQueue, createSpeaker } from './speech.js'
 
 export const MODE_KEY = 'research-map-reader-mode'
@@ -250,7 +250,12 @@ export function mountReader(
   /** Keeps the reading on the server (the client waits for a pause before writing). */
   const persist = (change = {}) => {
     if (!live || !now || !reading) return
+    // The furthest block reached only moves forward, so going back to re-read does not take progress away.
+    const before = progressOf(now.paper, reading)
+    if (change.position) change = { ...change, reached: furthestBlock(now.paper, reading.reached ?? reading.position?.block ?? null, change.position.block) }
     reading = { ...reading, ...change }
+    const pct = progressOf(now.paper, reading)
+    if (pct !== before) el.dispatchEvent(new CustomEvent('reader-progress', { bubbles: true, detail: { node: now.nodeId, pct } }))
     // Only what the page owns: the chats are the server's to write.
     const { chats, ...own } = reading
     live.save(now.nodeId, own)
@@ -266,6 +271,9 @@ export function mountReader(
     <header class="reader__bar">
       <button type="button" class="reader__contents">☰</button>
       <span class="reader__title"></span>
+      <span class="reader__progress progress" data-progress role="progressbar" aria-label="Reading progress" hidden>
+        <span class="progress__track"><span></span></span><em data-pct></em>
+      </span>
       <span class="reader__langs" role="group">
         <button type="button" class="reader__lang" data-lang="en">EN</button>
         <button type="button" class="reader__lang" data-lang="es">ES</button>
@@ -587,6 +595,7 @@ export function mountReader(
       el.hidden = false
       onShow()
       $('.reader__mark').dataset.mark = nodeId
+      $('.reader__progress').dataset.progress = paper ? nodeId : ''
       onPaper(nodeId)
       if (!paper) {
         now = null

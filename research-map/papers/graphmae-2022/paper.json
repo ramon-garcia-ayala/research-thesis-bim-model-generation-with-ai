@@ -1,0 +1,1759 @@
+{
+  "version": 1,
+  "node": "graphmae-2022",
+  "title": "Zhenyu Hou Xiao Liu Yukuo Cen Yuxiao Dong∗ Hongxia Yang Chunjie Wang Jie Tang∗",
+  "source": "files/GraphMAE Self-Supervised Masked Graph Autoencoders.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "ABSTRACT",
+        "es": "RESUMEN"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Self-supervised learning (SSL) has been extensively explored in recent years. Particularly, generative SSL has seen emerging success in natural language processing and other AI fields, such as the wide adoption of BERT and GPT. Despite this, contrastive learning— which heavily relies on structural data augmentation and complicated training strategies—has been the dominant approach in graph SSL, while the progress of generative SSL on graphs, especially graph autoencoders (GAEs), has thus far not reached the potential as promised in other fields. In this paper, we identify and examine the issues that negatively impact the development of GAEs, including their reconstruction objective, training robustness, and error metric. We present a masked graph autoencoder GraphMAE1 that mitigates these issues for generative self-supervised graph pretraining. Instead of reconstructing graph structures, we propose to focus on feature reconstruction with both a masking strategy and scaled cosine error that benefit the robust training of Graph-MAE. We conduct extensive experiments on 21 public datasets for three different graph learning tasks. The results manifest that GraphMAE—a simple graph autoencoder with careful designs—can consistently generate outperformance over both contrastive and generative state-of-the-art baselines. This study provides an understanding of graph autoencoders and demonstrates the potential of generative self-supervised pre-training on graphs.",
+            "es": "El aprendizaje autosupervisado (self-supervised learning, SSL) se ha explorado ampliamente en los últimos años. En particular, el SSL generativo (generative SSL) ha tenido un éxito creciente en el procesamiento del lenguaje natural y otros campos de la IA, como lo muestra la amplia adopción de BERT y GPT. A pesar de esto, el aprendizaje contrastivo (contrastive learning), que depende en gran medida de la aumentación de datos estructurales y de estrategias de entrenamiento complicadas, ha sido el enfoque dominante en el SSL sobre grafos, mientras que el progreso del SSL generativo sobre grafos, especialmente los autoencoders de grafos (graph autoencoders, GAEs), hasta ahora no ha alcanzado el potencial prometido en otros campos. En este artículo identificamos y examinamos los problemas que afectan negativamente el desarrollo de los GAEs, incluidos su objetivo de reconstrucción, la robustez del entrenamiento y la métrica de error. Presentamos un autoencoder de grafos enmascarado (masked graph autoencoder) GraphMAE1 que mitiga estos problemas para el preentrenamiento generativo autosupervisado de grafos. En lugar de reconstruir estructuras de grafos, proponemos centrarnos en la reconstrucción de características con una estrategia de enmascaramiento y un error coseno escalado (scaled cosine error) que benefician el entrenamiento robusto de Graph-MAE. Realizamos experimentos extensos en 21 conjuntos de datos públicos para tres tareas distintas de aprendizaje sobre grafos. Los resultados muestran que GraphMAE, un autoencoder de grafos simple con diseños cuidadosos, puede generar de manera consistente un mejor desempeño que las líneas base de vanguardia tanto contrastivas como generativas. Este estudio ofrece una comprensión de los autoencoders de grafos y demuestra el potencial del preentrenamiento generativo autosupervisado sobre grafos."
+          }
+        },
+        {
+          "id": "s0-h1",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "CCS CONCEPTS",
+            "es": "CONCEPTOS CCS"
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "• Computing methodologies →Learning latent representations; • Information systems →Data mining.",
+            "es": "• Metodologías computacionales →Aprendizaje de representaciones latentes (Learning latent representations); • Sistemas de información →Minería de datos (Data mining)."
+          }
+        },
+        {
+          "id": "s0-h2",
+          "type": "heading",
+          "page": 1,
+          "text": {
+            "en": "KEYWORDS",
+            "es": "PALABRAS CLAVE"
+          }
+        },
+        {
+          "id": "s0-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Graph Neural Networks; Self-Supervised Learning; Graph Repre-sentation Learning; Pre-Training",
+            "es": "Redes neuronales de grafos (Graph Neural Networks); aprendizaje autosupervisado (Self-Supervised Learning); aprendizaje de representaciones de grafos (Graph Representation Learning); preentrenamiento (Pre-Training)"
+          }
+        },
+        {
+          "id": "s0-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "∗Yuxiao Dong and Jie Tang are the corresponding authors. 1The code is publicly available at https://github.com/THUDM/GraphMAE.",
+            "es": "∗Yuxiao Dong y Jie Tang son los autores de correspondencia. 1El código está disponible públicamente en https://github.com/THUDM/GraphMAE."
+          }
+        },
+        {
+          "id": "s0-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "This work is licensed under a Creative Commons Attribution International 4.0 License.",
+            "es": "Este trabajo está bajo una licencia Creative Commons Attribution International 4.0."
+          }
+        },
+        {
+          "id": "s0-p6",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "KDD ’22, August 14–18, 2022, Washington, DC, USA © 2022 Copyright held by the owner/author(s). ACM ISBN 978-1-4503-9385-0/22/08. https://doi.org/10.1145/3534678.3539321",
+            "es": "KDD ’22, August 14–18, 2022, Washington, DC, USA © 2022 Copyright held by the owner/author(s). ACM ISBN 978-1-4503-9385-0/22/08. https://doi.org/10.1145/3534678.3539321"
+          }
+        },
+        {
+          "id": "s0-p7",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "ACM Reference Format: Zhenyu Hou, Xiao Liu, Yukuo Cen, Yuxiao Dong, Hongxia Yang, Chunjie Wang, and Jie Tang. 2022. GraphMAE: Self-Supervised Masked Graph Au-toencoders. In Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD ’22), August 14–18, 2022, Washington, DC, USA. ACM, New York, NY, USA, 11 pages. https://doi.org/10.1145/3534678. 3539321",
+            "es": "Formato de referencia ACM: Zhenyu Hou, Xiao Liu, Yukuo Cen, Yuxiao Dong, Hongxia Yang, Chunjie Wang, and Jie Tang. 2022. GraphMAE: Self-Supervised Masked Graph Autoencoders. In Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD ’22), August 14–18, 2022, Washington, DC, USA. ACM, New York, NY, USA, 11 pages. https://doi.org/10.1145/3534678. 3539321"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 INTRODUCTION",
+        "es": "1 INTRODUCCIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Self-supervised learning (SSL), which can be generally categorized into generative and contrastive methods [23], has found widespread adoption in computer vision (CV) and natural language processing (NLP). While contrastive SSL methods have experienced an emergence in the past two years, such as MoCo [13], generative SSL has been gaining steadily increasing significance thanks to several groundbreaking practices, such as the well-established BERT [4] and GPT [30] in NLP as well as the very recent MAE [12] in CV.",
+            "es": "El aprendizaje autosupervisado (SSL), que en general puede clasificarse en métodos generativos y contrastivos [23], ha sido ampliamente adoptado en la visión por computadora (computer vision, CV) y el procesamiento del lenguaje natural (natural language processing, NLP). Mientras que los métodos de SSL contrastivo han tenido un auge en los últimos dos años, como MoCo [13], el SSL generativo ha ido ganando una importancia cada vez mayor gracias a varias prácticas innovadoras, como los consolidados BERT [4] y GPT [30] en NLP, así como el muy reciente MAE [12] en CV."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "However, in the context of graph learning, contrastive SSL has been the dominant approach, especially for two important tasks— node and graph classifications [11, 29, 40]. Its success has been largely built upon relatively complicated training strategies. For example, the bi-encoders with momentum updates and exponential moving average are usually indispensable to stabilize the training of GCC [29] and BGRL [37]. Additionally, negative samples are necessary for most contrastive objectives, often requiring arduous labor to sample or construct from graphs, e.g., GRACE [60], GCA [61], and DGI [40]. Finally, its heavy reliance on high-quality data augmentation proves to be the pain point of contrastive SSL, e.g., CCA-SSG [57], as graph augmentation is mostly based on heuristics whose effectiveness varies drastically from graph to graph.",
+            "es": "Sin embargo, en el contexto del aprendizaje sobre grafos, el SSL contrastivo ha sido el enfoque dominante, especialmente para dos tareas importantes: la clasificación de nodos y la clasificación de grafos [11, 29, 40]. Su éxito se ha construido en gran medida sobre estrategias de entrenamiento relativamente complicadas. Por ejemplo, los bi-encoders con actualizaciones de momento (momentum updates) y media móvil exponencial (exponential moving average) suelen ser indispensables para estabilizar el entrenamiento de GCC [29] y BGRL [37]. Además, la mayoría de los objetivos contrastivos requieren muestras negativas (negative samples), lo que a menudo exige un trabajo arduo para muestrearlas o construirlas a partir de los grafos, por ejemplo en GRACE [60], GCA [61] y DGI [40]. Por último, su fuerte dependencia de una aumentación de datos (data augmentation) de alta calidad resulta ser el punto débil del SSL contrastivo, por ejemplo en CCA-SSG [57], pues la aumentación de grafos se basa sobre todo en heurísticas cuya efectividad varía drásticamente de un grafo a otro."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Self-supervised graph autoencoders (GAEs) can naturally avoid the aforementioned issues in contrastive methods, as its learning objective is to directly reconstruct the input graph data [6, 20]. Take VGAE for example, it [20] targets at predicting missing edges. EP [6] instead proposes to recover vertex features. GPT-GNN [17] proposes an autoregressive framework to perform node and edge reconstruction iteratively. Later GAEs, including ARVGA [26], MGAE [42], GALA [27], GATE [31], and AGE [3], majorly focus on the objectives of link prediction and graph clustering.",
+            "es": "Los autoencoders de grafos autosupervisados (GAEs) pueden evitar de manera natural los problemas mencionados de los métodos contrastivos, ya que su objetivo de aprendizaje es reconstruir directamente los datos del grafo de entrada [6, 20]. Por ejemplo, VGAE [20] tiene como meta predecir las aristas faltantes. EP [6], en cambio, propone recuperar las características de los vértices. GPT-GNN [17] propone un marco autorregresivo (autoregressive) para realizar de forma iterativa la reconstrucción de nodos y aristas. Los GAEs posteriores, incluidos ARVGA [26], MGAE [42], GALA [27], GATE [31] y AGE [3], se centran principalmente en los objetivos de predicción de enlaces y agrupamiento de grafos."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Dilemmas. Despite their simple forms and various recent attempts on them [3, 16, 18, 27, 31, 55], the development of self-supervised GAEs has been thus far lagged behind contrastive learning. To date, there have been no GAEs succeeding to achieve a comprehensive outperformance over contrastive SSL methods, especially on node and graph classifications, which have been significantly advanced by neural encoders, e.g., graph neural networks. To bridge the gap, we analyze existing GAEs and identify the issues that may negatively affect the progress of GAEs. Note that though previous GAEs may have individually tackled one or two of these issues below, none of them collectively deals with the four challenges.",
+            "es": "Dilemas. A pesar de sus formas simples y de los diversos intentos recientes con ellos [3, 16, 18, 27, 31, 55], el desarrollo de los GAEs autosupervisados ha quedado hasta ahora rezagado respecto del aprendizaje contrastivo. Hasta la fecha, ningún GAE ha logrado un desempeño superior integral frente a los métodos de SSL contrastivo, especialmente en la clasificación de nodos y de grafos, que han avanzado significativamente gracias a los codificadores neuronales (neural encoders), por ejemplo las redes neuronales de grafos. Para cerrar esta brecha, analizamos los GAEs existentes e identificamos los problemas que pueden afectar negativamente su progreso. Cabe señalar que, aunque los GAEs anteriores pueden haber abordado individualmente uno o dos de los problemas siguientes, ninguno trata de forma conjunta los cuatro desafíos."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 2,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1: Comparison between generative SSL methods and the effect of GraphMAE design. AE: autoencoder methods; No Struct.: no structure reconstruction objective; Mask Feat.: use masking to corrupt input features; GNN Decoder: use GNN as the decoder; Re-mask Dec.: re-mask encoder output before fed into decoder; Space: run-time memory consumption; MSE: Mean Squared Error; SCE: Scaled Cosine Error; CE: Cross-Entropy Error; SCE represents our proposed Scaled Cosine Error. (a) Technical comparison between generative SSL methods. (b) The effect of GraphMAE designs on the performance on Cora dataset.",
+            "es": "Figura 1: Comparación entre los métodos de SSL generativo y el efecto del diseño de GraphMAE. AE: métodos de autoencoder; No Struct.: sin objetivo de reconstrucción de estructura; Mask Feat.: uso de enmascaramiento para corromper las características de entrada; GNN Decoder: uso de una GNN como decodificador; Re-mask Dec.: re-enmascarar la salida del codificador antes de pasarla al decodificador; Space: consumo de memoria en tiempo de ejecución; MSE: error cuadrático medio (Mean Squared Error); SCE: error coseno escalado (Scaled Cosine Error); CE: error de entropía cruzada (Cross-Entropy Error); SCE representa nuestro error coseno escalado propuesto. (a) Comparación técnica entre los métodos de SSL generativo. (b) El efecto de los diseños de GraphMAE sobre el desempeño en el conjunto de datos Cora."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "First, the structure information may be over-emphasized. Most GAEs leverage link reconstruction as the objective to encourage the topological closeness between neighbors [3, 17, 20, 26, 31, 42]. Thus, prior GAEs are usually good at link prediction and node clustering, but unsatisfactory on node and graph classifications.",
+            "es": "Primero, la información estructural puede estar sobreenfatizada. La mayoría de los GAEs utilizan la reconstrucción de enlaces como objetivo para fomentar la cercanía topológica entre vecinos [3, 17, 20, 26, 31, 42]. Por ello, los GAEs previos suelen ser buenos en la predicción de enlaces y el agrupamiento de nodos, pero poco satisfactorios en la clasificación de nodos y de grafos."
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Second, feature reconstruction without corruption may not be robust. For GAEs [3, 20, 26, 27, 31] that leverage feature reconstruction, most of them still employ the vanilla architecture that risks learning trivial solutions. However, the denoising autoencoders [41] that corrupt input and then attempt to recover it have been widely adopted in NLP [4], which might be applicable to graphs as well.",
+            "es": "Segundo, la reconstrucción de características sin corrupción puede no ser robusta. En los GAEs [3, 20, 26, 27, 31] que utilizan la reconstrucción de características, la mayoría sigue empleando la arquitectura convencional (vanilla), que corre el riesgo de aprender soluciones triviales. Sin embargo, los autoencoders con eliminación de ruido (denoising autoencoders) [41], que corrompen la entrada y luego intentan recuperarla, se han adoptado ampliamente en NLP [4], y podrían ser aplicables también a los grafos."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Third, the mean square error (MSE) can be sensitive and unstable. To the best of our knowledge, all existing GAEs with feature reconstruction [17, 18, 27, 31, 42] have adopted MSE as the criterion without additional precautions. However, MSE is known to suffer from varied feature vector norms and the curse of dimensionality [5] and thus can cause the collapse of training for autoencoders.",
+            "es": "Tercero, el error cuadrático medio (MSE) puede ser sensible e inestable. Hasta donde sabemos, todos los GAEs existentes con reconstrucción de características [17, 18, 27, 31, 42] han adoptado el MSE como criterio sin precauciones adicionales. Sin embargo, se sabe que el MSE sufre por la variación en las normas de los vectores de características y por la maldición de la dimensionalidad (curse of dimensionality) [5], y por ello puede causar el colapso del entrenamiento de los autoencoders."
+          }
+        },
+        {
+          "id": "s1-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Fourth, the decoder architectures are of little expressiveness. Most GAEs [3, 16–18, 20, 26, 42] leverage MLP as their decoders. However, the targets in language are one-hot vectors containing rich semantics, while in graphs, most of our targets are less informative feature vectors (except for some discrete attributes such as those in chemical graphs). In this case, this trivial decoder (MLP) may not be strong enough to bridge the gap between encoder representations and decoder targets for graph features.",
+            "es": "Cuarto, las arquitecturas de los decodificadores tienen poca expresividad. La mayoría de los GAEs [3, 16–18, 20, 26, 42] utilizan un MLP como decodificador. Sin embargo, los objetivos en el lenguaje son vectores one-hot que contienen una semántica rica, mientras que en los grafos la mayoría de nuestros objetivos son vectores de características menos informativos (salvo algunos atributos discretos, como los de los grafos químicos). En este caso, este decodificador trivial (MLP) puede no ser lo bastante potente para cerrar la brecha entre las representaciones del codificador y los objetivos del decodificador para las características de los grafos."
+          }
+        },
+        {
+          "id": "s1-p9",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Contributions. In light of the above observations, the goal of this work is to examine to what extent we can 1) mitigate the issues faced by existing GAEs and 2) further enable GAEs to match or outperform contrastive graph learning techniques. To this end, we present a masked graph autoencoder GraphMAE for self-supervised graph representation learning. By identifying the critical components in GAEs, we add new designs and also improve existing strategies for GraphMAE, unleashing the power of autoencoders for graph learning. Figure 1a summarizes the different design choices between GAEs and GraphMAE. Specifically, the performance of GraphMAE largely benefits from the following critical designs (See Figure 1b for their contributions to performance improvements):",
+            "es": "Contribuciones. A la luz de las observaciones anteriores, el objetivo de este trabajo es examinar hasta qué punto podemos 1) mitigar los problemas que enfrentan los GAEs existentes y 2) permitir además que los GAEs igualen o superen las técnicas de aprendizaje contrastivo sobre grafos. Con este fin, presentamos un autoencoder de grafos enmascarado, GraphMAE, para el aprendizaje autosupervisado de representaciones de grafos. Al identificar los componentes críticos de los GAEs, añadimos nuevos diseños y también mejoramos estrategias existentes en GraphMAE, liberando el poder de los autoencoders para el aprendizaje sobre grafos. La Figura 1a resume las diferentes decisiones de diseño entre los GAEs y GraphMAE. En concreto, el desempeño de GraphMAE se beneficia en gran medida de los siguientes diseños críticos (véase la Figura 1b para sus contribuciones a las mejoras de desempeño):"
+          }
+        },
+        {
+          "id": "s1-p10",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Masked feature reconstruction. Different from most GAEs’ efforts in structure reconstruction, GraphMAE only focuses on reconstructing features with masking, whose effectiveness has been extensively verified in CV [12] and NLP [4, 30]. Our empirical studies suggest that with a proper error design, masked feature reconstruction can substantially benefit GAEs.",
+            "es": "Reconstrucción enmascarada de características (Masked feature reconstruction). A diferencia del esfuerzo de la mayoría de los GAEs en la reconstrucción de estructura, GraphMAE se centra únicamente en reconstruir características con enmascaramiento, cuya efectividad se ha verificado ampliamente en CV [12] y NLP [4, 30]. Nuestros estudios empíricos sugieren que, con un diseño de error adecuado, la reconstrucción enmascarada de características puede beneficiar sustancialmente a los GAEs."
+          }
+        },
+        {
+          "id": "s1-p11",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Scaled cosine error. Instead of using MSE as existing GAEs, GraphMAE employs the cosine error, which is beneficial when feature vectors vary in their magnitudes (as is often the case for node attributes in graphs). On top of it, we further introduce a scaled cosine error to tackle the issue of imbalance between easy and hard samples during reconstruction.",
+            "es": "Error coseno escalado (Scaled cosine error). En lugar de usar el MSE como los GAEs existentes, GraphMAE emplea el error coseno, que resulta beneficioso cuando los vectores de características varían en su magnitud (como suele ocurrir con los atributos de los nodos en los grafos). Además, introducimos un error coseno escalado para abordar el desequilibrio entre muestras fáciles y difíciles durante la reconstrucción."
+          }
+        },
+        {
+          "id": "s1-p12",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Re-mask decoding. We leverage a re-mask decoding strategy that re-masks the encoder’s output embeddings of masked nodes before they are fed into the decoder. In addition, GraphMAE proposes to leverage more expressive graph neural nets (GNNs) as its decoder in contrast to previous GAEs’ common usage of MLP.",
+            "es": "Decodificación con re-enmascaramiento (Re-mask decoding). Utilizamos una estrategia de decodificación con re-enmascaramiento que vuelve a enmascarar los embeddings de salida del codificador correspondientes a los nodos enmascarados antes de pasarlos al decodificador. Además, GraphMAE propone emplear como decodificador redes neuronales de grafos (GNNs) más expresivas, en contraste con el uso común de MLP en los GAEs anteriores."
+          }
+        },
+        {
+          "id": "s1-p13",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Overall, GraphMAE is a simple generative self-supervised method for graphs without additional cost. We conduct extensive experiments on 21 datasets for three different graph learning tasks, including node classification, graph classification, and transfer learning. The results suggest that equipped with the simple designs above, GraphMAE can generate performance advantages over state-of-the-art contrastive SSL approaches across three tasks.",
+            "es": "En conjunto, GraphMAE es un método generativo autosupervisado simple para grafos, sin costo adicional. Realizamos experimentos extensos en 21 conjuntos de datos para tres tareas distintas de aprendizaje sobre grafos: clasificación de nodos, clasificación de grafos y aprendizaje por transferencia (transfer learning). Los resultados sugieren que, equipado con los diseños simples anteriores, GraphMAE puede generar ventajas de desempeño sobre los enfoques de SSL contrastivo de vanguardia en las tres tareas."
+          }
+        },
+        {
+          "id": "s1-p14",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Moreover, in many cases, GraphMAE can match or sometimes outperform supervised baselines, further demonstrating the potential of self-supervised graph learning, particularly generative methods.",
+            "es": "Además, en muchos casos GraphMAE puede igualar o incluso superar en ocasiones a las líneas base supervisadas, lo que demuestra aún más el potencial del aprendizaje autosupervisado sobre grafos, en particular de los métodos generativos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 RELATED WORK",
+        "es": "2 TRABAJO RELACIONADO"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "According to model architectures and objective designs, selfsupervised methods on graphs can be naturally divided into contrastive and generative domains.",
+            "es": "Según las arquitecturas de los modelos y el diseño de los objetivos, los métodos autosupervisados sobre grafos pueden dividirse de forma natural en los dominios contrastivo y generativo."
+          }
+        },
+        {
+          "id": "s2-h1",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "2.1 Contrastive Self-Supervised Graph",
+            "es": "2.1 Aprendizaje contrastivo autosupervisado"
+          }
+        },
+        {
+          "id": "s2-h2",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "Learning",
+            "es": "sobre grafos"
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Contrastive self-supervised learning , which encourages alignment between label-invariant distributions and uniformity across other distributions, has been the prevalent paradigm for graph representation learning in the last two years. Its success relies heavily on the elaborate designs of the following components:",
+            "es": "El aprendizaje contrastivo autosupervisado, que fomenta la alineación entre distribuciones invariantes a la etiqueta y la uniformidad entre las demás distribuciones, ha sido el paradigma predominante para el aprendizaje de representaciones de grafos en los últimos dos años. Su éxito depende en gran medida de los diseños elaborados de los siguientes componentes:"
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Negative sampling. In pursuit of uniformity, negative sampling is a must for most contrastive methods. Mutual information based DGI [40] and InfoGraph [34] leverage corruptions to construct negative pairs. GCC [29] follows the MoCo-style [13] negative queues. GRACE [60], GCA [61] and GraphCL [54] use in-batch negatives. Despite recent attempts for negative-sample-free contrastive learning, strong regularization from architecture designs (e.g., BGRL [37]) or in-batch feature decorrelation (e.g. CCA-SSG [57]) is necessary in their practice.",
+            "es": "Muestreo negativo (Negative sampling). En busca de la uniformidad, el muestreo negativo es indispensable para la mayoría de los métodos contrastivos. DGI [40] e InfoGraph [34], basados en información mutua, utilizan corrupciones para construir pares negativos. GCC [29] sigue las colas negativas al estilo de MoCo [13]. GRACE [60], GCA [61] y GraphCL [54] usan negativos dentro del lote (in-batch negatives). A pesar de los intentos recientes de aprendizaje contrastivo sin muestras negativas, en su práctica es necesaria una fuerte regularización proveniente de los diseños de arquitectura (p. ej., BGRL [37]) o de la decorrelación de características dentro del lote (p. ej., CCA-SSG [57])."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Architectures. Contrastive methods can be unstable in early-stage training, and thus architecture constraints are important to tackle the challenge. Asymmetric bi-encoder designs including momentum update [29], EMA, and Stop-gradient [37] are widely adopted.",
+            "es": "Arquitecturas. Los métodos contrastivos pueden ser inestables en las primeras etapas del entrenamiento, por lo que las restricciones de arquitectura son importantes para afrontar este desafío. Se adoptan ampliamente los diseños asimétricos de bi-encoder, que incluyen la actualización de momento [29], la EMA y el Stop-gradient [37]."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Data augmentation. High-quality and informative data augmentation plays a central role in the success of contrastive learning, including feature-oriented (partial masking [16, 18, 37, 54, 60], shuffling [40]), proximity-oriented (diffusion [11, 19], perturbation [17, 54, 56]), and graph-sampling-based (random-walk [11, 29, 54], uniform [56], ego-network [33]) augmentations.",
+            "es": "Aumentación de datos. Una aumentación de datos informativa y de alta calidad desempeña un papel central en el éxito del aprendizaje contrastivo; incluye aumentaciones orientadas a características (enmascaramiento parcial [16, 18, 37, 54, 60], barajado [40]), orientadas a la proximidad (difusión [11, 19], perturbación [17, 54, 56]) y basadas en muestreo de grafos (caminata aleatoria [11, 29, 54], uniforme [56], red egocéntrica [33])."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "However, while augmentation in CV is usually human comprehensible, it is difficult to interpret in graphs. Without a theoretical understanding of handcrafted graph augmentation strategies, it remains unverified whether they are label-invariant and optimal.",
+            "es": "Sin embargo, mientras que la aumentación en CV suele ser comprensible para los humanos, en los grafos es difícil de interpretar. Sin una comprensión teórica de las estrategias de aumentación de grafos diseñadas a mano, sigue sin verificarse si son invariantes a la etiqueta y óptimas."
+          }
+        },
+        {
+          "id": "s2-h3",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "2.2 Generative Self-Supervised Graph Learning",
+            "es": "2.2 Aprendizaje generativo autosupervisado sobre grafos"
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Generative self-supervised learning aims to recover missing parts of the input data. It can be further classified into autoregressive and autoencoding two families. In previous literature, generative methods’ performance on graph representation learning falls behind contrastive methods by a large margin.",
+            "es": "El aprendizaje generativo autosupervisado busca recuperar las partes faltantes de los datos de entrada. Puede clasificarse además en dos familias: autorregresiva y de autocodificación. En la literatura previa, el desempeño de los métodos generativos en el aprendizaje de representaciones de grafos queda muy por detrás del de los métodos contrastivos."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Graph autoregressive models. Autoregressive models decompose joint probability distributions as a product of conditionals. In supervised graph generation, previous researchers have proposed GraphRNN [52], GCPN [51]. For graph representation learning, GPT-GNN [17] is a recent attempt to leverage graph generation as the training objective. However, since most graphs do not present inherent orders, autoregressive methods make little sense on them.",
+            "es": "Modelos autorregresivos de grafos. Los modelos autorregresivos descomponen las distribuciones de probabilidad conjuntas como un producto de condicionales. En la generación supervisada de grafos, investigadores previos han propuesto GraphRNN [52] y GCPN [51]. Para el aprendizaje de representaciones de grafos, GPT-GNN [17] es un intento reciente de utilizar la generación de grafos como objetivo de entrenamiento. Sin embargo, como la mayoría de los grafos no presentan órdenes inherentes, los métodos autorregresivos tienen poco sentido en ellos."
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Graph autoencoders (GAEs). Autoencoders [14] are designed to reconstruct certain inputs given the contexts and do not enforce any decoding orders as autoregressive methods do. The earliest works trace back to GAE and VGAE [20] which take 2-layer GCN as encoder and dot-product for link prediction decoding. EP [6] proposes to recover vertex features using mean squared error without input corruption. Later GAEs mostly adopt the structural reconstruction (e.g., ARVGA [26]) following VGAE, or a combination of structural and feature reconstruction (e.g., MGAE [42], GALA [27] and GATE [31]) as their objectives. And NWR-GAE [36] jointly predicts the node degree and neighbor feature distribution.",
+            "es": "Autoencoders de grafos (GAEs). Los autoencoders [14] están diseñados para reconstruir ciertas entradas dados los contextos y no imponen ningún orden de decodificación, como sí lo hacen los métodos autorregresivos. Los trabajos más tempranos se remontan a GAE y VGAE [20], que toman una GCN de 2 capas como codificador y el producto punto para la decodificación en la predicción de enlaces. EP [6] propone recuperar las características de los vértices usando el error cuadrático medio sin corrupción de la entrada. Los GAEs posteriores adoptan en su mayoría la reconstrucción estructural (p. ej., ARVGA [26]) siguiendo a VGAE, o una combinación de reconstrucción estructural y de características (p. ej., MGAE [42], GALA [27] y GATE [31]) como objetivos. Y NWR-GAE [36] predice conjuntamente el grado del nodo y la distribución de características de los vecinos."
+          }
+        },
+        {
+          "id": "s2-p10",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Regardless of the successful applications in link prediction and graph clustering, due to existing GAEs’ reconstruction of structure or/and features without masking, their results on node/graph classification benchmarks are usually unsatisfactory. Therefore, our goal in this work is to identify the weaknesses of existing GAE designs and rejuvenate the idea of self-supervised GAEs on graph representation learning for classification.",
+            "es": "Independientemente de las aplicaciones exitosas en la predicción de enlaces y el agrupamiento de grafos, debido a que los GAEs existentes reconstruyen la estructura o/y las características sin enmascaramiento, sus resultados en los benchmarks de clasificación de nodos/grafos suelen ser insatisfactorios. Por lo tanto, nuestro objetivo en este trabajo es identificar las debilidades de los diseños de GAE existentes y revitalizar la idea de los GAEs autosupervisados en el aprendizaje de representaciones de grafos para clasificación."
+          }
+        },
+        {
+          "id": "s2-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "GraphMAE v.s. Attribute-Masking. Recently, some works [18, 24, 55, 59] have been dedicated to surveying a wide range of many self-supervision objectives’ effectiveness on GNNs, including masked feature reconstruction (namely Attribute-Masking). How-ever, their performance lags far behind state-of-the-art contrastive methods because other critical defects of existing GAEs are not handled. We present a rough comparison of algorithms and results between GraphMAE and them in Appendix A.",
+            "es": "GraphMAE frente a Attribute-Masking. Recientemente, algunos trabajos [18, 24, 55, 59] se han dedicado a revisar la efectividad de una amplia gama de objetivos de autosupervisión en las GNNs, incluida la reconstrucción enmascarada de características (a saber, Attribute-Masking). Sin embargo, su desempeño queda muy por detrás de los métodos contrastivos de vanguardia porque no se resuelven otros defectos críticos de los GAEs existentes. Presentamos una comparación general de algoritmos y resultados entre GraphMAE y ellos en el Apéndice A."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 THE GraphMAE APPROACH",
+        "es": "3 EL ENFOQUE GraphMAE"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In this section, we present the self-supervised masked graph autoencoder framework—GraphMAE—to learn graph representations without supervision based on graph neural networks (GNNs). We introduce the critical components that differ GraphMAE from previous attempts on designing graph autoencoders (GAEs).",
+            "es": "En esta sección presentamos el marco de autocodificador de grafos enmascarado autosupervisado (self-supervised masked graph autoencoder), GraphMAE, para aprender representaciones de grafos sin supervisión a partir de redes neuronales de grafos (graph neural networks, GNN). Introducimos los componentes críticos que distinguen a GraphMAE de los intentos previos de diseñar autocodificadores de grafos (graph autoencoders, GAE)."
+          }
+        },
+        {
+          "id": "s3-h1",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "3.1 The GAE Problem and GraphMAE",
+            "es": "3.1 El problema de los GAE y GraphMAE"
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Briefly, an autoencoder usually comprises an encoder, code (hidden states), and a decoder. The encoder maps the input data to code, and the decoder maps the code to reconstruct the input under the supervision of a reconstruction criterion. For graph autoencoders, they can be formalized as follows.",
+            "es": "En breve, un autocodificador (autoencoder) suele constar de un codificador (encoder), un código (estados ocultos) y un decodificador (decoder). El codificador transforma los datos de entrada en el código, y el decodificador transforma el código para reconstruir la entrada bajo la supervisión de un criterio de reconstrucción. Los autocodificadores de grafos se pueden formalizar de la siguiente manera."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Let G = (V, 𝑨, 𝑿) denote a graph, where V is the node set, 𝑁= |V| is the number of nodes, 𝑨∈{0, 1}𝑁×𝑁is the adjacency matrix, and 𝑿∈R𝑁×𝑑is the input node feature matrix. Further, given 𝑓𝐸 as the graph encoder, 𝑓𝐷as the graph decoder, and 𝑯∈R𝑁×𝑑ℎ denoting the code encoded by the encoder, the goal of general GAEs is to reconstruct the input as",
+            "es": "Sea G = (V, 𝑨, 𝑿) un grafo, donde V es el conjunto de nodos, 𝑁= |V| es el número de nodos, 𝑨∈{0, 1}𝑁×𝑁es la matriz de adyacencia y 𝑿∈R𝑁×𝑑es la matriz de características de los nodos de entrada. Además, dados 𝑓𝐸 como el codificador del grafo, 𝑓𝐷como el decodificador del grafo y 𝑯∈R𝑁×𝑑ℎ como el código generado por el codificador, el objetivo de los GAE en general es reconstruir la entrada como"
+          }
+        },
+        {
+          "id": "s3-e1",
+          "type": "equation",
+          "page": 3,
+          "text": {
+            "en": "𝑯= 𝑓𝐸(𝑨, 𝑿), G′ = 𝑓𝐷(𝑨, 𝑯), (1)"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "where G′ denotes the reconstructed graph, which could be either reconstructed features or structures or both.",
+            "es": "donde G′ denota el grafo reconstruido, que puede ser tanto las características reconstruidas como las estructuras, o ambas."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Despite their versatile applications in NLP and CV, autoencoders’ progress in graphs, especially for classification tasks, is relatively insignificant. To bridge the gap, in this work, we aim to identify and rectify the deficiencies of existing GAE approaches, and subsequently present the GraphMAE—a masked graph autoencoder—to further the idea and design of GAEs and generative SSL in graphs.",
+            "es": "A pesar de sus versátiles aplicaciones en PLN (NLP) y visión por computadora (CV), el avance de los autocodificadores en grafos, especialmente en tareas de clasificación, es relativamente poco significativo. Para cerrar esta brecha, en este trabajo buscamos identificar y corregir las deficiencias de los enfoques de GAE existentes y, posteriormente, presentar GraphMAE, un autocodificador de grafos enmascarado, para impulsar la idea y el diseño de los GAE y del aprendizaje autosupervisado (self-supervised learning, SSL) generativo en grafos."
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "GraphMAE. The overall architecture of GraphMAE is illustrated in Figure 2. Its core idea lies in the reconstruction of masked node features. And we introduce a re-mask decoding strategy with GNNs, rather than the widely-used MLP in GAEs, as the decoder to empower GraphMAE. To have a robust reconstruction, we also propose to use a scaled cosine error as the criterion. Figure 1a summarizes the technical differences between GraphMAE and existing GAEs.",
+            "es": "GraphMAE. La arquitectura general de GraphMAE se ilustra en la Figura 2. Su idea central radica en la reconstrucción de las características enmascaradas de los nodos. Además, introducimos una estrategia de decodificación con re-enmascaramiento (re-mask decoding) con GNN, en lugar del MLP ampliamente utilizado en los GAE, como decodificador para potenciar a GraphMAE. Para lograr una reconstrucción robusta, proponemos también usar un error coseno escalado (scaled cosine error) como criterio. La Figura 1a resume las diferencias técnicas entre GraphMAE y los GAE existentes."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: Illustration of GraphMAE and the comparison with GAE. We underline the key operations in GraphMAE. During pretraining, GraphMAE first masks input node features with a mask token [MASK]. The corrupted graph is encoded into code by a GNN encoder. In the decoding, GraphMAE re-masks the code of selected nodes with another token [DMASK], and then employs a GNN, e.g., GAT, GIN, as the decoder. The output of the decoder is used to reconstruct input node features of masked nodes, with the scaled cosine error as the criterion. Previous GAEs usually use a single-layer MLP or Laplacian matrix in the decoding and focus more on restoring graph structure.",
+            "es": "Figura 2: Ilustración de GraphMAE y comparación con GAE. Subrayamos las operaciones clave de GraphMAE. Durante el preentrenamiento, GraphMAE primero enmascara las características de los nodos de entrada con un token de máscara [MASK]. El grafo corrompido es codificado en un código por un codificador GNN. En la decodificación, GraphMAE re-enmascara el código de los nodos seleccionados con otro token [DMASK] y luego emplea una GNN, por ejemplo, GAT o GIN, como decodificador. La salida del decodificador se usa para reconstruir las características de entrada de los nodos enmascarados, con el error coseno escalado como criterio. Los GAE previos suelen usar un MLP de una sola capa o la matriz laplaciana en la decodificación y se centran más en restaurar la estructura del grafo."
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In detail, the backbones for 𝑓𝐸and 𝑓𝐷can be any type of GNNs, such as GCN [21], GAT [39], or GIN [45]. As our encoder 𝑓𝐸pro-cesses the whole graph 𝑨with partially observed node features e𝑿, resonating to the backbones in other generative SSL methods (e.g., BERT and MAE), GraphMAE prefers a more expressive GNN encoder on features for different tasks. For instance, GAT is more expressive in node classification, and GIN provides a better inductive bias for graph-level applications (See Tables 6 and 4).",
+            "es": "En detalle, las arquitecturas base (backbones) para 𝑓𝐸y 𝑓𝐷pueden ser cualquier tipo de GNN, como GCN [21], GAT [39] o GIN [45]. Como nuestro codificador 𝑓𝐸procesa todo el grafo 𝑨con características de nodos parcialmente observadas e𝑿, en consonancia con las arquitecturas base de otros métodos de SSL generativo (por ejemplo, BERT y MAE), GraphMAE prefiere un codificador GNN más expresivo sobre las características para distintas tareas. Por ejemplo, GAT es más expresiva en la clasificación de nodos, y GIN ofrece un mejor sesgo inductivo para aplicaciones a nivel de grafo (véanse las Tablas 6 y 4)."
+          }
+        },
+        {
+          "id": "s3-h2",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "3.2 The Design of GraphMAE",
+            "es": "3.2 El diseño de GraphMAE"
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In this part, we explore how to design a generative self-supervised graph pre-training framework that can match and outperform stateof-the-art contrastive models. Specifically, we discuss different strategies via answering the following four questions:",
+            "es": "En esta parte exploramos cómo diseñar un marco generativo de preentrenamiento autosupervisado de grafos que pueda igualar y superar a los modelos contrastivos de vanguardia. En concreto, analizamos distintas estrategias al responder las siguientes cuatro preguntas:"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "• Q1: What to reconstruct in GAEs? • Q2: How to train robust GAEs to avoid trivial solutions? • Q3: How to arrange the decoder for GAEs? • Q4: What error function to use for reconstruction?",
+            "es": "• P1: ¿Qué reconstruir en los GAE? • P2: ¿Cómo entrenar GAE robustos para evitar soluciones triviales? • P3: ¿Cómo organizar el decodificador de los GAE? • P4: ¿Qué función de error usar para la reconstrucción?"
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "These questions concern the designs of the reconstruction objective, robust learning, loss function, and model architecture in GAEs, the answers to which enable us to develop GraphMAE.",
+            "es": "Estas preguntas se refieren a los diseños del objetivo de reconstrucción, del aprendizaje robusto, de la función de pérdida y de la arquitectura del modelo en los GAE; sus respuestas nos permiten desarrollar GraphMAE."
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Q1: Feature reconstruction as the objective. Given a graph G = (V, 𝑨, 𝑿), a GAE could target reconstructing either the structure 𝑨or the features 𝑿, or both of them. Most classical GAEs [20, 26] focus on the tasks of link prediction and graph clustering, and thus usually choose to reconstruct 𝑨—a target commonly used in network embeddings [9, 28, 35]. More recent GAEs [27, 31, 42] tend to adopt a combined objective of reconstructing both features and structure, which unfortunately does not empower GAEs to produce as significant progress in node and graph classifications as autoencoders have done in NLP and CV.",
+            "es": "P1: La reconstrucción de características como objetivo. Dado un grafo G = (V, 𝑨, 𝑿), un GAE puede tener como meta reconstruir la estructura 𝑨, las características 𝑿, o ambas. La mayoría de los GAE clásicos [20, 26] se centran en las tareas de predicción de enlaces y agrupamiento de grafos, y por ello suelen elegir reconstruir 𝑨, un objetivo de uso común en las incrustaciones de redes (network embeddings) [9, 28, 35]. Los GAE más recientes [27, 31, 42] tienden a adoptar un objetivo combinado de reconstruir tanto las características como la estructura, lo que lamentablemente no permite a los GAE lograr un progreso tan significativo en la clasificación de nodos y de grafos como el que han logrado los autocodificadores en PLN y CV."
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "A very recent study shows that simple MLPs distilled from trained GNN teachers can work comparably to advanced GNNs on node classification [58], indicating the vital role of features in such tasks. Thus, to enable GraphMAE to achieve a good performance on classification, we adopt feature reconstruction as the training objective. Our empirical examination also shows that the explicit prediction of structural proximity has no contributions to the downstream classification tasks in GraphMAE (See Figure 1b).",
+            "es": "Un estudio muy reciente muestra que los MLP simples destilados a partir de GNN maestras entrenadas pueden funcionar de forma comparable a las GNN avanzadas en la clasificación de nodos [58], lo que indica el papel vital de las características en dichas tareas. Por ello, para que GraphMAE logre un buen desempeño en clasificación, adoptamos la reconstrucción de características como objetivo de entrenamiento. Nuestro examen empírico también muestra que la predicción explícita de la proximidad estructural no aporta nada a las tareas posteriores de clasificación en GraphMAE (véase la Figura 1b)."
+          }
+        },
+        {
+          "id": "s3-p13",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Q2: Masked feature reconstruction. When the code’s dimension size is larger than input’s, the vanilla autoencoders have risks to learn the notorious “identity function”—the trivial solution— that makes the learned code useless [41]. Relatively speaking, it is not a severe problem in CV since the image input is usually highdimensional. However, in graphs, the node feature dimension size is typically quite small, making it a real challenge to train powerful feature-oriented GAEs. Unfortunately, existing GAEs that incorporate the reconstruction of features as their objective commonly ignore the threat [3, 20, 26, 27, 31].",
+            "es": "P2: Reconstrucción de características enmascaradas. Cuando la dimensión del código es mayor que la de la entrada, los autocodificadores convencionales (vanilla) corren el riesgo de aprender la célebre “función identidad”, la solución trivial, que vuelve inútil el código aprendido [41]. En términos relativos, esto no es un problema grave en CV, ya que la imagen de entrada suele ser de alta dimensión. Sin embargo, en los grafos la dimensión de las características de los nodos suele ser bastante pequeña, lo que hace que entrenar GAE potentes orientados a características sea un verdadero reto. Lamentablemente, los GAE existentes que incorporan la reconstrucción de características como objetivo comúnmente ignoran esta amenaza [3, 20, 26, 27, 31]."
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The denoising autoencoder [41], which corrupts the input data on purpose, is a natural option to eliminate the trivial solution. Actually, the idea of employing masking as the corruption in masked autoencoders has found wide applications in CV [1, 12] and NLP [4]. Inspired by their success, we propose to adopt masked autoencoders as the backbone of GraphMAE.",
+            "es": "El autocodificador de eliminación de ruido (denoising autoencoder) [41], que corrompe a propósito los datos de entrada, es una opción natural para eliminar la solución trivial. De hecho, la idea de emplear el enmascaramiento como corrupción en los autocodificadores enmascarados ha encontrado amplias aplicaciones en CV [1, 12] y PLN [4]. Inspirados por su éxito, proponemos adoptar autocodificadores enmascarados como arquitectura base de GraphMAE."
+          }
+        },
+        {
+          "id": "s3-p15",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Formally, we sample a subset of nodes e V ⊂V and mask each of their features with a mask token [MASK], i.e., a learnable vector 𝒙[𝑀] ∈R𝑑. Thus, the node feature e𝒙𝑖for 𝑣𝑖∈V in the masked feature matrix e𝑿can be defined as: 𝒙[𝑀] 𝑣𝑖∈e V 𝒙𝑖 𝑣𝑖∉e V e𝒙𝑖=",
+            "es": "Formalmente, muestreamos un subconjunto de nodos e V ⊂V y enmascaramos cada una de sus características con un token de máscara [MASK], es decir, un vector aprendible 𝒙[𝑀] ∈R𝑑. Así, la característica del nodo e𝒙𝑖para 𝑣𝑖∈V en la matriz de características enmascarada e𝑿se puede definir como: 𝒙[𝑀] 𝑣𝑖∈e V 𝒙𝑖 𝑣𝑖∉e V e𝒙𝑖="
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The objective of GraphMAE is to reconstruct the masked features of nodes in e V given the partially observed node signals e𝑿and the input adjacency matrix 𝑨.",
+            "es": "El objetivo de GraphMAE es reconstruir las características enmascaradas de los nodos en e V dadas las señales de nodos parcialmente observadas e𝑿y la matriz de adyacencia de entrada 𝑨."
+          }
+        },
+        {
+          "id": "s3-p17",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We apply a uniform random sampling strategy without replacement to obtain masked nodes. In GNNs, each node relies on its neighbor nodes to enhance/recover its features [7]. Random sampling with a uniform distribution helps prevent a potential bias center, i.e., one’s neighbors are neither all masked nor all visible. Additionally, similar to MAE [12], a relatively large mask ratio (e.g., 50%) is necessary to reduce redundancy in the attributed graphs in most cases and thus form a challenging self-supervision to learn meaningful node representations.",
+            "es": "Aplicamos una estrategia de muestreo aleatorio uniforme sin reemplazo para obtener los nodos enmascarados. En las GNN, cada nodo depende de sus nodos vecinos para mejorar o recuperar sus características [7]. El muestreo aleatorio con distribución uniforme ayuda a prevenir un posible centro de sesgo, es decir, que los vecinos de un nodo no estén todos enmascarados ni todos visibles. Además, de forma similar a MAE [12], una proporción de enmascaramiento relativamente grande (por ejemplo, 50%) es necesaria para reducir la redundancia en los grafos con atributos en la mayoría de los casos y, así, formar una autosupervisión desafiante para aprender representaciones de nodos significativas."
+          }
+        },
+        {
+          "id": "s3-p18",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The use of [MASK], on the other hand, potentially creates a mismatch between training and inference since the [MASK] token does not appear during inference [49]. To mitigate the discrepancy, BERT proposes to not always replace “masked” words with the actual [MASK] token, but with a small probability (i.e., 15% or smaller) to leave it unchanged or to substitute it with another random token. Our experiments find that the “leave-unchanged” strategy actually harms GraphMAE’s learning, while the “random-substitution” method could help form more high-quality representations.",
+            "es": "El uso de [MASK], por otro lado, crea potencialmente una discrepancia entre el entrenamiento y la inferencia, puesto que el token [MASK] no aparece durante la inferencia [49]. Para mitigar esta discrepancia, BERT propone no reemplazar siempre las palabras “enmascaradas” con el token [MASK] real, sino, con una probabilidad pequeña (es decir, 15% o menos), dejarlas sin cambios o sustituirlas por otro token aleatorio. Nuestros experimentos encuentran que la estrategia de “dejar sin cambios” en realidad perjudica el aprendizaje de GraphMAE, mientras que el método de “sustitución aleatoria” puede ayudar a formar representaciones de mayor calidad."
+          }
+        },
+        {
+          "id": "s3-p19",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Q3: GNN decoder with re-mask decoding. The decoder 𝑓𝐷maps the latent code 𝑯back to the input 𝑿, and its design would depend on the semantic level [12] of target 𝑿. For example, in language, since targets are one-hot missing words with rich semantics, usually a trivial decoder such as MLP is sufficient [4]. But in vision, previous studies [12] discover that a more advanced decoder (e.g., the Transformer model [38]) is necessary to recover pixel patches with low-level semantics.",
+            "es": "P3: Decodificador GNN con decodificación de re-enmascaramiento. El decodificador 𝑓𝐷transforma el código latente 𝑯de vuelta a la entrada 𝑿, y su diseño dependería del nivel semántico [12] del objetivo 𝑿. Por ejemplo, en el lenguaje, dado que los objetivos son palabras faltantes codificadas en one-hot con una semántica rica, normalmente basta con un decodificador trivial como un MLP [4]. Pero en visión, estudios previos [12] descubren que se necesita un decodificador más avanzado (por ejemplo, el modelo Transformer [38]) para recuperar parches de píxeles con semántica de bajo nivel."
+          }
+        },
+        {
+          "id": "s3-p20",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In graphs, the decoder reconstructs relatively less informative multi-dimensional node features. Traditional GAEs employ either no neural decoders or a simple MLP for decoding with less expressiveness, causing the latent code 𝑯to be nearly identical to input features. However, it has no merit to learn such trivial latent representations because the goal is to embed input features with meaningful compressed knowledge. Therefore, GraphMAE resorts to a more expressive single-layer GNN as its decoder. The GNN decoder can recover the input features of one node based on a set of nodes instead of only the node itself, and it consequently helps the encoder learn high-level latent code.",
+            "es": "En los grafos, el decodificador reconstruye características de nodos multidimensionales relativamente menos informativas. Los GAE tradicionales emplean o bien ningún decodificador neuronal o bien un MLP simple, con menor expresividad, para la decodificación, lo que hace que el código latente 𝑯sea casi idéntico a las características de entrada. Sin embargo, no tiene ningún mérito aprender tales representaciones latentes triviales, porque el objetivo es incrustar las características de entrada con conocimiento comprimido significativo. Por ello, GraphMAE recurre a una GNN de una sola capa, más expresiva, como decodificador. El decodificador GNN puede recuperar las características de entrada de un nodo a partir de un conjunto de nodos y no solo del propio nodo, y en consecuencia ayuda al codificador a aprender un código latente de alto nivel."
+          }
+        },
+        {
+          "id": "s3-p21",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To further encourage the encoder to learn compressed representations, we propose a re-mask decoding technique to process the latent code 𝑯for decoding. We replace 𝑯on masked node indices again with another mask token [DMASK], i.e., the decoder mask, with 𝒉[𝑀] ∈R𝑑ℎ. Specifically, the re-masked code e𝒉𝑖in e𝑯= REMASK(𝑯) can be denoted as 𝒉[𝑀] 𝑣𝑖∈e V 𝒉𝑖 𝑣𝑖∉e V e𝒉𝑖=",
+            "es": "Para alentar aún más al codificador a aprender representaciones comprimidas, proponemos una técnica de decodificación con re-enmascaramiento para procesar el código latente 𝑯en la decodificación. Reemplazamos 𝑯en los índices de nodos enmascarados nuevamente con otro token de máscara [DMASK], es decir, la máscara del decodificador, con 𝒉[𝑀] ∈R𝑑ℎ. En concreto, el código re-enmascarado e𝒉𝑖en e𝑯= REMASK(𝑯) se puede denotar como 𝒉[𝑀] 𝑣𝑖∈e V 𝒉𝑖 𝑣𝑖∉e V e𝒉𝑖="
+          }
+        },
+        {
+          "id": "s3-p22",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "With the GNN decoder, a masked node is forced to reconstruct its input feature from the neighboring unmasked latent representations. Similar to encoders, our empirical examination suggests that the GAT and GIN encoders are good options for node classification and graph classification, respectively. Note that the decoder is only used during the self-supervised training stage to perform the node feature reconstruction task. Therefore, the decoder architecture is independent of the encoder choice and can use any type of GNN.",
+            "es": "Con el decodificador GNN, un nodo enmascarado se ve obligado a reconstruir su característica de entrada a partir de las representaciones latentes vecinas no enmascaradas. De forma similar a los codificadores, nuestro examen empírico sugiere que los codificadores GAT y GIN son buenas opciones para la clasificación de nodos y la clasificación de grafos, respectivamente. Cabe señalar que el decodificador solo se usa durante la etapa de entrenamiento autosupervisado para realizar la tarea de reconstrucción de características de nodos. Por lo tanto, la arquitectura del decodificador es independiente de la elección del codificador y puede usar cualquier tipo de GNN."
+          }
+        },
+        {
+          "id": "s3-p23",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Q4: Scaled cosine error as the criterion. The feature reconstruction criterion varies for masked autoencoders [4, 12] in different domains. In NLP and CV, the de facto criterion is to predict discrete token indices derived from tokenizers using cross entropy error. An exception is the MAE work [12] in CV, which directly predicts pixels in the masked patches using the mean square error (MSE);",
+            "es": "P4: El error coseno escalado como criterio. El criterio de reconstrucción de características varía en los autocodificadores enmascarados [4, 12] de distintos dominios. En PLN y CV, el criterio de facto es predecir índices de tokens discretos derivados de tokenizadores usando el error de entropía cruzada (cross entropy). Una excepción es el trabajo MAE [12] en CV, que predice directamente los píxeles de los parches enmascarados usando el error cuadrático medio (mean square error, MSE);"
+          }
+        },
+        {
+          "id": "s3-p24",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Nevertheless in fact, pixels are naturally normalized to 0–255, functioning similarly to tokenizers. But in graphs, it remains unexplored how to define a universal tokenizer.",
+            "es": "Sin embargo, en realidad los píxeles están normalizados de forma natural a 0–255, y funcionan de manera similar a los tokenizadores. Pero en los grafos, sigue sin explorarse cómo definir un tokenizador universal."
+          }
+        },
+        {
+          "id": "s3-p25",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In GraphMAE, we propose to directly reconstruct the raw features for each masked node, which can be challenging due to the multi-dimensional and continuous nature of node features. Exist-ing GAEs with feature reconstruction have adopted MSE as their criterion [18, 27, 42]. But in preliminary experiments, we discover that the MSE loss can be minimized to nearly zero and may not be enough for feature reconstruction, which may (partly) explain why few existing GAEs use feature reconstruction as their only training objective. To this end, we found that MSE could suffer from the issues of sensitivity and low selectivity. Sensitivity means that MSE is sensitive to vector norms and dimensionality [5]. Extreme values in certain feature dimensions can also lead to MSE’s overfit on them. Low selectivity represents that MSE is not selective enough to focus on those harder ones among imbalanced easy-and-hard samples.",
+            "es": "En GraphMAE, proponemos reconstruir directamente las características originales de cada nodo enmascarado, lo que puede ser un reto debido a la naturaleza multidimensional y continua de las características de los nodos. Los GAE existentes con reconstrucción de características han adoptado el MSE como criterio [18, 27, 42]. Pero en experimentos preliminares descubrimos que la pérdida MSE puede minimizarse hasta casi cero y puede no ser suficiente para la reconstrucción de características, lo que podría explicar (en parte) por qué pocos GAE existentes usan la reconstrucción de características como su único objetivo de entrenamiento. Con este fin, encontramos que el MSE podría sufrir problemas de sensibilidad y baja selectividad. La sensibilidad significa que el MSE es sensible a las normas de los vectores y a la dimensionalidad [5]. Los valores extremos en ciertas dimensiones de las características también pueden llevar al sobreajuste (overfit) del MSE en ellas. La baja selectividad representa que el MSE no es lo bastante selectivo para centrarse en las muestras más difíciles entre muestras fáciles y difíciles desbalanceadas."
+          }
+        },
+        {
+          "id": "s3-p26",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To handle its sensitivity, we leverage the cosine error as the criterion to reconstruct original node features, which gets rid of the impact of dimensionality and vector norms. The 𝑙2-normalization in the cosine error maps vectors to a unit hyper-sphere and substantially improves the training stability of representation learning. This benefit is also observed by some contrastive learning methods like BYOL [8].",
+            "es": "Para manejar su sensibilidad, aprovechamos el error coseno como criterio para reconstruir las características originales de los nodos, lo que elimina el impacto de la dimensionalidad y de las normas de los vectores. La normalización 𝑙2 en el error coseno proyecta los vectores sobre una hiperesfera unitaria y mejora sustancialmente la estabilidad del entrenamiento del aprendizaje de representaciones. Este beneficio también se observa en algunos métodos de aprendizaje contrastivo como BYOL [8]."
+          }
+        },
+        {
+          "id": "s3-p27",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To improve its selectivity, we further the cosine error by introducing the scaled cosine error (SCE) for GraphMAE. The intuition is that we can down-weight easy samples’ contribution in training by scaling the cosine error with a power of 𝛾≥1. For predictions with high confidence, their corresponding cosine errors are usually smaller than 1 and decay faster to zero when the scaling factor𝛾> 1. Formally speaking, given the original feature 𝑿and reconstructed output 𝒁= 𝑓𝐷(𝑨, e𝑯), we define SCE for GraphMAE as 𝒙𝑇 𝑖𝒛𝑖 ∥𝒙𝑖∥· ∥𝒛𝑖∥)𝛾, 𝛾≥1, (2)",
+            "es": "Para mejorar su selectividad, perfeccionamos el error coseno introduciendo el error coseno escalado (scaled cosine error, SCE) para GraphMAE. La intuición es que podemos reducir el peso de la contribución de las muestras fáciles en el entrenamiento escalando el error coseno con una potencia 𝛾≥1. Para las predicciones con alta confianza, sus errores coseno correspondientes suelen ser menores que 1 y decaen más rápido a cero cuando el factor de escala 𝛾> 1. Formalmente, dadas la característica original 𝑿 y la salida reconstruida 𝒁= 𝑓𝐷(𝑨, e𝑯), definimos el SCE para GraphMAE como 𝒙𝑇 𝑖𝒛𝑖 ∥𝒙𝑖∥· ∥𝒛𝑖∥)𝛾, 𝛾≥1, (2)"
+          }
+        },
+        {
+          "id": "s3-p28",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "LSCE = 1",
+            "es": "LSCE = 1"
+          }
+        },
+        {
+          "id": "s3-p29",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "(1 −",
+            "es": "(1 −"
+          }
+        },
+        {
+          "id": "s3-p30",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "| e V| 𝑣𝑖∈f V which is averaged over all masked nodes. The scaling factor 𝛾is a hyper-parameter adjustable over different datasets. This scaling technique could also be viewed as an adaptive sample reweighing, and the weight of each sample is adjusted with the reconstruction error. This error is also famous in the field of supervised object detection as the focal loss [22].",
+            "es": "| e V| 𝑣𝑖∈f V que se promedia sobre todos los nodos enmascarados. El factor de escala 𝛾es un hiperparámetro ajustable según el conjunto de datos. Esta técnica de escalamiento también puede verse como una reponderación adaptativa de las muestras, donde el peso de cada muestra se ajusta con el error de reconstrucción. Este error también es famoso en el campo de la detección de objetos supervisada como la pérdida focal (focal loss) [22]."
+          }
+        },
+        {
+          "id": "s3-p31",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In summary, GraphMAE is a simple and scalable self-supervised graph learning framework. Figure 1 illustrates how each of its design choices directly impacts the performance of the self-supervised GraphMAE framework. By identifying the negative components and designing new strategies, GraphMAE unleashes the power of autoencoders for self-supervised graph pre-training.",
+            "es": "En resumen, GraphMAE es un marco de aprendizaje de grafos autosupervisado simple y escalable. La Figura 1 ilustra cómo cada una de sus decisiones de diseño impacta directamente el desempeño del marco autosupervisado GraphMAE. Al identificar los componentes negativos y diseñar nuevas estrategias, GraphMAE libera el poder de los autocodificadores para el preentrenamiento autosupervisado de grafos."
+          }
+        },
+        {
+          "id": "s3-h3",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "3.3 Training and Inference",
+            "es": "3.3 Entrenamiento e inferencia"
+          }
+        },
+        {
+          "id": "s3-p32",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The overall training flow of GraphMAE is summarized by Figure 2. First, given an input graph, we randomly select a certain proportion of nodes and replace their node features with the mask-token [MASK]. We feed the graph with partially observed features into the encoder to generate the encoded node representations. In decoding, we re-mask the selected nodes and replace their features with another token [DMASK]. Then the decoder is applied to the re-masked graph to reconstruct the original node features with the proposed scaled cosine error.",
+            "es": "El flujo general de entrenamiento de GraphMAE se resume en la Figura 2. Primero, dado un grafo de entrada, seleccionamos al azar una cierta proporción de nodos y reemplazamos sus características con el token de máscara [MASK]. Alimentamos al codificador con el grafo de características parcialmente observadas para generar las representaciones codificadas de los nodos. En la decodificación, re-enmascaramos los nodos seleccionados y reemplazamos sus características con otro token [DMASK]. Luego se aplica el decodificador al grafo re-enmascarado para reconstruir las características originales de los nodos con el error coseno escalado propuesto."
+          }
+        },
+        {
+          "id": "s3-p33",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "For downstream applications, the encoder is applied to the input graph without any masking in the inference stage. The generated node embeddings can be used for various graph learning tasks, such as node classification and graph classification. For graph-level tasks, we use a non-parameterized graph pooling (readout) function, e.g., MaxPooling and MeanPooling, to obtain the graph-level representation 𝒉𝑔= READOUT({𝒉𝑖, 𝑣𝑖∈G𝑔}). In addition, similar to [16], GraphMAE also enables robust transfer of pre-trained GNN models to various downstream tasks. In the experiments, we show that GraphMAE achieves competitive performance in both node-level and graph-level applications.",
+            "es": "Para las aplicaciones posteriores, el codificador se aplica al grafo de entrada sin ningún enmascaramiento en la etapa de inferencia. Las incrustaciones de nodos generadas pueden usarse para diversas tareas de aprendizaje de grafos, como la clasificación de nodos y la clasificación de grafos. Para las tareas a nivel de grafo, usamos una función de agrupamiento de grafos (readout) no parametrizada, por ejemplo, MaxPooling y MeanPooling, para obtener la representación a nivel de grafo 𝒉𝑔= READOUT({𝒉𝑖, 𝑣𝑖∈G𝑔}). Además, de forma similar a [16], GraphMAE también permite una transferencia robusta de modelos GNN preentrenados a diversas tareas posteriores. En los experimentos mostramos que GraphMAE logra un desempeño competitivo tanto en aplicaciones a nivel de nodo como a nivel de grafo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 EXPERIMENTS",
+        "es": "4 EXPERIMENTOS"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "In this section, we demonstrate that GraphMAE is a general selfsupervised framework for various graph learning tasks, including:",
+            "es": "En esta sección demostramos que GraphMAE es un marco autosupervisado (self-supervised) general para diversas tareas de aprendizaje en grafos, entre ellas:"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "• Unsupervised representation learning for node classification;",
+            "es": "• Aprendizaje de representaciones no supervisado (unsupervised representation learning) para clasificación de nodos;"
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "• Unsupervised representation learning for graph classification;",
+            "es": "• Aprendizaje de representaciones no supervisado para clasificación de grafos;"
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "• Transfer learning on molecular property prediction.",
+            "es": "• Aprendizaje por transferencia (transfer learning) en la predicción de propiedades moleculares."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Extensive experiments on various datasets are conducted to evaluate the performance of GraphMAE against state-of-the-art (SOTA) contrastive and generative methods on these three tasks. In each task, we follow exactly the same experimental procedure, e.g., data splits, evaluation protocol, as the standard settings [16, 34, 40, 57].",
+            "es": "Se realizan experimentos extensos en diversos conjuntos de datos para evaluar el desempeño de GraphMAE frente a los métodos contrastivos (contrastive) y generativos (generative) del estado del arte (state-of-the-art, SOTA) en estas tres tareas. En cada tarea seguimos exactamente el mismo procedimiento experimental, por ejemplo, las particiones de datos y el protocolo de evaluación, que los entornos estándar [16, 34, 40, 57]."
+          }
+        },
+        {
+          "id": "s4-h1",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "4.1 Node Classification",
+            "es": "4.1 Clasificación de nodos"
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Setup. The node classification task is to predict the unknown node labels in networks. We test the performance of GraphMAE on 6 standard benchmarks: Cora, Citeseer, PubMed [48], Ogbn-arxiv [15], PPI, and Reddit. Following the inductive setup in GraphSage [10], the testing for Reddit and PPI is carried out on unseen nodes and graphs, while the other networks are used for transductive learning.",
+            "es": "Configuración. La tarea de clasificación de nodos consiste en predecir las etiquetas desconocidas de los nodos en las redes. Probamos el desempeño de GraphMAE en 6 referentes (benchmarks) estándar: Cora, Citeseer, PubMed [48], Ogbn-arxiv [15], PPI y Reddit. Siguiendo la configuración inductiva (inductive) de GraphSage [10], la prueba en Reddit y PPI se realiza sobre nodos y grafos no vistos, mientras que las demás redes se usan para aprendizaje transductivo (transductive)."
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "For the evaluation protocol, we follow the experimental setting in [11, 37, 40, 57]. First, we train a GNN encoder by the proposed GraphMAE without supervision. Then we freeze the parameters of the encoder and generate all the nodes’ embeddings. For evaluation, we train a linear classifier and report the mean accuracy on the test nodes through 20 random initializations. We follow the public data splits [11, 40, 57] of Cora, Citeseer, and PubMed. The graph encoder 𝑓𝐸and decoder 𝑓𝐷are both specified as standard GAT. Detailed hyper-parameters can be found in Appendix A.",
+            "es": "Para el protocolo de evaluación, seguimos la configuración experimental de [11, 37, 40, 57]. Primero, entrenamos un codificador (encoder) GNN con el GraphMAE propuesto, sin supervisión. Luego congelamos los parámetros del codificador y generamos las incrustaciones (embeddings) de todos los nodos. Para la evaluación, entrenamos un clasificador lineal y reportamos la exactitud (accuracy) media sobre los nodos de prueba a lo largo de 20 inicializaciones aleatorias. Seguimos las particiones de datos públicas [11, 40, 57] de Cora, Citeseer y PubMed. El codificador de grafos 𝑓𝐸 y el decodificador (decoder) 𝑓𝐷 se especifican ambos como GAT estándar. Los hiperparámetros detallados se encuentran en el Apéndice A."
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Results. We compare GraphMAE with SOTA contrastive selfsupervised models, DGI [40], MVGRL [11], GRACE [60], BGRL [37], InfoGCL [44], and CCA-SSG [57], as well as supervised baselines GCN and GAT. We also report the results of previous generative self-supervised models, GAE [20], GPT-GNN [17], and GATE [31]. We report results from previous works with the same experimental setup if available. If results are not previously reported and codes are provided, we implement them based on the official codes and conduct a hyper-parameter search. Table 1 lists the results. Graph-MAE achieves the best or competitive results compared to the SOTA self-supervised approaches in all benchmarks. Notably, GraphMAE outperforms existing generative methods by a large margin. The results in the inductive setting of PPI and Reddit suggest the selfsupervised GraphMAE technique provides strong generalization to unseen nodes.",
+            "es": "Resultados. Comparamos GraphMAE con los modelos autosupervisados contrastivos del estado del arte, DGI [40], MVGRL [11], GRACE [60], BGRL [37], InfoGCL [44] y CCA-SSG [57], así como con las líneas base supervisadas GCN y GAT. También reportamos los resultados de modelos autosupervisados generativos previos, GAE [20], GPT-GNN [17] y GATE [31]. Reportamos los resultados de trabajos previos con la misma configuración experimental cuando están disponibles. Si los resultados no se habían reportado antes y se proporciona el código, los implementamos con base en el código oficial y realizamos una búsqueda de hiperparámetros. La Tabla 1 presenta los resultados. Graph-MAE logra los mejores resultados o resultados competitivos en comparación con los enfoques autosupervisados del estado del arte en todos los referentes. En particular, GraphMAE supera por un amplio margen a los métodos generativos existentes. Los resultados en la configuración inductiva de PPI y Reddit sugieren que la técnica autosupervisada GraphMAE ofrece una fuerte generalización a nodos no vistos."
+          }
+        },
+        {
+          "id": "s4-h2",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "4.2 Graph Classification",
+            "es": "4.2 Clasificación de grafos"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Setup. For graph classification, we conduct experiments on 7 benchmarks: MUTAG, IMDB-B, IMDB-M, PROTEINS, COLLAB, REDDIT-B, and NCI1 [47]. Each dataset is a collection of graphs where each graph is associated with a label. Node labels are used as input features in MUTAG, PROTEINS, and NCI1, whereas node degrees are used in IMDB-B, IMDB-M, REDDIT-B, and COLLAB.",
+            "es": "Configuración. Para la clasificación de grafos, realizamos experimentos en 7 referentes: MUTAG, IMDB-B, IMDB-M, PROTEINS, COLLAB, REDDIT-B y NCI1 [47]. Cada conjunto de datos es una colección de grafos en la que cada grafo está asociado con una etiqueta. Las etiquetas de los nodos se usan como características de entrada en MUTAG, PROTEINS y NCI1, mientras que los grados de los nodos se usan en IMDB-B, IMDB-M, REDDIT-B y COLLAB."
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "For the evaluation protocol, after generating graph embeddings with GraphMAE’s encoder and readout function, we feed encoded graph-level representations into a downstream LIBSVM [2] classifier to predict the label, and report the mean 10-fold cross-validation accuracy with standard deviation after 5 runs. We adopt GIN [45], which is commonly used in previous graph classification works, as the backbone of encoder and decoder.",
+            "es": "Para el protocolo de evaluación, después de generar las incrustaciones de grafos con el codificador y la función de lectura (readout function) de GraphMAE, alimentamos las representaciones codificadas a nivel de grafo a un clasificador LIBSVM [2] posterior (downstream) para predecir la etiqueta, y reportamos la exactitud media de validación cruzada (cross-validation) de 10 particiones con desviación estándar tras 5 ejecuciones. Adoptamos GIN [45], que se usa comúnmente en trabajos previos de clasificación de grafos, como la arquitectura base (backbone) del codificador y del decodificador."
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Results. In addition to classical graph kernel methods—Weisfeiler-Lehman sub-tree kernel (WL) [32] and deep graph kernel (DGK) [47], we also compare GraphMAE with SOTA unsupervised and contrastive methods, GCC [29], graph2vec [25], Infograph [34], GraphCL [54], JOAO [53], MVGRL [11], and InfoGCL [44]. The supervised baselines, GIN [45] and DiffPool [50], are also included. Per graph classification research tradition, we report results from previous papers if available. The results are shown in Table 2. We find that GraphMAE outperforms all self-supervised baselines on five out of seven datasets and has competitive results on the other two. The node features of these seven datasets are all one-hot vectors representing node-labels or degrees, which are considered to be less informative than node features in node classification. The results manifest that generative auto-encoders could learn meaningful information and offer potentials in graph-level tasks.",
+            "es": "Resultados. Además de los métodos clásicos de núcleos de grafos (graph kernels), el núcleo de subárbol de Weisfeiler-Lehman (WL) [32] y el núcleo profundo de grafos (DGK) [47], también comparamos GraphMAE con métodos no supervisados y contrastivos del estado del arte: GCC [29], graph2vec [25], Infograph [34], GraphCL [54], JOAO [53], MVGRL [11] e InfoGCL [44]. También se incluyen las líneas base supervisadas, GIN [45] y DiffPool [50]. Conforme a la tradición de investigación en clasificación de grafos, reportamos los resultados de artículos previos cuando están disponibles. Los resultados se muestran en la Tabla 2. Encontramos que GraphMAE supera a todas las líneas base autosupervisadas en cinco de los siete conjuntos de datos y tiene resultados competitivos en los otros dos. Las características de los nodos de estos siete conjuntos de datos son todas vectores one-hot que representan etiquetas de nodos o grados, los cuales se consideran menos informativos que las características de los nodos en la clasificación de nodos. Los resultados muestran que los autocodificadores (auto-encoders) generativos pueden aprender información significativa y ofrecen potencial en tareas a nivel de grafo."
+          }
+        },
+        {
+          "id": "s4-h3",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "4.3 Transfer Learning",
+            "es": "4.3 Aprendizaje por transferencia"
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Setup. To evaluate the transferability of the proposed method, we test the performance on transfer learning on molecular property prediction, following the setting of [16, 53, 54]. The model is first pre-trained in 2 million unlabeled molecules sampled from the ZINC15 [33], and then finetuned in 8 classification benchmark datasets contained in MoleculeNet [43]. The downstream datasets are split by scaffold-split to mimic real-world use cases. Input node features are the atom number and chirality tag, and edge features are the bond type and direction.",
+            "es": "Configuración. Para evaluar la transferibilidad del método propuesto, probamos el desempeño en aprendizaje por transferencia para la predicción de propiedades moleculares, siguiendo la configuración de [16, 53, 54]. El modelo se preentrena primero con 2 millones de moléculas sin etiquetas muestreadas de ZINC15 [33], y después se ajusta (finetuned) en 8 conjuntos de datos de clasificación de referencia contenidos en MoleculeNet [43]. Los conjuntos de datos posteriores se dividen mediante partición por andamiaje (scaffold-split) para imitar casos de uso del mundo real. Las características de entrada de los nodos son el número atómico y la etiqueta de quiralidad, y las características de las aristas son el tipo y la dirección del enlace."
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "For the evaluation protocol, we run experiments for 10 times and report the mean and standard deviation of ROC-AUC scores (%). Following the default setting in [16], we adopt a 5-layer GIN as the encoder and a single-layer GIN as the decoder.",
+            "es": "Para el protocolo de evaluación, ejecutamos los experimentos 10 veces y reportamos la media y la desviación estándar de las puntuaciones ROC-AUC (%). Siguiendo la configuración por defecto de [16], adoptamos una GIN de 5 capas como codificador y una GIN de una sola capa como decodificador."
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Results. We evaluate GraphMAE against methods including Info-max, AttrMasking and ContextPred [16] , and SOTA contrastive learning methods, GraphCL [54], JOAO [53], and GraphLoG [46]. Table 2 shows that the performance on downstream tasks is comparable to SOTA methods, in which GraphMAE achieves the best average scores and has a small edge over previous best results in two tasks. This demonstrates the robust transferability of GraphMAE.",
+            "es": "Resultados. Evaluamos GraphMAE frente a métodos como Info-max, AttrMasking y ContextPred [16], y frente a métodos de aprendizaje contrastivo del estado del arte, GraphCL [54], JOAO [53] y GraphLoG [46]. La Tabla 2 muestra que el desempeño en las tareas posteriores es comparable al de los métodos del estado del arte, en los cuales GraphMAE logra las mejores puntuaciones promedio y tiene una pequeña ventaja sobre los mejores resultados previos en dos tareas. Esto demuestra la robusta transferibilidad de GraphMAE."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: Experiment results in unsupervised representation learning for node classification. We report the Micro-F1 (%) score for PPI and accuracy (%) for the other datasets.",
+            "es": "Tabla 1: Resultados experimentales en aprendizaje de representaciones no supervisado para clasificación de nodos. Reportamos la puntuación Micro-F1 (%) para PPI y la exactitud (%) para los demás conjuntos de datos."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2: Experiment results in unsupervised representation learning for graph classification. We report accuracy (%) for all datasets.",
+            "es": "Tabla 2: Resultados experimentales en aprendizaje de representaciones no supervisado para clasificación de grafos. Reportamos la exactitud (%) para todos los conjuntos de datos."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3: Experiment results in transfer learning on molecular property prediction benchmarks. The model is first pre-trained on ZINC15 and then finetuned on the following datasets. We report ROC-AUC scores (%).",
+            "es": "Tabla 3: Resultados experimentales en aprendizaje por transferencia en referentes de predicción de propiedades moleculares. El modelo se preentrena primero en ZINC15 y después se ajusta en los siguientes conjuntos de datos. Reportamos puntuaciones ROC-AUC (%)."
+          }
+        },
+        {
+          "id": "tab-4",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-4.png",
+          "text": {
+            "en": "Table 4: Ablation studies of the decoder type, re-mask and reconstruction criterion on node- and graph-level datasets.",
+            "es": "Tabla 4: Estudios de ablación (ablation studies) del tipo de decodificador, el re-enmascaramiento (re-mask) y el criterio de reconstrucción en conjuntos de datos a nivel de nodo y de grafo."
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "To summarize, the self-supervised GraphMAE method achieves competitive performance on node classification, graph classification, and transfer learning across 21 benchmarks. Note that we do not customize a dedicated GraphMAE for each task. The consistent results on the three tasks demonstrate that GraphMAE is an effective and universal self-supervised graph pre-training framework for various applications.",
+            "es": "En resumen, el método autosupervisado GraphMAE logra un desempeño competitivo en clasificación de nodos, clasificación de grafos y aprendizaje por transferencia a lo largo de 21 referentes. Cabe señalar que no personalizamos un GraphMAE dedicado para cada tarea. Los resultados consistentes en las tres tareas demuestran que GraphMAE es un marco de preentrenamiento de grafos autosupervisado eficaz y universal para diversas aplicaciones."
+          }
+        },
+        {
+          "id": "s4-h4",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "4.4 Ablation Studies",
+            "es": "4.4 Estudios de ablación"
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "To verify the effects of the main components in GraphMAE, we further conduct several ablation studies. Without loss of generalization, we choose three datasets from node classification and two datasets from graph classification for experiments.",
+            "es": "Para verificar los efectos de los componentes principales de GraphMAE, realizamos además varios estudios de ablación. Sin pérdida de generalidad, elegimos tres conjuntos de datos de clasificación de nodos y dos de clasificación de grafos para los experimentos."
+          }
+        },
+        {
+          "id": "s4-p17",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Effect of reconstruction criterion. We study the influence of reconstruction criterion, and Table 4 shows the results of MSE and the SCE loss function. Generally, the input features in node classification lie in continuous or high-dimensional discrete space, containing more discriminative information. The results manifest that SCE has a significant advantage over MSE, with an absolute gain of 1.5% ∼8.0%. In graph classification, pre-training with either MSE or SCE improves accuracy. The input features are discrete one-hot encoding in these benchmarks, representing either node degrees or node labels. Reconstructing one-hot encoding with MSE is similar to classification tasks, thus MSE also works. Nevertheless, SCE offers a performance edge (though limited) over MSE.",
+            "es": "Efecto del criterio de reconstrucción. Estudiamos la influencia del criterio de reconstrucción, y la Tabla 4 muestra los resultados de las funciones de pérdida MSE y SCE. En general, las características de entrada en la clasificación de nodos se encuentran en un espacio continuo o discreto de alta dimensión, y contienen información más discriminativa. Los resultados muestran que SCE tiene una ventaja significativa sobre MSE, con una ganancia absoluta de 1.5% ∼8.0%. En la clasificación de grafos, el preentrenamiento con MSE o con SCE mejora la exactitud. Las características de entrada son codificaciones one-hot discretas en estos referentes, que representan grados de nodos o etiquetas de nodos. Reconstruir una codificación one-hot con MSE es similar a las tareas de clasificación, por lo que MSE también funciona. Sin embargo, SCE ofrece una ventaja de desempeño (aunque limitada) sobre MSE."
+          }
+        },
+        {
+          "id": "s4-p18",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Figure 3 shows the influence of scaling factor 𝛾. We observe that 𝛾> 1 offers benefits in most cases, especially in node classification.",
+            "es": "La Figura 3 muestra la influencia del factor de escala 𝛾. Observamos que 𝛾> 1 ofrece beneficios en la mayoría de los casos, especialmente en la clasificación de nodos."
+          }
+        },
+        {
+          "id": "s4-p19",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "However, in MUTAG, a larger 𝛾value harms the performance. In our experiments, we notice that the training loss in node classification is much higher than that in graph classification. This further demonstrates that aligning continuous vectors in a unit sphere is more challenging. Therefore, scaling 𝛾brings improvements.",
+            "es": "Sin embargo, en MUTAG, un valor mayor de 𝛾 perjudica el desempeño. En nuestros experimentos, notamos que la pérdida de entrenamiento en la clasificación de nodos es mucho mayor que en la clasificación de grafos. Esto demuestra además que alinear vectores continuos en una esfera unitaria es más difícil. Por lo tanto, escalar con 𝛾 aporta mejoras."
+          }
+        },
+        {
+          "id": "s4-p20",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Effect of mask and re-mask. Masking plays an important role in the proposed GraphMAE method. GraphMAE employs two masking strategies — masking input feature before encoder, and remasking encoded code before decoder. Table 4 studies the designs. We observe a significant drop in performance if not masking input features, indicating that masking inputs is vital to avoid the trivial solution. For the re-mask strategy, the accuracy drops by 0.1%∼1.9% without it. Re-mask is designed for the GNN decoder and can be regarded as regularization, which makes the self-supervised task more challenging.",
+            "es": "Efecto del enmascaramiento y el re-enmascaramiento. El enmascaramiento (masking) desempeña un papel importante en el método GraphMAE propuesto. GraphMAE emplea dos estrategias de enmascaramiento: enmascarar las características de entrada antes del codificador y re-enmascarar el código codificado antes del decodificador. La Tabla 4 estudia estos diseños. Observamos una caída significativa del desempeño si no se enmascaran las características de entrada, lo que indica que enmascarar las entradas es vital para evitar la solución trivial. En la estrategia de re-enmascaramiento, la exactitud cae entre 0.1%∼1.9% sin ella. El re-enmascaramiento está diseñado para el decodificador GNN y puede considerarse una regularización, que hace más desafiante la tarea autosupervisada."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: Ablation studies of mask ratio and scaling factor.",
+            "es": "Figura 3: Estudios de ablación de la proporción de enmascaramiento y del factor de escala."
+          }
+        },
+        {
+          "id": "s4-p21",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Effect of mask ratio. Figure 3 shows the influence of mask ratio. In most cases, the reconstruction task with a low mask ratio (0.1) is not challenging enough to learn useful features. The optimal ratio varies across graphs. Results on Ogbn-arxiv and IMDB-B can be found in Appendix A. In Cora, increasing the mask ratio by more than 0.5 degrades the performance, while GraphMAE still works with a surprisingly high ratio (0.7∼0.9) in PubMed and MUTAG. This can be connected with the information redundancy in graphs. Large node degrees or high homogeneity may lead to heavy information redundancy, in which missing node features may be recovered from very few neighboring nodes with little high-level understanding of features and local context. In contrast, lower redundancy means that an excessively high mask ratio would make it impossible to recover features, thus degrading the performance.",
+            "es": "Efecto de la proporción de enmascaramiento. La Figura 3 muestra la influencia de la proporción de enmascaramiento (mask ratio). En la mayoría de los casos, la tarea de reconstrucción con una proporción de enmascaramiento baja (0.1) no es lo bastante desafiante para aprender características útiles. La proporción óptima varía entre grafos. Los resultados en Ogbn-arxiv e IMDB-B se encuentran en el Apéndice A. En Cora, aumentar la proporción de enmascaramiento por encima de 0.5 degrada el desempeño, mientras que GraphMAE sigue funcionando con una proporción sorprendentemente alta (0.7∼0.9) en PubMed y MUTAG. Esto puede relacionarse con la redundancia de información en los grafos. Grados de nodo grandes o una alta homogeneidad pueden dar lugar a una fuerte redundancia de información, en la que las características de nodos faltantes pueden recuperarse a partir de muy pocos nodos vecinos, con poca comprensión de alto nivel de las características y del contexto local. En cambio, una menor redundancia significa que una proporción de enmascaramiento excesivamente alta haría imposible recuperar las características, degradando así el desempeño."
+          }
+        },
+        {
+          "id": "s4-p22",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Effect of decoder type. In Table 4, we compare different decoder types, including MLP, GCN, GIN, and GAT. The re-mask strategy is only used for GNN decoders. As the results show, using GNN decoder typically boosts the performance. Compared to MLP, which reconstructs original features from latent representations, GNN enforces masked nodes to extract information relevant to their original features from the neighborhood. One reasonable assumption is that GNN avoids the representation tending to be the same as original features. MLP also works in GraphMAE, which might be partly attribute to the usage of the SCE metric.",
+            "es": "Efecto del tipo de decodificador. En la Tabla 4 comparamos diferentes tipos de decodificador, entre ellos MLP, GCN, GIN y GAT. La estrategia de re-enmascaramiento solo se usa con decodificadores GNN. Como muestran los resultados, usar un decodificador GNN normalmente mejora el desempeño. En comparación con MLP, que reconstruye las características originales a partir de representaciones latentes, la GNN obliga a los nodos enmascarados a extraer de su vecindario información relevante para sus características originales. Una suposición razonable es que la GNN evita que la representación tienda a ser igual a las características originales. MLP también funciona en GraphMAE, lo cual podría atribuirse en parte al uso de la métrica SCE."
+          }
+        },
+        {
+          "id": "s4-p23",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Among different GNNs, GIN performs better in graph-level tasks and GAT is a more reasonable option for node classification. It is observed that replacing GAT with GCN causes a significant drop, especially in Cora (∼2.9%) and PubMed (∼2.0%). We speculate that the attention mechanism matters in reconstructing continuous features with the re-mask strategy.",
+            "es": "Entre las distintas GNN, GIN tiene mejor desempeño en las tareas a nivel de grafo y GAT es una opción más razonable para la clasificación de nodos. Se observa que reemplazar GAT por GCN causa una caída significativa, especialmente en Cora (∼2.9%) y PubMed (∼2.0%). Especulamos que el mecanismo de atención (attention) importa al reconstruir características continuas con la estrategia de re-enmascaramiento."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 CONCLUSION",
+        "es": "5 CONCLUSIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "In this work, we explore generative self-supervised learning in graphs and identify the common issues that are faced by graph autoencoders. We present GraphMAE—a simple masked graph autoencoder—to address them from the perspective of reconstruction objective, learning, loss function, and model architecture. In GraphMAE, we design the masked feature reconstruction strategy with a scaled cosine error as the reconstruction criterion. We conduct extensive experiments on a wide range of node and graph classification benchmarks, and the results demonstrate the effectiveness and generalizability of GraphMAE. Our work shows that generative SSL can offer great potential to graph representation learning and pre-training, requiring more in-depth explorations for future work.",
+            "es": "En este trabajo exploramos el aprendizaje autosupervisado generativo en grafos e identificamos los problemas comunes que enfrentan los autocodificadores de grafos. Presentamos GraphMAE, un autocodificador de grafos enmascarado (masked graph autoencoder) simple, para abordarlos desde la perspectiva del objetivo de reconstrucción, el aprendizaje, la función de pérdida y la arquitectura del modelo. En GraphMAE diseñamos la estrategia de reconstrucción de características enmascaradas con un error coseno escalado (scaled cosine error) como criterio de reconstrucción. Realizamos experimentos extensos en una amplia gama de referentes de clasificación de nodos y de grafos, y los resultados demuestran la eficacia y la capacidad de generalización de GraphMAE. Nuestro trabajo muestra que el aprendizaje autosupervisado (SSL) generativo puede ofrecer un gran potencial para el aprendizaje de representaciones de grafos y el preentrenamiento, lo que requiere exploraciones más profundas en trabajos futuros."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Acknowledgements. This work is supported by Technology and Innovation Major Project of the Ministry of Science and Technol-ogy of China under Grant 2020AAA0108400 and 2020AAA0108402, Natural Science Foundation of China (Key Program, No. 61836013), and National Science Foundation for Distinguished Young Scholars (No. 61825602).",
+            "es": "Agradecimientos. Este trabajo cuenta con el apoyo del Proyecto Mayor de Tecnología e Innovación del Ministerio de Ciencia y Tecnología de China, bajo las subvenciones 2020AAA0108400 y 2020AAA0108402, de la Fundación Nacional de Ciencias Naturales de China (Programa Clave, No. 61836013) y de la Fundación Nacional de Ciencias para Jóvenes Distinguidos (No. 61825602)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "REFERENCES"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[1] Hangbo Bao, Li Dong, and Furu Wei. 2021. BEiT: BERT Pre-Training of Image Transformers. In NeurIPS."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[2] Chih-Chung Chang and Chih-Jen Lin. 2011. LIBSVM: a library for support vector machines. TIST (2011), 1–27."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[3] Ganqu Cui, Jie Zhou, Cheng Yang, and Zhiyuan Liu. 2020. Adaptive graph encoder for attributed graph embedding. In SIGKDD."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[4] Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019. BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. In NAACL. 4171–4186."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[5] Jerome H. Friedman. 2004. On Bias, Variance, 0/1—Loss, and the Curse-of-Dimensionality. Data Mining and Knowledge Discovery 1 (2004), 55–77."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[6] Alberto Garcia Duran and Mathias Niepert. 2017. Learning graph representations with embedding propagation. In NeurIPS."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[7] Justin Gilmer, Samuel S Schoenholz, Patrick F Riley, Oriol Vinyals, and George E Dahl. 2017. Neural message passing for quantum chemistry. In ICML."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[8] Jean-Bastien Grill, Florian Strub, Florent Altché, Corentin Tallec, Pierre H Richemond, Elena Buchatskaya, Carl Doersch, Bernardo Avila Pires, Zhao-han Daniel Guo, Mohammad Gheshlaghi Azar, et al. 2020. Bootstrap your own latent: A new approach to self-supervised learning. In NeurIPS."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[9] Aditya Grover and Jure Leskovec. 2016. node2vec: Scalable feature learning for networks. In SIGKDD."
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[10] William L Hamilton, Rex Ying, and Jure Leskovec. 2017. Inductive representation learning on large graphs. In NeurIPS."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[11] Kaveh Hassani and Amir Hosein Khasahmadi. 2020. Contrastive multi-view representation learning on graphs. In ICML."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[12] Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollár, and Ross Gir-shick. 2021. Masked autoencoders are scalable vision learners. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[13] Kaiming He, Haoqi Fan, Yuxin Wu, Saining Xie, and Ross Girshick. 2020. Mo-mentum contrast for unsupervised visual representation learning. In CVPR."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[14] Geoffrey E Hinton and Richard S Zemel. 1994. Autoencoders, minimum description length, and Helmholtz free energy. In NeurIPS."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[15] Weihua Hu, Matthias Fey, Marinka Zitnik, Yuxiao Dong, Hongyu Ren, Bowen Liu, Michele Catasta, and Jure Leskovec. 2020. Open graph benchmark: Datasets for machine learning on graphs. In NeurIPS."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[16] W Hu, B Liu, J Gomes, M Zitnik, P Liang, V Pande, and J Leskovec. 2020. Strategies For Pre-training Graph Neural Networks. In ICLR."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[17] Ziniu Hu, Yuxiao Dong, Kuansan Wang, Kai-Wei Chang, and Yizhou Sun. 2020. Gpt-gnn: Generative pre-training of graph neural networks. In SIGKDD."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[18] Wei Jin, Tyler Derr, Haochen Liu, Yiqi Wang, Suhang Wang, Zitao Liu, and Jiliang Tang. 2020. Self-supervised learning on graphs: Deep insights and new direction. arXiv preprint arXiv:2006.10141 (2020)."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[19] Zekarias T Kefato and Sarunas Girdzijauskas. 2021. Self-supervised Graph Neural Networks without explicit negative sampling. In WWW."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[20] Thomas N Kipf and Max Welling. 2016. Variational graph auto-encoders. arXiv preprint arXiv:1611.07308 (2016)."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[21] Thomas N. Kipf and Max Welling. 2017. Semi-Supervised Classification with Graph Convolutional Networks. In ICLR."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[22] Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Dollár. 2017. Focal loss for dense object detection. In ICCV."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[23] Xiao Liu, Fanjin Zhang, Zhenyu Hou, Li Mian, Zhaoyu Wang, Jing Zhang, and Jie Tang. 2021. Self-supervised learning: Generative or contrastive. TKDE (2021)."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[24] Franco Manessi and Alessandro Rozza. 2021. Graph-based neural network models with multiple self-supervised auxiliary tasks. Pattern Recognition Letters (2021)."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[25] Annamalai Narayanan, Mahinthan Chandramohan, Rajasekar Venkatesan, Lihui Chen, Yang Liu, and Shantanu Jaiswal. 2017. graph2vec: Learning distributed representations of graphs. arXiv preprint arXiv:1707.05005 (2017)."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[26] S Pan, R Hu, G Long, J Jiang, L Yao, and C Zhang. 2018. Adversarially regularized graph autoencoder for graph embedding. In IJCAI."
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[27] Jiwoong Park, Minsik Lee, Hyung Jin Chang, Kyuewang Lee, and Jin Young Choi. 2019. Symmetric graph convolutional autoencoder for unsupervised graph representation learning. In ICCV."
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[28] Bryan Perozzi, Rami Al-Rfou, and Steven Skiena. 2014. Deepwalk: Online learning of social representations. In SIGKDD."
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[29] Jiezhong Qiu, Qibin Chen, Yuxiao Dong, Jing Zhang, Hongxia Yang, Ming Ding, Kuansan Wang, and Jie Tang. 2020. Gcc: Graph contrastive coding for graph neural network pre-training. In SIGKDD."
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[30] Alec Radford, Jeff Wu, Rewon Child, David Luan, Dario Amodei, and Ilya Sutskever. 2019. Language Models are Unsupervised Multitask Learners. (2019)."
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[31] Amin Salehi and Hasan Davulcu. 2020. Graph Attention Auto-Encoders. In ICTAI. IEEE."
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[32] Nino Shervashidze, Pascal Schweitzer, Erik Jan Van Leeuwen, Kurt Mehlhorn, and Karsten M Borgwardt. 2011. Weisfeiler-Lehman graph kernels. JMLR (2011)."
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[33] Teague Sterling and John J Irwin. 2015. ZINC 15–ligand discovery for everyone. Journal of chemical information and modeling (2015), 2324–2337."
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[34] Fan-Yun Sun, Jordan Hoffman, Vikas Verma, and Jian Tang. 2019. InfoGraph: Unsupervised and Semi-supervised Graph-Level Representation Learning via Mutual Information Maximization. In ICLR."
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[35] Jian Tang, Meng Qu, Mingzhe Wang, Ming Zhang, Jun Yan, and Qiaozhu Mei. 2015. Line: Large-scale information network embedding. In WWW. 1067–1077."
+          }
+        },
+        {
+          "id": "refs-36",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[36] Mingyue Tang, Carl Yang, and Pan Li. 2022. Graph Auto-Encoder via Neighbor-hood Wasserstein Reconstruction. In ICLR."
+          }
+        },
+        {
+          "id": "refs-37",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[37] Shantanu Thakoor, Corentin Tallec, Mohammad Gheshlaghi Azar, Rémi Munos, Petar Veličković, and Michal Valko. 2022. Large-Scale Representation Learning on Graphs via Bootstrapping. In ICLR."
+          }
+        },
+        {
+          "id": "refs-38",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[38] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. Attention is all you need. In NeurIPS."
+          }
+        },
+        {
+          "id": "refs-39",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[39] Petar Velickovic, Guillem Cucurull, Arantxa Casanova, Adriana Romero, Pietro Liò, and Yoshua Bengio. 2018. Graph Attention Networks. In ICLR."
+          }
+        },
+        {
+          "id": "refs-40",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[40] Petar Veličković, William Fedus, William L Hamilton, Pietro Liò, Yoshua Bengio, and R Devon Hjelm. 2018. Deep Graph Infomax. In ICLR."
+          }
+        },
+        {
+          "id": "refs-41",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[41] Pascal Vincent, Hugo Larochelle, Yoshua Bengio, and Pierre-Antoine Manzagol. 2008. Extracting and composing robust features with denoising autoencoders. In ICML."
+          }
+        },
+        {
+          "id": "refs-42",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[42] Chun Wang, Shirui Pan, Guodong Long, Xingquan Zhu, and Jing Jiang. 2017. Mgae: Marginalized graph autoencoder for graph clustering. In CIKM."
+          }
+        },
+        {
+          "id": "refs-43",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[43] Zhenqin Wu, Bharath Ramsundar, Evan N Feinberg, Joseph Gomes, Caleb Ge-niesse, Aneesh S Pappu, Karl Leswing, and Vijay Pande. 2018. MoleculeNet: a benchmark for molecular machine learning. Chemical science (2018), 513–530."
+          }
+        },
+        {
+          "id": "refs-44",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[44] Dongkuan Xu, Wei Cheng, Dongsheng Luo, Haifeng Chen, and Xiang Zhang. 2021. InfoGCL: Information-Aware Graph Contrastive Learning. NeurIPS."
+          }
+        },
+        {
+          "id": "refs-45",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[45] Keyulu Xu, Weihua Hu, Jure Leskovec, and Stefanie Jegelka. 2019. How powerful are graph neural networks?. In ICLR."
+          }
+        },
+        {
+          "id": "refs-46",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[46] Minghao Xu, Hang Wang, Bingbing Ni, Hongyu Guo, and Jian Tang. 2021. Self-supervised graph-level representation learning with local and global structure. In ICML."
+          }
+        },
+        {
+          "id": "refs-47",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[47] Pinar Yanardag and SVN Vishwanathan. 2015. Deep graph kernels. In KDD."
+          }
+        },
+        {
+          "id": "refs-48",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[48] Zhilin Yang, William Cohen, and Ruslan Salakhudinov. 2016. Revisiting semisupervised learning with graph embeddings. In ICML."
+          }
+        },
+        {
+          "id": "refs-49",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[49] Zhilin Yang, Zihang Dai, Yiming Yang, Jaime Carbonell, Russ R Salakhutdinov, and Quoc V Le. 2019. Xlnet: Generalized autoregressive pretraining for language understanding. NeurIPS 32 (2019)."
+          }
+        },
+        {
+          "id": "refs-50",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[50] Zhitao Ying, Jiaxuan You, Christopher Morris, Xiang Ren, Will Hamilton, and Jure Leskovec. 2018. Hierarchical graph representation learning with differentiable pooling. In NeurIPS."
+          }
+        },
+        {
+          "id": "refs-51",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[51] Jiaxuan You, Bowen Liu, Rex Ying, Vijay Pande, and Jure Leskovec. 2018. Graph convolutional policy network for goal-directed molecular graph generation. In NeurIPS."
+          }
+        },
+        {
+          "id": "refs-52",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[52] Jiaxuan You, Rex Ying, Xiang Ren, William Hamilton, and Jure Leskovec. 2018. Graphrnn: Generating realistic graphs with deep auto-regressive models. In ICML. PMLR, 5708–5717."
+          }
+        },
+        {
+          "id": "refs-53",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[53] Yuning You, Tianlong Chen, Yang Shen, and Zhangyang Wang. 2021. Graph Contrastive Learning Automated. In ICML."
+          }
+        },
+        {
+          "id": "refs-54",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[54] Yuning You, Tianlong Chen, Yongduo Sui, Ting Chen, Zhangyang Wang, and Yang Shen. 2020. Graph contrastive learning with augmentations. In NeurIPS."
+          }
+        },
+        {
+          "id": "refs-55",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[55] Yuning You, Tianlong Chen, Zhangyang Wang, and Yang Shen. 2020. When does self-supervision help graph convolutional networks?. In ICML."
+          }
+        },
+        {
+          "id": "refs-56",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[56] Jiaqi Zeng and Pengtao Xie. 2021. Contrastive self-supervised learning for graph classification. In AAAI."
+          }
+        },
+        {
+          "id": "refs-57",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[57] Hengrui Zhang, Qitian Wu, Junchi Yan, David Wipf, and Philip S Yu. 2021. From canonical correlation analysis to self-supervised graph neural networks. In NeurIPS."
+          }
+        },
+        {
+          "id": "refs-58",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[58] Shichang Zhang, Yozen Liu, Yizhou Sun, and Neil Shah. 2022. Graph-less Neural Networks: Teaching Old MLPs New Tricks Via Distillation. In ICLR."
+          }
+        },
+        {
+          "id": "refs-59",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[59] Qikui Zhu, Bo Du, and Pingkun Yan. 2020. Self-supervised training of graph convolutional networks. arXiv preprint arXiv:2006.02380 (2020)."
+          }
+        },
+        {
+          "id": "refs-60",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[60] Yanqiao Zhu, Yichen Xu, Feng Yu, Qiang Liu, Shu Wu, and Liang Wang. 2020. Deep graph contrastive representation learning. arXiv preprint arXiv:2006.04131 (2020)."
+          }
+        },
+        {
+          "id": "refs-61",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "[61] Yanqiao Zhu, Yichen Xu, Feng Yu, Qiang Liu, Shu Wu, and Liang Wang. 2021. Graph contrastive learning with adaptive augmentation. In WWW."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-a",
+      "title": {
+        "en": "A APPENDIX",
+        "es": "A APÉNDICE"
+      },
+      "blocks": [
+        {
+          "id": "tab-5",
+          "type": "table",
+          "page": 10,
+          "image": "fig/tab-5.png",
+          "text": {
+            "en": "Table 5: Comparison with other attributed-masking methods in node classification. “FT\" means finetuning the model in downstream tasks, while “LP\" represents training a linear classifier for classification.",
+            "es": "Tabla 5: Comparación con otros métodos de enmascaramiento de atributos (attributed-masking) en la clasificación de nodos. “FT\" significa ajuste fino (finetuning) del modelo en las tareas posteriores, mientras que “LP\" representa el entrenamiento de un clasificador lineal (linear classifier) para la clasificación."
+          }
+        },
+        {
+          "id": "app-a-h1",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "A.1 Results in the PPI Dataset",
+            "es": "A.1 Resultados en el conjunto de datos PPI"
+          }
+        },
+        {
+          "id": "app-a-p1",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Figure 4 shows the results of self-supervised learning methods in PPI dataset. Previous studies often report a large gap between supervised and self-supervised results on PPI. We find that increasing the number of model parameters helps little in supervised setting, but could highly boost the performance in self-supervised setting. As the hidden size reaches 2048×4, GraphMAE even outperforms supervised counter-part, although the model would be too much larger. At least, this indicates that the gap could be filled.",
+            "es": "La Figura 4 muestra los resultados de los métodos de aprendizaje autosupervisado (self-supervised learning) en el conjunto de datos PPI. Estudios previos suelen reportar una gran brecha entre los resultados supervisados y los autosupervisados en PPI. Encontramos que aumentar el número de parámetros del modelo ayuda poco en el entorno supervisado, pero puede impulsar considerablemente el rendimiento en el entorno autosupervisado. Cuando el tamaño oculto (hidden size) alcanza 2048×4, GraphMAE incluso supera a su contraparte supervisada, aunque el modelo sería demasiado grande. Al menos, esto indica que la brecha puede cerrarse."
+          }
+        },
+        {
+          "id": "app-a-p2",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The results of BGRL and GRACE in PPI are a bit different from those reported in [37]. This is because we train the linear classifier until convergence during evaluation, using the authors’ official code. In [37], the classifier is trained only for a small fixed number of epochs, and the training does not converge.",
+            "es": "Los resultados de BGRL y GRACE en PPI son un poco diferentes de los reportados en [37]. Esto se debe a que entrenamos el clasificador lineal hasta la convergencia durante la evaluación, usando el código oficial de los autores. En [37], el clasificador se entrena solo durante un número pequeño y fijo de épocas, y el entrenamiento no converge."
+          }
+        },
+        {
+          "id": "tab-6",
+          "type": "table",
+          "page": 10,
+          "image": "fig/tab-6.png",
+          "text": {
+            "en": "Table 6: Experiment results using different encoder backbones in node classification.",
+            "es": "Tabla 6: Resultados experimentales con diferentes arquitecturas base del codificador (encoder backbones) en la clasificación de nodos."
+          }
+        },
+        {
+          "id": "app-a-h2",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "A.2 Ablation on the Encoder Architecture",
+            "es": "A.2 Ablación de la arquitectura del codificador"
+          }
+        },
+        {
+          "id": "app-a-p3",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "In node classification, GraphMAE uses GAT as the encoder. To have a fair comparison and investigate the influence of different GNN backbones, we compare the best baselines, BGRL and CCA-SSG, in node classification datasets using GCN and GAT as the encoder. The results are shown in Table 6. We observe that GraphMAE still outperforms the baselines with the same GAT backbone. In addition, the results manifest that attention mechanism would not always benefit graph self-supervised learning, as GCN is inferior to GAT, for instance, in (Cora, CCA-SSG) and (Ogbn-arxiv, GraphMAE).",
+            "es": "En la clasificación de nodos, GraphMAE usa GAT como codificador. Para tener una comparación justa e investigar la influencia de diferentes arquitecturas base de GNN, comparamos los mejores métodos de referencia (baselines), BGRL y CCA-SSG, en conjuntos de datos de clasificación de nodos usando GCN y GAT como codificador. Los resultados se muestran en la Tabla 6. Observamos que GraphMAE sigue superando a los métodos de referencia con la misma arquitectura base GAT. Además, los resultados manifiestan que el mecanismo de atención (attention mechanism) no siempre beneficia el aprendizaje autosupervisado en grafos, ya que GCN es inferior a GAT, por ejemplo, en (Cora, CCA-SSG) y (Ogbn-arxiv, GraphMAE)."
+          }
+        },
+        {
+          "id": "app-a-p4",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Under the training setting of GraphMAE, GAT could be a better option in most cases.",
+            "es": "Bajo el entorno de entrenamiento de GraphMAE, GAT podría ser una mejor opción en la mayoría de los casos."
+          }
+        },
+        {
+          "id": "app-a-h3",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "A.3 Implementation Details",
+            "es": "A.3 Detalles de implementación"
+          }
+        },
+        {
+          "id": "app-a-p5",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "A.3.1 Environment. Most experiments are conducted on Linux servers equipped with an Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz, 256GB RAM and NVIDIA 2080Ti GPUs. Experiments of Ogbn-arxiv and Reddit for node classificatin are conducted on Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz and NVIDIA 3090 GPUs, as they require large memory. Models of node and graph classification are implemented in PyTorch version 1.9.0, DGL version 0.7.2 (https://www.dgl.ai/) with CUDA version 10.2, scikit-learn version 0.24.1 and Python 3.7. For molecular property prediction, we implement our model based on the code in https://github.com/snap-stanford/pretrain-gnns with Pytorch Geo-metric 2.0.4 (https://www.pyg.org/).",
+            "es": "A.3.1 Entorno. La mayoría de los experimentos se realizan en servidores Linux equipados con una CPU Intel(R) Xeon(R) E5-2680 v4 @ 2.40GHz, 256GB de RAM y GPU NVIDIA 2080Ti. Los experimentos de Ogbn-arxiv y Reddit para la clasificación de nodos se realizan en una CPU Intel(R) Xeon(R) Gold 6240 @ 2.60GHz y GPU NVIDIA 3090, ya que requieren mucha memoria. Los modelos de clasificación de nodos y de grafos se implementan en PyTorch versión 1.9.0, DGL versión 0.7.2 (https://www.dgl.ai/) con CUDA versión 10.2, scikit-learn versión 0.24.1 y Python 3.7. Para la predicción de propiedades moleculares, implementamos nuestro modelo con base en el código de https://github.com/snap-stanford/pretrain-gnns con Pytorch Geo-metric 2.0.4 (https://www.pyg.org/)."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4: Performance on PPI using GAT with 4 attention heads, compared to other baselines. Self-supervised methods benefit much from larger model size, and GraphMAE could outperform supervised model.",
+            "es": "Figura 4: Rendimiento en PPI usando GAT con 4 cabezas de atención (attention heads), en comparación con otros métodos de referencia. Los métodos autosupervisados se benefician mucho de un mayor tamaño del modelo, y GraphMAE puede superar al modelo supervisado."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5: Ablation study of mask ratio and scaling factor 𝛾 in Ogbn-arxiv and IMDB-B.",
+            "es": "Figura 5: Estudio de ablación de la proporción de enmascaramiento (mask ratio) y del factor de escala 𝛾 en Ogbn-arxiv e IMDB-B."
+          }
+        },
+        {
+          "id": "app-a-p6",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "A.3.2 Model Configuration. For node classification, we train the model using Adam Optimizer with 𝛽1 = 0.9, 𝛽2 = 0.999,𝜖= 1×10−8. The initial learning rate is set to 0.001, using cosine learning rate decay without warmup. We use PReLU as the non-linear activation. More details about hyper-parameters and datasets are in Table 7 and https://github.com/THUDM/GraphMAE.",
+            "es": "A.3.2 Configuración del modelo. Para la clasificación de nodos, entrenamos el modelo con el optimizador Adam con 𝛽1 = 0.9, 𝛽2 = 0.999,𝜖= 1×10−8. La tasa de aprendizaje inicial se fija en 0.001, usando decaimiento coseno de la tasa de aprendizaje sin calentamiento (warmup). Usamos PReLU como activación no lineal. Más detalles sobre los hiperparámetros y los conjuntos de datos se encuentran en la Tabla 7 y en https://github.com/THUDM/GraphMAE."
+          }
+        },
+        {
+          "id": "app-a-p7",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "For graph classification, we set the initial learning rate to 0.00015 with cosine learning rate decay for most cases. For the evaluation, the parameter C of SVM is searched in the sets {10−3, ..., 10}. The hyper-parameters and statistics of datasets are in Table 8.",
+            "es": "Para la clasificación de grafos, fijamos la tasa de aprendizaje inicial en 0.00015 con decaimiento coseno de la tasa de aprendizaje en la mayoría de los casos. Para la evaluación, el parámetro C de SVM se busca en los conjuntos {10−3, ..., 10}. Los hiperparámetros y las estadísticas de los conjuntos de datos se encuentran en la Tabla 8."
+          }
+        },
+        {
+          "id": "app-a-p8",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "For transfer learning of molecule property prediction, we adopt a single-layer GIN as decoder, the mask rate is set to 0.25, and we pretrain the whole model for 100 epochs. For the finetuning, an Adam optimizer (learning rate: 0.001, batch size: 32) is employed to train the model for 100 epochs. We utilize a learning rate scheduler with fix step size, which multiplies the learning rate by 0.3 every 30 epochs for BACE only. Table 9 shows the statistics of datasets.",
+            "es": "Para el aprendizaje por transferencia (transfer learning) de la predicción de propiedades moleculares, adoptamos una GIN de una sola capa como decodificador, la tasa de enmascaramiento se fija en 0.25 y preentrenamos todo el modelo durante 100 épocas. Para el ajuste fino, se emplea un optimizador Adam (tasa de aprendizaje: 0.001, tamaño de lote: 32) para entrenar el modelo durante 100 épocas. Utilizamos un programador de tasa de aprendizaje con tamaño de paso fijo, que multiplica la tasa de aprendizaje por 0.3 cada 30 épocas solo para BACE. La Tabla 9 muestra las estadísticas de los conjuntos de datos."
+          }
+        },
+        {
+          "id": "tab-7",
+          "type": "table",
+          "page": 11,
+          "image": "fig/tab-7.png",
+          "text": {
+            "en": "Table 7: Statistics and hyper-parameters for node classification datasets. “s” represents multi-class classification, and “m” means multi-label classification.",
+            "es": "Tabla 7: Estadísticas e hiperparámetros de los conjuntos de datos de clasificación de nodos. “s” representa la clasificación multiclase y “m” significa la clasificación multietiqueta."
+          }
+        },
+        {
+          "id": "tab-8",
+          "type": "table",
+          "page": 11,
+          "image": "fig/tab-8.png",
+          "text": {
+            "en": "Table 8: Statistics and hyper-parameters for graph classification datasets.",
+            "es": "Tabla 8: Estadísticas e hiperparámetros de los conjuntos de datos de clasificación de grafos."
+          }
+        },
+        {
+          "id": "tab-9",
+          "type": "table",
+          "page": 11,
+          "image": "fig/tab-9.png",
+          "text": {
+            "en": "Table 9: Statistics of datasets for molecular property prediction. “ZINC” is used for pre-training.",
+            "es": "Tabla 9: Estadísticas de los conjuntos de datos para la predicción de propiedades moleculares. “ZINC” se usa para el preentrenamiento."
+          }
+        },
+        {
+          "id": "app-a-h4",
+          "type": "heading",
+          "page": 11,
+          "text": {
+            "en": "A.4 Baselines",
+            "es": "A.4 Métodos de referencia"
+          }
+        },
+        {
+          "id": "app-a-p9",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "For node classification, the results of supervised baselines of GCN in Reddit, and GAT in Ogbn-arxiv and Reddit are from CogDL(https: //cogdl.ai/) if not reported before. For unsupervised baselines, GRACE [60], BGRL [37], CCA-SSG [57] are state-of-the-art contrastive learning methods in graph. GRACE and BGRL did not report the results in Cora, Citeseer, and PubMed of the public split. To have a fair comparison, we download the public source code and use the same GNN backbone as GraphMAE. We conduct hyper-parameter search for them and select the best results on the validation set. The results of CCA-SSG are the output of the official code after the bugs in the code are fixed. For MVGRL [11], we adopt DGL’s reproducing results. We implement GPT-GNN [17] based on the official code for homogeneous networks, as the code is for heterogeneous networks, and report the results in Cora, Citeseer, and PubMed.",
+            "es": "Para la clasificación de nodos, los resultados de los métodos de referencia supervisados de GCN en Reddit, y de GAT en Ogbn-arxiv y Reddit provienen de CogDL (https: //cogdl.ai/) si no se habían reportado antes. Para los métodos de referencia no supervisados, GRACE [60], BGRL [37] y CCA-SSG [57] son métodos de aprendizaje contrastivo (contrastive learning) de vanguardia en grafos. GRACE y BGRL no reportaron los resultados en Cora, Citeseer y PubMed de la partición pública. Para tener una comparación justa, descargamos el código fuente público y usamos la misma arquitectura base de GNN que GraphMAE. Realizamos una búsqueda de hiperparámetros para ellos y seleccionamos los mejores resultados en el conjunto de validación. Los resultados de CCA-SSG son la salida del código oficial después de corregir los errores del código. Para MVGRL [11], adoptamos los resultados de reproducción de DGL. Implementamos GPT-GNN [17] con base en el código oficial para redes homogéneas, ya que el código es para redes heterogéneas, y reportamos los resultados en Cora, Citeseer y PubMed."
+          }
+        },
+        {
+          "id": "app-a-p10",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "For graph classification and transfer learning of molecular property prediction, we adopt the results reported in previous papers if available. For the results of GraphCL [54] and JOAO [53] in IMDB-MULTI, we download the authors’ official codes and keep hyper-parameters the same to get the output.",
+            "es": "Para la clasificación de grafos y el aprendizaje por transferencia de la predicción de propiedades moleculares, adoptamos los resultados reportados en artículos previos cuando están disponibles. Para los resultados de GraphCL [54] y JOAO [53] en IMDB-MULTI, descargamos los códigos oficiales de los autores y mantenemos los mismos hiperparámetros para obtener la salida."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createClient, parseSSE } from '../assets/reading-client.js'
-import { addUnderline, emptyReading, removeUnderline, segments, validateReading } from '../assets/reading.js'
+import { addUnderline, emptyReading, furthestBlock, progressOf, removeUnderline, segments, validateReading } from '../assets/reading.js'
 
 describe('the reading state', () => {
   it('starts empty, in Spanish', () => {
     const r = emptyReading()
-    expect(r).toEqual({ version: 1, position: null, lang: 'es', voice: null, rate: 1, underlines: [], chats: [] })
+    expect(r).toEqual({ version: 1, position: null, reached: null, lang: 'es', voice: null, rate: 1, underlines: [], chats: [] })
     expect(validateReading(r)).toEqual([])
   })
 
@@ -113,5 +113,52 @@ describe('the client', () => {
     const seen = []
     await client.chat({}, (event, data) => seen.push([event, data]))
     expect(seen).toEqual([['error', { message: 'forbidden' }]])
+  })
+})
+
+describe('reading progress', () => {
+  // Body: s1-p1 (10), s1-p2 (30), s2-p1 (60); then the references, which are not counted.
+  const text = (n) => ({ en: 'x'.repeat(n) })
+  const paper = {
+    version: 1, node: 'x', title: 'X', source: 'files/x.pdf',
+    sections: [
+      { id: 's1', title: { en: 'One' }, blocks: [{ id: 's1-p1', type: 'paragraph', page: 1, text: text(10) }, { id: 's1-p2', type: 'paragraph', page: 1, text: text(30) }] },
+      { id: 's2', title: { en: 'Two' }, blocks: [{ id: 's2-p1', type: 'paragraph', page: 2, text: text(60) }] },
+      { id: 'refs', title: { en: 'References' }, blocks: [{ id: 'refs-1', type: 'paragraph', page: 3, text: text(500) }] },
+    ],
+  }
+  const at = (block, reached) => ({ ...emptyReading(), position: block ? { block, sentence: 0 } : null, reached })
+
+  it('is 0 before anything is read, and for a block the paper does not have', () => {
+    expect(progressOf(paper, emptyReading())).toBe(0)
+    expect(progressOf(paper, at('nowhere', null))).toBe(0)
+  })
+
+  it('is the share of the text up to and including the block reached, by length', () => {
+    expect(progressOf(paper, at('s1-p1', null))).toBe(10)
+    expect(progressOf(paper, at('s1-p2', null))).toBe(40)
+    expect(progressOf(paper, at('s2-p1', null))).toBe(100)
+  })
+
+  it('is 100 once the references are reached, since the body is over', () => {
+    expect(progressOf(paper, at('refs-1', null))).toBe(100)
+  })
+
+  it('goes by the furthest block reached, so going back to re-read takes nothing away', () => {
+    expect(progressOf(paper, at('s1-p1', 's1-p2'))).toBe(40)
+  })
+
+  it('tells which of two blocks is further', () => {
+    expect(furthestBlock(paper, 's1-p1', 's2-p1')).toBe('s2-p1')
+    expect(furthestBlock(paper, 's2-p1', 's1-p1')).toBe('s2-p1')
+    expect(furthestBlock(paper, null, 's1-p2')).toBe('s1-p2')
+    expect(furthestBlock(paper, 's1-p2', 'nowhere')).toBe('s1-p2')
+    expect(furthestBlock(paper, null, null)).toBeNull()
+  })
+
+  it('accepts a reading with no reached (stored before it existed) and refuses one that is not a block id', () => {
+    const { reached: _reached, ...old } = emptyReading()
+    expect(validateReading(old)).toEqual([])
+    expect(validateReading({ ...emptyReading(), reached: 3 })).toEqual(['reached is not null or a block id'])
   })
 })

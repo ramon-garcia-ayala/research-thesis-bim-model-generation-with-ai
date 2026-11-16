@@ -1,0 +1,1903 @@
+{
+  "version": 1,
+  "node": "chen-2021",
+  "title": "Order Matters: Probabilistic Modeling of Node Sequence for Graph Generation",
+  "source": "files/Order Matters Probabilistic Modeling of Node Sequence for Graph Generation.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "A graph generative model deﬁnes a distribution over graphs. One type of generative model is constructed by autoregressive neural networks, which sequentially add nodes and edges to generate a graph. However, the likelihood of a graph under the autoregressive model is intractable, as there are numerous sequences leading to the given graph; this makes maximum likelihood estimation challenging. Instead, in this work we derive the exact joint probability over the graph and the node ordering of the sequential process. From the joint, we approximately marginalize out the node orderings and compute a lower bound on the log-likelihood using variational inference. We train graph generative models by maximizing this bound, without using the ad-hoc node orderings of previous methods. Our experiments show that the log-likelihood bound is signiﬁcantly tighter than the bound of previous schemes. Moreover, the models ﬁtted with the proposed algorithm can generate high-quality graphs that match the structures of target graphs not seen during training. We have made our code publicly available at https://github.com/tufts-ml/graph-generation-vi.",
+            "es": "Un modelo generativo de grafos (graph generative model) define una distribución sobre grafos. Un tipo de modelo generativo se construye con redes neuronales autorregresivas (autoregressive neural networks), que agregan nodos y aristas de forma secuencial para generar un grafo. Sin embargo, la verosimilitud (likelihood) de un grafo bajo el modelo autorregresivo es intratable, ya que existen numerosas secuencias que conducen al grafo dado; esto dificulta la estimación por máxima verosimilitud (maximum likelihood estimation). En cambio, en este trabajo derivamos la probabilidad conjunta exacta sobre el grafo y el orden de los nodos del proceso secuencial. A partir de la conjunta, marginalizamos de forma aproximada los órdenes de los nodos y calculamos una cota inferior de la log-verosimilitud (log-likelihood) mediante inferencia variacional (variational inference). Entrenamos modelos generativos de grafos maximizando esta cota, sin usar los órdenes de nodos ad hoc de métodos anteriores. Nuestros experimentos muestran que la cota de la log-verosimilitud es significativamente más ajustada que la cota de los esquemas anteriores. Además, los modelos ajustados con el algoritmo propuesto pueden generar grafos de alta calidad que coinciden con las estructuras de grafos objetivo no vistos durante el entrenamiento. Hemos publicado nuestro código en https://github.com/tufts-ml/graph-generation-vi."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1. Introduction",
+        "es": "1. Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Random graphs have been a prominent topic in statistics and graph theory for decades. An early and inﬂuential model of random graphs is the Erd˝os–Rényi model (Erd˝os & Rényi, 1960). Since then, various models have been proposed to characterize different global statistics of graphs or networks in the real world (Watts & Strogatz, 1998; Nowicki & Sni-jders, 2001; Cai et al., 2016). However, these models are usually not designed for capturing local structures of a graph, such as bonds in a molecule graph.",
+            "es": "Los grafos aleatorios (random graphs) han sido un tema destacado en la estadística y la teoría de grafos durante décadas. Un modelo temprano e influyente de grafos aleatorios es el modelo de Erdős–Rényi (Erd˝os & Rényi, 1960). Desde entonces, se han propuesto diversos modelos para caracterizar distintas estadísticas globales de grafos o redes del mundo real (Watts & Strogatz, 1998; Nowicki & Sni-jders, 2001; Cai et al., 2016). Sin embargo, estos modelos por lo general no están diseñados para capturar estructuras locales de un grafo, como los enlaces en el grafo de una molécula."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "*Equal contribution 1Department of Computer Science, Tufts University, Medford, MA, USA. 2DeepMind, London, UK. Corre-spondence to: Xiaohui Chen <xiaohui.chen@tufts.edu>.",
+            "es": "*Contribución equivalente 1Department of Computer Science, Tufts University, Medford, MA, USA. 2DeepMind, London, UK. Corre-spondence to: Xiaohui Chen <xiaohui.chen@tufts.edu>."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Proceedings of the 38 th International Conference on Machine Learning, PMLR 139, 2021. Copyright 2021 by the author(s)."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Autoregressive generative models (You et al., 2018; Li et al., 2018; Liao et al., 2019; Dai et al., 2020; Goyal et al., 2020; Yuan et al., 2020; Shi et al., 2020) are designed to learn ﬁne structures in graph data. These models generate a graph by sequentially adding nodes and edges. Since a graph is invariant to node permutations (Veitch & Roy, 2015), there are multiple sequences of actions leading to the same graph. When ﬁtting an autoregressive model to data, a particular node ordering π of the graph G (called “generation order”) is used to pin down a single generation sequence of G, such as depth-ﬁrst search (DFS) or breadth-ﬁrst search (BFS) ordering. The model is then ﬁtted assuming the graph was generated under such ordering π. Autoregressive models of graphs typically use deep learning tools (Guo & Zhao, 2020), such as recurrent neural networks (RNNs), to learn ﬂexible and complex patterns from data.",
+            "es": "Los modelos generativos autorregresivos (autoregressive generative models) (You et al., 2018; Li et al., 2018; Liao et al., 2019; Dai et al., 2020; Goyal et al., 2020; Yuan et al., 2020; Shi et al., 2020) están diseñados para aprender estructuras finas en datos de grafos. Estos modelos generan un grafo agregando nodos y aristas de forma secuencial. Dado que un grafo es invariante a las permutaciones de nodos (Veitch & Roy, 2015), existen múltiples secuencias de acciones que conducen al mismo grafo. Al ajustar un modelo autorregresivo a los datos, se usa un orden particular de nodos π del grafo G (llamado “orden de generación”, generation order) para fijar una única secuencia de generación de G, como el orden de búsqueda en profundidad (depth-first search, DFS) o de búsqueda en anchura (breadth-first search, BFS). Luego el modelo se ajusta suponiendo que el grafo fue generado bajo dicho orden π. Los modelos autorregresivos de grafos suelen usar herramientas de aprendizaje profundo (Guo & Zhao, 2020), como las redes neuronales recurrentes (recurrent neural networks, RNNs), para aprender patrones flexibles y complejos a partir de los datos."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Choosing a speciﬁc ordering π does not rigorously correspond to maximum likelihood estimation (MLE). Indeed, to ﬁt the parameters of an autoregressive model via MLE, we need the likelihood of G under the model. One approach for computing p(G) is to sum over all possible node orderings π, p(G) = P π p(G, π). However, this approach presents some challenges. First, a generation sequence of G corresponds to multiple node orderings when G has non-trivial automorphisms (You et al., 2018; Liao et al., 2019), which require us to carefully derive the joint p(G, π) from the model’s distribution of generation sequences. Second, the marginalization is intractable in practice due to the number of terms in the sum. As a consequence, p(G) cannot be easily obtained. This does not only make MLE intractable, but also implies that generative models cannot be evaluated in terms of log-likelihood. Instead, other evaluation metrics such as degree distribution are used, but these metrics exhibit some issues for complex graphs (Liu et al., 2019).",
+            "es": "Elegir un orden específico π no corresponde rigurosamente a la estimación por máxima verosimilitud (MLE). En efecto, para ajustar los parámetros de un modelo autorregresivo mediante MLE, necesitamos la verosimilitud de G bajo el modelo. Un enfoque para calcular p(G) es sumar sobre todos los posibles órdenes de nodos π, p(G) = P π p(G, π). Sin embargo, este enfoque presenta algunos desafíos. Primero, una secuencia de generación de G corresponde a múltiples órdenes de nodos cuando G tiene automorfismos (automorphisms) no triviales (You et al., 2018; Liao et al., 2019), lo cual nos obliga a derivar con cuidado la conjunta p(G, π) a partir de la distribución del modelo sobre las secuencias de generación. Segundo, la marginalización es intratable en la práctica debido al número de términos de la suma. Como consecuencia, p(G) no puede obtenerse fácilmente. Esto no solo vuelve intratable la MLE, sino que también implica que los modelos generativos no pueden evaluarse en términos de log-verosimilitud. En su lugar, se usan otras métricas de evaluación, como la distribución de grados, pero estas métricas presentan algunos problemas para grafos complejos (Liu et al., 2019)."
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "In this work, we provide a method to estimate the marginal log-likelihood, enabling standard statistical model checking and comparison. It also opens the door for other learning tasks that require the log-likelihood of graph data, such as density-based anomaly detection.",
+            "es": "En este trabajo, presentamos un método para estimar la log-verosimilitud marginal, lo que permite la verificación y comparación estadística estándar de modelos. También abre la puerta a otras tareas de aprendizaje que requieren la log-verosimilitud de datos de grafos, como la detección de anomalías basada en densidad."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "We aim at consolidating the foundation of autoregressive graph generative models. In particular, we examine two types of models: one that generates a graph through an evolving graph sequence and one that generates an adjacency matrix. Then we derive the joint p(G, π) from each type. Our analysis reveals a relationship between graph generation and graph automorphism.",
+            "es": "Nuestro objetivo es consolidar los fundamentos de los modelos generativos autorregresivos de grafos. En particular, examinamos dos tipos de modelos: uno que genera un grafo mediante una secuencia evolutiva de grafos y otro que genera una matriz de adyacencia. Luego derivamos la conjunta p(G, π) para cada tipo. Nuestro análisis revela una relación entre la generación de grafos y el automorfismo de grafos."
+          }
+        },
+        {
+          "id": "s1-p8",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To ﬁt large graphs via MLE, we avoid the intractable marginalization by performing approximate posterior inference over the node ordering π. In particular, we use variational inference (VI) and maximize a lower bound of log p(G). We design a neural network that infers the probability over π for a given graph G. Thus, the generative model is trained with node orderings that are likely to generate G, avoiding the need to deﬁne ad-hoc orderings.",
+            "es": "Para ajustar grafos grandes mediante MLE, evitamos la marginalización intratable realizando inferencia posterior aproximada sobre el orden de nodos π. En particular, usamos inferencia variacional (VI) y maximizamos una cota inferior de log p(G). Diseñamos una red neuronal que infiere la probabilidad sobre π para un grafo G dado. Así, el modelo generativo se entrena con órdenes de nodos que probablemente generen G, evitando la necesidad de definir órdenes ad hoc."
+          }
+        },
+        {
+          "id": "s1-p9",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "For evaluation, we estimate the graph log-likelihood via importance sampling. Our empirical study indicates that the variational lower bound is relatively tight. We also ﬁnd that generative models ﬁtted with the proposed method perform better than existing methods according to various metrics, including log-likelihood. Models trained with our method are able to generate new graphs with higher similarity to training graphs than existing approaches.",
+            "es": "Para la evaluación, estimamos la log-verosimilitud del grafo mediante muestreo por importancia (importance sampling). Nuestro estudio empírico indica que la cota inferior variacional es relativamente ajustada. También encontramos que los modelos generativos ajustados con el método propuesto tienen mejor desempeño que los métodos existentes según diversas métricas, incluida la log-verosimilitud. Los modelos entrenados con nuestro método son capaces de generar nuevos grafos con mayor similitud a los grafos de entrenamiento que los enfoques existentes."
+          }
+        },
+        {
+          "id": "s1-p10",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Contributions. Our main contributions are as follows:",
+            "es": "Contribuciones. Nuestras principales contribuciones son las siguientes:"
+          }
+        },
+        {
+          "id": "s1-p11",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "• we give a rigorous deﬁnition of the probability of node orderings in autoregressive graph generative models; • we analyze the relation between the calculation of graph probabilities and graph automorphism; • we introduce VI to infer node orderings; and • our training method with VI improves the performance of the model both quantitatively and qualitatively.",
+            "es": "• damos una definición rigurosa de la probabilidad de los órdenes de nodos en modelos generativos autorregresivos de grafos; • analizamos la relación entre el cálculo de probabilidades de grafos y el automorfismo de grafos; • introducimos VI para inferir órdenes de nodos; y • nuestro método de entrenamiento con VI mejora el desempeño del modelo tanto cuantitativa como cualitativamente."
+          }
+        },
+        {
+          "id": "s1-p12",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Related work. Autoregressive graph generation models have gained attention due to both the quality of generated graphs and their generation efﬁciency (You et al., 2018; Li et al., 2018; Liao et al., 2019; Dai et al., 2020; Shi et al., 2020). In these works, π is often decided by DFS or BFS, or it can be a specially designed canonical order. Liao et al. (2019) justify this approach by showing that these methods optimize a variational bound on log p(G). However, when the node orderings π are either randomly sampled from a uniform distribution or limited to a small range of canonical orders, these bounds are likely to be loose.",
+            "es": "Trabajo relacionado. Los modelos autorregresivos de generación de grafos han ganado atención tanto por la calidad de los grafos generados como por su eficiencia de generación (You et al., 2018; Li et al., 2018; Liao et al., 2019; Dai et al., 2020; Shi et al., 2020). En estos trabajos, π suele decidirse mediante DFS o BFS, o bien puede ser un orden canónico especialmente diseñado. Liao et al. (2019) justifican este enfoque mostrando que estos métodos optimizan una cota variacional de log p(G). Sin embargo, cuando los órdenes de nodos π se muestrean aleatoriamente de una distribución uniforme o se limitan a un rango pequeño de órdenes canónicos, es probable que estas cotas sean laxas."
+          }
+        },
+        {
+          "id": "s1-p13",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "One model that considers a single canonical node ordering π⋆is GraphGEN (Goyal et al., 2020). That is, for a given graph G, GraphGEN obtains p(G) by considering that the graph was generated according to π⋆. However, when generating a graph from the model, GraphGEN does not guarantee the canonical order. This design raises a theoretical issue: the frequency of a generation sequence may not converge to the model’s probability of that sequence.",
+            "es": "Un modelo que considera un único orden canónico de nodos π⋆ es GraphGEN (Goyal et al., 2020). Es decir, para un grafo G dado, GraphGEN obtiene p(G) considerando que el grafo fue generado según π⋆. Sin embargo, al generar un grafo a partir del modelo, GraphGEN no garantiza el orden canónico. Este diseño plantea un problema teórico: la frecuencia de una secuencia de generación podría no converger a la probabilidad que el modelo asigna a esa secuencia."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2. Autoregressive Graph Generation",
+        "es": "2. Generación autorregresiva de grafos"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "In Section 2.1, we introduce the two formulations of an autoregressive generative model—based on either a graph sequence or an adjacency matrix. In Section 2.2, we provide an explicit relationship between each formulation and the node ordering π to obtain the exact joint p(G, π).",
+            "es": "En la Sección 2.1 presentamos las dos formulaciones de un modelo generativo autorregresivo (autoregressive generative model), basadas ya sea en una secuencia de grafos (graph sequence) o en una matriz de adyacencia (adjacency matrix). En la Sección 2.2 proporcionamos una relación explícita entre cada formulación y el orden de los nodos (node ordering) π para obtener la distribución conjunta (joint) exacta p(G, π)."
+          }
+        },
+        {
+          "id": "s2-h1",
+          "type": "heading",
+          "page": 2,
+          "text": {
+            "en": "2.1. Problem deﬁnition",
+            "es": "2.1. Definición del problema"
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Let V = {1, . . . , n} and E be the node set and edge set of a graph G = (V, E) with |V | = n nodes. A node ordering π = (π1, . . . , πn) is a permutation of the elements in V . We consider G is unlabeled: permuting the nodes does not change the graph. The graph has a class A(G) of adjacency matrices corresponding to different node orderings—for each π, there is a unique adjacency matrix A ∈{0, 1}n×n that indicates which nodes are connected. We only consider ﬁnite graphs without self-loops and multi-edges, so A is symmetric and its diagonal elements are zero. Let G denote the space of such graphs.",
+            "es": "Sean V = {1, . . . , n} y E el conjunto de nodos (node set) y el conjunto de aristas (edge set) de un grafo G = (V, E) con |V | = n nodos. Un orden de nodos π = (π1, . . . , πn) es una permutación (permutation) de los elementos de V . Consideramos que G es un grafo sin etiquetas (unlabeled): permutar los nodos no cambia el grafo. El grafo tiene una clase A(G) de matrices de adyacencia correspondientes a distintos órdenes de nodos; para cada π, existe una única matriz de adyacencia A ∈{0, 1}n×n que indica qué nodos están conectados. Solo consideramos grafos finitos sin autolazos (self-loops) ni aristas múltiples (multi-edges), por lo que A es simétrica y sus elementos diagonales son cero. Sea G el espacio de tales grafos."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "A generative model of unlabeled graphs deﬁnes a distribution p(G) over G. The distribution must be invariant to permutation of graph nodes. In this work, we focus on autoregressive generative models. We next review two formulations of autoregressive generative models.",
+            "es": "Un modelo generativo de grafos sin etiquetas define una distribución p(G) sobre G. La distribución debe ser invariante (invariant) a la permutación de los nodos del grafo. En este trabajo nos centramos en los modelos generativos autorregresivos. A continuación revisamos dos formulaciones de modelos generativos autorregresivos."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The autoregressive model1 by You et al. (2018); Liao et al. (2019); Shi et al. (2020); Goyal et al. (2020) operates with the adjacency matrix A. In particular, the model generates a lower triangular matrix L by sequentially generating each row of L. After every row is generated, it may stop with a special termination symbol, denoted by ⊗. Since an adjacency matrix A = L + L⊤, each L uniquely determines A and vice-versa; thus p(A) = p(L) and n Y p(A) = p(⊗|L) p(Lt,:|L1:(t−1)). (1) t=2",
+            "es": "El modelo autorregresivo1 de You et al. (2018); Liao et al. (2019); Shi et al. (2020); Goyal et al. (2020) opera con la matriz de adyacencia A. En particular, el modelo genera una matriz triangular inferior (lower triangular matrix) L generando secuencialmente cada fila de L. Después de generar cada fila, puede detenerse con un símbolo especial de terminación, denotado por ⊗. Dado que una matriz de adyacencia A = L + L⊤, cada L determina de forma única a A y viceversa; por lo tanto p(A) = p(L) y n Y p(A) = p(⊗|L) p(Lt,:|L1:(t−1)). (1) t=2"
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Here, L1:(t−1) denotes the submatrix formed from the ﬁrst t−1 rows of L, and Lt,: is the t-th row of L. The probability p(L1,:) = 1 is left out here. The adjacency matrix A fully deﬁnes a graph G.",
+            "es": "Aquí, L1:(t−1) denota la submatriz formada por las primeras t−1 filas de L, y Lt,: es la t-ésima fila de L. La probabilidad p(L1,:) = 1 se omite aquí. La matriz de adyacencia A define por completo un grafo G."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "The deep generative model of graphs (DeepGMG) (Li et al., 2018) deﬁnes the sequential process as follows. It starts with a graph G1 with one node, and at each step t = 2, 3, . . ., it obtains a graph Gt by adding a new node as well as some edges connecting the new node to the previously generated graph Gt−1. The probability of the sequence",
+            "es": "El modelo generativo profundo de grafos (deep generative model of graphs, DeepGMG) (Li et al., 2018) define el proceso secuencial de la siguiente manera. Comienza con un grafo G1 con un nodo y, en cada paso t = 2, 3, . . ., obtiene un grafo Gt agregando un nuevo nodo, así como algunas aristas que conectan el nuevo nodo con el grafo Gt−1 generado previamente. La probabilidad de la secuencia"
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "1The formulation by Liao et al. (2019) generates graph nodes in batches, but it can also be expressed as an autoregressive model in this form. Similarly, GraphGEN (Goyal et al., 2020), which generates the sparse form of each row of L, is also in this form. graph G (left), several node orderings π (middle) specify the same adjacency matrix A or graph sequence G1:n, so we cannot uniquely identify π from either A or G1:n. The node orderings that give the same A give the same G1:n, but not vice-versa. In the plot of G1:n, for each subgraph Gt, nodes in the same orbit are labeled with the same color.",
+            "es": "1La formulación de Liao et al. (2019) genera los nodos del grafo por lotes, pero también puede expresarse como un modelo autorregresivo de esta forma. De manera similar, GraphGEN (Goyal et al., 2020), que genera la forma dispersa de cada fila de L, también tiene esta forma. grafo G (izquierda), varios órdenes de nodos π (centro) especifican la misma matriz de adyacencia A o secuencia de grafos G1:n, por lo que no podemos identificar de forma única a π a partir de A ni de G1:n. Los órdenes de nodos que dan la misma A dan la misma G1:n, pero no al revés. En la gráfica de G1:n, para cada subgrafo Gt, los nodos que están en la misma órbita se etiquetan con el mismo color."
+          }
+        },
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Figure 1. An overview of the relationship between the node ordering π and the adjacency matrix A or the graph sequence G1:n. Given a",
+            "es": "Figura 1. Una visión general de la relación entre el orden de nodos π y la matriz de adyacencia A o la secuencia de grafos G1:n. Dado un"
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "G1:n = (G1, . . . , Gn) is n Y p(G1:n) = p(⊗|Gn) p(Gt|Gt−1). (2) t=2",
+            "es": "G1:n = (G1, . . . , Gn) es n Y p(G1:n) = p(⊗|Gn) p(Gt|Gt−1). (2) t=2"
+          }
+        },
+        {
+          "id": "s2-p9",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The probability p(G1) = 1 is left out here as well. Note that, after n steps, the graph Gn is the generated graph G.",
+            "es": "La probabilidad p(G1) = 1 también se omite aquí. Nótese que, después de n pasos, el grafo Gn es el grafo generado G."
+          }
+        },
+        {
+          "id": "s2-p10",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "A given graph G does not naturally have either a unique adjacency matrix A or a unique graph sequence G1:n. Therefore, when ﬁtting these models, we need to specify a node ordering π to pin down a single adjacency matrix A or sequence G1:n. We depart from these two formulations and consider a formal treatment of the node ordering.",
+            "es": "Un grafo G dado no tiene de forma natural ni una matriz de adyacencia A única ni una secuencia de grafos G1:n única. Por lo tanto, al ajustar estos modelos, necesitamos especificar un orden de nodos π para fijar una sola matriz de adyacencia A o secuencia G1:n. Nos apartamos de estas dos formulaciones y consideramos un tratamiento formal del orden de los nodos."
+          }
+        },
+        {
+          "id": "s2-h2",
+          "type": "heading",
+          "page": 3,
+          "text": {
+            "en": "2.2. The generation order as a random variable",
+            "es": "2.2. El orden de generación como variable aleatoria"
+          }
+        },
+        {
+          "id": "s2-p11",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Here, we relate the sequential processes from Section 2.1 with the node ordering π. First, we consider the marginal likelihood p(G). Under the ﬁrst formulation, we obtain p(G) by marginalizing over all adjacency matrices of G,",
+            "es": "Aquí relacionamos los procesos secuenciales de la Sección 2.1 con el orden de nodos π. Primero consideramos la verosimilitud marginal (marginal likelihood) p(G). Bajo la primera formulación, obtenemos p(G) marginalizando (marginalizing) sobre todas las matrices de adyacencia de G,"
+          }
+        },
+        {
+          "id": "s2-p12",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "X p(G) = p(A). (3)",
+            "es": "X p(G) = p(A). (3)"
+          }
+        },
+        {
+          "id": "s2-p13",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "A∈A(G)",
+            "es": "A∈A(G)"
+          }
+        },
+        {
+          "id": "s2-p14",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Under the second formulation, the marginalization is over all graph sequences that lead to G, i.e.,",
+            "es": "Bajo la segunda formulación, la marginalización se realiza sobre todas las secuencias de grafos que conducen a G, es decir,"
+          }
+        },
+        {
+          "id": "s2-p15",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "X p(G) = p(G1:n). (4)",
+            "es": "X p(G) = p(G1:n). (4)"
+          }
+        },
+        {
+          "id": "s2-p16",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "G1:n: Gn=G",
+            "es": "G1:n: Gn=G"
+          }
+        },
+        {
+          "id": "s2-p17",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In both cases, the likelihood is intractable because the marginalization space is hard to specify—it involves ﬁnding all unique adjacency matrices or graph sequences (Liao et al., 2019). To obtain p(G), many works use instead the node ordering π as the marginalization variable since the space of π is easier to characterize than that of A or G1:n for a graph G. To obtain p(G, π), we need to clarify the relationship between A or G1:n and π, as we discuss next.",
+            "es": "En ambos casos, la verosimilitud es intratable (intractable) porque el espacio de marginalización es difícil de especificar: implica encontrar todas las matrices de adyacencia o secuencias de grafos únicas (Liao et al., 2019). Para obtener p(G), muchos trabajos utilizan en su lugar el orden de nodos π como variable de marginalización, ya que el espacio de π es más fácil de caracterizar que el de A o G1:n para un grafo G. Para obtener p(G, π), necesitamos aclarar la relación entre A o G1:n y π, como discutimos a continuación."
+          }
+        },
+        {
+          "id": "s2-p18",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The sequential process from Section 2.2 generates an adjacency matrix or graph sequence; however in general we cannot identify π from either of these variables. To see this, consider ﬁrst the relation between A and the node ordering π. Given the graph G, π determines A because the t-th row of A correponds to node πt. However, the converse is not necessarily true: a matrix A corresponds to multiple node orderings if G has non-trivial automorphism (Liao et al., 2019). We provide an example in Figure 1, where each of the ﬁrst two node orderings (π = (1, 3, 5, 2, 4) and π = (1, 2, 4, 3, 5)) determines A, but we cannot uniquely identify one of them from A (in particular, we cannot distinguish the node pairs (2, 4) and (3, 5)). The same is true for the graph sequence G1:n: a node ordering π deﬁnes a graph sequence G1:n, but not vice-versa (see Figure 1).",
+            "es": "El proceso secuencial de la Sección 2.2 genera una matriz de adyacencia o una secuencia de grafos; sin embargo, en general no podemos identificar π a partir de ninguna de estas variables. Para verlo, consideremos primero la relación entre A y el orden de nodos π. Dado el grafo G, π determina A porque la t-ésima fila de A corresponde al nodo πt. Sin embargo, lo inverso no es necesariamente cierto: una matriz A corresponde a múltiples órdenes de nodos si G tiene un automorfismo (automorphism) no trivial (Liao et al., 2019). Proporcionamos un ejemplo en la Figura 1, donde cada uno de los dos primeros órdenes de nodos (π = (1, 3, 5, 2, 4) y π = (1, 2, 4, 3, 5)) determina A, pero no podemos identificar de forma única a uno de ellos a partir de A (en particular, no podemos distinguir los pares de nodos (2, 4) y (3, 5)). Lo mismo ocurre con la secuencia de grafos G1:n: un orden de nodos π define una secuencia de grafos G1:n, pero no al revés (véase la Figura 1)."
+          }
+        },
+        {
+          "id": "s2-p19",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Similarly, the relation between A and G1:n is not unique. An adjacency matrix A determines a graph sequence G1:n, but a graph sequence does not determine a unique A. As an example, in Figure 1 all four node orderings generate the same G1:n, but the last two node orderings determine two adjacency matrices different from the shown matrix A.",
+            "es": "De manera similar, la relación entre A y G1:n no es única. Una matriz de adyacencia A determina una secuencia de grafos G1:n, pero una secuencia de grafos no determina una A única. Como ejemplo, en la Figura 1 los cuatro órdenes de nodos generan la misma G1:n, pero los dos últimos órdenes de nodos determinan dos matrices de adyacencia distintas de la matriz A mostrada."
+          }
+        },
+        {
+          "id": "s2-p20",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In summary, (G, π) determines A, which determines G1:n, but the reverse is not true in general. This implies that an autoregressive generative model (which generates A or G1:n) does not specify a distribution over π.",
+            "es": "En resumen, (G, π) determina A, que determina G1:n, pero lo inverso no es cierto en general. Esto implica que un modelo generativo autorregresivo (que genera A o G1:n) no especifica una distribución sobre π."
+          }
+        },
+        {
+          "id": "s2-p21",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "We next make π a random variable and formally specify the joint p(G, π). Given the graph G = (V, E), let Π[A] be the set of all possible node orderings π that give the same adjacency A; similarly, let Π[G1:n] be the set of all node orderings that give the same graph sequence G1:n, i.e.,",
+            "es": "A continuación hacemos de π una variable aleatoria y especificamos formalmente la conjunta p(G, π). Dado el grafo G = (V, E), sea Π[A] el conjunto de todos los órdenes de nodos π posibles que dan la misma adyacencia A; de manera similar, sea Π[G1:n] el conjunto de todos los órdenes de nodos que dan la misma secuencia de grafos G1:n, es decir,"
+          }
+        },
+        {
+          "id": "s2-p22",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Π[A] = {π : Aπi,πj = 1[(πi, πj) ∈E], ∀i, j ∈V }",
+            "es": "Π[A] = {π : Aπi,πj = 1[(πi, πj) ∈E], ∀i, j ∈V }"
+          }
+        },
+        {
+          "id": "s2-p23",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Π[G1:n] = {π : G[π1:t] = Gt, ∀t = 1, . . . , n}.",
+            "es": "Π[G1:n] = {π : G[π1:t] = Gt, ∀t = 1, . . . , n}."
+          }
+        },
+        {
+          "id": "s2-p24",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Here, 1[·] is 1 or 0 depending on whether the condition in the bracket is true or false, and G[π1:t] is the induced subgraph of G from the ﬁrst t nodes in the ordering π. Then we let the conditional distribution p(π|A) be uniform, i.e., p(π|A) = 1 Π[A]",
+            "es": "Aquí, 1[·] es 1 o 0 dependiendo de si la condición entre corchetes es verdadera o falsa, y G[π1:t] es el subgrafo inducido (induced subgraph) de G a partir de los primeros t nodos del orden π. Entonces hacemos que la distribución condicional p(π|A) sea uniforme, es decir, p(π|A) = 1 Π[A]"
+          }
+        },
+        {
+          "id": "s2-p25",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": ". (5)",
+            "es": ". (5)"
+          }
+        },
+        {
+          "id": "s2-p26",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The set Π[A] turns out to be the set of automorphisms2 of the graph G. This is because every node ordering π ∈Π[A] permutes rows and columns of A but does not change A; that is, each π creates an automorphism. Therefore, obtaining p(π|A) amounts to ﬁnding the number of automorphisms of a graph. Fortunately, this is a well-studied classic problem in graph theory. The time complexity of computing |Π[A]| is exp",
+            "es": "Resulta que el conjunto Π[A] es el conjunto de automorfismos2 del grafo G. Esto se debe a que cada orden de nodos π ∈Π[A] permuta las filas y columnas de A pero no cambia A; es decir, cada π crea un automorfismo. Por lo tanto, obtener p(π|A) equivale a encontrar el número de automorfismos de un grafo. Afortunadamente, este es un problema clásico muy estudiado en la teoría de grafos. La complejidad temporal de calcular |Π[A]| es exp"
+          }
+        },
+        {
+          "id": "s2-p27",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "O(√n log n)",
+            "es": "O(√n log n)"
+          }
+        },
+        {
+          "id": "s2-p28",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "(Beals et al., 1999). The Nauty package (McKay & Piperno, 2013) uses various heuristics and can efﬁciently ﬁnd this number for most graphs. In practice, it can compute |Π[A]| for a graph with thousands of nodes within 10−3 seconds.",
+            "es": "(Beals et al., 1999). El paquete Nauty (McKay & Piperno, 2013) utiliza diversas heurísticas y puede encontrar este número de manera eficiente para la mayoría de los grafos. En la práctica, puede calcular |Π[A]| para un grafo con miles de nodos en menos de 10−3 segundos."
+          }
+        },
+        {
+          "id": "s2-p29",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "For the formulation with graph sequences, the analysis is more involved. We deﬁne the conditional p(π|G1:n) as a uniform distribution, p(π|G1:n) = 1 Π[G1:n]",
+            "es": "Para la formulación con secuencias de grafos, el análisis es más complejo. Definimos la condicional p(π|G1:n) como una distribución uniforme, p(π|G1:n) = 1 Π[G1:n]"
+          }
+        },
+        {
+          "id": "s2-p30",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": ". (6)",
+            "es": ". (6)"
+          }
+        },
+        {
+          "id": "s2-p31",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We discuss below how to obtain |Π[G1:n]| in practice, but ﬁrst we formally specify the joint p(G, π) and the likelihood p(G). The joint can be obtained from p(A) or p(G1:n) as p(G, π) = 1 Π[A] p(A) = 1 Π[G1:n] p(G1:n). (7)",
+            "es": "Más adelante discutimos cómo obtener |Π[G1:n]| en la práctica, pero primero especificamos formalmente la conjunta p(G, π) y la verosimilitud p(G). La conjunta puede obtenerse a partir de p(A) o p(G1:n) como p(G, π) = 1 Π[A] p(A) = 1 Π[G1:n] p(G1:n). (7)"
+          }
+        },
+        {
+          "id": "s2-p32",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "(This expression assumes that A ∈A(G) and that Gn = G.) The marginal likelihood p(G) of a graph can be obtained by marginalizing out the node ordering π from Eq. 7,",
+            "es": "(Esta expresión supone que A ∈A(G) y que Gn = G.) La verosimilitud marginal p(G) de un grafo puede obtenerse marginalizando el orden de nodos π en la Ec. 7,"
+          }
+        },
+        {
+          "id": "s2-p33",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "X p(G) = p(G, π). (8) π",
+            "es": "X p(G) = p(G, π). (8) π"
+          }
+        },
+        {
+          "id": "s2-p34",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Obtaining p(G) from Eq. 8 is easier than from Eq. 3 or Eq. 4 because the marginalization space is easier to characterize, but it remains intractable because of the large number of terms in the sum. In Section 3, we derive a variational bound on p(G) by approximating the posterior distribution p(π|G), for which we use the deﬁnition of the joint in Eq. 7.",
+            "es": "Obtener p(G) a partir de la Ec. 8 es más fácil que a partir de la Ec. 3 o la Ec. 4 porque el espacio de marginalización es más fácil de caracterizar, pero sigue siendo intratable debido al gran número de términos de la suma. En la Sección 3 derivamos una cota variacional (variational bound) de p(G) aproximando la distribución posterior (posterior distribution) p(π|G), para lo cual usamos la definición de la conjunta en la Ec. 7."
+          }
+        },
+        {
+          "id": "s2-p35",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Obtaining |Π[G1:n]|. We now discuss the practical calculation of |Π[G1:n]|. Like |Π[A]|, it is also closely related to graph automorphism. Let Aut(G) denote the set of all automorphisms of G, then the orbit of a node u ∈V is r(G, u) = {v ∈V : ∃f ∈Aut(G), v = f(u)} (Godsil & Royle, 2001). Intuitively, the orbit of u contains all nodes that are “symmetric” to u. In Figure 1, the orbit of node 3 is {2, 3}, and the orbit of node 5 is {4, 5}. The theorem below expresses |Π[G1:n]| in terms of the cardinality of the orbits produced during the sequential generative process.",
+            "es": "Obtención de |Π[G1:n]|. Ahora discutimos el cálculo práctico de |Π[G1:n]|. Al igual que |Π[A]|, está estrechamente relacionado con el automorfismo de grafos. Sea Aut(G) el conjunto de todos los automorfismos de G; entonces la órbita (orbit) de un nodo u ∈V es r(G, u) = {v ∈V : ∃f ∈Aut(G), v = f(u)} (Godsil & Royle, 2001). Intuitivamente, la órbita de u contiene todos los nodos que son “simétricos” a u. En la Figura 1, la órbita del nodo 3 es {2, 3}, y la órbita del nodo 5 es {4, 5}. El teorema siguiente expresa |Π[G1:n]| en términos de la cardinalidad de las órbitas producidas durante el proceso generativo secuencial."
+          }
+        },
+        {
+          "id": "s2-p36",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Theorem 1. For a graph sequence G1:n, we have n Y",
+            "es": "Teorema 1. Para una secuencia de grafos G1:n, se tiene n Y"
+          }
+        },
+        {
+          "id": "s2-p37",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Π[G1:n] r(Gt, πt)",
+            "es": "Π[G1:n] r(Gt, πt)"
+          }
+        },
+        {
+          "id": "s2-p38",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": ". (9) t=1",
+            "es": ". (9) t=1"
+          }
+        },
+        {
+          "id": "s2-p39",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "2A function f : V →V is an automorphism of G = (V, E) if (u, v) ∈E ⇐⇒(f(u), f(v)) ∈E.",
+            "es": "2Una función f : V →V es un automorfismo de G = (V, E) si (u, v) ∈E ⇐⇒(f(u), f(v)) ∈E."
+          }
+        },
+        {
+          "id": "s2-p40",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We show an example before providing the proof. Suppose that Gn is the complete graph with n nodes, then each Gt in the sequence is a complete graph with t nodes. Applying the theorem with r(Gt, πt) = t gives |Π[G1:n]| = n!, which means that all n! permutations use the same graph sequence.",
+            "es": "Mostramos un ejemplo antes de dar la demostración. Supongamos que Gn es el grafo completo con n nodos; entonces cada Gt de la secuencia es un grafo completo con t nodos. Al aplicar el teorema con r(Gt, πt) = t se obtiene |Π[G1:n]| = n!, lo que significa que las n! permutaciones usan la misma secuencia de grafos."
+          }
+        },
+        {
+          "id": "s2-p41",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Proof. The proof of the theorem needs the following lemma, whose proof is in Appendix A.2.",
+            "es": "Demostración. La demostración del teorema necesita el siguiente lema, cuya demostración está en el Apéndice A.2."
+          }
+        },
+        {
+          "id": "s2-p42",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Lemma 1. Let G[V \\{u}] and G[V \\{v}] respectively denote the subgraphs induced by V \\{u} and V \\{v}, then u and v are in the same orbit if and only if G[V \\{u}] and G[V \\{v}] are isomorphic.",
+            "es": "Lema 1. Sean G[V \\{u}] y G[V \\{v}] los subgrafos inducidos por V \\{u} y V \\{v}, respectivamente; entonces u y v están en la misma órbita si y solo si G[V \\{u}] y G[V \\{v}] son isomorfos (isomorphic)."
+          }
+        },
+        {
+          "id": "s2-p43",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We prove Eq. 9 by induction. Let π ∈Π[G1:n], and consider the number of node orderings that give the same graph sequence as π. When n = 1, there is only one node in the graph, and then the base case is true: |Π[G1]| = |r(G1, 1)| = 1. Then, we show the induction rule |Π[G1:n]| = |Π[G1:(n−1)]| · |r(Gn, πn)|. If a node ordering π′ of Gn gives the same graph sequence G1:n as π, then nodes π′ n and πn must be in the same orbit by the lemma. There are |r(Gn, πn)| choices of π′ n. Then, consider the number of choices for π′",
+            "es": "Demostramos la Ec. 9 por inducción. Sea π ∈Π[G1:n], y consideremos el número de órdenes de nodos que dan la misma secuencia de grafos que π. Cuando n = 1, solo hay un nodo en el grafo, y entonces el caso base es verdadero: |Π[G1]| = |r(G1, 1)| = 1. Luego, mostramos la regla de inducción |Π[G1:n]| = |Π[G1:(n−1)]| · |r(Gn, πn)|. Si un orden de nodos π′ de Gn da la misma secuencia de grafos G1:n que π, entonces los nodos π′ n y πn deben estar en la misma órbita por el lema. Hay |r(Gn, πn)| opciones para π′ n. Después, consideremos el número de opciones para π′"
+          }
+        },
+        {
+          "id": "s2-p44",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "1:(n−1). Since removing πn and removing π′ n give two isomorphic graphs, π′",
+            "es": "1:(n−1). Dado que eliminar πn y eliminar π′ n da dos grafos isomorfos, π′"
+          }
+        },
+        {
+          "id": "s2-p45",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "1:(n−1) can take any node ordering in Π[G1:(n−1)] and thus has |Π[G1:(n−1)]| possible values. Together, π′ has |Π[G1:n]| possible values, which implies the induction rule.",
+            "es": "1:(n−1) puede tomar cualquier orden de nodos en Π[G1:(n−1)] y por lo tanto tiene |Π[G1:(n−1)]| valores posibles. En conjunto, π′ tiene |Π[G1:n]| valores posibles, lo que implica la regla de inducción."
+          }
+        },
+        {
+          "id": "s2-p46",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "To compute r(Gt, πt), we need to identify the orbit of the node πt, which can be expensive for some graphs. Thus, we resort instead to an approximation of r(Gt, πt) that ultimately results in a lower bound of p(G). The approximation is based on the color reﬁnement algorithm (1-Weisfeiler-Lehman), which approximately obtains the orbit of a node. The algorithm uses node colors to partition nodes and always assigns the same color to nodes in the same orbit (Arvind et al., 2017). Let c = CR(G) be node colors from the color reﬁnement algorithm; then rCR(G, u) = {v ∈V : cv = cu} ⊇r(G, u) (the two sets are equal for most cases since the color reﬁnement algorithm is very effective in practice). Then, we can use the result of the algorithm to obtain a bound of Eq. 9, n Y",
+            "es": "Para calcular r(Gt, πt), necesitamos identificar la órbita del nodo πt, lo cual puede ser costoso para algunos grafos. Por ello, recurrimos en cambio a una aproximación de r(Gt, πt) que en última instancia resulta en una cota inferior de p(G). La aproximación se basa en el algoritmo de refinamiento de colores (color refinement) (1-Weisfeiler-Lehman), que obtiene de forma aproximada la órbita de un nodo. El algoritmo usa colores de nodos para particionar los nodos y siempre asigna el mismo color a los nodos de la misma órbita (Arvind et al., 2017). Sea c = CR(G) los colores de los nodos obtenidos con el algoritmo de refinamiento de colores; entonces rCR(G, u) = {v ∈V : cv = cu} ⊇r(G, u) (los dos conjuntos son iguales en la mayoría de los casos, ya que el algoritmo de refinamiento de colores es muy efectivo en la práctica). Entonces, podemos usar el resultado del algoritmo para obtener una cota de la Ec. 9, n Y"
+          }
+        },
+        {
+          "id": "s2-p47",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Π[G1:n] β(G1:n) ≜",
+            "es": "Π[G1:n] β(G1:n) ≜"
+          }
+        },
+        {
+          "id": "s2-p48",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": ". (10)",
+            "es": ". (10)"
+          }
+        },
+        {
+          "id": "s2-p49",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "|rCR(Gt, πt)| ≥ t=1",
+            "es": "|rCR(Gt, πt)| ≥ t=1"
+          }
+        },
+        {
+          "id": "s2-p50",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "This implies a bound on the joint p(G, π) from Eq. 7, bp(G, π) ≜ 1 β(G1:n)p(G1:n) ≤p(G, π). (11)",
+            "es": "Esto implica una cota sobre la conjunta p(G, π) de la Ec. 7, bp(G, π) ≜ 1 β(G1:n)p(G1:n) ≤p(G, π). (11)"
+          }
+        },
+        {
+          "id": "s2-p51",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "This bound is tight in practice because of the effectiveness of the color reﬁnement algorithm. In Section 3, we optimize a variational bound on the marginal P π bp(G, π) ≈p(G), but we write p(G) and p(G, π) for simplicity.",
+            "es": "Esta cota es ajustada en la práctica debido a la efectividad del algoritmo de refinamiento de colores. En la Sección 3 optimizamos una cota variacional sobre la marginal P π bp(G, π) ≈p(G), pero escribimos p(G) y p(G, π) por simplicidad."
+          }
+        },
+        {
+          "id": "s2-p52",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Can we avoid the marginalization by using a single generation order for a graph? GraphGEN (Goyal et al., 2020) deﬁnes a single canonical node ordering π⋆for a given graph G. Then, there is only one adjacency matrix A⋆corresponding to π⋆, and GraphGEN deﬁnes p(G) = p(A⋆), therefore avoiding the marginalization over π. How-ever, GraphGEN does not restrict the generation order when sampling from the model; in fact there is not a straightforward way to control the generation order because the canonical order is computed retrospectively after G is generated. As a result, a sample from GraphGEN may be generated with a node ordering that is different from the canonical order of the resulting graph. Thus, the sampling probability of G is likely to be inconsistent with the probability p(G) that the model assigns to G. That is, the sampling frequency of G will not converge to the model’s p(G), which is a severe problem for a statistical model. To estimate how different the sampling and the model probabilities are, we tested the generation procedure of GraphGEN, and we found that only 9.1% of the generated graphs use the canonical order that is used for the calculation of p(G) during training.",
+            "es": "¿Podemos evitar la marginalización usando un único orden de generación para un grafo? GraphGEN (Goyal et al., 2020) define un único orden canónico de nodos (canonical node ordering) π⋆ para un grafo G dado. Entonces, solo hay una matriz de adyacencia A⋆ correspondiente a π⋆, y GraphGEN define p(G) = p(A⋆), evitando así la marginalización sobre π. Sin embargo, GraphGEN no restringe el orden de generación al muestrear del modelo; de hecho, no hay una forma directa de controlar el orden de generación porque el orden canónico se calcula retrospectivamente después de que se genera G. Como resultado, una muestra de GraphGEN puede generarse con un orden de nodos distinto del orden canónico del grafo resultante. Por lo tanto, es probable que la probabilidad de muestreo de G sea inconsistente con la probabilidad p(G) que el modelo le asigna a G. Es decir, la frecuencia de muestreo de G no convergerá a la p(G) del modelo, lo cual es un problema grave para un modelo estadístico. Para estimar cuán diferentes son las probabilidades de muestreo y las del modelo, probamos el procedimiento de generación de GraphGEN y encontramos que solo el 9.1% de los grafos generados usan el orden canónico que se utiliza para el cálculo de p(G) durante el entrenamiento."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3. Training a Generative Model using VI",
+        "es": "3. Entrenamiento de un modelo generativo mediante VI"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Here we present a method to ﬁt an autoregressive graph generation model that does not rely on any constraints on the node ordering. We use the notation pθ(G, π) to explicitly indicate that the joint depends on the parameters θ of the generative model—either pθ(A) or pθ(G1:n). For moderately large graphs, the MLE of θ is computationally intractable because the marginalization of π from Eq. 8 involves n! terms; we sidestep this issue with a VI method (Blei et al., 2017) that maximizes a lower bound on log pθ(G).",
+            "es": "Aquí presentamos un método para ajustar un modelo autorregresivo (autoregressive) de generación de grafos que no depende de ninguna restricción sobre el orden de los nodos. Usamos la notación pθ(G, π) para indicar explícitamente que la distribución conjunta depende de los parámetros θ del modelo generativo, ya sea pθ(A) o pθ(G1:n). Para grafos moderadamente grandes, la estimación de máxima verosimilitud (MLE) de θ es computacionalmente intratable porque la marginalización de π en la Ec. 8 involucra n! términos; evitamos este problema con un método de inferencia variacional (VI) (Blei et al., 2017) que maximiza una cota inferior de log pθ(G)."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The variational lower bound L(θ, φ, G) ≤log pθ(G) is",
+            "es": "La cota inferior variacional (variational lower bound) L(θ, φ, G) ≤log pθ(G) es"
+          }
+        },
+        {
+          "id": "s3-e1",
+          "type": "equation",
+          "page": 5,
+          "text": {
+            "en": "L(θ, φ, G)=Eqφ(π|G) [log pθ(G, π)−log qφ(π|G)]. (12)"
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Here qφ(π|G) is a variational distribution to approximate the posterior pθ(π|G). Its parameters are denoted by φ. We ﬁt the model parameters θ and the variational parameters φ by maximizing Eq. 12 w.r.t. both parameters. We discuss the form of the variational distribution qφ(π|G) in Section 3.1 and the optimization algorithm in Section 3.2.",
+            "es": "Aquí qφ(π|G) es una distribución variacional (variational distribution) que aproxima la distribución posterior pθ(π|G). Sus parámetros se denotan por φ. Ajustamos los parámetros del modelo θ y los parámetros variacionales φ maximizando la Ec. 12 con respecto a ambos parámetros. Discutimos la forma de la distribución variacional qφ(π|G) en la Sección 3.1 y el algoritmo de optimización en la Sección 3.2."
+          }
+        },
+        {
+          "id": "s3-h1",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "3.1. The variational distribution",
+            "es": "3.1. La distribución variacional"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The variational distribution qφ(π|G) approximates the intractable posterior pθ(π|G). To obtain a good approximation, we let qφ(π|G) incorporate both graph topological information as well as the information from partially generated graphs according to the order π. We use a Recurrent tional distribution. (Left) To sample node π3 = 5 given π1 = 1 and π2 = 3, we ﬁrst augment the initial node features with positional embeddings using Eq. 15. (Middle) The GNN obtains the logits for each node using Eq. 16. (Right) We sample π3 from the categorical distribution (Eq. 14).",
+            "es": "La distribución variacional qφ(π|G) aproxima la posterior intratable pθ(π|G). Para obtener una buena aproximación, hacemos que qφ(π|G) incorpore tanto la información topológica del grafo como la información de los grafos parcialmente generados según el orden π. Usamos una Estructura de Ordenamiento Recurrente (Recurrent tional distribution. (Left) To sample node π3 = 5 given π1 = 1 and π2 = 3, we ﬁrst augment the initial node features with positional embeddings using Eq. 15. (Middle) The GNN obtains the logits for each node using Eq. 16. (Right) We sample π3 from the categorical distribution (Eq. 14)."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2. Illustration of the sampling procedure from the varia-",
+            "es": "Figura 2: Ilustración del procedimiento de muestreo a partir de la variacional"
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Ordering Structure (ROS) to specify qφ(π|G), n Y qφ(π|G) = qφ(πt|G, π1:(t−1)). (13) t=1",
+            "es": "Ordering Structure, ROS) para especificar qφ(π|G), n Y qφ(π|G) = qφ(πt|G, π1:(t−1)). (13) t=1"
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "At each step, the distribution of the t-th node πt depends on both G and the partial order π1:(t−1). In particular, the conditional qφ(πt|G, π1:(t−1)) is a categorical distribution over πt; we denote its logits by {ℓt k}, then ℓt",
+            "es": "En cada paso, la distribución del t-ésimo nodo πt depende tanto de G como del orden parcial π1:(t−1). En particular, la condicional qφ(πt|G, π1:(t−1)) es una distribución categórica sobre πt; denotamos sus logits por {ℓt k}, entonces ℓt"
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "P qφ(πt|G, π1:(t−1)) = exp πt k}, πt /∈π1:(t−1). k/∈π1:(t−1)exp {ℓt",
+            "es": "P qφ(πt|G, π1:(t−1)) = exp πt k}, πt /∈π1:(t−1). k/∈π1:(t−1)exp {ℓt"
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "(14)",
+            "es": "(14)"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The logits are functions of (G, π1:(t−1)). We use a graph neural network (GNN) as the recurrent unit that outputs the logits {ℓt k} of the conditional qφ(πt|G, π1:(t−1)), since GNNs are powerful tools to extract information from graphs. The input of a GNN usually consists of the graph G and its node features; in our case the input is π1:(t−1) and G. To encode π1:(t−1) into an initial set of node features {ht",
+            "es": "Los logits son funciones de (G, π1:(t−1)). Usamos una red neuronal de grafos (graph neural network, GNN) como la unidad recurrente que produce los logits {ℓt k} de la condicional qφ(πt|G, π1:(t−1)), ya que las GNN son herramientas poderosas para extraer información de los grafos. La entrada de una GNN suele consistir en el grafo G y sus atributos de nodo; en nuestro caso la entrada es π1:(t−1) y G. Para codificar π1:(t−1) en un conjunto inicial de atributos de nodo {ht"
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "1, ..., ht n}, we use a positional embedding PE(·) (Vaswani et al., 2017), such that",
+            "es": "1, ..., ht n}, usamos una incrustación posicional (positional embedding) PE(·) (Vaswani et al., 2017), de modo que"
+          }
+        },
+        {
+          "id": "s3-e2",
+          "type": "equation",
+          "page": 5,
+          "text": {
+            "en": "h0 + PE(t), if j = πt′ for t′ < t, h0, otherwise. (15)"
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "ht j =",
+            "es": "ht j ="
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Here, h0 is a learnable vector used globally for all steps and nodes. (If the graph data contains node features, we can use these node features to replace h0.) Then, the GNN computes the logits for all nodes.",
+            "es": "Aquí, h0 es un vector aprendible que se usa globalmente para todos los pasos y nodos. (Si los datos del grafo contienen atributos de nodo, podemos usarlos para reemplazar h0.) Después, la GNN calcula los logits de todos los nodos."
+          }
+        },
+        {
+          "id": "s3-p13",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "(ℓt",
+            "es": "(ℓt"
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "1, . . . , ℓt n) = GNNφ(G, (ht",
+            "es": "1, . . . , ℓt n) = GNNφ(G, (ht"
+          }
+        },
+        {
+          "id": "s3-p15",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "1, . . . , ht n)). (16)",
+            "es": "1, . . . , ht n)). (16)"
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Only logits for nodes not in π1:(t−1) are used for the calculation of (14). Figure 2 illustrates the process to sample from the conditional qφ(πt|G, π1:(t−1)).",
+            "es": "Solo se usan los logits de los nodos que no están en π1:(t−1) para el cálculo de (14). La Figura 2 ilustra el proceso de muestreo a partir de la condicional qφ(πt|G, π1:(t−1))."
+          }
+        },
+        {
+          "id": "s3-p17",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The choice of the speciﬁc GNN is ﬂexible. In our experiments, the graph attention network (GAT) (Veliˇckovi´c et al.,",
+            "es": "La elección de la GNN específica es flexible. En nuestros experimentos, la red de atención de grafos (graph attention network, GAT) (Veliˇckovi´c et al.,"
+          }
+        },
+        {
+          "id": "s3-p18",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Algorithm 1 VI algorithm for training a graph model based on the adjacency matrix A",
+            "es": "Algoritmo 1: Algoritmo de VI para entrenar un modelo de grafos basado en la matriz de adyacencia A"
+          }
+        },
+        {
+          "id": "s3-p19",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Input: Dataset of graphs G = {G1, . . . , Gn}, model pθ, variational distribution qφ, sample size S Output: Learned parameters θ and φ repeat for G ∈G do",
+            "es": "Entrada: Conjunto de datos de grafos G = {G1, . . . , Gn}, modelo pθ, distribución variacional qφ, tamaño de muestra S Salida: Parámetros aprendidos θ y φ repetir para G ∈G hacer"
+          }
+        },
+        {
+          "id": "s3-p20",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Sample π(1), . . . , π(S) iid∼qφ(π|G) Obtain A(s) from (G, π(s)) Set pθ(G, π(s)) = 1 |Π[A(s)]|pθ(A(s)) Compute ∇φ ←∇φL(θ, φ, G) Compute ∇θ ←∇θL(θ, φ, G) Update φ, θ using the gradients ∇φ, ∇θ end for until convergence of the parameters (θ, φ)",
+            "es": "Muestrear π(1), . . . , π(S) iid∼qφ(π|G) Obtener A(s) a partir de (G, π(s)) Establecer pθ(G, π(s)) = 1 |Π[A(s)]|pθ(A(s)) Calcular ∇φ ←∇φL(θ, φ, G) Calcular ∇θ ←∇θL(θ, φ, G) Actualizar φ, θ usando los gradientes ∇φ, ∇θ fin para hasta la convergencia de los parámetros (θ, φ)"
+          }
+        },
+        {
+          "id": "s3-p21",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "2017) performed better than the graph convolutional network (GCN) (Wu et al., 2019) and the approximate personalized propagation of neural predictions (APPNP) (Klicpera et al., 2018). All results in Section 4 use the GAT.",
+            "es": "2017) tuvo un mejor desempeño que la red convolucional de grafos (graph convolutional network, GCN) (Wu et al., 2019) y la propagación personalizada aproximada de predicciones neuronales (approximate personalized propagation of neural predictions, APPNP) (Klicpera et al., 2018). Todos los resultados de la Sección 4 usan la GAT."
+          }
+        },
+        {
+          "id": "s3-h2",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.2. Maximizing the variational lower bound",
+            "es": "3.2. Maximización de la cota inferior variacional"
+          }
+        },
+        {
+          "id": "s3-p22",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "To maximize the lower bound L(θ, φ, G) in Eq. 12, we need its gradients w.r.t. both θ and φ, which are intractable. We obtain the gradient w.r.t. θ via Monte Carlo estimation. We obtain the gradient w.r.t. φ using the score function estimator (Williams, 1992; Carbonetto et al., 2009; Paisley et al., 2012; Ranganath et al., 2014). The estimators are obtained with S samples π(s) ∼qφ(π|G) for s = 1, . . . , S, yielding",
+            "es": "Para maximizar la cota inferior L(θ, φ, G) de la Ec. 12, necesitamos sus gradientes con respecto tanto a θ como a φ, los cuales son intratables. Obtenemos el gradiente con respecto a θ mediante estimación de Monte Carlo (Monte Carlo estimation). Obtenemos el gradiente con respecto a φ usando el estimador de la función de puntaje (score function estimator) (Williams, 1992; Carbonetto et al., 2009; Paisley et al., 2012; Ranganath et al., 2014). Los estimadores se obtienen con S muestras π(s) ∼qφ(π|G) para s = 1, . . . , S, lo que produce"
+          }
+        },
+        {
+          "id": "s3-p23",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "S X",
+            "es": "S X"
+          }
+        },
+        {
+          "id": "s3-p24",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "∇θL(θ, φ, G) ≈1",
+            "es": "∇θL(θ, φ, G) ≈1"
+          }
+        },
+        {
+          "id": "s3-p25",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "∇θ log pθ(G, π(s)), (17)",
+            "es": "∇θ log pθ(G, π(s)), (17)"
+          }
+        },
+        {
+          "id": "s3-p26",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "S s=1",
+            "es": "S s=1"
+          }
+        },
+        {
+          "id": "s3-p27",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "S X",
+            "es": "S X"
+          }
+        },
+        {
+          "id": "s3-p28",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "∇φL(θ, φ, G) ≈1 h log pθ(G, π(s)) (18)",
+            "es": "∇φL(θ, φ, G) ≈1 h log pθ(G, π(s)) (18)"
+          }
+        },
+        {
+          "id": "s3-p29",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "S s=1 i",
+            "es": "S s=1 i"
+          }
+        },
+        {
+          "id": "s3-p30",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "−log qφ(π(s)|G)",
+            "es": "−log qφ(π(s)|G)"
+          }
+        },
+        {
+          "id": "s3-p31",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "∇φ log qφ(π(s)|G).",
+            "es": "∇φ log qφ(π(s)|G)."
+          }
+        },
+        {
+          "id": "s3-p32",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Eq. 17 shows that the parameters θ of the model are optimized under node sequences π sampled from the approximate posterior. That is, ﬁtting the model does not require to deﬁne ad-hoc orderings π; rather, the (approximately) most likely node orderings are used. As a comparison, a model trained with uniformly distributed random node orderings can be seen as using a uniform variational distribution, which in turn corresponds to a looser log-likelihood bound.",
+            "es": "La Ec. 17 muestra que los parámetros θ del modelo se optimizan bajo secuencias de nodos π muestreadas de la posterior aproximada. Es decir, ajustar el modelo no requiere definir órdenes π ad hoc; más bien, se usan los órdenes de nodos (aproximadamente) más probables. En comparación, un modelo entrenado con órdenes de nodos aleatorios distribuidos uniformemente puede verse como si usara una distribución variacional uniforme, lo que a su vez corresponde a una cota de log-verosimilitud más laxa."
+          }
+        },
+        {
+          "id": "s3-p33",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Although the score function estimator may exhibit large variance in general, in our experiments we found that this does not represent an issue. In fact, S = 4 samples were enough and allowed for stable optimization of the objective (see Appendix A.1). We leave other gradient estimation techniques (Mohamed et al., 2019) for future work.",
+            "es": "Aunque el estimador de la función de puntaje puede presentar una varianza grande en general, en nuestros experimentos encontramos que esto no representa un problema. De hecho, S = 4 muestras fueron suficientes y permitieron una optimización estable del objetivo (véase el Apéndice A.1). Dejamos para trabajo futuro otras técnicas de estimación de gradientes (Mohamed et al., 2019)."
+          }
+        },
+        {
+          "id": "s3-p34",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We present the training procedure in Algorithm 1. The algorithm can be applied to many autoregressive models operating with the adjacency matrix A, such as GraphRNN and GraphGEN. For models that operate with the graph sequence instead, such as DeepGMG, we only need to extract the graph sequence G(s)",
+            "es": "Presentamos el procedimiento de entrenamiento en el Algoritmo 1. El algoritmo puede aplicarse a muchos modelos autorregresivos que operan con la matriz de adyacencia A, como GraphRNN y GraphGEN. Para los modelos que operan con la secuencia del grafo, como DeepGMG, solo necesitamos extraer la secuencia del grafo G(s)"
+          }
+        },
+        {
+          "id": "s3-p35",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "1:n from each (G, π(s)) and set pθ(G, π(s)) = 1 |Π[G(s)",
+            "es": "1:n de cada (G, π(s)) y establecer pθ(G, π(s)) = 1 |Π[G(s)"
+          }
+        },
+        {
+          "id": "s3-p36",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "1:n]|pθ(G(s) 1:n).",
+            "es": "1:n]|pθ(G(s) 1:n)."
+          }
+        },
+        {
+          "id": "s3-p37",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Running time. To form the gradient estimators, each of the S Monte Carlo samples requires n evaluations of the GNN output, each taking O(|E|). For most graphs, the complexity of the gradient computation is dominated by these terms and is therefore O(Sn|E|). Counting automorphisms only takes a small fraction of the running time in practice. Similarly, the approximation of |Π[G1:n]| also takes a small fraction of the running time. The resulting O(Sn|E|) complexity is a limitation of the proposed algorithm, and hence it is hard to scale to large graphs. However, since it provides better results than existing approaches (see Section 4), our algorithm can still be preferable for applications that are not sensitive to the training time. We leave for future work the exploration of ways to improve the computational efﬁciency, such as proposing the node ordering π in one shot.",
+            "es": "Tiempo de ejecución. Para formar los estimadores del gradiente, cada una de las S muestras de Monte Carlo requiere n evaluaciones de la salida de la GNN, cada una con costo O(|E|). Para la mayoría de los grafos, la complejidad del cálculo del gradiente está dominada por estos términos y por lo tanto es O(Sn|E|). Contar los automorfismos (automorphisms) solo toma una pequeña fracción del tiempo de ejecución en la práctica. De manera similar, la aproximación de |Π[G1:n]| también toma una pequeña fracción del tiempo de ejecución. La complejidad resultante O(Sn|E|) es una limitación del algoritmo propuesto y, por lo tanto, es difícil escalarlo a grafos grandes. Sin embargo, dado que ofrece mejores resultados que los enfoques existentes (véase la Sección 4), nuestro algoritmo aún puede ser preferible para aplicaciones que no son sensibles al tiempo de entrenamiento. Dejamos para trabajo futuro la exploración de maneras de mejorar la eficiencia computacional, como proponer el orden de los nodos π en un solo paso."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4. Experiments",
+        "es": "4. Experimentos"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "In this section, we design a set of experiments to investigate: (i) the tightness of the variational lower bound, (ii) the performance of a model ﬁtted with the proposed method based on VI, (iii) the quality of the approximate posterior learned by the variational distribution, and (iv) the quality of graphs generated with the ﬁtted model.",
+            "es": "En esta sección diseñamos un conjunto de experimentos para investigar: (i) qué tan ajustada es la cota inferior variacional, (ii) el desempeño de un modelo ajustado con el método propuesto basado en VI, (iii) la calidad de la posterior aproximada aprendida por la distribución variacional, y (iv) la calidad de los grafos generados con el modelo ajustado."
+          }
+        },
+        {
+          "id": "s4-h1",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "4.1. Experimental setup",
+            "es": "4.1. Configuración experimental"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Datasets. We use 6 datasets: (1) Community-small: 500 community graphs with 12 ≤|V | ≤20. Each graph has two communities generated by the model of Erd˝os & Rényi (1960). (2) Citeseer-small: 200 subgraphs with 5 ≤|V | ≤ 20, extracted from Citeseer network (Sen et al., 2008) using random walk. (3) Enzymes: 563 protein graphs from BRENDA database (Schomburg et al., 2004) with 10 ≤ |V | ≤125. (4) Lung: 400 chemical graphs with 6 ≤|V | ≤ 50, sampled from Kim et al. (2018). (5) Yeast: 400 chemical graphs with 5 ≤|V | ≤50, sampled from Kim et al. (2018). (6) Cora: 400 subgraphs with 9 ≤|V | ≤97, extracted from the Cora network (Sen et al., 2008) using random walk.",
+            "es": "Conjuntos de datos. Usamos 6 conjuntos de datos: (1) Community-small: 500 grafos de comunidades con 12 ≤|V | ≤20. Cada grafo tiene dos comunidades generadas por el modelo de Erd˝os & Rényi (1960). (2) Citeseer-small: 200 subgrafos con 5 ≤|V | ≤ 20, extraídos de la red Citeseer (Sen et al., 2008) mediante caminata aleatoria. (3) Enzymes: 563 grafos de proteínas de la base de datos BRENDA (Schomburg et al., 2004) con 10 ≤ |V | ≤125. (4) Lung: 400 grafos químicos con 6 ≤|V | ≤ 50, muestreados de Kim et al. (2018). (5) Yeast: 400 grafos químicos con 5 ≤|V | ≤50, muestreados de Kim et al. (2018). (6) Cora: 400 subgrafos con 9 ≤|V | ≤97, extraídos de la red Cora (Sen et al., 2008) mediante caminata aleatoria."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Methods. We choose three recent graph generative models, DeepGMG (Li et al., 2018), GraphRNN (You et al., 2018), and GraphGEN (Goyal et al., 2020). We use their original training methods with default hyperparameters as baselines, and compare them with the proposed VI method. For our method, we use the Nauty package (McKay & Piperno, 2013) to compute |Π[A]| and the color reﬁnement algocompare the default training algorithm with our method based on VI; the table shows that VI improves the model’s predictive performance. Moreover, the variational bound is relatively tight. We used paired t-test to compare the results; the numbers in bold indicate that the method is better at the 5% signiﬁcance level.",
+            "es": "Métodos. Elegimos tres modelos generativos de grafos (graph generative models) recientes: DeepGMG (Li et al., 2018), GraphRNN (You et al., 2018) y GraphGEN (Goyal et al., 2020). Usamos sus métodos de entrenamiento originales con hiperparámetros (hyperparameters) predeterminados como líneas base (baselines), y los comparamos con el método de VI propuesto. Para nuestro método, usamos el paquete Nauty (McKay & Piperno, 2013) para calcular |Π[A]| y el algoritmo de refinamiento de color (color refinement algocompare) el algoritmo de entrenamiento predeterminado con nuestro método basado en VI; la tabla muestra que VI mejora el desempeño predictivo del modelo. Además, la cota variacional (variational bound) es relativamente ajustada. Usamos la prueba t pareada (paired t-test) para comparar los resultados; los números en negrita indican que el método es mejor con un nivel de significancia de 5%."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1. Approximate test log-likelihood and variational lower bound (ELBO) of different graph generation models. For each model, we",
+            "es": "Tabla 1: Log-verosimilitud de prueba aproximada y cota inferior variacional (ELBO) de distintos modelos de generación de grafos. Para cada modelo, nosotros"
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Community-small Citeseer-small Enzymes Lung Yeast Cora log-like/ELBO log-like/ELBO log-like/ELBO log-like/ELBO log-like/ELBO log-like/ELBO",
+            "es": "Community-small Citeseer-small Enzymes Lung Yeast Cora log-like/ELBO log-like/ELBO log-like/ELBO log-like/ELBO log-like/ELBO log-like/ELBO"
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "DeepGMG uniform -206.2/-303.9 -60.9/-67 -281.9/-290.8 -146.7/-225.7 -115.1/128.9 -283.7/-295.2 VI [ours] -124.8/-131.8 -59.6/-65.6 -145.8/-156.2 -146.1/-224.6 -105.4/-115.7 -227/-247.2",
+            "es": "DeepGMG uniform -206.2/-303.9 -60.9/-67 -281.9/-290.8 -146.7/-225.7 -115.1/128.9 -283.7/-295.2 VI [ours] -124.8/-131.8 -59.6/-65.6 -145.8/-156.2 -146.1/-224.6 -105.4/-115.7 -227/-247.2"
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "GraphRNN uniform -154.6/-157.6 -101.9/-105.7 -340.3/-349.1 -232.4/ -242.2 -189.3/-200.1 -380.6/-401.8 VI [ours] -53.7/-59.9 -89.6/-93.2 -274.9/-282.8 -155.9/-175.8 -109.1/-133.7 -345.3/-358.3",
+            "es": "GraphRNN uniform -154.6/-157.6 -101.9/-105.7 -340.3/-349.1 -232.4/ -242.2 -189.3/-200.1 -380.6/-401.8 VI [ours] -53.7/-59.9 -89.6/-93.2 -274.9/-282.8 -155.9/-175.8 -109.1/-133.7 -345.3/-358.3"
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "GraphGEN DFS -263.74/NA -73.0/NA -574.2/NA -140.1/NA -66.46/NA -199.5/NA VI [ours] -26.6/-35.0 -64.3/-71.1 -189.7/-213.8 -117.3/-125.5 -64.98/-72.39 -143.6/-152.3 rithm to approximate |Π[G1:n]|, and we parameterize the variational distribution with a GAT (Veliˇckovi´c et al., 2017) with 3 layers, 6 attention heads, and residual connections.",
+            "es": "GraphGEN DFS -263.74/NA -73.0/NA -574.2/NA -140.1/NA -66.46/NA -199.5/NA VI [ours] -26.6/-35.0 -64.3/-71.1 -189.7/-213.8 -117.3/-125.5 -64.98/-72.39 -143.6/-152.3 rithm para aproximar |Π[G1:n]|, y parametrizamos la distribución variacional (variational distribution) con una GAT (Veliˇckovi´c et al., 2017) con 3 capas, 6 cabezas de atención (attention heads) y conexiones residuales (residual connections)."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2. Graph quality on the considered datasets (MMD on three metrics). Models ﬁtted with VI tend to produce higher-quality samples.",
+            "es": "Tabla 2: Calidad de los grafos en los conjuntos de datos considerados (MMD en tres métricas). Los modelos ajustados con VI tienden a producir muestras de mayor calidad."
+          }
+        },
+        {
+          "id": "s4-h2",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "4.2. Predictive performance in terms of log-likelihood",
+            "es": "4.2. Desempeño predictivo en términos de log-verosimilitud"
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Here we compare the different methods in terms of the loglikelihood on test data. We approximate the log-likelihood using importance sampling (Murphy, 2012). We use the variational distribution qφ(π|G) as the proposal distribution and draw L samples {π(l)} from it. The importance sampling approximation of log p(G) is",
+            "es": "Aquí comparamos los diferentes métodos en términos de la log-verosimilitud (log-likelihood) sobre los datos de prueba. Aproximamos la log-verosimilitud mediante muestreo por importancia (importance sampling) (Murphy, 2012). Usamos la distribución variacional qφ(π|G) como distribución propuesta (proposal distribution) y extraemos L muestras {π(l)} de ella. La aproximación de log p(G) por muestreo por importancia es"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "\u0010 1",
+            "es": "\u0010 1"
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "L X pθ(G, π(l) l ) qφ(π(l)|G) log pθ(G) ≃log",
+            "es": "L X pθ(G, π(l) l ) qφ(π(l)|G) log pθ(G) ≃log"
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": ". (19)",
+            "es": ". (19)"
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "L l=1",
+            "es": "L l=1"
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Here π(l) ∼qφ(π|G) for l = 1, . . . , L. The estimation is unbiased only when L approaches inﬁnity; nevertheless, we found that L = 1,000 gives an accurate estimation (see Appendix A.3).",
+            "es": "Aquí π(l) ∼qφ(π|G) para l = 1, . . . , L. La estimación es insesgada solo cuando L tiende a infinito; sin embargo, encontramos que L = 1,000 da una estimación precisa (véase el Apéndice A.3)."
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "For our method, we use the learned qφ(π|G) distribution as the proposal in the importance sampling approximation. For DeepGMG and GraphRNN, we use a uniform proposal qφ(π|G), because these methods are trained with node orderings sampled from the uniform distribution (as mentioned before, this is equivalent to using a uniform variational distribution). We use L = 1,000 samples for each graph in the test set, except for GraphGEN, for which we only use the canonical order π⋆to estimate the log-likelihood.",
+            "es": "Para nuestro método, usamos la distribución qφ(π|G) aprendida como propuesta en la aproximación por muestreo por importancia. Para DeepGMG y GraphRNN, usamos una propuesta qφ(π|G) uniforme, porque estos métodos se entrenan con órdenes de nodos muestreados de la distribución uniforme (como se mencionó antes, esto equivale a usar una distribución variacional uniforme). Usamos L = 1,000 muestras para cada grafo del conjunto de prueba, excepto para GraphGEN, para el cual solo usamos el orden canónico π⋆ para estimar la log-verosimilitud."
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The results are in Table 1. We compare the results from each baseline and from our approach using a paired t-test at the 5% signiﬁcance level. We see that the proposed VI method exhibits better predictive performance on most datasets, and the improvements are often very signiﬁcant. To assess the quality of the variational lower bound, we also show its value in Table 1 (the bound was estimated with 1000 samples from qφ(π|G)). We can see that the bound is relatively tight for most cases. These results indicate that our training procedure based on VI can signiﬁcantly improve the performance of a graph generative model.",
+            "es": "Los resultados están en la Tabla 1. Comparamos los resultados de cada línea base y de nuestro enfoque mediante una prueba t pareada al nivel de significancia del 5%. Vemos que el método de VI propuesto exhibe un mejor desempeño predictivo en la mayoría de los conjuntos de datos, y las mejoras son a menudo muy significativas. Para evaluar la calidad de la cota inferior variacional, también mostramos su valor en la Tabla 1 (la cota se estimó con 1000 muestras de qφ(π|G)). Podemos ver que la cota es relativamente ajustada en la mayoría de los casos. Estos resultados indican que nuestro procedimiento de entrenamiento basado en VI puede mejorar significativamente el desempeño de un modelo generativo de grafos."
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "On the Yeast dataset, the result of the VI approach is very close to the DeepGMG baseline. We checked the node orderings sampled from the learned variational distribution and observed that they are very similar to DFS orders. We hypothesize that, for this dataset, the posterior pθ(π|G) is higher for DFS orders, and that qφ(π|G) can ﬁnd this. On the Community-small dataset, the gap with the baseline is generate graphs with the same structural patterns as the real data. (Bottom) Averaged adjacency matrices for a graph with different samples from the node ordering. Our VI approach uncovers the underlying structure of the graph. much larger; this is because the graphs in this dataset have a special structure that always connects two communities with one edge. The variational distribution seems to be able to exploit this structure to improve the model ﬁtting. For the Citeseer-small and Cora datasets, the gap is smaller—these datasets are generated from random walks, so the graphs have less structure for the VI algorithm to exploit.",
+            "es": "En el conjunto de datos Yeast, el resultado del enfoque de VI es muy cercano a la línea base de DeepGMG. Revisamos los órdenes de nodos muestreados de la distribución variacional aprendida y observamos que son muy similares a los órdenes DFS. Formulamos la hipótesis de que, para este conjunto de datos, la posterior pθ(π|G) es mayor para los órdenes DFS, y que qφ(π|G) puede encontrarlos. En el conjunto de datos Community-small, la brecha con la línea base es generate graphs with the same structural patterns as the real data. (Bottom) Averaged adjacency matrices for a graph with different samples from the node ordering. Our VI approach uncovers the underlying structure of the graph. mucho mayor; esto se debe a que los grafos de este conjunto de datos tienen una estructura especial que siempre conecta dos comunidades con una arista. La distribución variacional parece ser capaz de aprovechar esta estructura para mejorar el ajuste del modelo. Para los conjuntos de datos Citeseer-small y Cora, la brecha es menor: estos conjuntos de datos se generan a partir de caminatas aleatorias, por lo que los grafos tienen menos estructura que el algoritmo de VI pueda aprovechar."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3. (Top) Graph samples from different models trained on Community-small and Enzymes. The model ﬁtted with VI learns to",
+            "es": "Figura 3: (Arriba) Muestras de grafos de distintos modelos entrenados en Community-small y Enzymes. El modelo ajustado con VI aprende a"
+          }
+        },
+        {
+          "id": "s4-h3",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "4.3. Qualitative analysis",
+            "es": "4.3. Análisis cualitativo"
+          }
+        },
+        {
+          "id": "s4-p17",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We now analyze qualitatively the graphs generated by each approach. Here we focus on GraphRNN models. Figure 3 (top left) shows four graphs from the Community-small dataset and four graphs from the Enzymes dataset. We then show graphs generated by variants of GraphRNNs that are trained with different node orderings (BFS, uniform, and our VI approach); these samples are representative and not cherry-picked. For Community-small, our method can capture the speciﬁc graph pattern—only one edge exists between two communities—with only one exception. The model trained with BFS orderings learns to generate two communities, but it does not generally use a single edge to connect them. The model ﬁtted with uniform orderings fails to generate two communities. These results can be explained by the plot of adjacency matrices in Figure 3 (bottom). In this ﬁgure, we choose one graph, sample node orderings from different distributions, and plot the average of their corresponding adjacency matrices. On Community-small, the BFS order produces an adjacency matrix whose two anti-diagonal blocks are near zero. We hypothesize that this pattern across all node orderings is easier for the model to learn. The variational distribution discovers this pattern.",
+            "es": "Ahora analizamos cualitativamente los grafos generados por cada enfoque. Aquí nos centramos en los modelos GraphRNN. La Figura 3 (arriba a la izquierda) muestra cuatro grafos del conjunto de datos Community-small y cuatro grafos del conjunto de datos Enzymes. Luego mostramos grafos generados por variantes de GraphRNN entrenadas con diferentes órdenes de nodos (BFS, uniforme y nuestro enfoque de VI); estas muestras son representativas y no fueron seleccionadas a conveniencia. Para Community-small, nuestro método puede capturar el patrón específico del grafo (solo existe una arista entre dos comunidades) con una sola excepción. El modelo entrenado con órdenes BFS aprende a generar dos comunidades, pero en general no usa una sola arista para conectarlas. El modelo ajustado con órdenes uniformes no logra generar dos comunidades. Estos resultados pueden explicarse con la gráfica de las matrices de adyacencia de la Figura 3 (abajo). En esta figura, elegimos un grafo, muestreamos órdenes de nodos de diferentes distribuciones y graficamos el promedio de sus matrices de adyacencia correspondientes. En Community-small, el orden BFS produce una matriz de adyacencia cuyos dos bloques antidiagonales son casi cero. Formulamos la hipótesis de que este patrón a través de todos los órdenes de nodos es más fácil de aprender para el modelo. La distribución variacional descubre este patrón."
+          }
+        },
+        {
+          "id": "s4-p18",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "We perform the same analysis for the Enzymes dataset. In Figure 3 (top), the samples from the VI training method are more similar to the ground truth data than for the baseline training methods—they have the shape of long strips, and two of them contains large cycles. Figure 3 (bottom) shows the averaged adjacency matrices; we can see that the variational distribution learns to form band matrices that have most non-zeros around the diagonal. In contrast, BFS orderings scatter non-zeros to a wider range. In Appendix A.4, we provide a similar analysis for DeepGMG (which is based on graph sequences) on the Enzymes dataset.",
+            "es": "Realizamos el mismo análisis para el conjunto de datos Enzymes. En la Figura 3 (arriba), las muestras del método de entrenamiento con VI se parecen más a los datos de referencia (ground truth) que las de los métodos de entrenamiento de las líneas base: tienen forma de tiras largas, y dos de ellas contienen ciclos grandes. La Figura 3 (abajo) muestra las matrices de adyacencia promediadas; podemos ver que la distribución variacional aprende a formar matrices de banda (band matrices) que tienen la mayoría de los elementos distintos de cero alrededor de la diagonal. En contraste, los órdenes BFS dispersan los elementos distintos de cero en un rango más amplio. En el Apéndice A.4 proporcionamos un análisis similar para DeepGMG (que se basa en secuencias de grafos) en el conjunto de datos Enzymes."
+          }
+        },
+        {
+          "id": "s4-h4",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "4.4. Quality of generated graphs",
+            "es": "4.4. Calidad de los grafos generados"
+          }
+        },
+        {
+          "id": "s4-p19",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Here we quantitatively assess the quality of generated graphs. Following previous works (You et al., 2018; Liao et al., 2019; Goyal et al., 2020), we measure the quality in terms of their similarity to a test set using different metrics: the degree distribution, clustering coefﬁcients and occurrences of 4-node orbits. Then, we measure the difference between the test set and a set of generated graphs using the maximum mean discrepancy (MMD) between their respective distributions (lower MMD indicates a better model).",
+            "es": "Aquí evaluamos cuantitativamente la calidad de los grafos generados. Siguiendo trabajos previos (You et al., 2018; Liao et al., 2019; Goyal et al., 2020), medimos la calidad en términos de su similitud con un conjunto de prueba usando diferentes métricas: la distribución de grados, los coeficientes de agrupamiento (clustering coefficients) y las ocurrencias de órbitas de 4 nodos. Luego, medimos la diferencia entre el conjunto de prueba y un conjunto de grafos generados mediante la discrepancia media máxima (maximum mean discrepancy, MMD) entre sus respectivas distribuciones (una MMD menor indica un mejor modelo)."
+          }
+        },
+        {
+          "id": "s4-p20",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Table 2 shows the MMD evaluation on the six datasets. The VI training method improves the performance of the three models in four datasets (Community-small, Enzymes, Yeast, and Cora), with some minor performance drops on the other two datasets. On Citeseer-small, the VI method exhibits a performance drop on only one metric when it is applied on GraphRNN or GraphGEN; this is somewhat consistent with our previous results that the log-likelihood improvement on this dataset is less signiﬁcant. Overall, the results indicate that an autoregressive generative model trained with VI produces higher-quality graphs.",
+            "es": "La Tabla 2 muestra la evaluación de MMD en los seis conjuntos de datos. El método de entrenamiento con VI mejora el desempeño de los tres modelos en cuatro conjuntos de datos (Community-small, Enzymes, Yeast y Cora), con algunas caídas menores de desempeño en los otros dos conjuntos de datos. En Citeseer-small, el método de VI exhibe una caída de desempeño en una sola métrica cuando se aplica a GraphRNN o GraphGEN; esto es algo consistente con nuestros resultados previos de que la mejora en la log-verosimilitud en este conjunto de datos es menos significativa. En general, los resultados indican que un modelo generativo autorregresivo entrenado con VI produce grafos de mayor calidad."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5. Conclusion",
+        "es": "5. Conclusión"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "In this paper, we analyze autoregressive graph generative models that are based on either the adjacency matrix or the graph sequence. We provide an in-depth discussion of the automorphism issue that raises when calculating the marginal likelihood of the graph. Using VI, we also address the intractable marginalization over node orderings for ﬁtting a graph generative model. The experiment results show that the variational distribution learns reasonable orderings that improve the generative model’s performance. Our variational lower bound is tighter than existing bounds on the marginal log-likelihood. We evaluate models based on their test log-likelihood and ﬁnd that models ﬁtted with our VI approach exhibit better predictive performance and are able to generate higher-quality graphs than previous methods. The main limitation of our method is its scalability; thus it is not designed for large graphs. We expect future work will accelerate the algorithm to improve its scalability.",
+            "es": "En este artículo analizamos modelos generativos autorregresivos de grafos que se basan en la matriz de adyacencia (adjacency matrix) o en la secuencia del grafo (graph sequence). Presentamos una discusión a fondo del problema de automorfismo (automorphism) que surge al calcular la verosimilitud marginal (marginal likelihood) del grafo. Mediante inferencia variacional (VI), abordamos además la marginalización intratable sobre los ordenamientos de nodos para ajustar un modelo generativo de grafos. Los resultados experimentales muestran que la distribución variacional aprende ordenamientos razonables que mejoran el desempeño del modelo generativo. Nuestra cota inferior variacional es más ajustada que las cotas existentes sobre la log-verosimilitud marginal. Evaluamos los modelos con base en su log-verosimilitud de prueba y encontramos que los modelos ajustados con nuestro enfoque de VI muestran un mejor desempeño predictivo y son capaces de generar grafos de mayor calidad que los métodos anteriores. La principal limitación de nuestro método es su escalabilidad; por ello no está diseñado para grafos grandes. Esperamos que trabajos futuros aceleren el algoritmo para mejorar su escalabilidad."
+          }
+        },
+        {
+          "id": "s5-h1",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "Acknowledgements",
+            "es": "Agradecimientos"
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "We thank Yujia Li for his insightful comments, and the anonymous reviewers for their constructive feedback. The work was supported by NSF 1850358 and NSF 1908617. Xu Han was also supported by NSF 1934553.",
+            "es": "Agradecemos a Yujia Li por sus comentarios perspicaces, y a los revisores anónimos por sus comentarios constructivos. Este trabajo fue apoyado por NSF 1850358 y NSF 1908617. Xu Han también recibió apoyo de NSF 1934553."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Arvind, V., Köbler, J., Rattan, G., and Verbitsky, O. Graph isomorphism, color reﬁnement, and compactness. computational complexity, 26(3):627–685, 2017."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Beals, R., Chang, R., Gasarch, W., and Torán, J. On ﬁnding the number of graph automorphisms. Chicago J. Theor. Comput. Sci, 1999."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Blei, D. M., Kucukelbir, A., and McAuliffe, J. D. Varia-tional inference: A review for statisticians. Journal of the American statistical Association, 112(518):859–877, 2017."
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Cai, D., Campbell, T., and Broderick, T. Edge-exchangeable graphs and sparsity. In Advances in Neural Information Processing Systems, pp. 4249–4257, 2016."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Carbonetto, P., King, M., and Hamze, F. A stochastic approximation method for inference in probabilistic graphical models. In Advances in Neural Information Process-ing Systems, 2009."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Dai, H., Nazi, A., Li, Y., Dai, B., and Schuurmans, D. Scal-able deep generative modeling for sparse graphs. arXiv preprint arXiv:2006.15502, 2020."
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Erd˝os, P. and Rényi, A. On the evolution of random graphs."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Publ. Math. Inst. Hung. Acad. Sci, 5(1):17–60, 1960."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Godsil, C. and Royle, G. F. Algebraic graph theory, volume"
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "207. Springer Science & Business Media, 2001."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Goyal, N., Jain, H. V., and Ranu, S. GraphGEN: A scalable approach to domain-agnostic labeled graph generation. In Proceedings of The Web Conference 2020, pp. 1253– 1263, 2020."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Guo, X. and Zhao, L. A systematic survey on deep generative models for graph generation. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Kim, S., Chen, J., Cheng, T., Gindulyte, A., He, J., He,"
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "S., Li, Q., Shoemaker, B. A., Thiessen, P. A., Yu, B., Zaslavsky, L., Zhang, J., and Bolton, E. E. PubChem 2019 update: improved access to chemical data. Nucleic Acids Research, 47(D1):D1102–D1109, 10 2018."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Klicpera, J., Bojchevski, A., and Günnemann, S. Predict then propagate: Graph neural networks meet personalized pagerank. arXiv preprint arXiv:1810.05997, 2018."
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Li, Y., Vinyals, O., Dyer, C., Pascanu, R., and Battaglia,"
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "P. Learning deep generative models of graphs. arXiv preprint arXiv:1803.03324, 2018."
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Liao, R., Li, Y., Song, Y., Wang, S., Hamilton, W., Duve-naud, D. K., Urtasun, R., and Zemel, R. Efﬁcient graph generation with graph recurrent attention networks. In Advances in Neural Information Processing Systems, pp. 4255–4265, 2019."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Liu, C.-C., Chan, H., Luk, K., and Borealis, A. Auto-regressive graph generation modeling with improved evaluation methods. In NeurIPS’2019 Workshop on Graph Representation Learning, 2019."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "McKay, B. D. and Piperno, A. Nauty and traces user’s guide"
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "(version 2.5). Computer Science Department, Australian National University, Canberra, Australia, 2013."
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Mohamed, S., Rosca, M., Figurnov, M., and Mnih, A."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Monte Carlo gradient estimation in machine learning. arXiv preprint arXiv:1906.10652, 2019."
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Murphy, K. P. Machine learning: a probabilistic perspective."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "MIT press, 2012."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Nowicki, K. and Snijders, T. A. B. Estimation and prediction for stochastic blockstructures. Journal of the American Statistical Association, 96(455):1077–1087, 2001."
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Paisley, J. W., Blei, D. M., and Jordan, M. I. Variational"
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Bayesian inference with stochastic search. In Interna-tional Conference on Machine Learning, 2012."
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Ranganath, R., Gerrish, S., and Blei, D. M. Black box variational inference. In Artiﬁcial Intelligence and Statistics, 2014."
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Schomburg, I., Chang, A., Ebeling, C., Gremse, M., Heldt,"
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "C., Huhn, G., and Schomburg, D. Brenda, the enzyme database: updates and major new developments. Nucleic acids research, 32(suppl_1):D431–D433, 2004."
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Sen, P., Namata, G., Bilgic, M., Getoor, L., Galligher, B., and Eliassi-Rad, T. Collective classiﬁcation in network data. AI magazine, 29(3):93–93, 2008."
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Shi, C., Xu, M., Zhu, Z., Zhang, W., Zhang, M., and Tang,"
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "J. Graphaf: a ﬂow-based autoregressive model for molecular graph generation. arXiv preprint arXiv:2001.09382, 2020."
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones,"
+          }
+        },
+        {
+          "id": "refs-36",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "L., Gomez, A. N., Kaiser, L., and Polosukhin, I. Attention is all you need. arXiv preprint arXiv:1706.03762, 2017."
+          }
+        },
+        {
+          "id": "refs-37",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Veitch, V. and Roy, D. M. The class of random graphs arising from exchangeable random measures. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-38",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Veliˇckovi´c, P., Cucurull, G., Casanova, A., Romero, A.,"
+          }
+        },
+        {
+          "id": "refs-39",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Lio, P., and Bengio, Y. Graph attention networks. arXiv preprint arXiv:1710.10903, 2017."
+          }
+        },
+        {
+          "id": "refs-40",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Watts, D. J. and Strogatz, S. H. Collective dynamics of ‘small-world’networks. nature, 393(6684):440–442, 1998."
+          }
+        },
+        {
+          "id": "refs-41",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Williams, R. J. Simple statistical gradient-following algorithms for connectionist reinforcement learning. Machine learning, 8(3-4):229–256, 1992."
+          }
+        },
+        {
+          "id": "refs-42",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Wu, F., Souza, A., Zhang, T., Fifty, C., Yu, T., and Wein-berger, K. Simplifying graph convolutional networks. In International conference on machine learning, pp. 6861– 6871. PMLR, 2019."
+          }
+        },
+        {
+          "id": "refs-43",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "You, J., Ying, R., Ren, X., Hamilton, W. L., and Leskovec,"
+          }
+        },
+        {
+          "id": "refs-44",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "J. GraphRNN: Generating realistic graphs with deep auto-regressive models. arXiv preprint arXiv:1802.08773, 2018."
+          }
+        },
+        {
+          "id": "refs-45",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Yuan, H., Tang, J., Hu, X., and Ji, S. Xgnn: Towards model-level explanations of graph neural networks. arXiv preprint arXiv:2006.02587, 2020."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-a",
+      "title": {
+        "en": "A. Appendix",
+        "es": "A. Apéndice"
+      },
+      "blocks": [
+        {
+          "id": "app-a-h1",
+          "type": "heading",
+          "page": 11,
+          "text": {
+            "en": "A.1. Variance of the Gradient Estimators",
+            "es": "A.1. Varianza de los estimadores del gradiente"
+          }
+        },
+        {
+          "id": "app-a-p1",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "We use the score function estimator (Williams, 1992) to obtain the gradients. In some applications, this estimator may suffer from high variance and make the training process unstable. Here, we study the variance of the score function estimator to make sure that it does not cause optimization issues in our application. To show the behavior of the optimizer, we plot the objective (the ELBO) in Figure 4(right) and the variance of the gradient estimator in Figure 4(left); both against training epochs. We can see that the objective decreases smoothly throughout optimization, indicating that the algorithm is stable. The three curves in the left plot show the variance of the gradients for different number of Monte Carlo samples; as expected, the variance decreases as the number of samples increases. Moreover, the variance from a relatively small sample size (S = 8) is already decently low. This is because the variational distribution qφ(π|G) tends to concentrate its probability mass to a small number of node orders, which can be seen from our analysis of the variational distribution (Figure 3 and Figure 5). Considering the tradeoff between computation time and variance, we set S = 8 in all our experiments.",
+            "es": "Usamos el estimador de la función de puntaje (score function estimator) (Williams, 1992) para obtener los gradientes. En algunas aplicaciones, este estimador puede sufrir de alta varianza y volver inestable el proceso de entrenamiento. Aquí estudiamos la varianza del estimador de la función de puntaje para asegurarnos de que no cause problemas de optimización en nuestra aplicación. Para mostrar el comportamiento del optimizador, graficamos el objetivo (el ELBO) en la Figura 4(derecha) y la varianza del estimador del gradiente en la Figura 4(izquierda); ambos contra las épocas de entrenamiento. Podemos ver que el objetivo disminuye suavemente durante toda la optimización, lo que indica que el algoritmo es estable. Las tres curvas del gráfico izquierdo muestran la varianza de los gradientes para distintos números de muestras de Monte Carlo; como se esperaba, la varianza disminuye conforme aumenta el número de muestras. Además, la varianza con un tamaño de muestra relativamente pequeño (S = 8) ya es decentemente baja. Esto se debe a que la distribución variacional qφ(π|G) tiende a concentrar su masa de probabilidad en un número pequeño de ordenamientos de nodos, lo cual se aprecia en nuestro análisis de la distribución variacional (Figura 3 y Figura 5). Considerando el compromiso entre tiempo de cómputo y varianza, fijamos S = 8 en todos nuestros experimentos."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4. (Left) Training objective (ELBO) against epochs for",
+            "es": "Figura 4. (Izquierda) Objetivo de entrenamiento (ELBO) contra épocas para"
+          }
+        },
+        {
+          "id": "app-a-p2",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "GraphGEN on the Community-small dataset. The objective decreases smoothly throughout optimization. (Right) Log-variance of the score function gradient estimator for different number of Monte Carlo samples. Using S = 8 samples is enough to estimate the gradient.",
+            "es": "GraphGEN en el conjunto de datos Community-small. El objetivo disminuye suavemente durante toda la optimización. (Derecha) Log-varianza del estimador del gradiente de la función de puntaje para distintos números de muestras de Monte Carlo. Usar S = 8 muestras es suficiente para estimar el gradiente."
+          }
+        },
+        {
+          "id": "app-a-h2",
+          "type": "heading",
+          "page": 11,
+          "text": {
+            "en": "A.2. Proof of Lemma 1",
+            "es": "A.2. Demostración del Lema 1"
+          }
+        },
+        {
+          "id": "app-a-p3",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Lemma 1. Let G[V \\{u}] and G[V \\{v}] respectively denote the subgraphs induced by V \\{u} and V \\{v}, then u and v are in the same orbit if and only if G[V \\{u}] and G[V \\{v}] are isomorphic.",
+            "es": "Lema 1. Sean G[V \\{u}] y G[V \\{v}] los subgrafos inducidos por V \\{u} y V \\{v}, respectivamente. Entonces u y v están en la misma órbita (orbit) si y solo si G[V \\{u}] y G[V \\{v}] son isomorfos."
+          }
+        },
+        {
+          "id": "app-a-p4",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Proof. Let ‘≡’ denote the isomorphic relation. Also denote E\\{u} = {(i, j) ∈E : i̸ = u, j̸ = u} as the subset of edges that do not incident u.",
+            "es": "Demostración. Sea ‘≡’ la relación de isomorfismo. Denotemos también E\\{u} = {(i, j) ∈E : i̸ = u, j̸ = u} como el subconjunto de aristas que no inciden en u."
+          }
+        },
+        {
+          "id": "app-a-p5",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "We ﬁrst show the ﬁrst direction: “u and v being in the same orbit” indicates “G[V \\{u}] ≡G[V \\{v}]”. If u and v are in the same orbit, then ∃f ∈Auto(G) : f(v) = u. Then ∀i, j ∈V \\{u}, (i, j) ∈E\\{u} ⇐⇒(f(i), f(j)) ∈",
+            "es": "Primero mostramos la primera dirección: “u y v están en la misma órbita” implica “G[V \\{u}] ≡G[V \\{v}]”. Si u y v están en la misma órbita, entonces ∃f ∈Auto(G) : f(v) = u. Entonces ∀i, j ∈V \\{u}, (i, j) ∈E\\{u} ⇐⇒(f(i), f(j)) ∈"
+          }
+        },
+        {
+          "id": "app-a-p6",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "E\\{v} because f is an automorphism. Then we restrict f to V \\{u} and get a injection f ′ : V \\{u} →V \\{v}, and f ′(i) = f(i) ∀i ∈V \\{u}. Then ∀i, j ∈V \\{u}, (i, j) ∈E\\{u} ⇐⇒(f ′(i), f ′(j)) ∈E\\{v}. Therefore, f ′ is an isomorphism between G[V \\{u}] and G[V \\{v}].",
+            "es": "E\\{v} porque f es un automorfismo. Luego restringimos f a V \\{u} y obtenemos una inyección f ′ : V \\{u} →V \\{v}, con f ′(i) = f(i) ∀i ∈V \\{u}. Entonces ∀i, j ∈V \\{u}, (i, j) ∈E\\{u} ⇐⇒(f ′(i), f ′(j)) ∈E\\{v}. Por lo tanto, f ′ es un isomorfismo entre G[V \\{u}] y G[V \\{v}]."
+          }
+        },
+        {
+          "id": "app-a-p7",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "We then prove by induction the second direction: “G[V \\{u}] ≡G[V \\{v}]” indicates that “u and v being in the same orbit” .",
+            "es": "Después demostramos por inducción la segunda dirección: “G[V \\{u}] ≡G[V \\{v}]” implica que “u y v están en la misma órbita”."
+          }
+        },
+        {
+          "id": "app-a-p8",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "In the base case, we consider graphs with two nodes. Let G be (V = {u, v}, E = ∅) or (V = {u, v}, E = (u, v)). In either case, we always have G\\{u} ≡G\\{u}. The two nodes u and v are also in the same orbit in both cases. So the second direction holds in the base case.",
+            "es": "En el caso base, consideramos grafos con dos nodos. Sea G igual a (V = {u, v}, E = ∅) o (V = {u, v}, E = (u, v)). En cualquiera de los dos casos, siempre se cumple G\\{u} ≡G\\{u}. Los dos nodos u y v también están en la misma órbita en ambos casos. Por lo tanto, la segunda dirección se cumple en el caso base."
+          }
+        },
+        {
+          "id": "app-a-p9",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Then in the induction step, we assume the second direction is true for any graph of size n, then we show that it is also true for a graph of size n + 1. Let f ∈Auto(G), and f(u) = u′. There are three cases: u′ is v, u′ is u, or u′ is neither of them. If it is the ﬁrst case, then we have the conclusion directly: u and v are in the same orbit.",
+            "es": "Luego, en el paso inductivo, suponemos que la segunda dirección es verdadera para cualquier grafo de tamaño n, y mostramos que también lo es para un grafo de tamaño n + 1. Sea f ∈Auto(G), con f(u) = u′. Hay tres casos: u′ es v, u′ es u, o u′ no es ninguno de ellos. Si se trata del primer caso, entonces tenemos la conclusión directamente: u y v están en la misma órbita."
+          }
+        },
+        {
+          "id": "app-a-p10",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Then we check the third case. With the same argument in the proof of the ﬁrst direction, we restrict f to V \\{u} and get an isomorphism: G\\{u} ≡G\\{u′}. By the condition G\\{u} ≡G\\{v}, we also have G\\{u′} ≡G\\{v}. We then remove u from both graphs and get G\\{u, u′} ≡ G\\{u, v}. With the induction rule, we have that u′ and v in the same orbit in G\\{u}. Let g(·) ∈Auto(G\\{u}) and g(u′) = v. We extend g(·) to V and let g(u) = u, then g ◦f creates an automorphism on G, and (g ◦f)(u) = v. Therefore, u is in the same orbit as v.",
+            "es": "Luego revisamos el tercer caso. Con el mismo argumento de la demostración de la primera dirección, restringimos f a V \\{u} y obtenemos un isomorfismo: G\\{u} ≡G\\{u′}. Por la condición G\\{u} ≡G\\{v}, también tenemos G\\{u′} ≡G\\{v}. Entonces eliminamos u de ambos grafos y obtenemos G\\{u, u′} ≡ G\\{u, v}. Con la regla de inducción, tenemos que u′ y v están en la misma órbita en G\\{u}. Sea g(·) ∈Auto(G\\{u}) con g(u′) = v. Extendemos g(·) a V y hacemos g(u) = u; entonces g ◦f crea un automorfismo en G, y (g ◦f)(u) = v. Por lo tanto, u está en la misma órbita que v."
+          }
+        },
+        {
+          "id": "app-a-p11",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Finally, we show how to construct an f(·) such that f(u) = u′̸ = u. Since G[V \\{v}] ≡G[V \\{u}], there is a isomorphism h : V \\{v} →V \\{u}, and h(u) = u′. Note that u′ cannot be u because u is not in the range of h. We extend h to the domain V and let h(v) = u, so h is a permutation of V . For any i, j ∈E\\{v}, (i, j) ∈E\\{v} ⇐⇒ (h(i), h(j)) ∈E\\{u} because h is an isomorphism. It is also true that (i, j) ∈E ⇐⇒(h(i), h(j)) ∈E because (i, j) does not incident v, and (f(i), f(j)) does not incident u. Since h is a permutation, the composition of h forms a group: {h0, h1, . . . , hK}. The inverse h−1 is the same as hK. Let j ∈V \\{v}, and j = h−1(i), i ∈V \\{u}, then (h(v), h(j)) = (u, i). With the previous argument, (u, i) ∈E ⇐⇒(h(u), h(i)) ∈E. By the compisition rule, we further have (h(u), h(i)) ∈E ⇐⇒. . . ⇐⇒ (hK(u), hK(i)) = (v, j) ∈E. This works for any j ∈V \\v, that is, ∀j ∈V \\{v}, (v, j) ∈E =⇒(h(v), h(j)) ∈E, then h is a non-trivial automorphism on G and h(u)̸ = u′. sequences of connected graphs. Similary to the distribution indicated in Figure 3 (bottom left), it ﬁrst generates a comunity and then adds another one. likelihood for small graphs (fewer than 10 nodes) in the Lung and Yeast test sets. The estimation from S = 2200 importance samples is very accurate.",
+            "es": "Finalmente, mostramos cómo construir una f(·) tal que f(u) = u′̸ = u. Como G[V \\{v}] ≡G[V \\{u}], existe un isomorfismo h : V \\{v} →V \\{u}, con h(u) = u′. Observemos que u′ no puede ser u porque u no está en el rango de h. Extendemos h al dominio V y hacemos h(v) = u, de modo que h es una permutación de V . Para cualquier i, j ∈E\\{v}, (i, j) ∈E\\{v} ⇐⇒ (h(i), h(j)) ∈E\\{u} porque h es un isomorfismo. También es cierto que (i, j) ∈E ⇐⇒(h(i), h(j)) ∈E porque (i, j) no incide en v, y (f(i), f(j)) no incide en u. Como h es una permutación, la composición de h forma un grupo: {h0, h1, . . . , hK}. La inversa h−1 es igual a hK. Sea j ∈V \\{v}, con j = h−1(i), i ∈V \\{u}; entonces (h(v), h(j)) = (u, i). Con el argumento anterior, (u, i) ∈E ⇐⇒(h(u), h(i)) ∈E. Por la regla de composición, tenemos además (h(u), h(i)) ∈E ⇐⇒. . . ⇐⇒ (hK(u), hK(i)) = (v, j) ∈E. Esto funciona para cualquier j ∈V \\v, es decir, ∀j ∈V \\{v}, (v, j) ∈E =⇒(h(v), h(j)) ∈E; entonces h es un automorfismo no trivial en G y h(u)̸ = u′. secuencias de grafos conexos. De forma similar a la distribución indicada en la Figura 3 (abajo a la izquierda), primero genera una comunidad y luego agrega otra. log-verosimilitud para grafos pequeños (menos de 10 nodos) en los conjuntos de prueba Lung y Yeast. La estimación con S = 2200 muestras de importancia (importance samples) es muy precisa."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5. Graph generative sequences sampled from qφ(π|G) for a graph from Community-small. The variational distribution prefers",
+            "es": "Figura 5. Secuencias generativas de grafos muestreadas de qφ(π|G) para un grafo de Community-small. La distribución variacional prefiere"
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6. Comparison of estimated log-likelihood and exact log-",
+            "es": "Figura 6. Comparación de la log-verosimilitud estimada y la log-verosimilitud exacta"
+          }
+        },
+        {
+          "id": "app-a-h3",
+          "type": "heading",
+          "page": 12,
+          "text": {
+            "en": "A.3. The Accuracy of the Log-Likelihood Estimation",
+            "es": "A.3. La precisión de la estimación de la log-verosimilitud"
+          }
+        },
+        {
+          "id": "app-a-p12",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "To make sure we give an accurate estimation of the loglikelihood, we compare the estimated log-likelihood using different number of importance samples against the true loglikelihood. We compute the true log-likelihood of a graph by enumerating all possible permutations. We conduct the experiment on two datasets, Yeast and Lung. Since the calculation of the true log-likelihood is only feasible on small graphs, we keep graphs with fewer than 10 nodes in each of the two datasets. We use GraphRNN trained by variational inference as the model here, and the proposal distribution is the learned qφ(π|G). Figure 6 shows the results on the two datasets. We see that when the number of samples is over 1000, the gap between the true log-likelihood and the estimated log-likelihood becomes very small (less than 0.1). When we increase the number of samples to 2200, the estimation is very accurate for both datasets. We conclude that the importance sampling estimator can be reliably used for model selection and model comparison.",
+            "es": "Para asegurarnos de dar una estimación precisa de la log-verosimilitud, comparamos la log-verosimilitud estimada usando distintos números de muestras de importancia contra la log-verosimilitud verdadera. Calculamos la log-verosimilitud verdadera de un grafo enumerando todas las permutaciones posibles. Realizamos el experimento en dos conjuntos de datos, Yeast y Lung. Dado que el cálculo de la log-verosimilitud verdadera solo es factible en grafos pequeños, conservamos los grafos con menos de 10 nodos en cada uno de los dos conjuntos de datos. Usamos como modelo un GraphRNN entrenado mediante inferencia variacional, y la distribución propuesta (proposal distribution) es la qφ(π|G) aprendida. La Figura 6 muestra los resultados en los dos conjuntos de datos. Vemos que cuando el número de muestras es mayor que 1000, la brecha entre la log-verosimilitud verdadera y la estimada se vuelve muy pequeña (menos de 0.1). Cuando aumentamos el número de muestras a 2200, la estimación es muy precisa en ambos conjuntos de datos. Concluimos que el estimador de muestreo por importancia (importance sampling) puede usarse de manera confiable para la selección y la comparación de modelos."
+          }
+        },
+        {
+          "id": "app-a-h4",
+          "type": "heading",
+          "page": 12,
+          "text": {
+            "en": "A.4. Graph Sequence Pattern in DeepGMG",
+            "es": "A.4. Patrón de secuencias de grafos en DeepGMG"
+          }
+        },
+        {
+          "id": "app-a-p13",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "In Section 4, we have investigated the variational distribution when training GraphRNNs. Here we study the variational distribution when training DeepGMG. For this experiment, we also consider the Community-small and the Enzymes dataset in order to show how our model learns a set of preferred orders. We choose the smallest graph from each dataset (a graph with 12 nodes for Community-small and a graph with 10 nodes for Enzymes). For each graph, we sample 720 graph sequences from the trained variational distribution. We show the sampled graph sequences in Figure 5 and Figure 7. Without any prior knowledge, the variational distribution has strong preference for sequences of connected graphs. In addition, in Community-small, just like GraphRNN, the model prefers to generate communities one by one. preference for sequences of connected graphs.",
+            "es": "En la Sección 4 investigamos la distribución variacional al entrenar GraphRNN. Aquí estudiamos la distribución variacional al entrenar DeepGMG. Para este experimento, consideramos también los conjuntos de datos Community-small y Enzymes con el fin de mostrar cómo nuestro modelo aprende un conjunto de ordenamientos preferidos. Elegimos el grafo más pequeño de cada conjunto de datos (un grafo con 12 nodos para Community-small y un grafo con 10 nodos para Enzymes). Para cada grafo, muestreamos 720 secuencias de grafo de la distribución variacional entrenada. Mostramos las secuencias de grafo muestreadas en la Figura 5 y la Figura 7. Sin ningún conocimiento previo, la distribución variacional tiene una fuerte preferencia por secuencias de grafos conexos. Además, en Community-small, al igual que GraphRNN, el modelo prefiere generar las comunidades una por una. preferencia por secuencias de grafos conexos."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7. Graph generative sequences sampled from qφ(π|G) for a graph from Enzymes. The variational distribution has a strong",
+            "es": "Figura 7. Secuencias generativas de grafos muestreadas de qφ(π|G) para un grafo de Enzymes. La distribución variacional tiene una fuerte"
+          }
+        }
+      ]
+    }
+  ]
+}

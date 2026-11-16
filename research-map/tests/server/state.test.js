@@ -37,7 +37,7 @@ function call(method, path, json) {
 
 describe('what has been read', () => {
   it('starts empty, and keeps what is marked with its date', async () => {
-    expect((await call('GET', '/api/library')).body).toEqual({ version: 1, read: {} })
+    expect((await call('GET', '/api/library')).body).toEqual({ version: 1, read: {}, progress: {} })
     expect((await call('PUT', '/api/library/sample-a', { read: true })).status).toBe(200)
     const { read } = (await call('GET', '/api/library')).body
     expect(read['sample-a']).toMatch(/^\d{4}-\d{2}-\d{2}$/)
@@ -93,5 +93,23 @@ describe('the reading state', () => {
     const bad = await call('PUT', '/api/state/sample-a', { ...emptyReading(), lang: 'fr' })
     expect(bad.status).toBe(400)
     expect(bad.body.error).toContain('lang "fr"')
+  })
+})
+
+describe('reading progress', () => {
+  it('works it out from how far the reader got in each paper, never going back', async () => {
+    // Fixture sample-a: body of 425 characters; s2-p1 ends at 260 of them.
+    await call('PUT', '/api/state/sample-a', { position: { block: 's2-p1', sentence: 0 }, reached: 's2-p1' })
+    expect((await call('GET', '/api/library')).body.progress['sample-a']).toBe(61)
+    await call('PUT', '/api/state/sample-a', { position: { block: 's1-p1', sentence: 0 }, reached: 's2-p1' })
+    expect((await call('GET', '/api/library')).body.progress['sample-a']).toBe(61)
+  })
+
+  it('leaves out a paper that was never opened', async () => {
+    expect((await call('GET', '/api/library')).body.progress['sample-b']).toBeUndefined()
+  })
+
+  it('refuses a reached that is not a block id', async () => {
+    expect((await call('PUT', '/api/state/sample-a', { reached: 7 })).status).toBe(400)
   })
 })

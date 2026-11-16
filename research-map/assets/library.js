@@ -65,13 +65,15 @@ export function wordsOf(paper, extras = []) {
 
 /**
  * What of `papers` is left by a word `query` (each word must begin a word of the title, a keyword's name or, once
- * loaded, the paper's `words`), by `keywords` (all of them) and by `status` ('all', 'read', 'unread').
+ * loaded, the paper's `words`), by `keywords` (all of them), by `status` ('all', 'read', 'unread') and by `added` (the
+ * dates it was added on, any of them; none means every date).
  */
-export function filterPapers(papers, { query = '', keywords = [], status = 'all', read = {}, words = null, labels = {} } = {}) {
+export function filterPapers(papers, { query = '', keywords = [], status = 'all', read = {}, words = null, labels = {}, added = [] } = {}) {
   const asked = tokens(query)
   return papers.filter((p) => {
     if (status === 'read' && !read[p.node]) return false
     if (status === 'unread' && read[p.node]) return false
+    if (added.length && !added.includes(p.added)) return false
     const own = p.keywords ?? []
     if (!keywords.every((k) => own.includes(k))) return false
     if (!asked.length) return true
@@ -85,4 +87,43 @@ export function keywordCounts(papers) {
   const counts = {}
   for (const p of papers) for (const k of p.keywords ?? []) counts[k] = (counts[k] ?? 0) + 1
   return counts
+}
+
+/** How many of `papers` were added on each date: { 'YYYY-MM-DD': count }. Papers with no date are not counted. */
+export function addedCounts(papers) {
+  const counts = {}
+  for (const p of papers) if (p.added) counts[p.added] = (counts[p.added] ?? 0) + 1
+  return counts
+}
+
+/**
+ * `papers` in the order asked for. 'new' puts the newest added first, 'old' the oldest added first, 'progress' the most
+ * read first (100% down to 0%, from `progress`, { node: 0..100 }); papers tied keep their order, and papers with no date
+ * go last in the date orders. Any other `order` is the usual one: the papers being read first, the most read of them
+ * first, then the ones not started, then the finished ones.
+ */
+export function sortPapers(papers, order = '', progress = {}) {
+  const pct = (p) => progress[p.node] ?? 0
+  const date = (p) => (p.added ? Date.parse(p.added) : null)
+  const byDate = (sign) => (a, b) => {
+    const x = date(a)
+    const y = date(b)
+    if (x === y) return 0
+    if (x === null) return 1
+    if (y === null) return -1
+    return sign * (x - y)
+  }
+  const group = (p) => (pct(p) >= 100 ? 2 : pct(p) > 0 ? 0 : 1)
+  const compare =
+    order === 'new'
+      ? byDate(-1)
+      : order === 'old'
+        ? byDate(1)
+        : order === 'progress'
+          ? (a, b) => pct(b) - pct(a)
+          : (a, b) => group(a) - group(b) || (group(a) === 0 ? pct(b) - pct(a) : 0)
+  return papers
+    .map((p, i) => [p, i])
+    .sort(([a, i], [b, j]) => compare(a, b) || i - j)
+    .map(([p]) => p)
 }

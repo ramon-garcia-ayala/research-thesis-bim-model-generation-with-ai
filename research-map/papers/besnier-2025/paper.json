@@ -1,0 +1,2799 @@
+{
+  "version": 1,
+  "node": "besnier-2025",
+  "title": "HALTON SCHEDULER FOR MASKED GENERATIVE IMAGE TRANSFORMER",
+  "source": "files/Halton Scheduler For Masked Generative Image Transformer.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "ABSTRACT",
+        "es": "RESUMEN"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Masked Generative Image Transformers (MaskGIT) have emerged as a scalable and efficient image generation framework, able to deliver high-quality visuals with low inference costs. However, MaskGIT’s token unmasking scheduler, an essential component of the framework, has not received the attention it deserves. We analyze the sampling objective in MaskGIT, based on the mutual information between tokens, and elucidate its shortcomings. We then propose a new sampling strategy based on our Halton scheduler instead of the original Confidence scheduler. More precisely, our method selects the token’s position according to a quasi-random, low-discrepancy Halton sequence. Intuitively, that method spreads the tokens spatially, progressively covering the image uniformly at each step. Our analysis shows that it allows reducing non-recoverable sampling errors, leading to simpler hyper-parameters tuning and better quality images. Our scheduler does not require retraining or noise injection and may serve as a simple drop-in replacement for the original sampling strategy. Evaluation of both class-to-image synthesis on ImageNet and text-to-image generation on the COCO dataset demonstrates that the Halton scheduler outperforms the Confidence scheduler quantitatively by reducing the FID and qualitatively by generating more diverse and more detailed images. Our code is at https://github.com/valeoai/Halton-MaskGIT.",
+            "es": "Los Transformadores Generativos de Imágenes Enmascaradas (Masked Generative Image Transformers, MaskGIT) han surgido como un marco de generación de imágenes escalable y eficiente, capaz de producir imágenes de alta calidad con bajos costos de inferencia. Sin embargo, el planificador de desenmascaramiento de tokens (token unmasking scheduler) de MaskGIT, un componente esencial del marco, no ha recibido la atención que merece. Analizamos el objetivo de muestreo en MaskGIT, basado en la información mutua (mutual information) entre tokens, y esclarecemos sus deficiencias. Después proponemos una nueva estrategia de muestreo basada en nuestro planificador Halton (Halton scheduler) en lugar del planificador de Confianza (Confidence scheduler) original. Con mayor precisión, nuestro método selecciona la posición del token según una secuencia de Halton cuasialeatoria (quasi-random) de baja discrepancia (low-discrepancy). Intuitivamente, ese método dispersa los tokens en el espacio, cubriendo progresivamente la imagen de manera uniforme en cada paso. Nuestro análisis muestra que permite reducir los errores de muestreo no recuperables, lo que conduce a un ajuste más sencillo de los hiperparámetros y a imágenes de mejor calidad. Nuestro planificador no requiere reentrenamiento ni inyección de ruido y puede servir como un reemplazo directo y sencillo de la estrategia de muestreo original. La evaluación tanto de la síntesis de imágenes a partir de clases en ImageNet como de la generación de imágenes a partir de texto en el conjunto de datos COCO demuestra que el planificador Halton supera al planificador de Confianza cuantitativamente, al reducir el FID, y cualitativamente, al generar imágenes más diversas y más detalladas. Nuestro código está en https://github.com/valeoai/Halton-MaskGIT."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 INTRODUCTION",
+        "es": "1 INTRODUCCIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We propose a new scheduler for Masked Generative Image Transformers (MaskGIT), an emerging alternative for image generation that offers fast inference. In contrast to the Confidence scheduler traditionally employed in MaskGIT, our Halton scheduler spreads the tokens spatially, minimizing the correlation of tokens sampled simultaneously, maximizing the information gained at each step, and ultimately resulting in more diverse and more detailed images.",
+            "es": "Proponemos un nuevo planificador para los Transformadores Generativos de Imágenes Enmascaradas (MaskGIT), una alternativa emergente para la generación de imágenes que ofrece una inferencia rápida. En contraste con el planificador de Confianza empleado tradicionalmente en MaskGIT, nuestro planificador Halton dispersa los tokens en el espacio, minimizando la correlación de los tokens muestreados simultáneamente, maximizando la información obtenida en cada paso y dando como resultado, en última instancia, imágenes más diversas y más detalladas."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Iterative methods for image synthesis, such as reverse diffusion (Betker et al., 2023; Peebles & Xie, 2023; Esser et al., 2024) or next-token prediction (Yu et al., 2022), brought significant advances in image generation, where images have attained photo-realistic quality. However, those methods impose a slow and costly inference process, and state-of-the-art methods require customizing the scheduling for the generative process (Ho et al., 2020; Song et al., 2020; Liu et al., 2021).",
+            "es": "Los métodos iterativos para la síntesis de imágenes, como la difusión inversa (reverse diffusion) (Betker et al., 2023; Peebles & Xie, 2023; Esser et al., 2024) o la predicción del siguiente token (next-token prediction) (Yu et al., 2022), trajeron avances significativos en la generación de imágenes, donde estas han alcanzado una calidad fotorrealista. Sin embargo, esos métodos imponen un proceso de inferencia lento y costoso, y los métodos del estado del arte requieren personalizar la planificación del proceso generativo (Ho et al., 2020; Song et al., 2020; Liu et al., 2021)."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "MaskGIT (Chang et al., 2022; 2023), a recent approach based on the Masked Auto-Encoder (He et al., 2022) paradigm, offers much faster inference times and is readily integrated into multi-modal, multitask, or self-supervised pipelines (Mizrahi et al., 2024). MaskGIT operates in a tokenized space, representing an image as a grid of discrete values. The MaskGIT training process necessitates masking a specified number of token values, letting the neural network predict their values. That framework constitutes a classification task on the discrete values of the masked tokens.",
+            "es": "MaskGIT (Chang et al., 2022; 2023), un enfoque reciente basado en el paradigma del Autocodificador Enmascarado (Masked Auto-Encoder) (He et al., 2022), ofrece tiempos de inferencia mucho más rápidos y se integra fácilmente en flujos de trabajo multimodales, multitarea o autosupervisados (Mizrahi et al., 2024). MaskGIT opera en un espacio tokenizado, representando una imagen como una cuadrícula de valores discretos. El proceso de entrenamiento de MaskGIT requiere enmascarar un número especificado de valores de tokens, dejando que la red neuronal prediga sus valores. Ese marco constituye una tarea de clasificación sobre los valores discretos de los tokens enmascarados."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "For inference, MaskGIT begins with a fully masked grid and iteratively samples the tokens according to a schedule. The scheduler aims to unmask as many tokens as possible per step to speed up the overall process while preventing sampling errors that may arise when too many tokens are unmasked in parallel.",
+            "es": "Para la inferencia, MaskGIT comienza con una cuadrícula totalmente enmascarada y muestrea los tokens de forma iterativa según un calendario. El planificador busca desenmascarar tantos tokens como sea posible por paso para acelerar el proceso en conjunto, a la vez que evita los errores de muestreo que pueden surgir cuando se desenmascaran demasiados tokens en paralelo."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We will show that the Confidence scheduler designed for MaskGIT (Chang et al., 2022; 2023), which unmasks the most certain tokens first, impacts the generated images’ diversity and quality. That scheduler tends to select clustered tokens due to the high confidence of the area surrounding already predicted tokens (Figure 3). That results in a low information gain per sampling step.",
+            "es": "Mostraremos que el planificador de Confianza diseñado para MaskGIT (Chang et al., 2022; 2023), que desenmascara primero los tokens más seguros, afecta la diversidad y la calidad de las imágenes generadas. Ese planificador tiende a seleccionar tokens agrupados debido a la alta confianza de la zona que rodea a los tokens ya predichos (Figura 3). Eso resulta en una baja ganancia de información por paso de muestreo."
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Grounded by a mutual information analysis, we introduce a novel deterministic next-tokens scheduler that harnesses the Halton low-discrepancy sequence (Halton, 1964). Our scheduler builds upon insights on the evolution of the entropy throughout the image generation process, aiming to spread out the tokens to achieve uniform image coverage. No retraining nor noise injection is needed, and the scheduler easily plugs in MaskGIT models without requiring further changes. Compared to the traditional Confidence scheduler, we generate more diverse and higher-quality images, as visually appreciable in Figure 1 and extensively evaluated in our experiments.",
+            "es": "Con el respaldo de un análisis de información mutua, introducimos un novedoso planificador determinista de los siguientes tokens que aprovecha la secuencia de baja discrepancia de Halton (Halton, 1964). Nuestro planificador se basa en los conocimientos sobre la evolución de la entropía a lo largo del proceso de generación de imágenes, con el objetivo de dispersar los tokens para lograr una cobertura uniforme de la imagen. No se necesita reentrenamiento ni inyección de ruido, y el planificador se conecta fácilmente a los modelos MaskGIT sin requerir más cambios. En comparación con el planificador de Confianza tradicional, generamos imágenes más diversas y de mayor calidad, como se aprecia visualmente en la Figura 1 y como se evalúa ampliamente en nuestros experimentos."
+          }
+        },
+        {
+          "id": "s1-p7",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our primary contribution is the Halton scheduler (section 3), a novel scheduler for MaskGIT, with improved results without additional compute, data, or training constraints. Additionally, we present a novel mutual information analysis that clarifies the scheduler’s role in MaskGIT (subsection 3.1). That analysis motivates our choice of the Halton scheduler but is not limited to our specific design and can be applied more broadly. We extensively evaluate our scheduler in the experiments presented in section 4, encompassing both class-to-image and text-to-image generation tasks.",
+            "es": "Nuestra contribución principal es el planificador Halton (sección 3), un novedoso planificador para MaskGIT, con resultados mejorados sin restricciones adicionales de cómputo, datos o entrenamiento. Además, presentamos un novedoso análisis de información mutua que aclara el papel del planificador en MaskGIT (subsección 3.1). Ese análisis motiva nuestra elección del planificador Halton, pero no se limita a nuestro diseño específico y puede aplicarse de forma más amplia. Evaluamos ampliamente nuestro planificador en los experimentos presentados en la sección 4, que abarcan tanto tareas de generación de imágenes a partir de clases como de imágenes a partir de texto."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 RELATED WORK",
+        "es": "2 TRABAJO RELACIONADO"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Recently introduced, Masked Generative Image Transformers (MaskGIT) (Chang et al., 2022; 2023) follow a long line of generative models. Generative Adversarial Networks (GANs) (Radford et al., 2015; Brock et al., 2018; Karras et al., 2020; Kang et al., 2023) employed competing neural networks to improve each other. More recently, diffusion models (Dhariwal & Nichol, 2021; Song et al., 2020; Rombach et al., 2022) advanced the state of the art by reframing the problem as a simpleto-train denoising process. Concurrently, inspired by language modeling, auto-regressive image generation (Yu et al., 2022; Ramesh et al., 2021; Ding et al., 2021; Gafni et al., 2022) represents another line of attack. While both diffusion and auto-regression have demonstrated the capacity to achieve high-quality outputs, they are also prone to long inference times.",
+            "es": "Introducidos recientemente, los Transformadores Generativos de Imágenes Enmascaradas (MaskGIT) (Chang et al., 2022; 2023) siguen una larga línea de modelos generativos. Las Redes Generativas Antagónicas (Generative Adversarial Networks, GANs) (Radford et al., 2015; Brock et al., 2018; Karras et al., 2020; Kang et al., 2023) emplearon redes neuronales en competencia para mejorarse mutuamente. Más recientemente, los modelos de difusión (diffusion models) (Dhariwal & Nichol, 2021; Song et al., 2020; Rombach et al., 2022) hicieron avanzar el estado del arte al replantear el problema como un proceso de eliminación de ruido (denoising) fácil de entrenar. De forma concurrente, inspirada en el modelado del lenguaje, la generación autorregresiva de imágenes (auto-regressive image generation) (Yu et al., 2022; Ramesh et al., 2021; Ding et al., 2021; Gafni et al., 2022) representa otra línea de ataque. Si bien tanto la difusión como la autorregresión han demostrado la capacidad de lograr resultados de alta calidad, también son propensas a tiempos de inferencia largos."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "MaskGIT (Chang et al., 2022) significantly reduces inference times through the use of a bidirectional transformer encoder and a masking strategy à la BERT (Devlin et al., 2019). Based on the masked auto-encoder (He et al., 2022; Bao et al., 2021; Zhang et al., 2021) framework, MaskGIT directly inherits their scalability, native multi-modality (Mizrahi et al., 2024), and ease of integration into large-scale self-supervised pipelines (He et al., 2022; Li et al., 2023).",
+            "es": "MaskGIT (Chang et al., 2022) reduce significativamente los tiempos de inferencia mediante el uso de un codificador transformador bidireccional y una estrategia de enmascaramiento à la BERT (Devlin et al., 2019). Basado en el marco del autocodificador enmascarado (He et al., 2022; Bao et al., 2021; Zhang et al., 2021), MaskGIT hereda directamente su escalabilidad, su multimodalidad nativa (Mizrahi et al., 2024) y su facilidad de integración en flujos de trabajo autosupervisados a gran escala (He et al., 2022; Li et al., 2023)."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2: (Left) MaskGIT image generation. From masked tokens and the class token, MaskGIT samples the full image step-by-step, using a scheduler to pick which tokens to unmask. After S steps, all tokens are sampled, and a deterministic decoder transforms the entire sequence into an image. (Right) The Halton scheduler employs the quasi-random Halton sequence to strategically distribute tokens across the image, reducing the correlation between tokens sampled in the same step and maximizing the information they provide.",
+            "es": "Figura 2: (Izquierda) Generación de imágenes con MaskGIT. A partir de los tokens enmascarados y el token de clase, MaskGIT muestrea la imagen completa paso a paso, usando un planificador para elegir qué tokens desenmascarar. Después de S pasos, todos los tokens están muestreados y un decodificador determinista transforma la secuencia completa en una imagen. (Derecha) El planificador Halton emplea la secuencia cuasialeatoria de Halton para distribuir estratégicamente los tokens a lo largo de la imagen, reduciendo la correlación entre los tokens muestreados en el mismo paso y maximizando la información que aportan."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Modern generative models, including MaskGIT, rely on image tokenizers to reduce the image resolution, training directly in the latent space. MaskGIT, in particular, requires a discrete visual tokenizer (Van Den Oord et al., 2017; Razavi et al., 2019; Esser et al., 2020), as it is trained with a cross-entropy loss. Although discrete image tokenizers have not been as extensively studied as their continuous counterparts, recent literature indicates a growing interest in them due to their enhanced compression and superior capacity to incorporate semantic information (Yu et al., 2024; Mentzer et al., 2023b; Sun et al., 2024b).",
+            "es": "Los modelos generativos modernos, incluido MaskGIT, dependen de tokenizadores de imágenes (image tokenizers) para reducir la resolución de la imagen, entrenando directamente en el espacio latente (latent space). MaskGIT, en particular, requiere un tokenizador visual discreto (Van Den Oord et al., 2017; Razavi et al., 2019; Esser et al., 2020), ya que se entrena con una pérdida de entropía cruzada (cross-entropy loss). Aunque los tokenizadores de imágenes discretos no se han estudiado tan ampliamente como sus contrapartes continuas, la literatura reciente indica un interés creciente en ellos debido a su mayor compresión y su capacidad superior para incorporar información semántica (Yu et al., 2024; Mentzer et al., 2023b; Sun et al., 2024b)."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "The original MaskGIT was extended to text-to-image by MUSE (Chang et al., 2023; Patil et al., 2024), to text-to-video by MAGVIT (Yu et al., 2023a;b) and Phenaki (Villegas et al., 2023), to LiDAR point-cloud generation (Zhang et al., 2023), and even to neural simulation of interactive environments by GENIE (Bruce et al., 2024). Additionally, MaskGIT was incorporated into M2T (Mentzer et al., 2023a) with the introduction of a deterministic scheduler, ‘QLDS’, which employs a pseudo-random sequence. However, while M2T is designed for image compression, our work focuses on enhancing the generative capabilities of MaskGIT.",
+            "es": "El MaskGIT original fue extendido a texto a imagen por MUSE (Chang et al., 2023; Patil et al., 2024), a texto a video por MAGVIT (Yu et al., 2023a;b) y Phenaki (Villegas et al., 2023), a la generación de nubes de puntos LiDAR (Zhang et al., 2023), e incluso a la simulación neuronal de entornos interactivos por GENIE (Bruce et al., 2024). Además, MaskGIT se incorporó a M2T (Mentzer et al., 2023a) con la introducción de un planificador determinista, 'QLDS', que emplea una secuencia pseudoaleatoria. Sin embargo, mientras que M2T está diseñado para la compresión de imágenes, nuestro trabajo se centra en mejorar las capacidades generativas de MaskGIT."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Compared to other generative models, MaskGIT and its derivatives are much less understood. Up to this point, the only demonstrated improvements came from enhancing the tokenizer (Mentzer et al., 2023b) or training a critic (Lezama et al., 2022) post-hoc, requiring additional parameters and retraining. The most recent advancements (Ni et al., 2024) target the FID as a metric by directly optimizing training and sampling hyper-parameters. This strategy is well-known for decreasing the FID without necessarily improving image quality (Barratt & Sharma, 2018; Lee & Seok, 2022; Mathiasen & Hvilshøj, 2020).",
+            "es": "En comparación con otros modelos generativos, MaskGIT y sus derivados se comprenden mucho menos. Hasta ahora, las únicas mejoras demostradas provinieron de mejorar el tokenizador (Mentzer et al., 2023b) o de entrenar a posteriori un crítico (critic) (Lezama et al., 2022), lo que requiere parámetros adicionales y reentrenamiento. Los avances más recientes (Ni et al., 2024) toman el FID como métrica objetivo al optimizar directamente los hiperparámetros de entrenamiento y de muestreo. Esta estrategia es bien conocida por disminuir el FID sin necesariamente mejorar la calidad de la imagen (Barratt & Sharma, 2018; Lee & Seok, 2022; Mathiasen & Hvilshøj, 2020)."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "A low-discrepancy sequence, such as Halton (Halton, 1964), Sobol (Sobol, 1967), or Faure (Faure, 1981), is a deterministic sequence designed to uniformly cover a space with minimal clustering or gaps, optimizing uniformity compared to random sampling. Among all the low-discrepancy sequence improvements, the Scrambled Halton Sequence (Kocis & Whiten, 1997) improves the generated sequence in scenarios where the vanilla Halton sequence might struggle with dimensionspecific uniformity by adding a controlled amount of noise. The Leapfrog method distributes the Halton sequence across different threads, maintaining low discrepancy while allowing parallelization. However, for its simplicity and efficiency, we only investigate the Halton sequence in this work.",
+            "es": "Una secuencia de baja discrepancia, como Halton (Halton, 1964), Sobol (Sobol, 1967) o Faure (Faure, 1981), es una secuencia determinista diseñada para cubrir un espacio de manera uniforme con una agrupación o huecos mínimos, optimizando la uniformidad en comparación con el muestreo aleatorio. Entre todas las mejoras de las secuencias de baja discrepancia, la Secuencia de Halton Revuelta (Scrambled Halton Sequence) (Kocis & Whiten, 1997) mejora la secuencia generada en escenarios donde la secuencia de Halton básica podría tener dificultades con la uniformidad específica de cada dimensión, al añadir una cantidad controlada de ruido. El método Leapfrog distribuye la secuencia de Halton entre distintos hilos, manteniendo una baja discrepancia a la vez que permite la paralelización. Sin embargo, por su simplicidad y eficiencia, en este trabajo investigamos únicamente la secuencia de Halton."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In this paper, we focus on the fundamental principles of the sampling process, grounded on the information gained at each step and the mutual information between tokens, while abstaining from any retraining or imposing any new assumption on the tokenizer.",
+            "es": "En este artículo nos centramos en los principios fundamentales del proceso de muestreo, basados en la información obtenida en cada paso y en la información mutua entre tokens, a la vez que nos abstenemos de cualquier reentrenamiento o de imponer cualquier nueva suposición sobre el tokenizador."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 METHOD",
+        "es": "3 MÉTODO"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "For reference, MaskGIT’s sampling appears in Figure 2. In that scheme, the scheduler determines which tokens are unmasked at each step.",
+            "es": "Como referencia, el muestreo de MaskGIT aparece en la Figura 2. En ese esquema, el planificador (scheduler) determina qué tokens se desenmascaran en cada paso."
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "We seek a scheduler to generate an image with high quality and diversity as fast as possible. Formally, a schedule is an ordered list S = [X1, X2, ..., XS] of token sets Xs, where S is the total number of steps in the schedule. Xs represents the set of tokens being unmasked at step s, and thus {Xs}s∈1..S must be a (non-overlapping, complete) partition of the full set of tokens X. For convenience, we denote as X<s the set of tokens already unmasked at the start of step s, as X>s the set of tokens yet to be unmasked at the end of step s, and as ns = |Xs| the number of tokens in Xs. We also denote as Xi the i-th token in X and as Xi s the i-th token in subset Xs, arbitrarily ordered.",
+            "es": "Buscamos un planificador que genere una imagen con alta calidad y diversidad lo más rápido posible. Formalmente, un calendario (schedule) es una lista ordenada S = [X1, X2, ..., XS] de conjuntos de tokens Xs, donde S es el número total de pasos del calendario. Xs representa el conjunto de tokens que se desenmascaran en el paso s y, por lo tanto, {Xs}s∈1..S debe ser una partición (sin traslapes y completa) del conjunto total de tokens X. Por conveniencia, denotamos como X<s el conjunto de tokens ya desenmascarados al inicio del paso s, como X>s el conjunto de tokens que aún falta desenmascarar al final del paso s, y como ns = |Xs| el número de tokens en Xs. También denotamos como Xi el i-ésimo token en X y como Xi s el i-ésimo token en el subconjunto Xs, ordenado arbitrariamente."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Next, we thoroughly analyze MaskGIT’s sampling (Chang et al., 2022) under the lens of Mutual Information (MI) of sampled tokens. Based on that analysis, we present a new scheduler built on the Halton sequence (Halton, 1964).",
+            "es": "A continuación, analizamos a fondo el muestreo de MaskGIT (Chang et al., 2022) desde la óptica de la información mutua (Mutual Information, MI) de los tokens muestreados. Con base en ese análisis, presentamos un nuevo planificador construido sobre la secuencia de Halton (Halton, 1964)."
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "3.1 THE ROLE OF MUTUAL INFORMATION",
+            "es": "3.1 EL PAPEL DE LA INFORMACIÓN MUTUA"
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "The goal of the generative model is to sample from p(X), the joint distribution of the tokens that constitute the data. For MaskGIT (Chang et al., 2022), this distribution decomposes according to the schedule S:",
+            "es": "El objetivo del modelo generativo es muestrear de p(X), la distribución conjunta (joint distribution) de los tokens que constituyen los datos. Para MaskGIT (Chang et al., 2022), esta distribución se descompone según el calendario S:"
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "S Y p(X) =",
+            "es": "S Y p(X) ="
+          }
+        },
+        {
+          "id": "s3-e1",
+          "type": "equation",
+          "page": 4,
+          "text": {
+            "en": "p(Xs|X<s) = p(X1)p(X2|X1)p(X3|X2, X1) . . . p(XS|X<S) (1)"
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "s=1",
+            "es": "s=1"
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Thus, at any individual step s, we aim to sample from the joint distribution of all considered tokens: p(Xs|X<s) = p(X1 s, X2 s, . . . , Xns s |X<s). (2)",
+            "es": "Por lo tanto, en cualquier paso individual s, buscamos muestrear de la distribución conjunta de todos los tokens considerados: p(Xs|X<s) = p(X1 s, X2 s, . . . , Xns s |X<s). (2)"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "However, MaskGIT is trained on the cross-entropy loss for each token individually, and, therefore, only provides an estimate of each token marginal distribution p(Xi s|X<s). Therefore, MaskGIT only samples from the product distribution: ns Y p(Xi s|X<s) = p(X1 s|X<s)p(X2 s|X<s), . . . , p(Xns s |X<s). (3) i=1",
+            "es": "Sin embargo, MaskGIT se entrena con la pérdida de entropía cruzada (cross-entropy loss) para cada token de forma individual y, por lo tanto, solo proporciona una estimación de la distribución marginal (marginal distribution) de cada token p(Xi s|X<s). Por consiguiente, MaskGIT solo muestrea de la distribución producto (product distribution): ns Y p(Xi s|X<s) = p(X1 s|X<s)p(X2 s|X<s), . . . , p(Xns s |X<s). (3) i=1"
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "In summary, MaskGIT models the product distribution, which is a loose stand-in for the joint distribution we need. The sampling process must, therefore, reduce the gap between those two distributions, measured by their Kullback-Leibler divergence, which can be interpreted as the Mutual Information of all Xi s after knowing X<s: ns Y p(Xi",
+            "es": "En resumen, MaskGIT modela la distribución producto, que es un sustituto burdo de la distribución conjunta que necesitamos. Por lo tanto, el proceso de muestreo debe reducir la brecha entre esas dos distribuciones, medida por su divergencia de Kullback-Leibler (Kullback-Leibler divergence), que puede interpretarse como la información mutua de todos los Xi s después de conocer X<s: ns Y p(Xi"
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "MI(Xs|X<s) = DKL p(Xs|X<s) s|X<s)",
+            "es": "MI(Xs|X<s) = DKL p(Xs|X<s) s|X<s)"
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "(4) i=1 where Xs|X<s is a shorthand for X1 s, X2 s, . . . , Xns s |X<s.",
+            "es": "(4) i=1 donde Xs|X<s es una abreviatura de X1 s, X2 s, . . . , Xns s |X<s."
+          }
+        },
+        {
+          "id": "s3-p13",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Our goal is to propose a schedule that minimizes the Mutual Information aggregated over the inference steps PS s=1 MI(X|X<s), which we decompose as a sum of entropies conditioned on the unmasked tokens: ns X ns X",
+            "es": "Nuestro objetivo es proponer un calendario que minimice la información mutua agregada sobre los pasos de inferencia PS s=1 MI(X|X<s), la cual descomponemos como una suma de entropías condicionadas a los tokens desenmascarados: ns X ns X"
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "S X",
+            "es": "S X"
+          }
+        },
+        {
+          "id": "s3-p15",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "S X",
+            "es": "S X"
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "S X",
+            "es": "S X"
+          }
+        },
+        {
+          "id": "s3-p17",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "H(Xi",
+            "es": "H(Xi"
+          }
+        },
+        {
+          "id": "s3-p18",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "−H(Xs|X<s, Xi",
+            "es": "−H(Xs|X<s, Xi"
+          }
+        },
+        {
+          "id": "s3-p19",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "MI(Xs|X<s) = s|X<s) s)",
+            "es": "MI(Xs|X<s) = s|X<s) s)"
+          }
+        },
+        {
+          "id": "s3-p20",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": ". (5) s=1 s=1 s=1 i=1 i=1",
+            "es": ". (5) s=1 s=1 s=1 i=1 i=1"
+          }
+        },
+        {
+          "id": "s3-p21",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "| {z } (a)",
+            "es": "| {z } (a)"
+          }
+        },
+        {
+          "id": "s3-p22",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "| {z } (b)",
+            "es": "| {z } (b)"
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3: Evolving predictions of different schedulers on a reconstruction comparison. (left) MaskGIT predicted entropy maps, with darker colors for lower entropies and known tokens in dark red. Images are reconstructed (right) by revealing the ground-truth tokens of a reference image at the locations selected by the scheduler. The Confidence scheduler picks the most certain tokens first and, thus, tends to cluster around already unmasked areas. Adding noise alleviates but does not solve the problem. The Halton scheduler provides a more uniform image coverage at each step of the sampling process.",
+            "es": "Figura 3: Evolución de las predicciones de distintos planificadores en una comparación de reconstrucción. (izquierda) Mapas de entropía predichos por MaskGIT, con colores más oscuros para entropías más bajas y tokens conocidos en rojo oscuro. Las imágenes se reconstruyen (derecha) revelando los tokens de referencia (ground truth) de una imagen de referencia en las ubicaciones seleccionadas por el planificador. El planificador Confidence elige primero los tokens más seguros y, por lo tanto, tiende a agruparse alrededor de áreas ya desenmascaradas. Agregar ruido alivia el problema, pero no lo resuelve. El planificador Halton ofrece una cobertura de la imagen más uniforme en cada paso del proceso de muestreo."
+          }
+        },
+        {
+          "id": "s3-p23",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The term Eq. 5.a corresponds to the entropy of the tokens to be predicted, whose uncertainty in Xs we strive to minimize. We can interpret the term Eq. 5.b as the amount of reciprocal information the tokens of Xs share, which we should also minimize. Intuitively: because we sample the Xi s tokens from their marginal distribution (as explained above), we assume them to be independent. When that assumption is broken, and tokens in the same step have high mutual information, we risk creating incompatibilities. For instance, there is a risk of two petals of the same flower having conflicting shapes. Note that, in theory, ramping up the scheduling inference steps ns should reduce the overall error (Equation 5), which should, in turn, improve the generation quality. We will test that hypothesis in the next section.",
+            "es": "El término Ec. 5.a corresponde a la entropía de los tokens que se van a predecir, cuya incertidumbre en Xs buscamos minimizar. Podemos interpretar el término Ec. 5.b como la cantidad de información recíproca que comparten los tokens de Xs, la cual también debemos minimizar. De forma intuitiva: como muestreamos los tokens Xi s a partir de su distribución marginal (como se explicó antes), los suponemos independientes. Cuando ese supuesto se rompe y los tokens del mismo paso tienen una alta información mutua, corremos el riesgo de crear incompatibilidades. Por ejemplo, existe el riesgo de que dos pétalos de la misma flor tengan formas contradictorias. Cabe señalar que, en teoría, aumentar los pasos de inferencia de la planificación ns debería reducir el error global (Ecuación 5), lo que a su vez debería mejorar la calidad de la generación. Pondremos a prueba esa hipótesis en la siguiente sección."
+          }
+        },
+        {
+          "id": "s3-p24",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "While an estimate of Eq. 5.a is readily available from MaskGIT’s output, Eq. 5.b is computationally intractable. Instead, we exploit the strong correlation, for natural images, between pixel color similarity and spatial distance, which we extrapolate as the assumption that the conditional entropy H(Xi|Xj) between pairs of visual tokens Xi and Xj, with spatial coordinates xi and xj, should be strongly correlated to their Euclidean distance ||xi −xj||2. While this assumption is well-established in the pixel space (Huang & Mumford, 1999), we demonstrate in the Appendix that this principle also extends the compressed space of the tokenizer. This leads us to low discrepancy sequences for scheduling tokens sampling, which we describe next.",
+            "es": "Mientras que una estimación de la Ec. 5.a está disponible directamente a partir de la salida de MaskGIT, la Ec. 5.b es computacionalmente intratable. En su lugar, aprovechamos la fuerte correlación que existe, en las imágenes naturales, entre la similitud de color de los píxeles y la distancia espacial, la cual extrapolamos como el supuesto de que la entropía condicional H(Xi|Xj) entre pares de tokens visuales Xi y Xj, con coordenadas espaciales xi y xj, debería estar fuertemente correlacionada con su distancia euclidiana ||xi −xj||2. Si bien este supuesto está bien establecido en el espacio de píxeles (Huang & Mumford, 1999), demostramos en el Apéndice que este principio también se extiende al espacio comprimido del tokenizador. Esto nos lleva a las secuencias de baja discrepancia (low discrepancy sequences) para planificar el muestreo de tokens, que describimos a continuación."
+          }
+        },
+        {
+          "id": "s3-p25",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "3.2 LOW DISCREPANCY HALTON SEQUENCE",
+            "es": "3.2 SECUENCIA DE HALTON DE BAJA DISCREPANCIA"
+          }
+        },
+        {
+          "id": "s3-p26",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "The Halton sequence (Halton, 1964) is a low-discrepancy sequence, i.e., a sequence of points filling a space, with the property that the number of points falling into a subset of the space is proportional to the measure of that subset. For us, the relevant properties are that those sequences are quasi-random and that consecutive points on the sequence tend to be distant in space. Those properties will help us to sample tokens as independently as possible, keeping the term Eq. 5.b small. Moreover, because the sequence ensures uniform spatial coverage of the image, for any step s, the known tokens X<s give us a reasonable estimate of the whole image, also limiting the growth of term Eq. 5.a.",
+            "es": "La secuencia de Halton (Halton, 1964) es una secuencia de baja discrepancia, es decir, una secuencia de puntos que llenan un espacio, con la propiedad de que el número de puntos que caen en un subconjunto del espacio es proporcional a la medida de ese subconjunto. Para nosotros, las propiedades relevantes son que dichas secuencias son cuasialeatorias y que los puntos consecutivos de la secuencia tienden a estar distantes en el espacio. Esas propiedades nos ayudarán a muestrear los tokens de la forma más independiente posible, manteniendo pequeño el término Ec. 5.b. Además, como la secuencia garantiza una cobertura espacial uniforme de la imagen, para cualquier paso s los tokens conocidos X<s nos dan una estimación razonable de la imagen completa, lo que también limita el crecimiento del término Ec. 5.a."
+          }
+        },
+        {
+          "id": "s3-p27",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Formally, let the Halton sequence Hn = [x1, x2, · · · , xn] be a sequence of n points xi ∈Rd, and let i ∈{1, · · · , n} be the index of the point to sample written in the Radix b notation:",
+            "es": "Formalmente, sea la secuencia de Halton Hn = [x1, x2, · · · , xn] una secuencia de n puntos xi ∈Rd, y sea i ∈{1, · · · , n} el índice del punto que se va a muestrear, escrito en notación de base b (Radix b notation):"
+          }
+        },
+        {
+          "id": "s3-e2",
+          "type": "equation",
+          "page": 5,
+          "text": {
+            "en": "i = ambm + am−1bm−1 + · · · + a2b2 + a1b + a0, (6)"
+          }
+        },
+        {
+          "id": "s3-p28",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "where b > 1 is called the base, 0 < al < b and l ∈{0, 1, . . . , m −1}. The Halton sequence uses the R-inverse function of i:",
+            "es": "donde b > 1 se llama la base, 0 < al < b y l ∈{0, 1, . . . , m −1}. La secuencia de Halton usa la función R-inversa de i:"
+          }
+        },
+        {
+          "id": "s3-e3",
+          "type": "equation",
+          "page": 5,
+          "text": {
+            "en": "Φb(i) = a0b−1 + a1b−2 + · · · + am−1b−m−2 + amb−m−1. (7)"
+          }
+        },
+        {
+          "id": "s3-p29",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We sample the next token’s position from a 2D Halton sequence with bases 2 and 3, storing them as an ordered list of pairs",
+            "es": "Muestreamos la posición del siguiente token a partir de una secuencia de Halton 2D con bases 2 y 3, almacenándolas como una lista ordenada de pares"
+          }
+        },
+        {
+          "id": "s3-e4",
+          "type": "equation",
+          "page": 6,
+          "text": {
+            "en": "Hnh = [(Φ2(1), Φ3(1)), (Φ2(2), Φ3(2)), . . . , (Φ2(n), Φ3(n))], (8)"
+          }
+        },
+        {
+          "id": "s3-p30",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "where nh is strictly greater than the total number of tokens n to predict.",
+            "es": "donde nh es estrictamente mayor que el número total de tokens n que se van a predecir."
+          }
+        },
+        {
+          "id": "s3-p31",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "In practice, we discretize the sequence Hnh into a grid corresponding to the token map. We discard duplicate grid coordinates and ensure all coordinates are sampled. Finally, we use the Hn list, where each index corresponds to one distinct token. A detailed algorithm for the Halton sequence appears in the Appendix.",
+            "es": "En la práctica, discretizamos la secuencia Hnh en una cuadrícula que corresponde al mapa de tokens. Descartamos las coordenadas de la cuadrícula duplicadas y nos aseguramos de que todas las coordenadas sean muestreadas. Finalmente, usamos la lista Hn, donde cada índice corresponde a un token distinto. En el Apéndice aparece un algoritmo detallado de la secuencia de Halton."
+          }
+        },
+        {
+          "id": "s3-p32",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "3.3 PROPERTIES OF SAMPLING METHODS",
+            "es": "3.3 PROPIEDADES DE LOS MÉTODOS DE MUESTREO"
+          }
+        },
+        {
+          "id": "s3-p33",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We have identified in subsection 3.1 the fundamental quantities necessary to minimize the discrepancy between the joint probability we aim to sample from and the approximation available with MaskGIT (Equation 4). Then, subsection 3.2 introduced our Halton scheduler as a sampling method. We discuss here how it behaves in terms of conditional entropies of Equation 5, in particular, compared to the Confidence scheduler from the original MaskGIT (Chang et al., 2022).",
+            "es": "En la subsección 3.1 identificamos las cantidades fundamentales necesarias para minimizar la discrepancia entre la probabilidad conjunta de la que buscamos muestrear y la aproximación disponible con MaskGIT (Ecuación 4). Luego, la subsección 3.2 presentó nuestro planificador Halton como método de muestreo. Aquí discutimos cómo se comporta en términos de las entropías condicionales de la Ecuación 5, en particular, en comparación con el planificador Confidence del MaskGIT original (Chang et al., 2022)."
+          }
+        },
+        {
+          "id": "s3-p34",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "First, we note that the Confidence scheduler is focused on minimizing term Eq. 5.a greedily at each step: by only selecting the top-k tokens in terms of confidence, they effectively minimize the entropy of those tokens. As presented in the original paper, confidence sampling does not account for longer-term gains. In fact, we show in Figure 3 that each step does not bring as much new information as other schedulers, leaving some high entropy regions for the few last steps. It also neglects the mutual information of the selected tokens. Such behavior is visible in Figure 4, which tracks metrics for Xs at each step. Their entropy stays low but increases sharply at the end, while the distance to each other or to seen tokens, which should be high, as explained in subsection 3.1, remains very low.",
+            "es": "Primero, observamos que el planificador Confidence se centra en minimizar el término Ec. 5.a de forma voraz (greedy) en cada paso: al seleccionar solo los k tokens con mayor confianza (top-k), minimiza efectivamente la entropía de esos tokens. Tal como se presenta en el artículo original, el muestreo por confianza no considera ganancias a más largo plazo. De hecho, mostramos en la Figura 3 que cada paso no aporta tanta información nueva como otros planificadores, lo que deja algunas regiones de alta entropía para los últimos pasos. Además, ignora la información mutua de los tokens seleccionados. Dicho comportamiento es visible en la Figura 4, que registra métricas para Xs en cada paso. Su entropía se mantiene baja, pero aumenta bruscamente al final, mientras que la distancia entre ellos o respecto a los tokens ya vistos, que debería ser alta, como se explicó en la subsección 3.1, permanece muy baja."
+          }
+        },
+        {
+          "id": "s3-p35",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "As a result, confidence sampling performs poorly in our experiments. Examination of the inference code reveals that the sampling method introduces Gumbel Noise in the confidence score1, on top of the top-k selection mechanism and the temperature of the softmax, when selecting the tokens to unmask (Besnier & Chen, 2023), an enhancement not discussed in the original publication. The noise is used only to select which tokens to unmask and does not affect the token value itself. Adding noise effectively reduces the greediness of the algorithm and the over-focus on the term Eq. 5.a, allowing for a better balance across time steps and reducing term Eq. 5.b. However, looking at Figure 3 and Figure 4, we still see a spike of entropy for the latest steps by the end of the generation, which reveals that an ideal tuning of the noise scheduler is challenging to obtain. That results in an undesirable saturation, and even deterioration, of the performance of the noised confidence scheduler as the number of steps grows (see Figure 5).",
+            "es": "Como resultado, el muestreo por confianza tiene un desempeño deficiente en nuestros experimentos. El examen del código de inferencia revela que el método de muestreo introduce ruido de Gumbel (Gumbel Noise) en la puntuación de confianza1, además del mecanismo de selección top-k y de la temperatura del softmax, al seleccionar los tokens que se desenmascaran (Besnier & Chen, 2023), una mejora que no se discute en la publicación original. El ruido se usa únicamente para seleccionar qué tokens se desenmascaran y no afecta el valor del token en sí. Agregar ruido reduce efectivamente la voracidad del algoritmo y el enfoque excesivo en el término Ec. 5.a, lo que permite un mejor equilibrio entre los pasos de tiempo y reduce el término Ec. 5.b. Sin embargo, al observar la Figura 3 y la Figura 4, aún vemos un pico de entropía en los últimos pasos hacia el final de la generación, lo que revela que es difícil obtener un ajuste ideal del planificador de ruido. Eso produce una saturación indeseable, e incluso un deterioro, del desempeño del planificador de confianza con ruido a medida que crece el número de pasos (véase la Figura 5)."
+          }
+        },
+        {
+          "id": "s3-p36",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Our Halton Scheduler uses fixed order for the tokens to make sure that subsets X<s, Xs, and their union are all well distributed across the image, thus controlling all the terms of the mutual information in Equation 5, as explained in the previous subsection. That is visible as the slow progression of the metrics in Figure 4, linearly distributed across generation steps. That indicates a better compromise between both quantities (a) and (b) from Equation 4). Our scheduler handles entropy gain at each step better. Moreover, with the Halton scheduler, the performance of MaskGIT keeps improving with increasing inference steps, as shown in Figure 5. Intuitively, as seen in Figure 3, the overall composition of the image is then decided early in the sampling process, while later stages add high-frequency information.",
+            "es": "Nuestro planificador Halton usa un orden fijo para los tokens a fin de asegurar que los subconjuntos X<s, Xs y su unión estén todos bien distribuidos a lo largo de la imagen, controlando así todos los términos de la información mutua de la Ecuación 5, como se explicó en la subsección anterior. Eso es visible en la lenta progresión de las métricas en la Figura 4, distribuidas linealmente a lo largo de los pasos de generación. Ello indica un mejor compromiso entre ambas cantidades (a) y (b) de la Ecuación 4. Nuestro planificador maneja mejor la ganancia de entropía en cada paso. Además, con el planificador Halton, el desempeño de MaskGIT sigue mejorando al aumentar los pasos de inferencia, como se muestra en la Figura 5. De forma intuitiva, como se ve en la Figura 3, la composición general de la imagen se decide entonces al principio del proceso de muestreo, mientras que las etapas posteriores añaden información de alta frecuencia."
+          }
+        },
+        {
+          "id": "s3-p37",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Our analysis assumes that the training results in a model that accurately estimates the marginal distributions for each token. Although such an assumption is common, it does not account for potential miscalibration or other biases. While those issues could impact our analysis, we find our predictions consistent with our experimental results, as demonstrated in section 4.",
+            "es": "Nuestro análisis supone que el entrenamiento produce un modelo que estima con precisión las distribuciones marginales de cada token. Aunque tal supuesto es común, no contempla posibles errores de calibración u otros sesgos. Si bien esos problemas podrían afectar nuestro análisis, encontramos que nuestras predicciones son consistentes con nuestros resultados experimentales, como se demuestra en la sección 4."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 EXPERIMENTS",
+        "es": "4 EXPERIMENTOS"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "This section presents a comprehensive evaluation of our method, focusing on the enhancements brought by our Halton scheduler in image quality and diversity compared to the baseline Confidence",
+            "es": "Esta sección presenta una evaluación exhaustiva de nuestro método, centrada en las mejoras que aporta nuestro planificador Halton (Halton scheduler) en la calidad y la diversidad de las imágenes, en comparación con el planificador de confianza (Confidence scheduler) de referencia"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "1In the original code, a linear decay is employed. scheduler. We present qualitative and quantitative results on two distinct tasks, each using different modalities: class-to-image ( subsection 4.1) and text-to-image ( subsection 4.2).",
+            "es": "1En el código original se emplea un decaimiento lineal. planificador. Presentamos resultados cualitativos y cuantitativos en dos tareas distintas, cada una con modalidades diferentes: de clase a imagen (subsección 4.1) y de texto a imagen (subsección 4.2)."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 7,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: Ablation study showcasing the relevance of the Halton scheduler on ImageNet 256×256.. A comparison of our own MaskGIT methods with different schedulers shows that the Halton Scheduler outperforms the others.",
+            "es": "Tabla 1: Estudio de ablación (ablation study) que muestra la relevancia del planificador Halton en ImageNet 256×256. Una comparación de nuestros propios métodos MaskGIT con distintos planificadores muestra que el planificador Halton supera a los demás."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "4.1 CLASS-TO-IMAGE SYNTHESIS",
+            "es": "4.1 SÍNTESIS DE CLASE A IMAGEN"
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "For our experiments in class-conditional image generation, we used the ImageNet dataset (Deng et al., 2009), consisting of 1.2 million images across 1,000 classes. We evaluated our approach using key metrics commonly employed in classconditional generative modeling: Fréchet Incep-tion Distance (FID) (Heusel et al., 2017), Incep-tion Score (IS) (Salimans et al., 2016), as well as Precision and Recall (Kynkäänniemi et al., 2019).",
+            "es": "Para nuestros experimentos de generación de imágenes condicionada por clase, utilizamos el conjunto de datos ImageNet (Deng et al., 2009), que consta de 1.2 millones de imágenes distribuidas en 1,000 clases. Evaluamos nuestro enfoque con las métricas clave que se emplean comúnmente en el modelado generativo condicionado por clase: Fréchet Inception Distance (FID) (Heusel et al., 2017), Inception Score (IS) (Salimans et al., 2016), así como Precisión (Precision) y Exhaustividad (Recall) (Kynkäänniemi et al., 2019)."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "1750",
+            "es": "1750"
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Halton Confidence Confidence + Gumbel Noise",
+            "es": "Halton Confidence Confidence + Gumbel Noise"
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "32 steps",
+            "es": "32 pasos"
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "1500",
+            "es": "1500"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Token Distance (higher is better)",
+            "es": "Distancia entre tokens (mayor es mejor)"
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "1250",
+            "es": "1250"
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "1000",
+            "es": "1000"
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "32 steps",
+            "es": "32 pasos"
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "750",
+            "es": "750"
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "32 steps",
+            "es": "32 pasos"
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "500",
+            "es": "500"
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Our Masked Generative Image Transformer model was trained on ImageNet at a resolution of 256 × 256, leveraging the pre-trained VQ-GAN from (Sun et al., 2024b) with a codebook size of 16,384 and a down-scaling factor of 8. We incorporated the class condition into a ViT-XL and ViT-L (Peebles & Xie, 2023) architecture via Adaptive Layer Norm, and the input was patchified with a factor of 2. Further architectural details, hyper-parameters, and training configurations are provided in the Appendix.",
+            "es": "Nuestro modelo Masked Generative Image Transformer se entrenó en ImageNet con una resolución de 256 × 256, aprovechando el VQ-GAN preentrenado de (Sun et al., 2024b), con un libro de códigos (codebook) de tamaño 16,384 y un factor de reducción de escala de 8. Incorporamos la condición de clase en una arquitectura ViT-XL y ViT-L (Peebles & Xie, 2023) mediante Adaptive Layer Norm, y la entrada se dividió en parches (patchified) con un factor de 2. Los demás detalles de la arquitectura, los hiperparámetros (hyper-parameters) y las configuraciones de entrenamiento se proporcionan en el Apéndice."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4: Mutual Information scheduler analysis. (x-axis) The sum of the entropy of the unmasked tokens in Xs corresponds to term Eq. 5.a. (y-axis) The sum of the distances of each unmasked token in Xs to their closest neighbor is a reversed proxy for the term Eq. 5.b. Each scheduler draws a curve in this plot as the number of sampling steps progresses. The Halton scheduler stays closer to the top-left corner, the desirable part of the plot.",
+            "es": "Figura 4: Análisis del planificador mediante información mutua (mutual information). (eje x) La suma de la entropía de los tokens desenmascarados en Xs corresponde al término de la Ec. 5.a. (eje y) La suma de las distancias de cada token desenmascarado en Xs a su vecino más cercano es un indicador inverso del término de la Ec. 5.b. Cada planificador traza una curva en esta gráfica a medida que avanzan los pasos de muestreo. El planificador Halton se mantiene más cerca de la esquina superior izquierda, la zona deseable de la gráfica."
+          }
+        },
+        {
+          "id": "s4-p17",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "We underscore the core contribution of our Hal-ton Scheduler in Table 2 and Table 1, demonstrating its effectiveness across a variety of scenarios, including different resolutions, network architectures, tokenizers, and number of steps. We benchmark the Halton Scheduler against the original Confidence Scheduler and a baseline Random Scheduler, which unmasks tokens at random locations. Results highlight the superiority of our method: with our MaskGIT model on ImageNet 256×256, the Halton Scheduler achieves a −2.19 FID improvement over the Confidence Scheduler from (Chang et al., 2022), validating its efficiency and robustness. On ImageNet 512×512, due to the incomplete availability of the original authors’ code, we employed a publicly available reproduction (Besnier & Chen, 2023). Our Halton Scheduler achieves strong performance −2.27 FID using the pre-trained MaskGIT model with no retraining and 32 steps.",
+            "es": "Subrayamos la contribución central de nuestro planificador Halton en la Tabla 2 y la Tabla 1, donde se demuestra su eficacia en una variedad de escenarios, entre ellos distintas resoluciones, arquitecturas de red, tokenizadores (tokenizers) y números de pasos. Comparamos el planificador Halton con el planificador Confidence original y con un planificador Random de referencia, que desenmascara tokens en ubicaciones aleatorias. Los resultados muestran la superioridad de nuestro método: con nuestro modelo MaskGIT en ImageNet 256×256, el planificador Halton logra una mejora de −2.19 en FID respecto al planificador Confidence de (Chang et al., 2022), lo que valida su eficiencia y robustez. En ImageNet 512×512, debido a que el código de los autores originales no está disponible por completo, empleamos una reproducción disponible públicamente (Besnier & Chen, 2023). Nuestro planificador Halton alcanza un sólido rendimiento de −2.27 en FID usando el modelo MaskGIT preentrenado, sin reentrenamiento y con 32 pasos."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2: Ablation showcasing the relevance of the Halton scheduler on ImageNet 512×512.. A comparison of open-source MaskGIT with different schedulers shows that the Halton Scheduler outperforms other schedulers, particularly a purely random scheduler.",
+            "es": "Tabla 2: Ablación que muestra la relevancia del planificador Halton en ImageNet 512×512. Una comparación de MaskGIT de código abierto con distintos planificadores muestra que el planificador Halton supera a los demás, en particular a un planificador puramente aleatorio."
+          }
+        },
+        {
+          "id": "s4-p18",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Halton Confidence",
+            "es": "Halton Confidence"
+          }
+        },
+        {
+          "id": "s4-p19",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Halton Confidence",
+            "es": "Halton Confidence"
+          }
+        },
+        {
+          "id": "s4-p20",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "20.0",
+            "es": "20.0"
+          }
+        },
+        {
+          "id": "s4-p21",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "20.0",
+            "es": "20.0"
+          }
+        },
+        {
+          "id": "s4-p22",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "20.3",
+            "es": "20.3"
+          }
+        },
+        {
+          "id": "s4-p23",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "17.5",
+            "es": "17.5"
+          }
+        },
+        {
+          "id": "s4-p24",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "17.5",
+            "es": "17.5"
+          }
+        },
+        {
+          "id": "s4-p25",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "16.8",
+            "es": "16.8"
+          }
+        },
+        {
+          "id": "s4-p26",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "15.6",
+            "es": "15.6"
+          }
+        },
+        {
+          "id": "s4-p27",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "15.0",
+            "es": "15.0"
+          }
+        },
+        {
+          "id": "s4-p28",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "15.0",
+            "es": "15.0"
+          }
+        },
+        {
+          "id": "s4-p29",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "12.5",
+            "es": "12.5"
+          }
+        },
+        {
+          "id": "s4-p30",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "12.5",
+            "es": "12.5"
+          }
+        },
+        {
+          "id": "s4-p31",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "12.9",
+            "es": "12.9"
+          }
+        },
+        {
+          "id": "s4-p32",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "12.3",
+            "es": "12.3"
+          }
+        },
+        {
+          "id": "s4-p33",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "10.2",
+            "es": "10.2"
+          }
+        },
+        {
+          "id": "s4-p34",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "FID",
+            "es": "FID"
+          }
+        },
+        {
+          "id": "s4-p35",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "FID",
+            "es": "FID"
+          }
+        },
+        {
+          "id": "s4-p36",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "9.0 9.4 9.9 10.1",
+            "es": "9.0 9.4 9.9 10.1"
+          }
+        },
+        {
+          "id": "s4-p37",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "10.0",
+            "es": "10.0"
+          }
+        },
+        {
+          "id": "s4-p38",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "10.0",
+            "es": "10.0"
+          }
+        },
+        {
+          "id": "s4-p39",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "8.6",
+            "es": "8.6"
+          }
+        },
+        {
+          "id": "s4-p40",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "9.8",
+            "es": "9.8"
+          }
+        },
+        {
+          "id": "s4-p41",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "7.6 7.5 7.5 8.4",
+            "es": "7.6 7.5 7.5 8.4"
+          }
+        },
+        {
+          "id": "s4-p42",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "7.9",
+            "es": "7.9"
+          }
+        },
+        {
+          "id": "s4-p43",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "9.1",
+            "es": "9.1"
+          }
+        },
+        {
+          "id": "s4-p44",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "7.4 6.6 5.9 6.8",
+            "es": "7.4 6.6 5.9 6.8"
+          }
+        },
+        {
+          "id": "s4-p45",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "7.5",
+            "es": "7.5"
+          }
+        },
+        {
+          "id": "s4-p46",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "7.5",
+            "es": "7.5"
+          }
+        },
+        {
+          "id": "s4-p47",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "7.8",
+            "es": "7.8"
+          }
+        },
+        {
+          "id": "s4-p48",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "7.7 7.2 6.9 6.6 6.1",
+            "es": "7.7 7.2 6.9 6.6 6.1"
+          }
+        },
+        {
+          "id": "s4-p49",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "6.2 5.4 4.8 4.1 3.9 3.7",
+            "es": "6.2 5.4 4.8 4.1 3.9 3.7"
+          }
+        },
+        {
+          "id": "s4-p50",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "5.0",
+            "es": "5.0"
+          }
+        },
+        {
+          "id": "s4-p51",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "5.0",
+            "es": "5.0"
+          }
+        },
+        {
+          "id": "s4-p52",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "2.5",
+            "es": "2.5"
+          }
+        },
+        {
+          "id": "s4-p53",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "2.5",
+            "es": "2.5"
+          }
+        },
+        {
+          "id": "s4-p54",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "0.0",
+            "es": "0.0"
+          }
+        },
+        {
+          "id": "s4-p55",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "0.0",
+            "es": "0.0"
+          }
+        },
+        {
+          "id": "s4-p56",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "5 10 15 20 25 30 Steps",
+            "es": "5 10 15 20 25 30 Pasos"
+          }
+        },
+        {
+          "id": "s4-p57",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "5 10 15 20 25 30 Steps",
+            "es": "5 10 15 20 25 30 Pasos"
+          }
+        },
+        {
+          "id": "s4-p58",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "(a) ImageNet 256 × 256",
+            "es": "(a) ImageNet 256 × 256"
+          }
+        },
+        {
+          "id": "s4-p59",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "(b) ImageNet 512 × 512 Figure 5: Ablation on the number of steps. The Halton scheduler demonstrates scalability as the number of steps increases, whereas the Confidence scheduler’s performance deteriorates. The Halton scheduler consistently outperforms the Confidence scheduler when the number of steps exceeds 12.",
+            "es": "(b) ImageNet 512 × 512 Figura 5: Ablación sobre el número de pasos. El planificador Halton demuestra escalabilidad a medida que aumenta el número de pasos, mientras que el rendimiento del planificador Confidence se deteriora. El planificador Halton supera consistentemente al planificador Confidence cuando el número de pasos excede 12."
+          }
+        },
+        {
+          "id": "s4-p60",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "In Figure 5, we demonstrate the impact of varying the number of steps using both our models on Ima-geNet 256×256 and ImageNet 512×512, using the pre-trained models from the MaskGIT (Besnier & Chen, 2023) reproduction. The Halton scheduler improves performance when the number of steps is above 12. Moreover, it exhibits better scaling properties as the number of sampling steps increases. In contrast, the Confidence scheduler decreases performance as the number of steps increases.",
+            "es": "En la Figura 5 mostramos el efecto de variar el número de pasos usando nuestros modelos tanto en ImageNet 256×256 como en ImageNet 512×512, con los modelos preentrenados de la reproducción de MaskGIT (Besnier & Chen, 2023). El planificador Halton mejora el rendimiento cuando el número de pasos es superior a 12. Además, exhibe mejores propiedades de escalamiento a medida que aumenta el número de pasos de muestreo. En contraste, el planificador Confidence empeora su rendimiento conforme aumenta el número de pasos."
+          }
+        },
+        {
+          "id": "s4-p61",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "To provide a clearer perspective of our model within the broader landscape of generative models, we compare our implementation of MaskGIT in Table 3 against other image synthesis methods and demonstrate that our approach outperforms the original MaskGIT implementation, reducing the FID score by almost 40% and improving the IS by over 50%. In addition, our results are competitive with other SOTA Masked Image Modeling (MIM) techniques without requiring extensive optimization directly targeting the FID of AutoNAT (Ni et al., 2024).",
+            "es": "Para ofrecer una perspectiva más clara de nuestro modelo dentro del panorama más amplio de los modelos generativos, comparamos nuestra implementación de MaskGIT en la Tabla 3 con otros métodos de síntesis de imágenes y demostramos que nuestro enfoque supera a la implementación original de MaskGIT, al reducir la puntuación FID en casi 40% y mejorar el IS en más de 50%. Además, nuestros resultados son competitivos con otras técnicas de vanguardia (SOTA) de modelado de imágenes enmascaradas (Masked Image Modeling, MIM), sin requerir una optimización extensiva dirigida directamente al FID como en AutoNAT (Ni et al., 2024)."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3: Model comparison on class-conditional ImageNet 256×256 benchmark. The proposed Halton scheduler using our own implementation of MaskGIT outperforms the original, demonstrating competitive performance among Masked Image Modeling (MIM) approaches. Full table in Appendix.",
+            "es": "Tabla 3: Comparación de modelos en el punto de referencia de ImageNet 256×256 condicionado por clase. El planificador Halton propuesto, usando nuestra propia implementación de MaskGIT, supera al original y demuestra un rendimiento competitivo entre los enfoques de modelado de imágenes enmascaradas (MIM). La tabla completa está en el Apéndice."
+          }
+        },
+        {
+          "id": "tab-4",
+          "type": "table",
+          "page": 9,
+          "image": "fig/tab-4.png",
+          "text": {
+            "en": "Table 4: Model comparisons on text-to-image zero-shot COCO. The Halton scheduler significantly enhances image fidelity over the Confidence sampler. It also achieves competitive results with much fewer training images than diffusion models. ‡ Open-source Diffusion computed using resolution 512×512 and FID-30k. † Open-source MIM computed using FID-10k and resolution 256×256. * uses 10M private images.",
+            "es": "Tabla 4: Comparación de modelos en COCO de texto a imagen en modalidad de cero disparos (zero-shot). El planificador Halton mejora significativamente la fidelidad de las imágenes respecto al muestreador Confidence. También logra resultados competitivos con muchas menos imágenes de entrenamiento que los modelos de difusión (diffusion). ‡ Difusión de código abierto calculada con resolución 512×512 y FID-30k. † MIM de código abierto calculado con FID-10k y resolución 256×256. * usa 10M de imágenes privadas."
+          }
+        },
+        {
+          "id": "s4-p62",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "4.2 TEXT-TO-IMAGE SYNTHESIS",
+            "es": "4.2 SÍNTESIS DE TEXTO A IMAGEN"
+          }
+        },
+        {
+          "id": "s4-p63",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "For the text-to-image generation experiments, we employed a combination of real-world datasets, including CC12M (Changpinyo et al., 2021) and a subset of Segment Anything (Kirillov et al., 2023), as well as synthetic datasets such as JourneyDB (Sun et al., 2024a) and DiffusionDB (Wang et al., 2022). In total, we gathered approximately 17 million images. We evaluated our method using the key metrics for text-to-image generative models on the zero-shot COCO dataset (Lin et al., 2014): Fréchet Inception Distance (FID) (Heusel et al., 2017), CLIP-Score (Radford et al., 2021), Precision, and Recall (Kynkäänniemi et al., 2019).",
+            "es": "Para los experimentos de generación de texto a imagen, empleamos una combinación de conjuntos de datos del mundo real, entre ellos CC12M (Changpinyo et al., 2021) y un subconjunto de Segment Anything (Kirillov et al., 2023), así como conjuntos de datos sintéticos como JourneyDB (Sun et al., 2024a) y DiffusionDB (Wang et al., 2022). En total, reunimos aproximadamente 17 millones de imágenes. Evaluamos nuestro método con las métricas clave para modelos generativos de texto a imagen en el conjunto de datos COCO en modalidad de cero disparos (Lin et al., 2014): Fréchet Inception Distance (FID) (Heusel et al., 2017), CLIP-Score (Radford et al., 2021), Precisión y Exhaustividad (Kynkäänniemi et al., 2019)."
+          }
+        },
+        {
+          "id": "s4-p64",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Our MaskGIT model was trained exclusively on publicly available datasets at a resolution of 256. The same frozen VQGAN (Sun et al., 2024b) model was used for class conditioning, and a frozen T5-XL (Chung et al., 2024) model for text token embeddings. To incorporate text conditions, we employed cross-attention mechanisms. Further details regarding the model architecture, hyperparameters, and training specifics can be found in the Appendix.",
+            "es": "Nuestro modelo MaskGIT se entrenó exclusivamente con conjuntos de datos públicos a una resolución de 256. Se utilizó el mismo modelo VQGAN congelado (Sun et al., 2024b) para el condicionamiento por clase, y un modelo T5-XL congelado (Chung et al., 2024) para los embeddings de los tokens de texto. Para incorporar las condiciones de texto, empleamos mecanismos de atención cruzada (cross-attention). Más detalles sobre la arquitectura del modelo, los hiperparámetros y los pormenores del entrenamiento se encuentran en el Apéndice."
+          }
+        },
+        {
+          "id": "s4-p65",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "In Table 4, we present zero-shot results on the COCO dataset compared with other open-source text-to-image synthesis methods. We benchmark against aMused (Patil et al., 2024), the only opensource MaskGIT Image Transformer with text conditioning. In this evaluation, our approach not only surpasses aMused by a notable margin, achieving a reduction of 10.1 in FID, but also demonstrates that the Halton scheduler improves model quality at no additional computational cost compared to the Confidence scheduler, with a further reduction of 2.7 in FID. Although masked generative transformers currently underperform in comparison to diffusion-based approaches, remark that those methods employ larger datasets with more trainable parameters.",
+            "es": "En la Tabla 4 presentamos resultados en modalidad de cero disparos en el conjunto de datos COCO, en comparación con otros métodos de síntesis de texto a imagen de código abierto. Nos comparamos con aMused (Patil et al., 2024), el único MaskGIT Image Transformer de código abierto con condicionamiento por texto. En esta evaluación, nuestro enfoque no solo supera a aMused por un margen notable, al lograr una reducción de 10.1 en FID, sino que también demuestra que el planificador Halton mejora la calidad del modelo sin costo computacional adicional en comparación con el planificador Confidence, con una reducción adicional de 2.7 en FID. Aunque los transformadores generativos enmascarados actualmente tienen un rendimiento inferior al de los enfoques basados en difusión, cabe señalar que esos métodos emplean conjuntos de datos más grandes y más parámetros entrenables."
+          }
+        },
+        {
+          "id": "s4-p66",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Examples generated by our method are illustrated in Figure 7 and Figure 6, showcasing curated samples. Despite using only publicly available data and a relatively limited number of parameters, our models can generate a diverse range of high-quality samples. As demonstrated in Figure 1, a qualitative comparison between the two schedulers reveals that our model employing the Halton scheduler exhibits a notable ability to generate images with intricate details and a high degree of diversity. Compared to the Confidence scheduler, the Halton scheduler is particularly adept at producing images with enhanced sharpness and a more diverse range of backgrounds. Further evidence on the class-to-image model can be found in the Appendix.",
+            "es": "Los ejemplos generados por nuestro método se ilustran en la Figura 7 y la Figura 6, y muestran muestras seleccionadas. A pesar de usar únicamente datos públicos y un número relativamente limitado de parámetros, nuestros modelos pueden generar una gama diversa de muestras de alta calidad. Como se demuestra en la Figura 1, una comparación cualitativa entre los dos planificadores revela que nuestro modelo con el planificador Halton exhibe una notable capacidad para generar imágenes con detalles intrincados y un alto grado de diversidad. En comparación con el planificador Confidence, el planificador Halton es particularmente hábil para producir imágenes con mayor nitidez y una gama más diversa de fondos. En el Apéndice se encuentra más evidencia sobre el modelo de clase a imagen."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 CONCLUSION",
+        "es": "5 CONCLUSIÓN"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "In this paper, we introduced the Halton scheduler for the sampling of Masked Generative Image Trans-formers. Grounded on the mutual information of the sampled tokens at each step, we demonstrated that the original Confidence scheduler performs inadequately, requiring the addition of Gumbel Noise during the sampling process to mitigate its spatially clustering tendencies, and even so, only partially succeeding. In contrast, based on the low-discrepancy Halton sequence, the Halton scheduler effectively spreads the selected tokens spatially, eliminating the need for additional noise injection or training. The Halton scheduler improves the quality and diversity of both class-to-image and text-to-image generation while keeping MaskGIT’s inference speed high.",
+            "es": "En este artículo presentamos el planificador Halton para el muestreo de Masked Generative Image Transformers. Con base en la información mutua de los tokens muestreados en cada paso, demostramos que el planificador Confidence original tiene un desempeño inadecuado, ya que requiere añadir ruido Gumbel (Gumbel noise) durante el proceso de muestreo para mitigar sus tendencias de agrupamiento espacial, y aun así solo lo logra parcialmente. En contraste, al basarse en la secuencia de Halton de baja discrepancia (low-discrepancy), el planificador Halton distribuye eficazmente los tokens seleccionados en el espacio, y elimina la necesidad de inyectar ruido adicional o de entrenar. El planificador Halton mejora la calidad y la diversidad tanto de la generación de clase a imagen como de texto a imagen, manteniendo alta la velocidad de inferencia de MaskGIT."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6: Class-to-Image curated example on Imagenet 256×256. Images generated using the Halton scheduler show good visual quality across classes, demonstrating its effectiveness. Additional samples, randomly selected, are available in the Appendix.",
+            "es": "Figura 6: Ejemplo seleccionado de clase a imagen en Imagenet 256×256. Las imágenes generadas con el planificador Halton muestran buena calidad visual en todas las clases, lo que demuestra su eficacia. En el Apéndice se encuentran muestras adicionales, elegidas al azar."
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7: Text-to-Image curated examples. Images generated using the Halton scheduler show good visual quality across diverse textual prompts. Prompts are available in the Appendix.",
+            "es": "Figura 7: Ejemplos seleccionados de texto a imagen. Las imágenes generadas con el planificador Halton muestran buena calidad visual en diversas indicaciones de texto. Las indicaciones están disponibles en el Apéndice."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The Halton scheduler enhances the performance of MaskGIT by reducing the correlation between tokens by breaking short-range dependencies. One current limitation of the scheme and of MaskGIT is the inability to accommodate long-range dependencies. Solving that issue while maintaining the advantageous inference times of MaskGIT represents an exciting research frontier. It may require rethinking the image’s encoding, scheduling, and decoding as a whole integrated framework.",
+            "es": "El planificador Halton mejora el rendimiento de MaskGIT al reducir la correlación entre tokens mediante la ruptura de dependencias de corto alcance. Una limitación actual del esquema y de MaskGIT es la incapacidad de acomodar dependencias de largo alcance. Resolver ese problema manteniendo los ventajosos tiempos de inferencia de MaskGIT representa una frontera de investigación emocionante. Puede requerir replantear la codificación, la planificación y la decodificación de la imagen como un marco integrado en su conjunto."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Acknowledgments This research received the support of EXA4MIND project, funded by the European Union’s Horizon Europe Research and Innovation Programme under Grant Agreement N°101092944. Views and opinions expressed are, however, those of the authors only and do not necessarily reflect those of the European Union or the European Commission. Neither the European Union nor the granting authority can be held responsible for them. We acknowledge EuroHPC Joint Undertaking for awarding us access to Karolina at IT4Innovations, Czech Republic.",
+            "es": "Agradecimientos Esta investigación recibió el apoyo del proyecto EXA4MIND, financiado por el Programa de Investigación e Innovación Horizonte Europa de la Unión Europea en virtud del Acuerdo de Subvención N°101092944. Sin embargo, los puntos de vista y las opiniones expresados son únicamente los de los autores y no reflejan necesariamente los de la Unión Europea ni los de la Comisión Europea. Ni la Unión Europea ni la autoridad otorgante pueden ser consideradas responsables de ellos. Agradecemos a EuroHPC Joint Undertaking por concedernos acceso a Karolina en IT4Innovations, República Checa."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "REFERENCES"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Hangbo Bao, Li Dong, Songhao Piao, and Furu Wei. Beit: Bert pre-training of image transformers."
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "In ICLR, 2021."
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Shane Barratt and Rishi Sharma. A note on the inception score. arXiv preprint arXiv:1801.01973,"
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "2018."
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Victor Besnier and Mickael Chen. A pytorch reproduction of masked generative image transformer. arXiv preprint arXiv:2310.14400, 2023."
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "James Betker, Gabriel Goh, Li Jing, Tim Brooks, Jianfeng Wang, Linjie Li, Long Ouyang, Juntang"
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Zhuang, Joyce Lee, Yufei Guo, et al. Improving image generation with better captions. Computer Science. https://cdn. openai. com/papers/dall-e-3. pdf, 2(3):8, 2023."
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Andrew Brock, Jeff Donahue, and Karen Simonyan. Large scale gan training for high fidelity natural image synthesis. In ICLR, 2018."
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Jake Bruce, Michael Dennis, Ashley Edwards, Jack Parker-Holder, Yuge Shi, Edward Hughes,"
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Matthew Lai, Aditi Mavalankar, Richie Steigerwald, Chris Apps, et al. Genie: Generative interactive environments. arXiv preprint arXiv:2402.15391, 2024."
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Huiwen Chang, Han Zhang, Lu Jiang, Ce Liu, and William T. Freeman. Maskgit: Masked generative image transformer. In CVPR, June 2022."
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Huiwen Chang, Han Zhang, Jarred Barber, Aaron Maschinot, Jose Lezama, Lu Jiang, Ming-Hsuan"
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Yang, Kevin Patrick Murphy, William T Freeman, Michael Rubinstein, et al. Muse: Text-to-image generation via masked generative transformers. In ICML, 2023."
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Soravit Changpinyo, Piyush Sharma, Nan Ding, and Radu Soricut. Conceptual 12M: Pushing web-scale image-text pre-training to recognize long-tail visual concepts. In CVPR, 2021."
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Junsong Chen, Jincheng YU, Chongjian GE, Lewei Yao, Enze Xie, Zhongdao Wang, James Kwok,"
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Ping Luo, Huchuan Lu, and Zhenguo Li. Pixart-$\\alpha$: Fast training of diffusion transformer for photorealistic text-to-image synthesis. In ICLR, 2024. URL https://openreview.net/ forum?id=eAKmQPe3m1."
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Hyung Won Chung, Le Hou, Shayne Longpre, Barret Zoph, Yi Tay, William Fedus, Yunxuan Li,"
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Xuezhi Wang, Mostafa Dehghani, Siddhartha Brahma, et al. Scaling instruction-finetuned language models. JMLR, 25(70):1–53, 2024."
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Jia Deng, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. Imagenet: A large-scale hierarchical image database. In CVPRE, pp. 248–255. Ieee, 2009."
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. BERT: pre-training of deep bidirectional transformers for language understanding. In NAACL-HLT, 2019."
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Prafulla Dhariwal and Alexander Nichol. Diffusion models beat gans on image synthesis. NeurIPS,"
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "34:8780–8794, 2021."
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Ming Ding, Zhuoyi Yang, Wenyi Hong, Wendi Zheng, Chang Zhou, Da Yin, Junyang Lin, Xu Zou,"
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Zhou Shao, Hongxia Yang, et al. Cogview: Mastering text-to-image generation via transformers. NeurIPS, 34:19822–19835, 2021."
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Patrick Esser, Robin Rombach, and Björn Ommer. Taming transformers for high-resolution image synthesis. In CVPR, 2020."
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas Müller, Harry Saini, Yam"
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Levi, Dominik Lorenz, Axel Sauer, Frederic Boesel, Dustin Podell, Tim Dockhorn, Zion En-glish, Kyle Lacey, Alex Goodwin, Yannik Marek, and Robin Rombach. Scaling rectified flow transformers for high-resolution image synthesis. arXiv preprint arXiv:2403.03206, 2024."
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Henri Faure. Discrépances de suites associées à un système de numération (en dimension un). Bulletin de la Société Mathématique de France, 109:143–182, 1981. doi: 10.24033/bsmf.1935. URL http://www.numdam.org/articles/10.24033/bsmf.1935/."
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Oran Gafni, Adam Polyak, Oron Ashual, Shelly Sheynin, Devi Parikh, and Yaniv Taigman. Make-a-scene: Scene-based text-to-image generation with human priors. In ECCV, pp. 89–106. Springer, 2022."
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "John H Halton. Algorithm 247: Radical-inverse quasi-random point sequence. ACM, 7(12):701–702,"
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "1964."
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollár, and Ross B. Girshick. Masked autoencoders are scalable vision learners. In CVPR, 2022."
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler, and Sepp Hochreiter. Gans trained by a two time-scale update rule converge to a local nash equilibrium. NeurIPS, 30, 2017."
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. Advances in neural information processing systems, 33:6840–6851, 2020."
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Jinggang Huang and David Mumford. Statistics of natural images and models. In CVPR, volume 1, pp. 541–547. IEEE, 1999."
+          }
+        },
+        {
+          "id": "refs-36",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Minguk Kang, Jun-Yan Zhu, Richard Zhang, Jaesik Park, Eli Shechtman, Sylvain Paris, and Taesung"
+          }
+        },
+        {
+          "id": "refs-37",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Park. Scaling up gans for text-to-image synthesis. In CVPR, pp. 10124–10134, 2023."
+          }
+        },
+        {
+          "id": "refs-38",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Tero Karras, Samuli Laine, Miika Aittala, Janne Hellsten, Jaakko Lehtinen, and Timo Aila. Analyzing and improving the image quality of stylegan. In CVPR, pp. 8110–8119, 2020."
+          }
+        },
+        {
+          "id": "refs-39",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete"
+          }
+        },
+        {
+          "id": "refs-40",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Xiao, Spencer Whitehead, Alexander C Berg, Wan-Yen Lo, et al. Segment anything. In CVPR, pp. 4015–4026, 2023."
+          }
+        },
+        {
+          "id": "refs-41",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Ladislav Kocis and William J. Whiten. Computational investigations of low-discrepancy sequences."
+          }
+        },
+        {
+          "id": "refs-42",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "ACM Trans. Math. Softw., 23(2):266–294, June 1997. ISSN 0098-3500. doi: 10.1145/264029."
+          }
+        },
+        {
+          "id": "refs-43",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "264064. URL https://doi.org/10.1145/264029.264064."
+          }
+        },
+        {
+          "id": "refs-44",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Tuomas Kynkäänniemi, Tero Karras, Samuli Laine, Jaakko Lehtinen, and Timo Aila. Improved precision and recall metric for assessing generative models. NeurIPS, 2019."
+          }
+        },
+        {
+          "id": "refs-45",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Doyup Lee, Chiheon Kim, Saehoon Kim, Minsu Cho, and Wook-Shin Han. Autoregressive image generation using residual quantization. In CVPR, pp. 11523–11532, 2022."
+          }
+        },
+        {
+          "id": "refs-46",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Minhyeok Lee and Junhee Seok. Score-guided generative adversarial networks. Axioms, 11(12):701,"
+          }
+        },
+        {
+          "id": "refs-47",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "2022."
+          }
+        },
+        {
+          "id": "refs-48",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "José Lezama, Huiwen Chang, Lu Jiang, and Irfan Essa. Improved masked image generation with token-critic. In ECCV, 2022."
+          }
+        },
+        {
+          "id": "refs-49",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Tianhong Li, Huiwen Chang, Shlok Kumar Mishra, Han Zhang, Dina Katabi, and Dilip Krishnan."
+          }
+        },
+        {
+          "id": "refs-50",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "MAGE: masked generative encoder to unify representation learning and image synthesis. In CVPR, 2023."
+          }
+        },
+        {
+          "id": "refs-51",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr"
+          }
+        },
+        {
+          "id": "refs-52",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Dollár, and C Lawrence Zitnick. Microsoft coco: Common objects in context. In ECCV, pp. 740–755. Springer, 2014."
+          }
+        },
+        {
+          "id": "refs-53",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Luping Liu, Yi Ren, Zhijie Lin, and Zhou Zhao. Pseudo numerical methods for diffusion models on manifolds. In International Conference on Learning Representations, 2021."
+          }
+        },
+        {
+          "id": "refs-54",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Alexander Mathiasen and Frederik Hvilshøj. Backpropagating through fr\\’echet inception distance. arXiv preprint arXiv:2009.14075, 2020."
+          }
+        },
+        {
+          "id": "refs-55",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Fabian Mentzer, Eirikur Agustson, and Michael Tschannen. M2t: Masking transformers twice for faster decoding. In ICCV, pp. 5340–5349, 2023a."
+          }
+        },
+        {
+          "id": "refs-56",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Fabian Mentzer, David Minnen, Eirikur Agustsson, and Michael Tschannen. Finite scalar quantization:"
+          }
+        },
+        {
+          "id": "refs-57",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "Vq-vae made simple. arXiv preprint arXiv:2309.15505, 2023b."
+          }
+        },
+        {
+          "id": "refs-58",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "David Mizrahi, Roman Bachmann, Oguzhan Kar, Teresa Yeo, Mingfei Gao, Afshin Dehghan, and"
+          }
+        },
+        {
+          "id": "refs-59",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Amir Zamir. 4m: Massively multimodal masked modeling. Advances in Neural Information Processing Systems, 36, 2024."
+          }
+        },
+        {
+          "id": "refs-60",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Zanlin Ni, Yulin Wang, Renping Zhou, Jiayi Guo, Jinyi Hu, Zhiyuan Liu, Shiji Song, Yuan Yao, and"
+          }
+        },
+        {
+          "id": "refs-61",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Gao Huang. Revisiting non-autoregressive transformers for efficient image synthesis. In CVPR, pp. 7007–7016, June 2024."
+          }
+        },
+        {
+          "id": "refs-62",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Suraj Patil, William Berman, Robin Rombach, and Patrick von Platen. amused: An open muse reproduction. arXiv preprint arXiv:2401.01808, 2024."
+          }
+        },
+        {
+          "id": "refs-63",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "William Peebles and Saining Xie. Scalable diffusion models with transformers. In ICCV, pp."
+          }
+        },
+        {
+          "id": "refs-64",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "4195–4205, October 2023."
+          }
+        },
+        {
+          "id": "refs-65",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Pablo Pernias, Dominic Rampas, Mats Leon Richter, Christopher Pal, and Marc Aubreville."
+          }
+        },
+        {
+          "id": "refs-66",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Würstchen: An efficient architecture for large-scale text-to-image diffusion models. In ICLR, 2024. URL https://openreview.net/forum?id=gU58d5QeGv."
+          }
+        },
+        {
+          "id": "refs-67",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Alec Radford, Luke Metz, and Soumith Chintala. Unsupervised representation learning with deep convolutional generative adversarial networks. arXiv preprint arXiv:1511.06434, 2015."
+          }
+        },
+        {
+          "id": "refs-68",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal,"
+          }
+        },
+        {
+          "id": "refs-69",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In International conference on machine learning, pp. 8748–8763. PMLR, 2021."
+          }
+        },
+        {
+          "id": "refs-70",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Aditya Ramesh, Mikhail Pavlov, Gabriel Goh, Scott Gray, Chelsea Voss, Alec Radford, Mark Chen, and Ilya Sutskever. Zero-shot text-to-image generation. In ICML, pp. 8821–8831. PMLR, 2021."
+          }
+        },
+        {
+          "id": "refs-71",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Ali Razavi, Aaron Van den Oord, and Oriol Vinyals. Generating diverse high-fidelity images with vq-vae-2. NeurIPS, 32, 2019."
+          }
+        },
+        {
+          "id": "refs-72",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer. High-resolution image synthesis with latent diffusion models. In CVPR, pp. 10684–10695, 2022."
+          }
+        },
+        {
+          "id": "refs-73",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Tim Salimans, Ian Goodfellow, Wojciech Zaremba, Vicki Cheung, Alec Radford, and Xi Chen."
+          }
+        },
+        {
+          "id": "refs-74",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Improved techniques for training gans. NeurIPS, 2016."
+          }
+        },
+        {
+          "id": "refs-75",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Axel Sauer, Katja Schwarz, and Andreas Geiger. Stylegan-xl: Scaling stylegan to large diverse datasets. In ACM SIGGRAPH, pp. 1–10, 2022."
+          }
+        },
+        {
+          "id": "refs-76",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Vikash Sehwag, Xianghao Kong, Jingtao Li, Michael Spranger, and Lingjuan Lyu. Stretching each dollar: Diffusion training from scratch on a micro-budget. arXiv preprint arXiv:2407.15811, 2024."
+          }
+        },
+        {
+          "id": "refs-77",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "I.M Sobol. On the distribution of points in a cube and the approximate evaluation of integrals. USSR"
+          }
+        },
+        {
+          "id": "refs-78",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Computational Mathematics and Mathematical Physics, 7(4):86–112, 1967. ISSN 0041-5553. doi: https://doi.org/10.1016/0041-5553(67)90144-9. URL https://www.sciencedirect. com/science/article/pii/0041555367901449."
+          }
+        },
+        {
+          "id": "refs-79",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. In ICLR,"
+          }
+        },
+        {
+          "id": "refs-80",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "2020."
+          }
+        },
+        {
+          "id": "refs-81",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Keqiang Sun, Junting Pan, Yuying Ge, Hao Li, Haodong Duan, Xiaoshi Wu, Renrui Zhang, Aojun"
+          }
+        },
+        {
+          "id": "refs-82",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Zhou, Zipeng Qin, Yi Wang, et al. Journeydb: A benchmark for generative image understanding. NeurIPS, 36, 2024a."
+          }
+        },
+        {
+          "id": "refs-83",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Peize Sun, Yi Jiang, Shoufa Chen, Shilong Zhang, Bingyue Peng, Ping Luo, and Zehuan Yuan."
+          }
+        },
+        {
+          "id": "refs-84",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Autoregressive model beats diffusion: Llama for scalable image generation. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-85",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Aaron Van Den Oord, Oriol Vinyals, et al. Neural discrete representation learning. NeurIPS, 30,"
+          }
+        },
+        {
+          "id": "refs-86",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "2017."
+          }
+        },
+        {
+          "id": "refs-87",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Ruben Villegas, Mohammad Babaeizadeh, Pieter-Jan Kindermans, Hernan Moraldo, Han Zhang,"
+          }
+        },
+        {
+          "id": "refs-88",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Mohammad Taghi Saffar, Santiago Castro, Julius Kunze, and Dumitru Erhan. Phenaki: Variable length video generation from open domain textual descriptions. In ICLR, 2023."
+          }
+        },
+        {
+          "id": "refs-89",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Zijie J. Wang, Evan Montoya, David Munechika, Haoyang Yang, Benjamin Hoover, and Duen Horng"
+          }
+        },
+        {
+          "id": "refs-90",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Chau. DiffusionDB: A large-scale prompt gallery dataset for text-to-image generative models. arXiv preprint arXiv:2210.14896, 2022. URL https://arxiv.org/abs/2210.14896."
+          }
+        },
+        {
+          "id": "refs-91",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Jiahui Yu, Xin Li, Jing Yu Koh, Han Zhang, Ruoming Pang, James Qin, Alexander Ku, Yuanzhong"
+          }
+        },
+        {
+          "id": "refs-92",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Xu, Jason Baldridge, and Yonghui Wu. Vector-quantized image modeling with improved vqgan. arXiv preprint arXiv:2110.04627, 2021."
+          }
+        },
+        {
+          "id": "refs-93",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Jiahui Yu, Yuanzhong Xu, Jing Yu Koh, Thang Luong, Gunjan Baid, Zirui Wang, Vijay Vasudevan,"
+          }
+        },
+        {
+          "id": "refs-94",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Alexander Ku, Yinfei Yang, Burcu Karagol Ayan, et al. Scaling autoregressive models for contentrich text-to-image generation. arXiv preprint arXiv:2206.10789, 2(3):5, 2022."
+          }
+        },
+        {
+          "id": "refs-95",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Lijun Yu, Yong Cheng, Kihyuk Sohn, José Lezama, Han Zhang, Huiwen Chang, Alexander G."
+          }
+        },
+        {
+          "id": "refs-96",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Hauptmann, Ming-Hsuan Yang, Yuan Hao, Irfan Essa, and Lu Jiang. MAGVIT: masked generative video transformer. In CVPR, 2023a."
+          }
+        },
+        {
+          "id": "refs-97",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Lijun Yu, José Lezama, Nitesh B. Gundavarapu, Luca Versari, Kihyuk Sohn, David Minnen, Yong"
+          }
+        },
+        {
+          "id": "refs-98",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Cheng, Agrim Gupta, Xiuye Gu, Alexander G. Hauptmann, Boqing Gong, Ming-Hsuan Yang, Irfan Essa, David A. Ross, and Lu Jiang. Language model beats diffusion – tokenizer is key to visual generation. CoRR, abs/2310.05737, 2023b."
+          }
+        },
+        {
+          "id": "refs-99",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Qihang Yu, Mark Weber, Xueqing Deng, Xiaohui Shen, Daniel Cremers, and Liang-Chieh Chen. An image is worth 32 tokens for reconstruction and generation. arXiv preprint arXiv:2406.07550, 2024."
+          }
+        },
+        {
+          "id": "refs-100",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Lunjun Zhang, Yuwen Xiong, Ze Yang, Sergio Casas, Rui Hu, and Raquel Urtasun. Learning unsupervised world models for autonomous driving via discrete diffusion. arXiv preprint arXiv:2311.01017, 2023."
+          }
+        },
+        {
+          "id": "refs-101",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Zhu Zhang, Jianxin Ma, Chang Zhou, Rui Men, Zhikang Li, Ming Ding, Jie Tang, Jingren Zhou, and"
+          }
+        },
+        {
+          "id": "refs-102",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Hongxia Yang. Ufc-bert: Unifying multi-modal controls for conditional image synthesis. NeurIPS, 34:27196–27208, 2021."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-a",
+      "title": {
+        "en": "A TRAINING DETAILS",
+        "es": "A DETALLES DEL ENTRENAMIENTO"
+      },
+      "blocks": [
+        {
+          "id": "app-a-p1",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Table 5 provides all the hyperparameters used to train our models across both modalities. In Table 6, we detail the architecture of our models.",
+            "es": "La Tabla 5 proporciona todos los hiperparámetros utilizados para entrenar nuestros modelos en ambas modalidades. En la Tabla 6 detallamos la arquitectura de nuestros modelos."
+          }
+        },
+        {
+          "id": "app-a-p2",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "For class-to-image generation, we employed an architecture similar to DiT-XL (Peebles & Xie, 2023), utilizing a patch size of 2 to reduce the number of tokens from 32×32 to 16×16. Due to GPU memory constraints, we opted not to use Exponential Moving Averages (EMA). Additionally, we used the ’tie_word_embedding’ technique, where the input and output layers share weights, reducing the number of trainable parameters.",
+            "es": "Para la generación de clase a imagen, empleamos una arquitectura similar a DiT-XL (Peebles & Xie, 2023), con un tamaño de parche de 2 para reducir el número de tokens de 32×32 a 16×16. Debido a las limitaciones de memoria de la GPU, optamos por no usar Promedios Móviles Exponenciales (Exponential Moving Averages, EMA). Además, utilizamos la técnica 'tie_word_embedding', en la que las capas de entrada y de salida comparten pesos, lo que reduce el número de parámetros entrenables."
+          }
+        },
+        {
+          "id": "app-a-p3",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "We used the T5-XL encoder for text-to-image synthesis, which processes 120 text tokens per input, resulting in a text embedding of size [120, 2048] for each sentence. To integrate text conditioning, we employed a transformer architecture similar to DiT-L (Peebles & Xie, 2023), the largest model we could fit on our GPU with EMA. The condition is incorporated using classical cross-attention.",
+            "es": "Usamos el codificador T5-XL para la síntesis de texto a imagen, que procesa 120 tokens de texto por entrada y produce un embedding de texto de tamaño [120, 2048] para cada oración. Para integrar el condicionamiento por texto, empleamos una arquitectura de transformador similar a DiT-L (Peebles & Xie, 2023), el modelo más grande que pudimos ajustar en nuestra GPU con EMA. La condición se incorpora mediante atención cruzada clásica."
+          }
+        },
+        {
+          "id": "tab-5",
+          "type": "table",
+          "page": 15,
+          "image": "fig/tab-5.png",
+          "text": {
+            "en": "Table 5: Hyper-parameters used in the training of text-to-img and class-to-img models.",
+            "es": "Tabla 5: Hiperparámetros utilizados en el entrenamiento de los modelos de texto a imagen y de clase a imagen."
+          }
+        },
+        {
+          "id": "app-a-h1",
+          "type": "heading",
+          "page": 15,
+          "text": {
+            "en": "Condition text-to-image class-to-image",
+            "es": "Condición texto a imagen clase a imagen"
+          }
+        },
+        {
+          "id": "tab-6",
+          "type": "table",
+          "page": 15,
+          "image": "fig/tab-6.png",
+          "text": {
+            "en": "Table 6: Architecture design of the text-to-img and class-to-img models.",
+            "es": "Tabla 6: Diseño de la arquitectura de los modelos de texto a imagen y de clase a imagen."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-b",
+      "title": {
+        "en": "B EUCLIDEAN DISTANCE IN THE TOKEN SPACE",
+        "es": "B DISTANCIA EUCLIDIANA EN EL ESPACIO DE TOKENS"
+      },
+      "blocks": [
+        {
+          "id": "app-b-p1",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "One assumption of our analysis is that parts of the image that are closer together tend to be more similar in appearance. This relationship is well understood in pixel space (Huang & Mumford, 1999). In Figure 8, we show that the principle also holds in the token space. We measure the appearance dissimilarity of tokens using the Euclidean distance of their corresponding latent representation on the LlamaGen tokenizer on the ImageNet dataset. As shown in the figure, tokens that are spatially close to the reference token (in red) also have the closest representations in feature space (dark blue). Tokens that are spatially further apart tend to have dissimilar representations (green to yellow).",
+            "es": "Un supuesto de nuestro análisis es que las partes de la imagen que están más cerca entre sí tienden a ser más similares en apariencia. Esta relación se conoce bien en el espacio de píxeles (Huang & Mumford, 1999). En la Figura 8 mostramos que el principio también se cumple en el espacio de tokens. Medimos la disimilitud de apariencia de los tokens usando la distancia euclidiana (Euclidean distance) de sus representaciones latentes correspondientes en el tokenizador LlamaGen sobre el conjunto de datos ImageNet. Como se muestra en la figura, los tokens que están espacialmente cerca del token de referencia (en rojo) también tienen las representaciones más cercanas en el espacio de características (azul oscuro). Los tokens que están espacialmente más lejos tienden a tener representaciones distintas (de verde a amarillo)."
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 16,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Figure 8: Spatial distance vs. appearance dissimilarity of tokens. The color map indicates the normalized appearance dissimilarity between each token and the reference token (shown in red). The closest tokens to the reference token are the most similar (dark blue). Tokens further away tend to be dissimilar (bright yellow).",
+            "es": "Figura 8: Distancia espacial frente a disimilitud de apariencia de los tokens. El mapa de colores indica la disimilitud de apariencia normalizada entre cada token y el token de referencia (mostrado en rojo). Los tokens más cercanos al token de referencia son los más similares (azul oscuro). Los tokens más lejanos tienden a ser distintos (amarillo brillante)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-c",
+      "title": {
+        "en": "C GENERATIVE METHOD COMPARISON",
+        "es": "C COMPARACIÓN DE MÉTODOS GENERATIVOS"
+      },
+      "blocks": [
+        {
+          "id": "app-c-p1",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "We show here a complete evaluation of our methods with the Halton scheduler again recent methods from the literature in Table 7. The analysis of Figure 9 shows that we are narrowing the gap between diffusion, auto-regressive, and masked image modeling, bringing the latter to the competitive forefront of generative methods while maintaining their speed advantage (dozens of inference steps for MIM vs. hundreds for auto-regressive and for diffusion).",
+            "es": "Mostramos aquí una evaluación completa de nuestros métodos con el planificador Halton frente a métodos recientes de la literatura en la Tabla 7. El análisis de la Figura 9 muestra que estamos reduciendo la brecha entre los modelos de difusión, los autorregresivos (auto-regressive) y el modelado de imágenes enmascaradas, llevando a este último a la vanguardia competitiva de los métodos generativos y manteniendo su ventaja en velocidad (decenas de pasos de inferencia para MIM frente a cientos para los autorregresivos y para los de difusión)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-d",
+      "title": {
+        "en": "D INTERMEDIATE GENERATION",
+        "es": "D GENERACIÓN INTERMEDIA"
+      },
+      "blocks": [
+        {
+          "id": "app-d-p1",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "An interesting property of our approach is shown in Figure 10 depicting the intermediate construction of the macaw (088). It highlights that most images are already fixed after a few steps. First, the bird’s blue color and the white background are completely set after only four steps with 25/1024 ≈2% unmasked tokens. The shape is fixed at the 8th step (8% tokens unmasked), and the texture starts to appear at 12 steps (16% tokens unmasked). This means that the rest of the token will only influence the high-frequency details of the generated image. We push the analysis further by computing the FID and IS for these intermediate samples (see Table 8), where we evaluate the results given the generated intermediate images. While the first 16 steps significantly increase both the FID and the IS, the last 12 steps only decrease the FID score by 0.14 points.",
+            "es": "Una propiedad interesante de nuestro enfoque se muestra en la Figura 10, que representa la construcción intermedia del guacamayo (088). Ahí se destaca que la mayoría de las imágenes ya están definidas después de unos pocos pasos. Primero, el color azul del ave y el fondo blanco quedan completamente establecidos después de solo cuatro pasos, con 25/1024 ≈2% de tokens desenmascarados. La forma se fija en el 8.º paso (8% de tokens desenmascarados), y la textura empieza a aparecer en 12 pasos (16% de tokens desenmascarados). Esto significa que el resto de los tokens solo influirá en los detalles de alta frecuencia de la imagen generada. Llevamos el análisis más lejos calculando el FID y el IS para estas muestras intermedias (véase la Tabla 8), donde evaluamos los resultados a partir de las imágenes intermedias generadas. Mientras que los primeros 16 pasos mejoran significativamente tanto el FID como el IS, los últimos 12 pasos solo reducen la puntuación FID en 0.14 puntos."
+          }
+        },
+        {
+          "id": "tab-7",
+          "type": "table",
+          "page": 17,
+          "image": "fig/tab-7.png",
+          "text": {
+            "en": "Table 7: Model comparison on class-conditional ImageNet 256×256 benchmark. The proposed Halton scheduler outperforms the original MaskGIT considerably, demonstrating competitive performance among Masked Image Modeling (MIM) approaches.",
+            "es": "Tabla 7: Comparación de modelos en el punto de referencia de ImageNet 256×256 condicionado por clase. El planificador Halton propuesto supera considerablemente al MaskGIT original y demuestra un rendimiento competitivo entre los enfoques de modelado de imágenes enmascaradas (MIM)."
+          }
+        },
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 17,
+          "image": "fig/fig-9.png",
+          "text": {
+            "en": "Figure 9: Analysis of the SOTA results of Table 7. In this radar plot, each model is represented as a line. Each metric is normalized to 1 for its best model. The FID is reversed, so higher is always better. The improvement brought by the Halton scheduler over the vanilla MaskGIT with Confidence scheduler is immediately noticeable. Our scheduler brings fast masked generative transformers to the competitive vanguard of existing methods.",
+            "es": "Figura 9: Análisis de los resultados SOTA de la Tabla 7. En esta gráfica de radar (radar plot), cada modelo se representa como una línea. Cada métrica se normaliza a 1 para su mejor modelo. El FID está invertido, de modo que un valor más alto siempre es mejor. La mejora que aporta el planificador Halton sobre el MaskGIT básico con planificador Confidence se nota de inmediato. Nuestro planificador lleva a los transformadores generativos enmascarados rápidos a la vanguardia competitiva de los métodos existentes."
+          }
+        },
+        {
+          "id": "fig-10",
+          "type": "figure",
+          "page": 18,
+          "image": "fig/fig-10.png",
+          "text": {
+            "en": "Figure 10: Evolution of the sampling using Halton scheduler. The macaw’s (088) color, texture, and shape, as well as the background, are set after only 12 steps, with only ∼16% tokens predicted. That showcases the ability of the Halton scheduler to extract information from the tokens by reducing their correlation.",
+            "es": "Figura 10: Evolución del muestreo usando el planificador Halton. El color, la textura y la forma del guacamayo (088), así como el fondo, quedan establecidos después de solo 12 pasos, con solo ∼16% de tokens predichos. Esto muestra la capacidad del planificador Halton para extraer información de los tokens al reducir su correlación."
+          }
+        },
+        {
+          "id": "tab-8",
+          "type": "table",
+          "page": 18,
+          "image": "fig/tab-8.png",
+          "text": {
+            "en": "Table 8: Evaluation of intermediate generated samples on ImageNet 512×512. Most of the gains are on early steps, which are crucial to achieving good FID and IS. Later steps keep improving but may be skipped as a compromise between quality and compute.",
+            "es": "Tabla 8: Evaluación de muestras intermedias generadas en ImageNet 512×512. La mayor parte de las ganancias ocurre en los primeros pasos, que son cruciales para lograr un buen FID e IS. Los pasos posteriores siguen mejorando, pero pueden omitirse como un compromiso entre calidad y cómputo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-e",
+      "title": {
+        "en": "E PSEUDO-CODE FOR HALTON SEQUENCE",
+        "es": "E PSEUDOCÓDIGO PARA LA SECUENCIA DE HALTON"
+      },
+      "blocks": [
+        {
+          "id": "app-e-p1",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "In algorithm 1, we detail the generation of the Halton sequence, producing a sequence of size n′ with a base b. In practice, we generate two sequences with b = 2 and b = 3, respectively, representing 2D coordinates of the points to select. We then discretize the space in a 32 × 32 grid. Duplicate points are discarded, ensuring complete grid coverage by setting n′ appropriately. The coordinates of the remaining points determine the order of token unmasking during sampling.",
+            "es": "En el algoritmo 1 detallamos la generación de la secuencia de Halton, que produce una secuencia de tamaño n′ con una base b. En la práctica, generamos dos secuencias con b = 2 y b = 3, respectivamente, que representan las coordenadas 2D de los puntos por seleccionar. Luego discretizamos el espacio en una cuadrícula de 32 × 32. Los puntos duplicados se descartan, y se asegura una cobertura completa de la cuadrícula al fijar n′ de manera apropiada. Las coordenadas de los puntos restantes determinan el orden en que se desenmascaran los tokens durante el muestreo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-f",
+      "title": {
+        "en": "F TEXT PROMPTS",
+        "es": "F PROMPTS DE TEXTO"
+      },
+      "blocks": [
+        {
+          "id": "app-f-p1",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "Prompts used for our text-to-image model, corresponding to Figure 7 in the main paper, from top-left to bottom-right:",
+            "es": "Prompts utilizados para nuestro modelo de texto a imagen, correspondientes a la Figura 7 del artículo principal, de arriba a la izquierda hacia abajo a la derecha:"
+          }
+        },
+        {
+          "id": "app-f-p2",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "1. A robot chef expertly crafts a gourmet meal in a high-tech futuristic kitchen, intricate details.",
+            "es": "1. Un chef robot elabora con maestría una comida gourmet en una cocina futurista de alta tecnología, con detalles intrincados."
+          }
+        },
+        {
+          "id": "app-f-p3",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "2. An old-world galleon navigating through turbulent ocean waves under a stormy sky lit by flashes of lightning.",
+            "es": "2. Un galeón de la época antigua navega entre olas turbulentas del océano bajo un cielo tormentoso iluminado por destellos de relámpagos."
+          }
+        },
+        {
+          "id": "app-f-p4",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "3. A cozy wooden cabin perched on a snowy mountain peak, glowing warmly in the night, styled like a classic Disney movie, featured on ArtStation.",
+            "es": "3. Una acogedora cabaña de madera situada en la cima de una montaña nevada, que brilla cálidamente en la noche, con el estilo de una película clásica de Disney, destacada en ArtStation."
+          }
+        },
+        {
+          "id": "app-f-p5",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "4. A blue sports car is parked. The sky above is partly cloudy, suggesting a pleasant day. The trees have a mix of green and brown foliage. There are no people visible in the image.",
+            "es": "4. Un auto deportivo azul está estacionado. El cielo de arriba está parcialmente nublado, lo que sugiere un día agradable. Los árboles tienen una mezcla de follaje verde y marrón. No hay personas visibles en la imagen."
+          }
+        },
+        {
+          "id": "app-f-p6",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "5. An oil painting of rain in a traditional Chinese town.",
+            "es": "5. Una pintura al óleo de la lluvia en un pueblo tradicional chino."
+          }
+        },
+        {
+          "id": "app-f-p7",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "6. Volumetric lighting, spectacular ambient lights, light pollution, cinematic atmosphere, Art Nou-veau style illustration art, artwork by SenseiJaye, intricate detail.",
+            "es": "6. Iluminación volumétrica, luces ambientales espectaculares, contaminación lumínica, atmósfera cinematográfica, arte de ilustración al estilo Art Nou-veau, obra de SenseiJaye, detalles intrincados."
+          }
+        },
+        {
+          "id": "app-f-p8",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "7. A mystical fox in an enchanted forest, glowing flora, and soft mist, rendered in Unreal Engine.",
+            "es": "7. Un zorro místico en un bosque encantado, con flora luminosa y una suave niebla, renderizado en Unreal Engine."
+          }
+        },
+        {
+          "id": "app-f-p9",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Algorithm 1: Compute the Halton sequence",
+            "es": "Algoritmo 1: Cálculo de la secuencia de Halton"
+          }
+        },
+        {
+          "id": "app-f-h1",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "1 Parameters:",
+            "es": "1 Parámetros:"
+          }
+        },
+        {
+          "id": "app-f-p10",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "2 b: the base of the Halton sequence,",
+            "es": "2 b: la base de la secuencia de Halton,"
+          }
+        },
+        {
+          "id": "app-f-p11",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "3 n′: the number of points in the sequence to compute",
+            "es": "3 n′: el número de puntos de la secuencia que se calcularán"
+          }
+        },
+        {
+          "id": "app-f-h2",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "4 Results:",
+            "es": "4 Resultados:"
+          }
+        },
+        {
+          "id": "app-f-p12",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "5 S: the first n′ points of the Halton sequence in base b",
+            "es": "5 S: los primeros n′ puntos de la secuencia de Halton en base b"
+          }
+        },
+        {
+          "id": "app-f-p13",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "6 n ←0",
+            "es": "6 n ←0"
+          }
+        },
+        {
+          "id": "app-f-p14",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "7 d ←1",
+            "es": "7 d ←1"
+          }
+        },
+        {
+          "id": "app-f-p15",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "8 S ←[]",
+            "es": "8 S ←[]"
+          }
+        },
+        {
+          "id": "app-f-p16",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "9 for i ←0 to n′ do",
+            "es": "9 for i ←0 to n′ do"
+          }
+        },
+        {
+          "id": "app-f-p17",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "10 x ←d −n",
+            "es": "10 x ←d −n"
+          }
+        },
+        {
+          "id": "app-f-p18",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "11 if x = 1 then",
+            "es": "11 if x = 1 then"
+          }
+        },
+        {
+          "id": "app-f-p19",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "12 n ←1",
+            "es": "12 n ←1"
+          }
+        },
+        {
+          "id": "app-f-p20",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "13 d ←d × b",
+            "es": "13 d ←d × b"
+          }
+        },
+        {
+          "id": "app-f-h3",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "14 end",
+            "es": "14 end"
+          }
+        },
+        {
+          "id": "app-f-h4",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "15 else",
+            "es": "15 else"
+          }
+        },
+        {
+          "id": "app-f-p21",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "16 y ←d ÷ b",
+            "es": "16 y ←d ÷ b"
+          }
+        },
+        {
+          "id": "app-f-p22",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "17 while y ≥x do",
+            "es": "17 while y ≥x do"
+          }
+        },
+        {
+          "id": "app-f-p23",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "18 y ←y ÷ b",
+            "es": "18 y ←y ÷ b"
+          }
+        },
+        {
+          "id": "app-f-h5",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "19 end",
+            "es": "19 end"
+          }
+        },
+        {
+          "id": "app-f-p24",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "20 n ←((b + 1) × y) −x",
+            "es": "20 n ←((b + 1) × y) −x"
+          }
+        },
+        {
+          "id": "app-f-h6",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "21 end",
+            "es": "21 end"
+          }
+        },
+        {
+          "id": "app-f-p25",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "22 S.append(n ÷ d)",
+            "es": "22 S.append(n ÷ d)"
+          }
+        },
+        {
+          "id": "app-f-h7",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "23 end",
+            "es": "23 end"
+          }
+        },
+        {
+          "id": "app-f-p26",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "24 return S",
+            "es": "24 return S"
+          }
+        },
+        {
+          "id": "app-f-p27",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "8. Photo of a young woman with long, wavy brown hair tied in a bun and glasses. She has a fair complexion and is wearing subtle makeup, emphasizing her eyes and lips. She is dressed in a black top. The background appears to be an urban setting with a building facade, and the sunlight casts a warm glow on her face.",
+            "es": "8. Fotografía de una mujer joven con cabello largo, ondulado y castaño, recogido en un chongo, y con lentes. Tiene la piel clara y lleva un maquillaje sutil que resalta sus ojos y labios. Viste una blusa negra. El fondo parece ser un entorno urbano con la fachada de un edificio, y la luz del sol proyecta un resplandor cálido sobre su rostro."
+          }
+        },
+        {
+          "id": "app-f-p28",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "9. Photo of a young man in a black suit, white shirt, and black tie. He has a neatly styled haircut and is looking directly at the camera with a neutral expression. The background consists of a textured wall with horizontal lines. The photograph is in black and white, emphasizing contrasts and shadows. The man appears to be in his late twenties or early thirties, with fair skin and short, dark hair.",
+            "es": "9. Fotografía de un hombre joven con traje negro, camisa blanca y corbata negra. Tiene un corte de cabello bien peinado y mira directamente a la cámara con una expresión neutra. El fondo consiste en una pared texturizada con líneas horizontales. La fotografía es en blanco y negro, lo que enfatiza los contrastes y las sombras. El hombre parece tener entre veinticinco y treinta y cinco años aproximadamente, con piel clara y cabello corto y oscuro."
+          }
+        },
+        {
+          "id": "app-f-p29",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "10. Selfie photo of a wizard with a long beard and purple robes, he is apparently in the middle of Tokyo. Probably taken from a phone.",
+            "es": "10. Selfie de un mago con barba larga y túnicas moradas, aparentemente en medio de Tokio. Probablemente tomada desde un teléfono."
+          }
+        },
+        {
+          "id": "app-f-p30",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "11. An image of Pikachu enjoying an elegant five-star meal with a breathtaking view of the Eiffel Tower during a golden sunset.",
+            "es": "11. Una imagen de Pikachu disfrutando de una elegante comida de cinco estrellas con una vista impresionante de la Torre Eiffel durante un atardecer dorado."
+          }
+        },
+        {
+          "id": "app-f-p31",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "12. A sleek airplane soaring above the clouds during a vibrant sunset, with a stunning view of the horizon.",
+            "es": "12. Un elegante avión surcando por encima de las nubes durante un atardecer vibrante, con una vista asombrosa del horizonte."
+          }
+        },
+        {
+          "id": "app-f-p32",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "13. A towering mecha robot overlooking a vibrant favela, painted in bold, abstract expressionist style.",
+            "es": "13. Un imponente robot mecha que domina con la mirada una vibrante favela, pintado con un estilo expresionista abstracto y audaz."
+          }
+        },
+        {
+          "id": "app-f-p33",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "14. Anime art of a steampunk inventor in their workshop, surrounded by gears, gadgets, and steam. He is holding a blue potion and a red potion, one in each hand",
+            "es": "14. Arte anime de un inventor steampunk en su taller, rodeado de engranes, artilugios y vapor. Sostiene una poción azul y una poción roja, una en cada mano"
+          }
+        },
+        {
+          "id": "app-f-p34",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "15. Pirate ship trapped in a cosmic maelstrom nebula rendered in cosmic beach whirlpool engine.",
+            "es": "15. Un barco pirata atrapado en un remolino de nebulosa cósmica renderizado con un motor de remolino de playa cósmica."
+          }
+        },
+        {
+          "id": "app-f-p35",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "16. A futuristic solarpunk utopia integrated into the lush Amazon rainforest, glowing with advanced technology and harmonious nature.",
+            "es": "16. Una utopía solarpunk futurista integrada en la exuberante selva amazónica, que brilla con tecnología avanzada y naturaleza armoniosa."
+          }
+        },
+        {
+          "id": "app-f-p36",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "17. A teddy bear wearing a blue ribbon taking a selfie in a small boat in the center of a lake.",
+            "es": "17. Un oso de peluche con un listón azul tomándose una selfie en un pequeño bote en el centro de un lago."
+          }
+        },
+        {
+          "id": "app-f-p37",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "18. Digital art, portrait of an anthropomorphic roaring Tiger warrior with full armor, close up in the middle of a battle.",
+            "es": "18. Arte digital, retrato de un guerrero tigre antropomórfico rugiendo, con armadura completa, de cerca en medio de una batalla."
+          }
+        },
+        {
+          "id": "fig-11",
+          "type": "figure",
+          "page": 20,
+          "image": "fig/fig-11.png",
+          "text": {
+            "en": "Figure 11: Scheduler comparison on random samples generated by a class-to-image model. The Halton scheduler demonstrates a higher level of detail, capturing finer features than the Confidence scheduler, which lacks details, especially in the background. (a) MaskGIT using our Halton scheduler. (b) MaskGIT using the Confidence scheduler.",
+            "es": "Figura 11: Comparación de planificadores (scheduler) en muestras aleatorias generadas por un modelo de clase a imagen. El planificador Halton muestra un mayor nivel de detalle y captura rasgos más finos que el planificador Confidence, al que le faltan detalles, especialmente en el fondo. (a) MaskGIT usando nuestro planificador Halton. (b) MaskGIT usando el planificador Confidence."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-g",
+      "title": {
+        "en": "G RANDOM SAMPLES FROM OUR CLASS CONDITIONED MODEL",
+        "es": "G MUESTRAS ALEATORIAS DE NUESTRO MODELO CONDICIONADO POR CLASE"
+      },
+      "blocks": [
+        {
+          "id": "app-g-p1",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "In Figure 11, we show that our model can generate diverse images and more intricate details compared to the confidence scheduler. Furthermore, a comparison with the Confidence sampler reveals that the latter produces overly simplistic and smooth images, often with poorly defined backgrounds. In contrast, our approach consistently produces greater diversity, particularly in rendering background elements.",
+            "es": "En la Figura 11 mostramos que nuestro modelo puede generar imágenes diversas y con detalles más intrincados en comparación con el planificador Confidence. Además, una comparación con el muestreador Confidence revela que este último produce imágenes excesivamente simples y suaves, a menudo con fondos mal definidos. En contraste, nuestro enfoque produce de manera consistente una mayor diversidad, en particular al representar los elementos del fondo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-h",
+      "title": {
+        "en": "H FAILURE CASES",
+        "es": "H CASOS DE FALLO"
+      },
+      "blocks": [
+        {
+          "id": "app-h-p1",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "Multiple Objects. The initial tokens sampled by the Halton scheduler tend to spread across the image, leading to instances where multiple objects or entities appear within a single image. For",
+            "es": "Múltiples objetos. Los tokens iniciales muestreados por el planificador Halton tienden a repartirse por toda la imagen, lo que provoca casos en los que aparecen varios objetos o entidades dentro de una misma imagen. Por"
+          }
+        },
+        {
+          "id": "app-h-p2",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "(a) Multiple Object Generation",
+            "es": "(a) Generación de múltiples objetos"
+          }
+        },
+        {
+          "id": "app-h-p3",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "(b) Human attributes",
+            "es": "(b) Atributos humanos"
+          }
+        },
+        {
+          "id": "app-h-p4",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "(c) Prompt adherence: - A female character with long, flowing hair that appears to be made of ethereal, swirling patterns resembling the NL... - A vibrant street wall covered in colorful graffiti, the centerpiece spells ’HALTON’. - An elephant is riding a bicycle in an empty street. example, this can result in multiple occurrences of a specific object, such as multiple goldfish, or even multiple parts of the same entity, such as a bird with two heads, see Figure 12a for class conditioning and Figure 12c for text-to-image.",
+            "es": "(c) Apego al prompt: - Un personaje femenino con cabello largo y fluido que parece estar hecho de patrones etéreos y arremolinados que se asemejan a la NL... - Un vibrante muro de calle cubierto de grafitis coloridos, cuya pieza central deletrea ’HALTON’. - Un elefante andando en bicicleta en una calle vacía. ejemplo, esto puede dar como resultado múltiples apariciones de un objeto específico, como varios peces dorados, o incluso múltiples partes de una misma entidad, como un ave con dos cabezas; véase la Figura 12a para el condicionamiento por clase y la Figura 12c para texto a imagen."
+          }
+        },
+        {
+          "id": "fig-12",
+          "type": "figure",
+          "page": 21,
+          "image": "fig/fig-12.png",
+          "text": {
+            "en": "Figure 12: Failure cases. The Halton scheduler solves some, but not all the challenges of sampling tokens in parallel. Long-range correlations still pose a challenge for MaskGIT with the Halton Scheduler.",
+            "es": "Figura 12: Casos de fallo. El planificador Halton resuelve algunos de los desafíos del muestreo paralelo de tokens, pero no todos. Las correlaciones de largo alcance siguen representando un desafío para MaskGIT con el planificador Halton."
+          }
+        },
+        {
+          "id": "app-h-p5",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "Inability to Self-Correct. Unlike diffusion models, MIM-based methods cannot iteratively correct earlier predictions. Diffusion models generate predictions over the entire image at each step, allowing for refinement and correction of previous errors. In contrast, once a token is predicted in MIM, it remains fixed, even if incorrect, as there is no mechanism for subsequent correction during the generation process.",
+            "es": "Incapacidad de autocorrección. A diferencia de los modelos de difusión, los métodos basados en MIM no pueden corregir de manera iterativa las predicciones anteriores. Los modelos de difusión generan predicciones sobre toda la imagen en cada paso, lo que permite refinar y corregir errores previos. En contraste, una vez que un token se predice en MIM, permanece fijo, incluso si es incorrecto, ya que no existe ningún mecanismo de corrección posterior durante el proceso de generación."
+          }
+        },
+        {
+          "id": "app-h-p6",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "Challenges in Complex Class/Prompt. The model exhibits difficulties in generating certain complex classes and adhering closely to prompts. As demonstrated in Figure 12b, the model struggles to accurately generate human faces or bodies in ImageNet.",
+            "es": "Desafíos con clases/prompts complejos. El modelo presenta dificultades para generar ciertas clases complejas y para apegarse estrechamente a los prompts. Como se demuestra en la Figura 12b, el modelo tiene problemas para generar con precisión rostros o cuerpos humanos en ImageNet."
+          }
+        },
+        {
+          "id": "app-h-p7",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "Similarly, in text-to-image conditioned tasks, it can fail to produce coherent scene compositions or faithfully render text, especially when dealing with intricate or abstract descriptions. Indeed, the model fails to render the word \"HALTON\" in Figure 12c and the bicycle below the elephant for the last image.",
+            "es": "De manera similar, en tareas condicionadas por texto a imagen, puede fallar al producir composiciones de escena coherentes o al representar fielmente el texto, especialmente cuando se trata de descripciones intrincadas o abstractas. De hecho, el modelo no logra representar la palabra \"HALTON\" en la Figura 12c ni la bicicleta debajo del elefante en la última imagen."
+          }
+        }
+      ]
+    }
+  ]
+}
