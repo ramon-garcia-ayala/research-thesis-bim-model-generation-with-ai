@@ -2,6 +2,7 @@
 # Plain Python 3. Needs out/e3-<run>.json, written by extract.py on out/e3/e3-<run>.rvt, and
 # out/experiments/e3-mcp-place/placement_<run>.json, written by e3_place_via_mcp.py.
 import datetime, json, math, os, sys
+from collections import Counter
 
 sys.stdout.reconfigure(encoding='utf-8')
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -92,7 +93,11 @@ summary = {
                 'predictions land, at 1 cm as the round trip?',
     'input': 'pipeline/out/rebuilt.rvt (doors and windows removed) + '
              'pipeline/out/experiments/e2-mask-openings/predictions.json',
-    'counts': {'runs': sorted(runs), 'server': 'Demolinator/revit-mcp-server over pyRevit Routes',
+    'counts': {'runs': sorted(runs),
+               'server': 'revit_batch_mcp.py: own minimal MCP server (stdio, 4 tools); commit applied by one click on '
+                         'the E3 Place pyRevit button in the open, licensed Revit 2027',
+               'revit_messages': {run: load(EXP, 'placement_%s.json' % run)['log'].get('commit', {})
+                                  .get('revit_messages') for run in runs},
                **{run: {k: v for k, v in r.items() if k in ('source_openings', 'placed_through_mcp',
                                                              'found_after_extraction', 'mcp_calls', 'mcp_seconds',
                                                              'walls_after', 'floors_after')}
@@ -105,9 +110,19 @@ summary = {
         'One model only (Autodesk sample): a smoke test of the assembly step through MCP.',
         '"truth" places the source model\'s own doors and windows through MCP: it tests the route, not a prediction. '
         '"transformer" places E2\'s predictions (type, host, place on the wall); their level is given.',
-        'Placement goes through execute_revit_code with the host wall chosen by id; the server\'s place_family hosts '
-        'on the nearest wall in 3D and cannot take a host, so upper-floor windows on walls that start at the entry '
-        'level would land on another wall (read in its code, not run).',
+        'The MCP client sends one place_family_instance call per element (107), then commit and extract. Commit writes '
+        'the queue to a job file and waits; one click on the E3 Place pyRevit button in the open Revit applies it: '
+        'opens out/rebuilt.rvt in the background, deletes its doors and windows, places the queue on the host wall '
+        'given by id, saves as out/e3/e3-<run>.rvt, closes, and runs extract.py. A person triggers each commit; the '
+        'placements themselves come only from the MCP calls.',
+        'First attempt, failed: the open-source Demolinator/revit-mcp-server over pyRevit Routes. On Revit 2027 with '
+        'pyRevit 6.5.5 its extension startup never ran (no route registered) and Revit closed twice on a Routes '
+        'worker-thread error. Its place_family also hosts on the nearest wall in 3D and cannot take a host id.',
+        'Second attempt, failed: this server (revit_batch_mcp.py) in its pyrevit-run mode, starting a batch Revit; '
+        'Revit stopped at start with "The License Manager is not functioning" (education licence), so the commit '
+        'moved to the button in a Revit opened by hand.',
+        'revit_messages are what Revit reported during the run (deleting and placing), counted as reported; their '
+        'cause per element is not checked.',
         'Hand and facing flips are not predicted: the transformer run leaves the family default.',
         'Control: rebuild.py, with no AI, from pipeline/out/summary.json.',
     ],
@@ -116,8 +131,17 @@ if not runs:
     summary['notes'].append('No run found: Revit placement or extraction did not happen.')
 for run, r in runs.items():
     if r['failed']:
-        summary['notes'].append('%s: %d not placed or not found, e.g. %s' % (run, r['source_openings'] -
-                                r['found_after_extraction'], r['failed'][0].get('why')))
+        why = Counter(f.get('why') for f in r['failed'])
+        summary['notes'].append('%s: %d of %d not in the saved model: %s.' % (
+            run, r['source_openings'] - r['found_after_extraction'], r['source_openings'],
+            ', '.join('%d %s' % (n, w) for w, n in why.most_common())))
+if 'transformer' in runs:
+    summary['notes'].append('Validity, transformer: Revit accepted %d of %d predicted placements and rolled the rest '
+                            'back; during the run it reported overlapping inserts, inserts in conflict with joined '
+                            'walls and instances not cutting anything (revit_messages), not checked per element. Type '
+                            'and host counts are over the %d found after saving.' % (
+                                runs['transformer']['placed_through_mcp'], runs['transformer']['source_openings'],
+                                runs['transformer']['found_after_extraction']))
 os.makedirs(EXP, exist_ok=True)
 json.dump(summary, open(os.path.join(EXP, 'summary.json'), 'w', encoding='utf-8'), indent=1, ensure_ascii=False)
 json.dump(detail, open(os.path.join(EXP, 'per_element.json'), 'w', encoding='utf-8'), indent=1, ensure_ascii=False)

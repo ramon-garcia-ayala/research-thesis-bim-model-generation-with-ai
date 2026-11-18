@@ -1,23 +1,20 @@
-# E3 · Place doors and windows through an MCP server for Revit (Demolinator/revit-mcp-server, over pyRevit Routes).
-# Python 3, run with the server's own environment (it has the MCP SDK):
-#   <server>/.venv/Scripts/python.exe pipeline/experiments/e3_place_via_mcp.py truth|transformer
-# Revit must be open on pipeline/out/rebuilt.rvt (or on a model saved by a previous run of this script), with the
-# extension loaded and the Routes server on.
+# E3 · Place doors and windows in Revit through an MCP server, as an MCP client.
+# Python 3 with the MCP SDK (e.g. the venv of C:\Users\gramo\tools\revit-mcp-server):
+#   <python> pipeline/experiments/e3_place_via_mcp.py truth|transformer
+# Revit must be closed: the server starts its own Revit session through pyrevit run.
 #
-# One run: delete every door and window of the active model (delete_elements), place the 107 of the run one call at a
-# time (execute_revit_code, with the host wall chosen by id: the server's place_family picks the nearest wall in 3D and
-# cannot be told the host), save as out/e3/e3-<run>.rvt (save_document). "truth" places the source model's openings,
-# so it tests the MCP route itself; "transformer" places E2's predictions. rebuild.py stays the control with no AI.
+# The server is revit_batch_mcp.py (own, minimal). The open-source Demolinator/revit-mcp-server was tried first and
+# failed on Revit 2027 + pyRevit 6.5.5: its extension's startup never ran, and Routes closed Revit twice.
+# One run: start_session on out/rebuilt.rvt, one place_family_instance call per door or window (host wall by id),
+# commit (Revit deletes the model's openings, places the queued ones, saves as out/e3/e3-<run>.rvt), extract.
+# "truth" places the source model's openings, so it tests the MCP route itself; "transformer" places E2's predictions.
+# rebuild.py stays the control with no AI.
 import asyncio, datetime, json, math, os, sys, time
-
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
 
 sys.stdout.reconfigure(encoding='utf-8')
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.normpath(os.path.join(HERE, '..', 'out'))
 EXP = os.path.join(OUT, 'experiments', 'e3-mcp-place')
-SERVER = os.environ.get('REVIT_MCP_SERVER', r'C:\Users\gramo\tools\revit-mcp-server')
 FT = 0.3048
 RUNS = ('truth', 'transformer')
 
@@ -77,104 +74,57 @@ def jobs(run):
     return out
 
 
-PLACE = r'''
-import json
-J = json.loads(%s)
-BIP = DB.BuiltInParameter
-def key_of(t):
-    p = t.get_Parameter(BIP.ALL_MODEL_TYPE_NAME) or t.get_Parameter(BIP.SYMBOL_NAME_PARAM)
-    return [t.FamilyName, p.AsString() if p else None]
-sym = None
-for t in DB.FilteredElementCollector(doc).OfClass(DB.FamilySymbol):
-    if key_of(t) == J['type']:
-        sym = t
-        break
-host = doc.GetElement(DB.ElementId(System.Int64(J['host'])))
-lvl = None
-for l in DB.FilteredElementCollector(doc).OfClass(DB.Level):
-    if l.Name == J['level']:
-        lvl = l
-res = {'ok': False}
-if sym is None or host is None or lvl is None:
-    res['why'] = 'missing type' if sym is None else 'missing host' if host is None else 'missing level'
-else:
-    if not sym.IsActive:
-        sym.Activate()
-        doc.Regenerate()
-    p = J['point']
-    n = doc.Create.NewFamilyInstance(DB.XYZ(p[0], p[1], p[2]), sym, host, lvl, DB.Structure.StructuralType.NonStructural)
-    doc.Regenerate()
-    s = n.get_Parameter(BIP.INSTANCE_SILL_HEIGHT_PARAM)
-    if J['sill'] is not None and s is not None and not s.IsReadOnly:
-        s.Set(float(J['sill']))
-    if J['facing'] is not None and n.CanFlipFacing and n.FacingFlipped != J['facing']:
-        n.flipFacing()
-    if J['hand'] is not None and n.CanFlipHand and n.HandFlipped != J['hand']:
-        n.flipHand()
-    res = {'ok': True, 'new_id': int(str(n.Id.Value)), 'host': int(str(n.Host.Id.Value)) if n.Host else None}
-print(json.dumps(res))
-'''
-
-STATE = r'''
-import json
-c = lambda b: DB.FilteredElementCollector(doc).OfCategory(b).WhereElementIsNotElementType().ToElementIds()
-ids = [int(str(i.Value)) for i in list(c(DB.BuiltInCategory.OST_Doors)) + list(c(DB.BuiltInCategory.OST_Windows))]
-print(json.dumps({'title': doc.Title, 'path': doc.PathName, 'walls': c(DB.BuiltInCategory.OST_Walls).Count,
-                  'openings': ids}))
-'''
-
-
 def text(result):
     return '\n'.join(getattr(c, 'text', '') for c in result.content)
 
 
-def output(result):
-    """execute_revit_code returns the server's JSON; the printed line sits in its 'output' field."""
-    raw = text(result)
-    try:
-        body = json.loads(raw)
-        raw = body.get('output', raw) if isinstance(body, dict) else raw
-    except ValueError:
-        pass
-    lines = [l for l in str(raw).splitlines() if l.strip().startswith('{')]
-    return json.loads(lines[-1]) if lines else {'ok': False, 'why': 'no output: ' + str(raw)[:300]}
-
-
 async def main(run):
+    from mcp import ClientSession, StdioServerParameters
+    from mcp.client.stdio import stdio_client
+
     todo = jobs(run)
-    params = StdioServerParameters(command=os.path.join(SERVER, '.venv', 'Scripts', 'python.exe'),
-                                   args=[os.path.join(SERVER, 'main.py')], cwd=SERVER)
-    log, t0 = {'run': run, 'date': datetime.date.today().isoformat(), 'server': SERVER, 'calls': 0}, time.time()
+    params = StdioServerParameters(command=sys.executable, args=[os.path.join(HERE, 'revit_batch_mcp.py')])
+    log = {'run': run, 'date': datetime.date.today().isoformat(), 'calls': 0,
+           'server': 'revit_batch_mcp.py (own MCP server, stdio, not Routes); commit applied in the open Revit by '
+                     'the E3 Place pyRevit button'}
+    t0 = time.time()
+    target = os.path.join(OUT, 'e3', 'e3-%s.rvt' % run)
     async with stdio_client(params) as (r, w):
         async with ClientSession(r, w) as s:
             await s.initialize()
-            tools = [t.name for t in (await s.list_tools()).tools]
-            log['server_tools'] = len(tools)
-            call = lambda name, args: (log.__setitem__('calls', log['calls'] + 1), s.call_tool(name, args))[1]
-            # No get_revit_status: upstream its route reads revit.doc on the server thread, which crashed Revit 2027
-            # (2026-11-17); every call here goes through routes that run on the Revit API thread.
-            before = output(await call('execute_revit_code', {'code': STATE, 'description': 'E3 state'}))
-            log['before'] = {k: (len(v) if k == 'openings' else v) for k, v in before.items()}
-            if 'openings' not in before:
-                raise SystemExit('Revit did not answer: %s' % before)
-            if before['openings']:
-                log['delete'] = text(await call('delete_elements', {'element_ids': before['openings']}))[:300]
-            mid = output(await call('execute_revit_code', {'code': STATE, 'description': 'E3 state'}))
-            log['after_delete_openings'] = len(mid['openings'])
-            placed = []
+            log['server_tools'] = [t.name for t in (await s.list_tools()).tools]
+
+            async def call(name, args):
+                log['calls'] += 1
+                return json.loads(text(await s.call_tool(name, args)))
+
+            sid = (await call('start_session', {'base_model': os.path.join(OUT, 'rebuilt.rvt')}))['session_id']
+            skipped = []
             for j in todo:
                 if j['host_rebuilt'] is None:
-                    placed.append(dict(j, ok=False, why='host wall not in the rebuilt model'))
+                    skipped.append(j['id'])
                     continue
-                payload = {'type': j['type'], 'host': j['host_rebuilt'], 'level': j['level'], 'point': j['point_ft'],
-                           'sill': j['sill_ft'], 'hand': j['hand'], 'facing': j['facing']}
-                code = PLACE % json.dumps(json.dumps(payload))
-                res = output(await call('execute_revit_code', {'code': code, 'description': 'E3 place %d' % j['id']}))
-                placed.append(dict(j, **res))
-            os.makedirs(os.path.join(OUT, 'e3'), exist_ok=True)
-            target = os.path.join(OUT, 'e3', 'e3-%s.rvt' % run)
-            log['save'] = text(await call('save_document', {'file_path': target, 'overwrite': True}))[:300]
-            log['saved_as'] = target
+                x, y, z = j['point_ft']
+                await call('place_family_instance', {
+                    'session_id': sid, 'family': j['type'][0], 'type_name': j['type'][1],
+                    'host_wall_id': j['host_rebuilt'], 'level': j['level'], 'x': x, 'y': y, 'z': z,
+                    'sill': j['sill_ft'], 'hand_flipped': j['hand'], 'facing_flipped': j['facing'],
+                    'tag': str(j['id'])})
+            print('queued %d; commit waits for a click on "E3 Place" in Revit...' % (len(todo) - len(skipped)),
+                  flush=True)
+            rep = await call('commit', {'session_id': sid, 'out_model': target})
+            log['commit'] = {k: rep.get(k) for k in ('mode', 'returncode', 'seconds', 'deleted_openings', 'job_items',
+                                                      'saved_as', 'error', 'revit_messages', 'button')}
+            print('commit:', json.dumps(log['commit'])[:600], flush=True)
+            if rep.get('saved_as'):
+                log['extract'] = await call('extract', {'model': target})
+                print('extract:', json.dumps(log['extract']), flush=True)
+    by_tag = {p.get('tag'): p for p in rep.get('placed', [])}
+    placed = []
+    for j in todo:
+        p = by_tag.get(str(j['id']), {'ok': False, 'why': 'host wall not in the rebuilt model'
+                                      if j['id'] in skipped else 'not reported by Revit'})
+        placed.append(dict(j, **{k: v for k, v in p.items() if k != 'tag'}))
     log['seconds'] = round(time.time() - t0, 1)
     log['placed_ok'] = sum(1 for p in placed if p.get('ok'))
     log['placed_failed'] = [{'id': p['id'], 'why': p.get('why')} for p in placed if not p.get('ok')]
@@ -182,7 +132,8 @@ async def main(run):
     os.makedirs(EXP, exist_ok=True)
     json.dump({'log': log, 'placed': placed}, open(os.path.join(EXP, 'placement_%s.json' % run), 'w',
                                                    encoding='utf-8'), indent=1, ensure_ascii=False)
-    print(json.dumps(log, indent=1, ensure_ascii=False))
+    print(json.dumps({k: v for k, v in log.items() if k not in ('placed_failed',)}, indent=1,
+                     ensure_ascii=False)[:1500])
 
 
 if __name__ == '__main__':
