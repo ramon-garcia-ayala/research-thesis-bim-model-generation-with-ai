@@ -26,6 +26,9 @@ Speak to the author in Spanish (Mexico); the code, comments and commit messages 
   `research-map/README.md` § Presentations.
 - Layout is checked by measuring in the browser (overflow, a title clashing with the diagram), in both languages:
   screenshots of the deck time out in Claude in Chrome here. Turn transitions off before measuring a build.
+- From deck 07 on: chapters (a `slide--chapter` cover, `data-chapter` / `data-chapter-es` on every slide; the bar groups
+  the dots by chapter) and speaker notes in `<aside class="notes">` on every slide, with key words, for the presenter
+  view (⧉ or P). One slide per part the author lists; the diagram over the text.
 
 ## Pipeline (`pipeline/`)
 
@@ -37,5 +40,7 @@ it; not necessarily a GNN) and step 05 assembles through an **MCP server for Rev
 no-AI control. Experiments: place everything at once, one by one, or one and then its neighbours; and how to tell
 "new" from "copied". Research question (2026-11-10): "Can we decompose BIM models into meaningful parts and use them
 to generate new, valid models?" It is in `research-map/map.json`; decks 01–04 keep the question of their day. The
-current deck is `presentacion-07` (first tests, 2026-11-18); its Tests and Results slides take only numbers from
-`pipeline/out/experiments/<id>/summary.json`, written by the experiments on branch `feat/experiments-masking-mcp`.
+last deck is `presentacion-07` (first tests, 2026-11-18): E1–E3 on the sample model, its numbers from
+`pipeline/out/experiments/` (`node scripts/deck-model.mjs --deck=presentacion-07 --views` refreshes them). Its next
+steps: the same model, changing the parameters (how much and what to hide, a split that does not rely on storeys, a
+larger network, the order of placing).

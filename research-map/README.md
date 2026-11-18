@@ -37,6 +37,20 @@ complete. While a step is told, the pieces before it step back a little; on the 
 cross-fade, and the six step headings (`.stepline`, `.arch`) glide between slides that show them. On a 3D diff slide,
 the legend item being told lights its colour in the views (`model3d.js` `focusOf`).
 
+**Going back.** ← never plays a slide backwards: it goes to the previous slide, complete and still (no cross-fade, no
+build transitions), as Google Slides does. The same for a dot or a chapter that goes to an earlier slide.
+
+**Presenter view.** ⧉ in the bar (or P) opens the deck again with `?presenter`, in its own window: the slide shown and
+the next one (previews of the deck with `?embed&preview`, complete), the slide's notes, a timer (a click starts it
+over), the clock and the step. Present the deck in its own window; the two follow each other both ways over a
+BroadcastChannel (← → and the buttons work in either). Notes go in each slide as `<aside class="notes">…</aside>`, in
+both languages, with `<mark class="kw">` on the key words; the slide never shows them. `presenter.js`.
+
+**Experiment slides (deck 07).** `model3d-sets.js` draws the experiments' 3D views and diagrams (E1 piece, E2 puzzle and
+network, E3 placements) from the deck's `views.json`; `graph-view.js` draws E1's whole graph from `graph.json` (zoom,
+pan, a click on a node, isolate a class or relation from the key, class colours `--cls-*`). Both files come from
+`pipeline/out/experiments/` with `node scripts/deck-model.mjs --deck=presentacion-07 --views`.
+
 **Play mode.** The button beside the theme switch goes round three ways to play the builds, and the choice is
 remembered: *clicks* (one click per step, the default), *auto* (a slide's steps come by themselves, one every 1.1 s;
 → moves on to the next slide) and *still* (every slide complete at once, no cross-fades, nothing moves). A pitch and
