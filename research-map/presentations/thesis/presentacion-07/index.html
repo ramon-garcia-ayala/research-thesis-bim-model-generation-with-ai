@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en" data-lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thesis 07 · First tests</title>
+    <meta name="description" content="Presentation 07 for the thesis (MaCAD, IAAC): the research question, what the masking literature says, the updated seven-step pipeline, the first tests with masking and an MCP server for Revit, the results so far and the next steps." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" />
+    <link rel="stylesheet" href="../../assets/deck.css" />
+  </head>
+  <body data-track="thesis" data-presentation="presentacion-07">
+    <nav class="rail"></nav>
+    <main class="deck">
+      <!-- Cover -->
+      <section class="slide slide--title slide--title-wide">
+        <p class="eyebrow"><span><span lang="en">Presentation 07</span><span lang="es">Presentación 07</span></span><b>07</b></p>
+        <div class="title__text">
+          <h1><span lang="en">Masking and MCP: <em>the first tests.</em></span><span lang="es">Masking y MCP: <em>las primeras pruebas.</em></span></h1>
+          <p class="lede"><span lang="en">What the literature says, the updated pipeline, and what a first run shows.</span><span lang="es">Lo que dice la literatura, la pipeline actualizada y lo que muestra una primera corrida.</span></p>
+          <p class="title__meta"><span lang="en">G. Ramón García Ayala · MaCAD, IAAC</span><span lang="es">G. Ramón García Ayala · MaCAD, IAAC</span></p>
+        </div>
+      </section>
+      <!-- Index -->
+      <section class="slide">
+        <p class="eyebrow"><span><span lang="en">Index</span><span lang="es">Índice</span></span><b>07</b></p>
+        <h2><span lang="en">Six parts: <em>from the question to what comes next.</em></span><span lang="es">Seis partes: <em>de la pregunta a lo que sigue.</em></span></h2>
+        <ol class="chapters">
+          <li><small>01</small><h3><span lang="en">Research question</span><span lang="es">Pregunta</span></h3></li>
+          <li><small>02</small><h3><span lang="en">Literature</span><span lang="es">Literatura</span></h3></li>
+          <li><small>03</small><h3><span lang="en">Pipeline</span><span lang="es">Pipeline</span></h3></li>
+          <li><small>04</small><h3><span lang="en">Tests</span><span lang="es">Pruebas</span></h3></li>
+          <li><small>05</small><h3><span lang="en">Results</span><span lang="es">Resultados</span></h3></li>
+          <li><small>06</small><h3><span lang="en">Next steps</span><span lang="es">Siguientes pasos</span></h3></li>
+        </ol>
+      </section>
+      <!-- 01 · Research question -->
+      <section class="slide slide--title slide--title-wide" data-map="question hypothesis">
+        <p class="eyebrow"><span><span lang="en">01 · Research question</span><span lang="es">01 · Pregunta de investigación</span></span><b>07</b></p>
+        <div class="title__text">
+          <h1><span lang="en">Can we decompose BIM models into meaningful parts and use them to <em>generate new, valid models?</em></span><span lang="es">¿Podemos descomponer modelos BIM en partes con sentido y usarlas para <em>generar modelos nuevos y válidos?</em></span></h1>
+          <p class="lede" data-build="1"><span lang="en">Hypothesis: if a BIM model is <mark class="kw">decomposed into its elements and relations</mark>, an AI can <mark class="kw">find the patterns</mark> it needs to understand how to <mark class="kw">build something similar</mark>.</span><span lang="es">Hipótesis: si un modelo BIM <mark class="kw">se descompone en sus elementos y relaciones</mark>, una IA puede <mark class="kw">encontrar los patrones</mark> que necesita para entender cómo <mark class="kw">armar algo parecido</mark>.</span></p>
+        </div>
+      </section>
+      <!-- 02 · Literature: four questions masking has to answer -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="masking-training tang-2024 mahmood-2021 zhang-2026 chang-2022 hornung-2025 bu-2023 meehan-2020 bfs-subgraphs new-not-replicated">
+        <p class="eyebrow"><span><span lang="en">02 · Literature</span><span lang="es">02 · Literatura</span></span><b>07</b></p>
+        <h2><span lang="en">Masking has to answer <em>four questions.</em></span><span lang="es">El masking tiene que responder <em>cuatro preguntas.</em></span></h2>
+        <div class="points">
+          <article class="card" data-build="1">
+            <span class="tag tag--ink">01</span>
+            <h3><span lang="en">How much to hide?</span><span lang="es">¿Cuánto ocultar?</span></h3>
+            <p><span lang="en">On house graphs, <mark class="kw">40%</mark> works best<sup>1</sup>. Hiding more gives <mark class="kw">more novelty, less validity</mark><sup>2</sup>.</span><span lang="es">En grafos de casas, el <mark class="kw">40%</mark> funciona mejor<sup>1</sup>. Ocultar más da <mark class="kw">más novedad, menos validez</mark><sup>2</sup>.</span></p>
+          </article>
+          <article class="card" data-build="2">
+            <span class="tag tag--ink">02</span>
+            <h3><span lang="en">How to predict?</span><span lang="es">¿Cómo predecir?</span></h3>
+            <p><span lang="en"><mark class="kw">All at once</mark>, then refined in a few steps<sup>3,4</sup>, instead of one element after another.</span><span lang="es"><mark class="kw">Todo a la vez</mark>, y luego refinar en pocos pasos<sup>3,4</sup>, en lugar de un elemento tras otro.</span></p>
+          </article>
+          <article class="card" data-build="3">
+            <span class="tag tag--ink">03</span>
+            <h3><span lang="en">In which pieces?</span><span lang="es">¿En qué piezas?</span></h3>
+            <p><span lang="en">Subgraphs of <mark class="kw">20 elements by BFS</mark><sup>5</sup>. As an order to generate, BFS is weak for an exact graph<sup>6</sup>.</span><span lang="es">Subgrafos de <mark class="kw">20 elementos por BFS</mark><sup>5</sup>. Como orden para generar, BFS es débil para un grafo exacto<sup>6</sup>.</span></p>
+          </article>
+          <article class="card" data-build="4">
+            <span class="tag tag--ink">04</span>
+            <h3><span lang="en">New or a copy?</span><span lang="es">¿Nuevo o copia?</span></h3>
+            <p><span lang="en">Compare with <mark class="kw">training, held-out and generated</mark>: copying is being closer to training than held-out is<sup>7</sup>.</span><span lang="es">Comparar <mark class="kw">entrenamiento, prueba y generado</mark>: copiar es quedar más cerca del entrenamiento que la prueba<sup>7</sup>.</span></p>
+          </article>
+        </div>
+        <ol class="refs"><li><a href="https://doi.org/10.1109/tpami.2024.3355248" target="_blank" rel="noopener noreferrer">Tang et al., TPAMI 2024</a></li><li><a href="https://doi.org/10.1038/s41467-021-23415-2" target="_blank" rel="noopener noreferrer">Mahmood et al., Nat. Commun. 2021</a></li><li><a href="https://doi.org/10.1109/cvpr52688.2022.01103" target="_blank" rel="noopener noreferrer">Chang et al., MaskGIT, CVPR 2022</a></li><li><a href="https://doi.org/10.1016/j.autcon.2026.107120" target="_blank" rel="noopener noreferrer">Zhang et al., MaskLayout, 2026</a></li><li><a href="https://doi.org/10.25442/hku.29365832" target="_blank" rel="noopener noreferrer">Hornung et al., CAAD Futures 2025</a></li><li><a href="https://arxiv.org/abs/2305.15562" target="_blank" rel="noopener noreferrer">Bu et al., arXiv 2023</a></li><li><a href="https://arxiv.org/abs/2004.05675" target="_blank" rel="noopener noreferrer">Meehan et al., AISTATS 2020</a></li></ol>
+      </section>
+      <!-- 02 · Highlight: MaskLayout's ablation -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="zhang-2026 masklayout-model-pipeline prediction-formulations placement-order-experiments">
+        <p class="eyebrow"><span><span lang="en">02 · Highlight · MaskLayout</span><span lang="es">02 · Hallazgo · MaskLayout</span></span><b>07</b></p>
+        <h2><span lang="en">Predicting all at once, <em>with the context given, works best.</em></span><span lang="es">Predecir todo a la vez, <em>con el contexto dado, funciona mejor.</em></span></h2>
+        <div class="kpis">
+          <div class="kpi" data-build="1"><span class="kpi__value">4.02</span><span class="kpi__label"><span lang="en">all at once, context given · the full model</span><span lang="es">todo a la vez, con contexto · el modelo completo</span></span></div>
+          <div class="kpi" data-build="2"><span class="kpi__value">4.84</span><span class="kpi__label"><span lang="en">one after another · autoregressive</span><span lang="es">uno tras otro · autorregresivo</span></span></div>
+          <div class="kpi" data-build="3"><span class="kpi__value">6.36</span><span class="kpi__label"><span lang="en">without the neighbouring flat as context</span><span lang="es">sin el departamento vecino como contexto</span></span></div>
+        </div>
+        <p class="stepline__below" data-build="4"><span lang="en">FID on 43,000+ Swiss apartments, <mark class="kw">lower is better</mark><sup>1</sup>. <em>For the thesis: <mark class="kw">place all at once</mark> is the first order to test, and <mark class="kw">levels and grids stay given</mark>, as the site is in MaskLayout.</em></span><span lang="es">FID sobre más de 43,000 departamentos suizos, <mark class="kw">menor es mejor</mark><sup>1</sup>. <em>Para la tesis: <mark class="kw">colocar todo a la vez</mark> es el primer orden a probar, y <mark class="kw">niveles y ejes quedan dados</mark>, como el terreno en MaskLayout.</em></span></p>
+        <ol class="refs"><li><a href="https://doi.org/10.1016/j.autcon.2026.107120" target="_blank" rel="noopener noreferrer">Zhang, Savov and Dillenburger, Automation in Construction 190, 2026, Table 2</a></li></ol>
+      </section>
+      <!-- 03 · Updated pipeline: seven steps -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="masking-training mcp-assembles-in-revit bfs-subgraphs masklayout-model-pipeline">
+        <p class="eyebrow"><span><span lang="en">03 · Updated pipeline</span><span lang="es">03 · Pipeline actualizada</span></span><b>07</b></p>
+        <h2><span lang="en">Seven steps: <em>tokens, masking and decoding are new.</em></span><span lang="es">Siete pasos: <em>tokens, masking y decodificar son nuevos.</em></span></h2>
+        <ol class="stepline stepline--7">
+          <li class="is-on" data-build-state="1"><small>01</small><h3><span lang="en">BIM model</span><span lang="es">Modelo BIM</span></h3><p class="stepline__does"><span lang="en">a Revit model</span><span lang="es">un modelo Revit</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today</span><span lang="es">corre hoy</span></span></div></li>
+          <li class="is-on" data-build-state="1"><small>02</small><h3><span lang="en">Decompose</span><span lang="es">Descomponer</span></h3><p class="stepline__does"><span lang="en">elements to JSON · extract.py</span><span lang="es">elementos a JSON · extract.py</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today</span><span lang="es">corre hoy</span></span></div></li>
+          <li class="is-key" data-build-state="2"><small>03</small><h3><span lang="en">Tokens</span><span lang="es">Tokens</span></h3><p class="stepline__does"><span lang="en">each element as tokens, cut by BFS</span><span lang="es">cada elemento en tokens, cortado por BFS</span></p><div class="stepline__foot"><span data-state="next"><span lang="en">new · testing</span><span lang="es">nuevo · en prueba</span></span></div></li>
+          <li class="is-key" data-build-state="2"><small>04</small><h3><span lang="en">Masking</span><span lang="es">Masking</span></h3><p class="stepline__does"><span lang="en">hide part, predict it</span><span lang="es">ocultar parte, predecirla</span></p><div class="stepline__foot"><span data-state="next"><span lang="en">new · testing</span><span lang="es">nuevo · en prueba</span></span></div></li>
+          <li class="is-key" data-build-state="2"><small>05</small><h3><span lang="en">Decode</span><span lang="es">Decodificar</span></h3><p class="stepline__does"><span lang="en">tokens back to elements</span><span lang="es">tokens de vuelta a elementos</span></p><div class="stepline__foot"><span data-state="next"><span lang="en">new · testing</span><span lang="es">nuevo · en prueba</span></span></div></li>
+          <li class="is-on" data-build-state="3"><small>06</small><h3><span lang="en">MCP · assemble</span><span lang="es">MCP · armar</span></h3><p class="stepline__does"><span lang="en">elements into Revit</span><span lang="es">elementos a Revit</span></p><div class="stepline__foot"><ul><li data-state="built"><span lang="en">rebuild.py, control</span><span lang="es">rebuild.py, control</span></li><li data-state="next"><span lang="en">MCP · testing</span><span lang="es">MCP · en prueba</span></li></ul></div></li>
+          <li class="is-on" data-build-state="1"><small>07</small><h3><span lang="en">Validate</span><span lang="es">Validar</span></h3><p class="stepline__does"><span lang="en">original vs new, at 1 cm</span><span lang="es">original vs nuevo, a 1 cm</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today</span><span lang="es">corre hoy</span></span></div></li>
+        </ol>
+        <p class="stepline__below" data-build="4"><span lang="en"><mark class="kw">Decode and assemble are separate</mark>: the network gives elements, MCP builds them in Revit<sup>1</sup>. <em><mark class="kw">rebuild.py stays as the control</mark>: the same round trip, with no AI.</em></span><span lang="es"><mark class="kw">Decodificar y armar van separados</mark>: la red da elementos, MCP los construye en Revit<sup>1</sup>. <em><mark class="kw">rebuild.py queda como control</mark>: la misma ida y vuelta, sin IA.</em></span></p>
+        <ol class="refs"><li><a href="https://doi.org/10.1016/j.autcon.2026.107120" target="_blank" rel="noopener noreferrer">After Zhang, Savov and Dillenburger, MaskLayout, 2026, §3.4</a></li></ol>
+      </section>
+      <!-- 04 · Tests: three experiments, one per new step -->
+      <section class="slide slide--roomy" data-map="bfs-subgraphs masking-training mcp-assembles-in-revit placement-order-experiments">
+        <p class="eyebrow"><span><span lang="en">04 · Tests</span><span lang="es">04 · Pruebas</span></span><b>07</b></p>
+        <h2><span lang="en">Three tests, <em>one for each new step.</em></span><span lang="es">Tres pruebas, <em>una por cada paso nuevo.</em></span></h2>
+        <div class="points">
+          <article class="card is-pending" data-build="1">
+            <span class="tag tag--ink">E1 · 03</span>
+            <h3><span lang="en">Tokens and subgraphs</span><span lang="es">Tokens y subgrafos</span></h3>
+            <p><span lang="en">Write each element as tokens (class, type, position, size, host) and <mark class="kw">cut the model into BFS pieces</mark>.</span><span lang="es">Escribir cada elemento como tokens (clase, tipo, posición, tamaño, host) y <mark class="kw">cortar el modelo en piezas por BFS</mark>.</span></p>
+            <small class="card__status"><span lang="en">running</span><span lang="es">en curso</span></small>
+          </article>
+          <article class="card is-pending" data-build="2">
+            <span class="tag tag--ink">E2 · 04–05</span>
+            <h3><span lang="en">Hide doors and windows</span><span lang="es">Ocultar puertas y ventanas</span></h3>
+            <p><span lang="en">They have a host wall, so <mark class="kw">a guess is easy to judge</mark>. A simple baseline first, then a small model.</span><span lang="es">Tienen un muro host, así que <mark class="kw">es fácil juzgar una predicción</mark>. Primero una base simple, luego un modelo pequeño.</span></p>
+            <small class="card__status"><span lang="en">running</span><span lang="es">en curso</span></small>
+          </article>
+          <article class="card is-pending" data-build="3">
+            <span class="tag tag--ink">E3 · 06–07</span>
+            <h3><span lang="en">Place them through MCP</span><span lang="es">Colocarlas con MCP</span></h3>
+            <p><span lang="en">An MCP server puts the predictions in Revit; <mark class="kw">compare.py measures them against rebuild.py</mark>.</span><span lang="es">Un servidor MCP pone las predicciones en Revit; <mark class="kw">compare.py las mide contra rebuild.py</mark>.</span></p>
+            <small class="card__status"><span lang="en">running</span><span lang="es">en curso</span></small>
+          </article>
+        </div>
+        <p class="stepline__below" data-build="4"><span lang="en">One model only, Autodesk’s sample: <mark class="kw">a test that the pipeline runs</mark>, <em>not yet a result about learning.</em></span><span lang="es">Un solo modelo, la muestra de Autodesk: <mark class="kw">una prueba de que la pipeline corre</mark>, <em>todavía no un resultado sobre aprendizaje.</em></span></p>
+      </section>
+      <!-- 05 · Results: the control round trip, measured -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="ifc-to-graph-recipe hypothesis">
+        <p class="eyebrow"><span><span lang="en">05 · Results · the control</span><span lang="es">05 · Resultados · el control</span></span><b>07</b></p>
+        <h2><span lang="en">The round trip with no AI holds the elements; <em>the rooms do not yet.</em></span><span lang="es">La ida y vuelta sin IA conserva los elementos; <em>los rooms todavía no.</em></span></h2>
+        <div class="kpis">
+          <div class="kpi" data-build="1"><span class="kpi__value">399</span><span class="kpi__label"><span lang="en">elements out to JSON and back into Revit, levels included</span><span lang="es">elementos de ida a JSON y de vuelta a Revit, con niveles</span></span></div>
+          <div class="kpi" data-build="2"><span class="kpi__value">179</span><span class="kpi__label"><span lang="en">of 180 walls in place, at 1 cm</span><span lang="es">de 180 muros en su lugar, a 1 cm</span></span></div>
+          <div class="kpi" data-build="2"><span class="kpi__value">107</span><span class="kpi__label"><span lang="en">of 107 doors and windows on their wall</span><span lang="es">de 107 puertas y ventanas en su muro</span></span></div>
+          <div class="kpi kpi--over" data-build="3"><span class="kpi__value">37</span><span class="kpi__label"><span lang="en">of 91 rooms with the same area (±1%)</span><span lang="es">de 91 rooms con la misma área (±1%)</span></span></div>
+        </div>
+        <p class="stepline__below" data-build="4"><span lang="en">Why: the JSON keeps each element but not <mark class="kw">how it joins</mark>. Walls lose their cut under slabs and roofs (+5% area); the <mark class="kw">76 room separation lines</mark> are not read, so 5 rooms merge into their neighbours. <em>The 34 curtain walls are detected; their panels are regenerated from the type. E1–E3 join this slide <mark class="kw">as they arrive</mark>.</em></span><span lang="es">Por qué: el JSON guarda cada elemento pero no <mark class="kw">cómo se une</mark>. Los muros pierden su corte bajo losas y cubiertas (+5% de área); las <mark class="kw">76 líneas de separación</mark> no se leen, así que 5 rooms se funden con sus vecinos. <em>Los 34 muros cortina sí se detectan; sus paneles se regeneran desde el tipo. E1–E3 se suman a esta lámina <mark class="kw">conforme lleguen</mark>.</em></span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/summary.json, Nov 2026</span><span lang="es">Autor, pipeline/out/summary.json, nov 2026</span></li></ol>
+      </section>
+      <!-- 06 · Next steps -->
+      <section class="slide slide--roomy" data-map="masking-training placement-order-experiments new-not-replicated bfs-subgraphs">
+        <p class="eyebrow"><span><span lang="en">06 · Next steps</span><span lang="es">06 · Siguientes pasos</span></span><b>07</b></p>
+        <h2><span lang="en">Next: <em>a faithful decomposition, more models, then the orders.</em></span><span lang="es">Siguiente: <em>una descomposición fiel, más modelos y luego los órdenes.</em></span></h2>
+        <div class="points points--chain">
+          <article class="card" data-build="1">
+            <span class="tag tag--ink">01</span>
+            <h3><span lang="en">Fix the decomposition</span><span lang="es">Corregir la descomposición</span></h3>
+            <p><span lang="en">Extract <mark class="kw">joins, attachments and separation lines</mark>, and the curtain grids, so the round trip keeps the areas.</span><span lang="es">Extraer <mark class="kw">uniones, anclajes y líneas de separación</mark>, y las retículas de muro cortina, para que la ida y vuelta conserve las áreas.</span></p>
+          </article>
+          <article class="card" data-build="2">
+            <span class="tag tag--ink">02</span>
+            <h3><span lang="en">Ten models</span><span lang="es">Diez modelos</span></h3>
+            <p><span lang="en">One typology: <mark class="kw">train on 9, test on the 1</mark> it did not see.</span><span lang="es">Una tipología: <mark class="kw">entrenar con 9, probar con el 1</mark> que no vio.</span></p>
+          </article>
+          <article class="card" data-build="3">
+            <span class="tag tag--ink">03</span>
+            <h3><span lang="en">Stages or all at once</span><span lang="es">Por etapas o todo a la vez</span></h3>
+            <p><span lang="en">Floors and program → walls and columns → doors and windows, <mark class="kw">against all at once</mark>.</span><span lang="es">Losa y programa → muros y columnas → puertas y ventanas, <mark class="kw">contra todo a la vez</mark>.</span></p>
+          </article>
+          <article class="card" data-build="4">
+            <span class="tag tag--ink">04</span>
+            <h3><span lang="en">New, not a copy</span><span lang="es">Nuevo, no copia</span></h3>
+            <p><span lang="en">The <mark class="kw">three-sample test</mark>: is a result closer to training than the unseen model is?</span><span lang="es">La <mark class="kw">prueba de tres muestras</mark>: ¿un resultado queda más cerca del entrenamiento que el modelo no visto?</span></p>
+          </article>
+        </div>
+      </section>
+      <!-- Back cover -->
+      <section class="slide slide--title slide--title-wide">
+        <p class="eyebrow"><span><span lang="en">Presentation 07</span><span lang="es">Presentación 07</span></span><b>07</b></p>
+        <div class="title__text">
+          <h1><span lang="en">Thank you.</span><span lang="es">Gracias.</span></h1>
+          <p class="lede"><span lang="en">Comments welcome, <mark class="kw">above all on what to hide first</mark> and on the order to place.</span><span lang="es">Comentarios bienvenidos, <mark class="kw">sobre todo de qué ocultar primero</mark> y del orden para colocar.</span></p>
+          <p class="title__meta"><span lang="en">G. Ramón García Ayala · MaCAD, IAAC</span><span lang="es">G. Ramón García Ayala · MaCAD, IAAC</span></p>
+        </div>
+      </section>
+    </main>
+    <script type="module">
+      import { mountDeck } from '../../assets/deck.js'
+      mountDeck(window)
+    </script>
+  </body>
+</html>
