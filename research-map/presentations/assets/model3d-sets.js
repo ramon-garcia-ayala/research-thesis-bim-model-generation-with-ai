@@ -66,7 +66,7 @@ function dirOfWall(w) {
 /** Materials, made once per theme and shared by every element with the same look. */
 function paletteOf() {
   const c = (name) => new THREE.Color(token(name))
-  const hues = { ink: c('--ink'), quiet: c('--ink-tertiary'), blue: c('--diff-1'), orange: c('--diff-2'), green: c('--diff-3'), amber: c('--diff-4'), violet: c('--cls-door') }
+  const hues = { ink: c('--ink'), quiet: c('--ink-tertiary'), blue: c('--diff-1'), orange: c('--diff-2'), green: c('--diff-3'), amber: c('--diff-4'), violet: c('--cls-door'), cyan: c('--near') }
   const cache = new Map()
   const once = (key, make) => cache.get(key) ?? cache.set(key, make()).get(key)
   const surface = (hue, opacity) =>
@@ -301,8 +301,21 @@ function setE3Truth(data, model) {
   return { scene, overlays: [], update }
 }
 
-/** E3 · AI: one legend slot lit per step (1–4: green, amber, orange, dashed missing), then the gaps to the real points (5). */
-function setE3Transformer(data, model) {
+/** How near a placed door landed to the real one: 0 under 0.5 m, 1 under 1 m, 2 under 3 m, 3 beyond. */
+export const nearBin = (d) => (d <= 0.5 ? 0 : d <= 1 ? 1 : d <= 3 ? 2 : 3)
+/** Per bin: the dot's radius (m), its opacity, and its halo's opacity: the nearer, the larger and brighter. */
+const NEAR = [
+  { r: 0.6, a: 1, halo: 0.35 },
+  { r: 0.48, a: 0.9, halo: 0.22 },
+  { r: 0.36, a: 0.6, halo: 0.1 },
+  { r: 0.26, a: 0.35, halo: 0 },
+]
+
+/**
+ * E3 · AI: one legend slot lit per step (1–4: green, amber, orange, dashed missing), then the gaps to the real points
+ * (5), then how near each one landed (6): a cyan dot above every placed door, larger and brighter the nearer.
+ */
+function setE3Transformer(data, model, doc, host) {
   const S = data.e3_transformer
   const { scene, items } = buildBase(model)
   const hueOf = { 1: 'green', 2: 'amber', 3: 'orange' }
@@ -329,8 +342,31 @@ function setE3Transformer(data, model) {
       return dot
     })(),
   }))
+  // the near dots, and their counts written into the key (data-near="0..3")
+  const near = S.links.map((l) => {
+    const k = nearBin(l.distance_m)
+    const p = at(l.placed_p[0], l.placed_p[1], l.placed_p[2] + 2.9)
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(NEAR[k].r, 16, 12))
+    const halo = new THREE.Mesh(new THREE.SphereGeometry(NEAR[k].r * 2.2, 16, 12))
+    dot.position.copy(p)
+    halo.position.copy(p)
+    dot.visible = halo.visible = false
+    dot.renderOrder = halo.renderOrder = 4
+    scene.add(halo, dot)
+    return { k, dot, halo }
+  })
+  const counts = [0, 0, 0, 0]
+  near.forEach((n) => counts[n.k]++)
+  for (const el of host?.closest('.slide')?.querySelectorAll('[data-near]') ?? []) el.textContent = String(counts[Number(el.dataset.near)] ?? 0)
   function update(step, t, pal, total) {
-    const all = step >= total
+    // from the gaps on (5), every slot stays lit
+    const all = step >= 5 || step >= total
+    near.forEach((n) => {
+      n.dot.visible = n.halo.visible = step >= 6 || step >= total
+      n.dot.material = pal.surface('cyan', NEAR[n.k].a)
+      n.halo.material = pal.surface('cyan', NEAR[n.k].halo)
+      n.halo.visible = n.halo.visible && NEAR[n.k].halo > 0
+    })
     for (const [id, d] of items) {
       if (d.kind !== 'opening') {
         setLook(d, 'context', pal)
@@ -356,7 +392,7 @@ function setE3Transformer(data, model) {
     })
     if (pulse) moving = true
     links.forEach((l) => {
-      l.line.visible = l.dot.visible = all
+      l.line.visible = l.dot.visible = all || step >= 5
       l.line.material = pal.line(hueOf[l.slot] ?? 'ink', 0.9)
       l.dot.material = pal.surface('ink', 0.5)
     })
