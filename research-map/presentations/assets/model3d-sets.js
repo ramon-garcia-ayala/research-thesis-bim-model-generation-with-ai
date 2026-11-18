@@ -208,8 +208,8 @@ function setE1(data, model, doc, host) {
     s.textContent = t
     return s
   })
-  // the tokens sit in the corner of the view, framed in the seed's blue: pinned to the door they would hide the piece
-  const overlays = [overlay(doc, host, 'model3d__chips model3d__chips--corner', chips, null, (s) => s >= 1)]
+  // the tokens run along the bottom of the view, ruled in the seed's blue: pinned to the door they would hide the piece
+  const overlays = [overlay(doc, host, 'model3d__chips model3d__chips--bar', chips, null, (s) => s >= 1)]
   function update(step, t, pal) {
     let moving = false
     for (const d of items.values()) setLook(d, d.kind === 'room' ? 'hidden' : 'faint', pal)
@@ -257,7 +257,7 @@ function setE2(data, model, doc, host) {
   ]
   const overlays = [
     overlay(doc, host, 'model3d__badge', '?', mid, (s) => s === 1),
-    overlay(doc, host, 'model3d__chips model3d__chips--corner', chips, null, (s) => s >= 2),
+    overlay(doc, host, 'model3d__chips model3d__chips--bar', chips, null, (s) => s >= 2),
     overlay(doc, host, 'model3d__callout model3d__callout--ink', `${S.distance_m.toFixed(2)} m`, a.clone().add(b).multiplyScalar(0.5), (s) => s >= 3),
   ]
   function update(step, t, pal) {
@@ -389,12 +389,95 @@ function pieceBounds(model, nodes) {
   return box.expandByScalar(3)
 }
 
+// ---- E1's piece as a graph -------------------------------------------------------------------------------------
+
+const SVG = 'http://www.w3.org/2000/svg'
+/** A class's letter in each language, drawn inside its node. */
+const LETTER = { wall: ['W', 'M'], floor: ['F', 'L'], door: ['D', 'P'], window: ['N', 'V'], room: ['R', 'R'] }
+
+/**
+ * Lays E1's piece out as a radial tree: the seed in the middle, each BFS ring on its own circle, every node's angle
+ * the share of the leaves under it in the BFS tree. All 48 relations are drawn, tree or not.
+ */
+export function pieceLayout(nodes, edges, seed) {
+  const inside = new Set(nodes)
+  const adj = new Map(nodes.map((n) => [n, []]))
+  for (const e of edges) if (inside.has(e.a) && inside.has(e.b)) adj.get(e.a).push(e.b), adj.get(e.b).push(e.a)
+  const depth = new Map([[seed, 0]])
+  const children = new Map(nodes.map((n) => [n, []]))
+  const queue = [seed]
+  while (queue.length) {
+    const n = queue.shift()
+    for (const m of adj.get(n)) if (!depth.has(m)) depth.set(m, depth.get(n) + 1), children.get(n).push(m), queue.push(m)
+  }
+  const leaves = (n) => (children.get(n).length ? children.get(n).reduce((s, c) => s + leaves(c), 0) : 1)
+  const angle = new Map()
+  const place = (n, from, span) => {
+    angle.set(n, from + span / 2)
+    let at0 = from
+    for (const c of children.get(n)) {
+      const share = (span * leaves(c)) / leaves(n)
+      place(c, at0, share)
+      at0 += share
+    }
+  }
+  place(seed, -Math.PI / 2, Math.PI * 2)
+  return { depth, angle, rings: Math.max(...depth.values()) }
+}
+
+function drawPieceGraph(svg, data) {
+  const { nodes, edges, seed } = data.e1
+  const src = data.models.source
+  const cls = new Map()
+  src.walls.forEach((w) => cls.set(w.id, 'wall'))
+  src.floors.forEach((f) => cls.set(f.id, 'floor'))
+  src.doors.forEach((d) => cls.set(d.id, 'door'))
+  src.windows.forEach((w) => cls.set(w.id, 'window'))
+  src.rooms.forEach((r) => cls.set(r.id, 'room'))
+  const { depth, angle, rings } = pieceLayout(nodes, edges, seed)
+  // the rings are ellipses, so a wide box is filled
+  const [W, H] = [640, 330]
+  const sx = (W / 2 - 24) / Math.max(rings, 1)
+  const sy = (H / 2 - 20) / Math.max(rings, 1)
+  const pos = new Map(nodes.map((n) => {
+    const d = depth.get(n) ?? rings
+    const a = angle.get(n) ?? 0
+    return [n, [W / 2 + d * sx * Math.cos(a), H / 2 + d * sy * Math.sin(a)]]
+  }))
+  const el = (name, attrs) => {
+    const e = document.createElementNS(SVG, name)
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v)
+    return e
+  }
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`)
+  for (let k = 1; k <= rings; k++) svg.append(el('ellipse', { class: 'pg-ring', cx: W / 2, cy: H / 2, rx: k * sx, ry: k * sy }))
+  for (const e of edges) {
+    const a = pos.get(e.a)
+    const b = pos.get(e.b)
+    if (a && b) svg.append(el('line', { class: `pg-edge pg-edge--${e.kind}`, x1: a[0], y1: a[1], x2: b[0], y2: b[1] }))
+  }
+  for (const n of nodes) {
+    const [x, y] = pos.get(n)
+    const kind = cls.get(n) ?? 'wall'
+    const g = el('g', { class: `pg-node pg-node--${kind}${n === seed ? ' is-seed' : ''}` })
+    g.append(el('circle', { cx: x, cy: y, r: 15 }))
+    LETTER[kind].forEach((letter, i) => {
+      const t = el('text', { x, y, lang: i ? 'es' : 'en' })
+      t.textContent = letter
+      g.append(t)
+    })
+    svg.append(g)
+  }
+}
+
 // ---- Mounting --------------------------------------------------------------------------------------------------
 
 export async function mountSets(doc = document, url = 'views.json') {
   const hosts = [...doc.querySelectorAll('.model3d[data-mode="set"]')]
-  if (!hosts.length) return
+  const graphs = [...doc.querySelectorAll('svg.piecegraph')]
+  if (!hosts.length && !graphs.length) return
   const data = await (await fetch(url)).json()
+  graphs.forEach((svg) => drawPieceGraph(svg, data))
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   let pal = paletteOf()
 
@@ -402,8 +485,8 @@ export async function mountSets(doc = document, url = 'views.json') {
   const frameOf = (name) =>
     (frames[name] ??=
       name === 'piece'
-        ? frameCamera(pieceBounds(data.models.source, data.e1.nodes), 0.9)
-        : frameCamera(buildingBounds(data.models.source), 0.78))
+        ? frameCamera(pieceBounds(data.models.source, data.e1.nodes), 0.6)
+        : frameCamera(buildingBounds(data.models.source), 0.6))
 
   const views = hosts.map((host) => {
     const model = data.models[host.dataset.side] ?? data.models.source

@@ -72,6 +72,59 @@
         <p class="eyebrow"><span><span lang="en">03 · Project structure</span><span lang="es">03 · Estructura del proyecto</span></span><b>07</b></p>
         <h2><span lang="en">The project: <em>its files and what each does.</em></span><span lang="es">El proyecto: <em>sus archivos y qué hace cada uno.</em></span></h2>
       </section>
+      <!-- 4 · Tests · before: what a token is, how it is built, and the real graph the tests work on -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="bfs-subgraphs masklayout-model-pipeline vector-quantization">
+        <p class="eyebrow"><span><span lang="en">04 · Tests · tokens and graph</span><span lang="es">04 · Pruebas · tokens y grafo</span></span><b>07</b></p>
+        <h2><span lang="en">A token is one word the network reads; <em>an element, a short sentence of them.</em></span><span lang="es">Un token es una palabra que la red lee; <em>un elemento, una frase corta de ellas.</em></span></h2>
+        <div class="tokstage">
+          <div class="tokside">
+            <div data-build="1">
+              <h3><span lang="en">A door</span><span lang="es">Una puerta</span><small>7 tokens</small></h3>
+              <ol class="tokrow is-seed">
+                <li><code>CLS:door</code><small><span lang="en">what it is</span><span lang="es">qué es</span></small></li>
+                <li><code>TYPE:M_Single-Flush | 0915 x 2134mm</code><small><span lang="en">its Revit type (and size)</span><span lang="es">su tipo de Revit (y tamaño)</span></small></li>
+                <li><code>LVL:01 - Entry Level</code><small><span lang="en">its level</span><span lang="es">su nivel</span></small></li>
+                <li><code>X:45</code><small><span lang="en">where</span><span lang="es">dónde</span></small></li>
+                <li><code>Y:14</code><small><span lang="en">where</span><span lang="es">dónde</span></small></li>
+                <li><code>SILL:0</code><small><span lang="en">sill height</span><span lang="es">altura de antepecho</span></small></li>
+                <li><code>HOST:wall</code><small><span lang="en">what holds it</span><span lang="es">qué la aloja</span></small></li>
+              </ol>
+            </div>
+            <div data-build="2">
+              <h3><span lang="en">Its wall</span><span lang="es">Su muro</span><small>9 tokens</small></h3>
+              <ol class="tokrow">
+                <li><code>CLS:wall</code></li>
+                <li><code>TYPE:Basic Wall | Interior - 138mm Partition (1-hr)</code></li>
+                <li><code>LVL:01 - Entry Level</code></li>
+                <li><code>X0:47</code></li>
+                <li><code>Y0:14</code></li>
+                <li><code>X1:29</code></li>
+                <li><code>Y1:14</code></li>
+                <li><code>H:8</code></li>
+                <li><code>TOP:02 - Floor</code></li>
+              </ol>
+            </div>
+            <ol class="tokrules" data-build="3">
+              <li><b><span lang="en">One token per attribute:</span><span lang="es">Un token por atributo:</span></b> <span lang="en">what it is, where, how big, what it joins.</span><span lang="es">qué es, dónde, cuánto mide, con qué se une.</span></li>
+              <li><b><span lang="en">Position in 0.5 m cells</span><span lang="es">Posición en casillas de 0.5 m</span></b> <span lang="en">from the model’s lower-left corner: X:45 is 22.5 to 23 m in.</span><span lang="es">desde la esquina inferior izquierda del modelo: X:45 va de 22.5 a 23 m.</span></li>
+              <li><b><span lang="en">Size:</span><span lang="es">Tamaño:</span></b> <span lang="en">height in 0.5 m cells (H:8 ≈ 4 m); area in cells 19% wide; a door’s size is in its type.</span><span lang="es">altura en casillas de 0.5 m (H:8 ≈ 4 m); área en casillas de 19% de ancho; el tamaño de una puerta va en su tipo.</span></li>
+              <li><b><span lang="en">6 to 9 per element, 403 different ones</span><span lang="es">De 6 a 9 por elemento, 403 distintos</span></b> <span lang="en">in the whole model: that is the vocabulary.</span><span lang="es">en todo el modelo: ese es el vocabulario.</span></li>
+            </ol>
+          </div>
+          <div class="tokgraph" data-build="4">
+            <h3><span lang="en">The real graph: one piece of 20</span><span lang="es">El grafo real: una pieza de 20</span></h3>
+            <svg class="piecegraph" role="img" aria-label="E1's piece: 20 elements and 48 relations, in BFS rings around a door"></svg>
+            <ul class="tokkey">
+              <li><i></i><span lang="en">hosted by · from Revit · 2</span><span lang="es">alojada en · de Revit · 2</span></li>
+              <li><i class="is-joins"></i><span lang="en">wall joins wall · 18</span><span lang="es">muro con muro · 18</span></li>
+              <li><i class="is-floor"></i><span lang="en">touches a floor · 27 + 1</span><span lang="es">toca una losa · 27 + 1</span></li>
+              <li><span lang="en">W wall 15 · F floor 2 · D door 2 · R room 1</span><span lang="es">M muro 15 · L losa 2 · P puerta 2 · R room 1</span></li>
+            </ul>
+          </div>
+        </div>
+        <p class="stepline__below" data-build="4"><span lang="en">The door in blue at the centre; each ring, one more step of BFS. <em>The whole model: 394 elements and 1,238 relations, 394 of them “on its level”.</em></span><span lang="es">La puerta en azul al centro; cada anillo, un paso más de BFS. <em>Todo el modelo: 394 elementos y 1,238 relaciones, 394 de ellas “está en su nivel”.</em></span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/experiments/e1_tokens_bfs.py and out/experiments/e1-tokens-bfs/, Nov 2026</span><span lang="es">Autor, pipeline/experiments/e1_tokens_bfs.py y out/experiments/e1-tokens-bfs/, nov 2026</span></li></ol>
+      </section>
       <!-- 4 · Tests: the three experiments, process and expected result, no results -->
       <section class="slide slide--roomy" data-map="bfs-subgraphs masking-training mcp-assembles-in-revit placement-order-experiments">
         <p class="eyebrow"><span><span lang="en">04 · Tests</span><span lang="es">04 · Pruebas</span></span><b>07</b></p>
