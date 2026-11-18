@@ -3,8 +3,9 @@
  * `scripts/deck-model.mjs --views` from pipeline/out/experiments/e1-tokens-bfs, so the slide shows whatever E1 last
  * produced. Every element is drawn at its point in plan, one panel per level, left to right; "on level" relations are
  * the panels themselves. The wheel zooms, a drag pans, a click on a node shows its tokens and its relations; a click on
- * the background clears it. "E1 piece" lights the 20 elements of the example piece. The switch in the key turns the
- * class colours (deck.css --cls-*) on and off.
+ * the background clears it. "E1 piece" lights the 20 elements of the example piece. In the key: a class or a relation
+ * clicked is isolated (a click elsewhere brings all back), the switch turns the class colours (deck.css --cls-*) on
+ * and off, and "first view" frames the whole graph again.
  */
 const SVG = 'http://www.w3.org/2000/svg'
 const GAP = 10 // metres between two level panels
@@ -141,10 +142,12 @@ function draw(doc, host, graph) {
   info.hidden = true
   const tools = doc.createElement('div')
   tools.className = 'kgraph__tools'
-  const reset = both(doc, '⟲ Fit', '⟲ Encuadrar', 'button')
   const piece = both(doc, 'E1 piece', 'Pieza de E1', 'button')
-  reset.type = piece.type = 'button'
-  tools.append(reset, piece)
+  piece.type = 'button'
+  tools.append(piece)
+  const slide = host.closest('.slide')
+  const key = slide?.querySelector('.kgkey')
+  const reset = key?.querySelector('.kgkey__fit button')
   const hint = both(doc, 'wheel: zoom · drag: move · click a node', 'rueda: zoom · arrastrar: mover · clic en un nodo', 'p')
   hint.className = 'kgraph__hint'
   host.append(info, tools, hint)
@@ -196,7 +199,8 @@ function draw(doc, host, graph) {
     if (moved) return
     select(id ? Number(id) : null)
   })
-  reset.addEventListener('click', () => {
+  // back to the first view: the whole graph, framed
+  reset?.addEventListener('click', () => {
     view = { ...box }
     apply()
   })
@@ -223,6 +227,7 @@ function draw(doc, host, graph) {
   }
   function select(id) {
     clear()
+    setIso(null)
     if (id == null || !byId.has(id)) {
       info.hidden = true
       showPiece()
@@ -283,6 +288,44 @@ function draw(doc, host, graph) {
     info.append(count, list)
     info.hidden = false
   }
+  // ---- isolation: a click on a class or a relation in the key lights only those; a click anywhere else, or on it
+  // again, lights everything back
+  let iso = null
+  function setIso(spec) {
+    iso = spec
+    for (const li of key?.querySelectorAll('[data-iso]') ?? []) li.classList.toggle('is-on', li.dataset.iso === spec)
+    key?.classList.toggle('is-iso', !!spec)
+  }
+  function isolate(spec) {
+    clear()
+    info.hidden = true
+    setIso(spec)
+    if (!spec) {
+      showPiece()
+      return
+    }
+    svg.classList.add('is-focus')
+    const [what, list] = spec.split(':')
+    const want = new Set(list.split(','))
+    if (what === 'cls') {
+      for (const [id, d] of dots) if (want.has(byId.get(id)?.cls)) d.classList.add('is-near')
+      return
+    }
+    for (const { e, line } of lines)
+      if (want.has(e.kind)) {
+        line.classList.add('is-lit')
+        dots.get(e.a)?.classList.add('is-near')
+        dots.get(e.b)?.classList.add('is-near')
+      }
+  }
+  key?.addEventListener('click', (ev) => {
+    const li = ev.target.closest?.('[data-iso]')
+    if (li) isolate(iso === li.dataset.iso ? null : li.dataset.iso)
+  })
+  slide?.addEventListener('click', (ev) => {
+    if (iso && !ev.target.closest?.('[data-iso], .kgraph__svg, .kgkey__switch, .kgkey__fit')) isolate(null)
+  })
+
   // a related element in the card can be clicked too
   info.addEventListener('click', (ev) => {
     const row = ev.target.closest?.('.kgraph__rel')
