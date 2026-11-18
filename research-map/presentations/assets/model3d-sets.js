@@ -66,7 +66,7 @@ function dirOfWall(w) {
 /** Materials, made once per theme and shared by every element with the same look. */
 function paletteOf() {
   const c = (name) => new THREE.Color(token(name))
-  const hues = { ink: c('--ink'), quiet: c('--ink-tertiary'), blue: c('--diff-1'), orange: c('--diff-2'), green: c('--diff-3'), amber: c('--diff-4') }
+  const hues = { ink: c('--ink'), quiet: c('--ink-tertiary'), blue: c('--diff-1'), orange: c('--diff-2'), green: c('--diff-3'), amber: c('--diff-4'), violet: c('--cls-door') }
   const cache = new Map()
   const once = (key, make) => cache.get(key) ?? cache.set(key, make()).get(key)
   const surface = (hue, opacity) =>
@@ -302,7 +302,18 @@ function setE3Transformer(data, model) {
   const S = data.e3_transformer
   const { scene, items } = buildBase(model)
   const hueOf = { 1: 'green', 2: 'amber', 3: 'orange' }
-  const missing = S.missing.map((m) => dashedBox(scene, m.p, 0.9, 2.1, [1, 0]))
+  // the ones Revit did not keep: a violet outline, and a violet block that pulses for a moment when they are told,
+  // larger than a door so they can be found in the whole building
+  const MISSING_SCALE = 1.8
+  const missing = S.missing.map((m) => dashedBox(scene, m.p, 0.9 * MISSING_SCALE, 2.1 * MISSING_SCALE, [1, 0]))
+  const flashes = S.missing.map((m) => {
+    const block = new THREE.Mesh(new THREE.BoxGeometry(0.9 * MISSING_SCALE, 2.1 * MISSING_SCALE, 0.6))
+    block.position.copy(at(m.p[0], m.p[1], m.p[2] + (2.1 * MISSING_SCALE) / 2))
+    block.visible = false
+    block.renderOrder = 3
+    scene.add(block)
+    return block
+  })
   const links = S.links.map((l) => ({
     slot: l.slot,
     line: lineBetween(scene, at(l.true_p[0], l.true_p[1], l.true_p[2] + LIFT), at(l.placed_p[0], l.placed_p[1], l.placed_p[2] + LIFT)),
@@ -326,19 +337,30 @@ function setE3Transformer(data, model) {
       else if (hueOf[slot] && (all || step === slot)) setLook(d, hueOf[slot], pal)
       else setLook(d, 'faint', pal)
     }
+    const shown = all || step === 4
     missing.forEach((m) => {
-      m.visible = all || step === 4
-      m.material = pal.line('quiet', 1, true)
+      m.visible = shown
+      m.material = pal.line('violet', 1, true)
     })
+    // a pulse of about 2.4 s when the step is told (three beats), then a block that stays
+    let moving = false
+    const pulse = step === 4 && Number.isFinite(t) && t < MISSING_PULSE
+    const level = pulse ? 0.55 + 0.45 * Math.abs(Math.sin((t / MISSING_PULSE) * Math.PI * 3)) : 0.6
+    flashes.forEach((b) => {
+      b.visible = shown
+      b.material = pal.surface('violet', Math.round(level * 10) / 10)
+    })
+    if (pulse) moving = true
     links.forEach((l) => {
       l.line.visible = l.dot.visible = all
       l.line.material = pal.line(hueOf[l.slot] ?? 'ink', 0.9)
       l.dot.material = pal.surface('ink', 0.5)
     })
-    return false
+    return moving
   }
   return { scene, overlays: [], update }
 }
+const MISSING_PULSE = 2400
 
 const SETS = { e1: setE1, e2: setE2, e3_truth: setE3Truth, e3_transformer: setE3Transformer }
 
@@ -526,9 +548,11 @@ function drawPuzzle(svg, data) {
   }
   ring.append(el('circle', { class: 'pz-hole', cx, cy, r: R0 }), ...text({ class: 'pz-hole__q', x: cx, y: cy }, '?'))
   arrows.append(...text({ class: 'pz-times', x: cx, y: cy + ry + r + 22 }, 'every neighbour → the hole, × 3 rounds', 'cada vecino → el hueco, × 3 vueltas'))
-  // the wall the AI chose, ringed in its blue
-  const [hx, hy] = at.get(S.pred.host) ?? [cx, cy]
-  host.append(el('circle', { class: 'pz-hostring', cx: hx, cy: hy, r: r + 7 }))
+  // the wall the AI chose, ringed in its blue, where the page asks for it (.pz-host)
+  if (host) {
+    const [hx, hy] = at.get(S.pred.host) ?? [cx, cy]
+    host.append(el('circle', { class: 'pz-hostring', cx: hx, cy: hy, r: r + 7 }))
+  }
 
   // the answers, from the same file
   const slide = svg.closest('.slide')
