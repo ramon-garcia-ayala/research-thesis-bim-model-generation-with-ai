@@ -3,7 +3,8 @@
  * `scripts/deck-model.mjs --views` from pipeline/out/experiments/e1-tokens-bfs, so the slide shows whatever E1 last
  * produced. Every element is drawn at its point in plan, one panel per level, left to right; "on level" relations are
  * the panels themselves. The wheel zooms, a drag pans, a click on a node shows its tokens and its relations; a click on
- * the background clears it. "E1 piece" lights the 20 elements of the example piece.
+ * the background clears it. "E1 piece" lights the 20 elements of the example piece. The switch in the key turns the
+ * class colours (deck.css --cls-*) on and off.
  */
 const SVG = 'http://www.w3.org/2000/svg'
 const GAP = 10 // metres between two level panels
@@ -37,10 +38,11 @@ function both(doc, en, es, tag = 'span') {
 }
 
 /**
- * Where each element goes on the drawing: its plan point, moved right by its level's panel. North is up. Returns the
- * points, the panels (level name, box) and the drawing's box.
+ * Where each element goes on the drawing: its plan point, moved into its level's panel. North is up. The panels sit in
+ * the grid of columns that fills a view of `aspect` (width / height) best. Returns the points, the panels (level name,
+ * box) and the drawing's box.
  */
-export function layoutGraph(graph) {
+export function layoutGraph(graph, aspect = 4) {
   const pts = graph.nodes.filter((n) => n.p)
   const minX = Math.min(...pts.map((n) => n.p[0]))
   const maxX = Math.max(...pts.map((n) => n.p[0]))
@@ -49,14 +51,26 @@ export function layoutGraph(graph) {
   const width = maxX - minX
   const height = maxY - minY
   const used = graph.levels.map((l) => l.id.replace(/^level:/, '')).filter((name) => graph.nodes.some((n) => n.level === name))
+  const cellW = width + GAP
+  const cellH = height + GAP * 1.2
+  // the columns whose grid is drawn largest in the view
+  let cols = 1
+  let best = 0
+  for (let c = 1; c <= used.length; c++) {
+    const rows = Math.ceil(used.length / c)
+    const scale = Math.min(aspect / (c * cellW), 1 / (rows * cellH))
+    if (scale > best) [best, cols] = [scale, c]
+  }
+  const rows = Math.ceil(used.length / cols)
+  const origin = used.map((_, i) => [(i % cols) * cellW, Math.floor(i / cols) * cellH])
   const panel = new Map(used.map((name, i) => [name, i]))
   const pos = new Map()
   for (const n of pts) {
-    const i = panel.get(n.level) ?? 0
-    pos.set(n.id, [n.p[0] - minX + i * (width + GAP), maxY - n.p[1]])
+    const [ox, oy] = origin[panel.get(n.level) ?? 0]
+    pos.set(n.id, [ox + n.p[0] - minX, oy + maxY - n.p[1]])
   }
-  const panels = used.map((name, i) => ({ name, x: i * (width + GAP) - 2, y: -2, w: width + 4, h: height + 4 }))
-  const box = { x: -GAP / 2, y: -GAP, w: used.length * (width + GAP), h: height + GAP * 1.6 }
+  const panels = used.map((name, i) => ({ name, x: origin[i][0] - 2, y: origin[i][1] - 2, w: width + 4, h: height + 4 }))
+  const box = { x: -GAP / 2, y: -GAP * 0.8, w: cols * cellW, h: rows * cellH + GAP * 0.2 }
   return { pos, panels, box }
 }
 
@@ -67,13 +81,24 @@ export async function mountGraph(doc = document) {
     // the key's numbers are counted from the same file, so they follow the graph
     const count = { nodes: graph.nodes.length, edges: graph.edges.length }
     for (const e of graph.edges) count[e.kind] = (count[e.kind] ?? 0) + 1
+    for (const n of graph.nodes) count[`cls:${n.cls}`] = (count[`cls:${n.cls}`] ?? 0) + 1
     for (const b of host.closest('.slide')?.querySelectorAll('[data-count]') ?? [])
       b.textContent = (count[b.dataset.count] ?? 0).toLocaleString('en-US')
+    // the colours switch, at the right end of the key: each class its own hue, on by default
+    const slide = host.closest('.slide')
+    const key = slide?.querySelector('.kgkey')
+    const sw = slide?.querySelector('.kgkey__switch button')
+    sw?.addEventListener('click', () => {
+      const on = !host.classList.contains('is-colour')
+      host.classList.toggle('is-colour', on)
+      key?.classList.toggle('is-colour', on)
+      sw.setAttribute('aria-pressed', String(on))
+    })
   }
 }
 
 function draw(doc, host, graph) {
-  const { pos, panels, box } = layoutGraph(graph)
+  const { pos, panels, box } = layoutGraph(graph, host.clientWidth / Math.max(1, host.clientHeight) || 4)
   const byId = new Map(graph.nodes.map((n) => [n.id, n]))
   const svg = el(doc, 'svg', { class: 'kgraph__svg', role: 'img', 'aria-label': `${graph.nodes.length} elements and ${graph.edges.length} relations` })
   const gPanels = el(doc, 'g')
