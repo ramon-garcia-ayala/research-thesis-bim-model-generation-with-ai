@@ -351,13 +351,12 @@ describe('builds (a slide revealed one click at a time)', () => {
     key('ArrowRight')
     expect(shown()).toBe(2)
   })
-  it('the left arrow takes back one step, then goes to the previous slide', () => {
+  it('the left arrow never plays a slide backwards: it goes to the previous slide, complete', () => {
     key('ArrowRight'); key('ArrowRight')
-    key('ArrowLeft')
     expect(shown()).toBe(1)
-    expect($('.a').dataset.built).toBeUndefined()
     key('ArrowLeft')
     expect(shown()).toBe(0)
+    expect(slides[0].dataset.complete).toBe('')
   })
   it('coming back to a slide shows it complete', () => {
     key('ArrowRight'); key('ArrowRight'); key('ArrowRight'); key('ArrowRight'); key('ArrowRight')

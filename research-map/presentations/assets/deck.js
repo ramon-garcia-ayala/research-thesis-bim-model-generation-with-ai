@@ -5,6 +5,7 @@ import { APP_NAME, PRESENTATIONS, TRACKS } from './site.js'
 import { initialLang, safeStorage, setLang } from './i18n.js'
 import { effectiveTheme, initTheme, toggleTheme } from './theme.js'
 import { chaptersOf, mountPitch } from './pitch.js'
+import { channelName, mountPresenter } from './presenter.js'
 
 /** How long the pointer rests before the controls hide (only in full screen: deck.css). */
 export const IDLE_MS = 2500
@@ -138,7 +139,10 @@ export function mountDeck(win, opts = {}) {
   const { track, presentation } = doc.body.dataset
   // `?embed`: the deck inside the map's viewer, which has its own menu; it reports its slide to the parent.
   const embed = new URLSearchParams(win.location.search).has('embed')
+  // `?preview`: a slide for the presenter view — embedded, every slide complete, no bar
+  const preview = new URLSearchParams(win.location.search).has('preview')
   if (embed) doc.documentElement.dataset.embed = ''
+  if (preview) doc.documentElement.dataset.preview = ''
   const list = opts.presentations ?? PRESENTATIONS[track] ?? []
   const storage = safeStorage(win)
   // an English-only deck (a pitch held in English) shows English whatever was chosen elsewhere, and does not remember it
@@ -156,6 +160,11 @@ export function mountDeck(win, opts = {}) {
   }
 
   const slides = [...doc.querySelectorAll('main.deck section.slide')]
+  // `?presenter`: this page is the presenter view of the deck (presenter.js), in its own window
+  if (!embed && new URLSearchParams(win.location.search).has('presenter')) {
+    const view = mountPresenter(win, slides)
+    return { slides, index: () => view.state().index, show: () => {} }
+  }
   // the stage is exactly as wide as a slide: the container a slide's cqw sizes (type, padding) are measured against
   const stage = doc.createElement('div')
   stage.className = 'stage'
@@ -205,7 +214,10 @@ export function mountDeck(win, opts = {}) {
     doc.documentElement.dataset.play = play
   }
   paintPlay()
-  bar.append(prev, dots, next, count, lang, theme, playBtn, full)
+  const present = button(doc, '⧉', { en: 'Presenter view, in a new window (P)', es: 'Vista del presentador, en otra ventana (P)' })
+  present.classList.add('deck__present')
+  present.hidden = embed
+  bar.append(prev, dots, next, count, lang, theme, playBtn, present, full)
   doc.querySelector('main.deck')?.after(bar)
   watchIdle(win, doc)
 
@@ -229,7 +241,7 @@ export function mountDeck(win, opts = {}) {
   }
 
   // builds: a slide's pieces come one click at a time, except embedded, where no one is presenting
-  const steps = slides.map((s) => (embed ? 0 : buildCount(s)))
+  const steps = slides.map((s) => (embed && !preview ? 0 : buildCount(s)))
   slides.forEach((s, k) => setStep(s, steps[k], steps[k]))
 
   let current = -1
@@ -242,13 +254,21 @@ export function mountDeck(win, opts = {}) {
     const from = current
     current = target
     // still: every slide complete; otherwise the step asked for
-    step[current] = Math.min(play === 'still' ? Infinity : at, steps[current])
+    step[current] = Math.min(play === 'still' || preview ? Infinity : at, steps[current])
+    // going back (an arrow, a dot or a chapter to an earlier slide): it shows complete and still, as Google Slides
+    // does; html[data-going="back"] holds every transition off until the slide has been drawn
+    const backward = from >= 0 && target < from
+    if (backward) {
+      doc.documentElement.dataset.going = 'back'
+      const frame = win.requestAnimationFrame?.bind(win) ?? ((f) => win.setTimeout(f, 16))
+      frame(() => frame(() => { delete doc.documentElement.dataset.going }))
+    }
     const swap = () => {
       slides.forEach((s, k) => { s.hidden = k !== target })
       setStep(slides[target], step[target], steps[target])
     }
     // a slide change cross-fades where the browser can and motion is welcome; a step changes in CSS alone
-    if (from >= 0 && target !== from && doc.startViewTransition && !reduce() && play !== 'still') {
+    if (from >= 0 && target > from && doc.startViewTransition && !reduce() && play !== 'still') {
       transition?.skipTransition?.()
       transition = doc.startViewTransition(swap)
     } else swap()
@@ -261,6 +281,12 @@ export function mountDeck(win, opts = {}) {
     // what a slide needs to follow the deck without owning it (a persistent canvas, a timer)
     doc.dispatchEvent(new win.CustomEvent('deck:slide', { detail: { index: current, slide: slides[current], total: slides.length } }))
     if (play === 'auto') runAuto()
+    tell()
+  }
+  /** The presenter view (another window, same deck) hears every change and can drive the deck. */
+  const channel = !embed && 'BroadcastChannel' in win ? new win.BroadcastChannel(channelName(win.location)) : null
+  function tell() {
+    channel?.postMessage({ type: 'state', index: current, step: step[current], steps: steps[current], total: slides.length })
   }
   /** auto: the slide shown builds its next step every AUTO_MS until it is complete. */
   let autoTimer = null
@@ -274,6 +300,7 @@ export function mountDeck(win, opts = {}) {
       autoTimer = null
       if (play !== 'auto' || step[current] >= steps[current]) return
       setStep(slides[current], ++step[current], steps[current])
+      tell()
       autoTimer = win.setTimeout(tick, AUTO_MS)
     }
     if (step[current] < steps[current]) autoTimer = win.setTimeout(tick, AUTO_MS)
@@ -281,13 +308,16 @@ export function mountDeck(win, opts = {}) {
   /** → builds the next step of the slide, or moves on to the next slide at its first step. */
   const forward = () => {
     // only clicks steps by hand; auto and still move on to the next slide
-    if (play === 'clicks' && step[current] < steps[current]) setStep(slides[current], ++step[current], steps[current])
+    if (play === 'clicks' && step[current] < steps[current]) {
+      setStep(slides[current], ++step[current], steps[current])
+      tell()
+    }
     else if (current < slides.length - 1) show(current + 1, true, 0)
   }
   /** ← takes back the last step, or goes back to the previous slide, complete. */
   const back = () => {
-    if (play === 'clicks' && step[current] > 0) setStep(slides[current], --step[current], steps[current])
-    else if (current > 0) show(current - 1)
+    // ← never plays a slide backwards: it goes to the previous slide, complete
+    if (current > 0) show(current - 1)
   }
   // the dots, grouped by chapter: slides that share a data-chapter (data-chapter-es for Spanish) sit together after
   // its name, and a click on the name goes to the chapter's first slide, its cover. A deck with no chapters has one
@@ -340,6 +370,17 @@ export function mountDeck(win, opts = {}) {
     else if (play === 'auto') runAuto()
     else stopAuto()
   })
+  channel?.addEventListener('message', (e) => {
+    const m = e.data ?? {}
+    if (m.type === 'forward') forward()
+    else if (m.type === 'back') back()
+    else if (m.type === 'goto' && Number.isInteger(m.index)) show(m.index)
+    else if (m.type === 'hello') tell()
+  })
+  const openPresenter = () => {
+    win.open(`${win.location.pathname}?presenter`, `presenter:${win.location.pathname}`, 'width=1280,height=800')
+  }
+  present.addEventListener('click', openPresenter)
   prev.addEventListener('click', back)
   next.addEventListener('click', forward)
   full.addEventListener('click', fullscreen)
@@ -362,6 +403,7 @@ export function mountDeck(win, opts = {}) {
       Home: () => show(0), End: () => show(slides.length - 1),
       ArrowUp: () => goPresentation(-1), ArrowDown: () => goPresentation(1),
       f: fullscreen, F: fullscreen,
+      p: () => { if (!embed) openPresenter() }, P: () => { if (!embed) openPresenter() },
     }
     const act = keys[e.key]
     if (!act) return

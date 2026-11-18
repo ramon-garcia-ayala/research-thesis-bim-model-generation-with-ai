@@ -244,11 +244,6 @@ function setE2(data, model, doc, host) {
   const a = at(S.true.p[0], S.true.p[1], S.true.p[2] + h + 0.4)
   const b = at(S.pred.p[0], S.pred.p[1], S.pred.p[2] + ph + 0.4)
   const gap = lineBetween(scene, a, b)
-  // the "?" stands over the piece, on the hidden door's storey, not at its place: that would give the answer away
-  const box = new THREE.Box3()
-  for (const id of piece) if (idx.get(id)) box.expandByPoint(idx.get(id).centre)
-  const mid = box.getCenter(new THREE.Vector3())
-  mid.y = S.true.p[2] + 2.6
   const ok = (v) => (v ? '✓' : '✕')
   const chips = [
     both(doc, `door ${ok(S.class_ok)}`, `puerta ${ok(S.class_ok)}`),
@@ -256,7 +251,7 @@ function setE2(data, model, doc, host) {
     both(doc, `wall ${ok(S.host_ok)} (${Math.round(S.pred.host_prob * 100)}%)`, `muro ${ok(S.host_ok)} (${Math.round(S.pred.host_prob * 100)}%)`),
   ]
   const overlays = [
-    overlay(doc, host, 'model3d__badge', '?', mid, (s) => s === 1),
+    overlay(doc, host, 'model3d__badge', '?', a, (s) => s === 1),
     overlay(doc, host, 'model3d__chips model3d__chips--bar', chips, null, (s) => s >= 2),
     overlay(doc, host, 'model3d__callout model3d__callout--ink', `${S.distance_m.toFixed(2)} m`, a.clone().add(b).multiplyScalar(0.5), (s) => s >= 3),
   ]
@@ -265,7 +260,8 @@ function setE2(data, model, doc, host) {
     if (items.has(S.hidden)) setLook(items.get(S.hidden), step >= 1 ? 'hidden' : 'solid', pal)
     if (step >= 2 && items.has(S.pred.host)) setLook(items.get(S.pred.host), 'blue', pal)
     setLook(pred, step >= 2 ? 'blue' : 'hidden', pal)
-    setLook(ghost, step >= 3 ? 'ghost' : 'hidden', pal)
+    // the original stays as a dashed ghost from the moment it is hidden: the network does not see it, the room does
+    setLook(ghost, step >= 1 ? 'ghost' : 'hidden', pal)
     gap.visible = step >= 3
     gap.material = pal.line('ink', 0.9, true)
     return false
@@ -679,6 +675,8 @@ function drawNet(svg, data) {
 // ---- Mounting --------------------------------------------------------------------------------------------------
 
 export async function mountSets(doc = document, url = 'views.json') {
+  // the presenter view shows the slides through embedded decks; it draws nothing itself
+  if (doc.documentElement.dataset.presenter !== undefined) return
   const hosts = [...doc.querySelectorAll('.model3d[data-mode="set"]')]
   const graphs = [...doc.querySelectorAll('svg.piecegraph')]
   const puzzles = [...doc.querySelectorAll('svg.puzzle')]

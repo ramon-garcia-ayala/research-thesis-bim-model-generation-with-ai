@@ -76,6 +76,7 @@ export function layoutGraph(graph, aspect = 4) {
 }
 
 export async function mountGraph(doc = document) {
+  if (doc.documentElement.dataset.presenter !== undefined) return
   for (const host of doc.querySelectorAll('.kgraph')) {
     const graph = await (await fetch(host.dataset.src ?? 'graph.json')).json()
     draw(doc, host, graph)
