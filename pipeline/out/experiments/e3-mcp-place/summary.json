@@ -1,0 +1,91 @@
+{
+ "id": "e3-mcp-place",
+ "date": "2026-11-17",
+ "status": "done",
+ "question": "Can the doors and windows be placed in Revit through an MCP server, and how close do E2's predictions land, at 1 cm as the round trip?",
+ "input": "pipeline/out/rebuilt.rvt (doors and windows removed) + pipeline/out/experiments/e2-mask-openings/predictions.json",
+ "counts": {
+  "runs": [
+   "transformer",
+   "truth"
+  ],
+  "server": "revit_batch_mcp.py: own minimal MCP server (stdio, 4 tools); commit applied by one click on the E3 Place pyRevit button in the open, licensed Revit 2027",
+  "revit_messages": {
+   "truth": {
+    "Error: One or more references of the highlighted element have become invalid.": 30,
+    "Error: Can’t create Curtain Wall Mullion. The portion of the curtain grid it was placed on no longer exists.": 30,
+    "Warning: There are identical instances in the same place. This will result in double counting in schedules.": 6
+   },
+   "transformer": {
+    "Warning: Some panels in this curtain system are slightly malformed.  The problem is most likely ignorable. This problem usually occurs when a panel or parts of a panel have been divided so that they are very narrow.  To better see the malformed panels, temporarily hide the mullion category and set display of lines to \"thin lines\" (using the command on the view menu).": 2,
+    "Error: One or more references of the highlighted element have become invalid.": 127,
+    "Error: Can’t create Curtain Wall Mullion. The portion of the curtain grid it was placed on no longer exists.": 127,
+    "Warning: Insert conflicts with joined Wall.": 15,
+    "Warning: Highlighted inserts overlap with other inserts or completely miss their hosts.": 1,
+    "Error: Instance(s) of 0915 x 2134mm not cutting anything.": 6,
+    "Warning: There are identical instances in the same place. This will result in double counting in schedules.": 94
+   }
+  },
+  "truth": {
+   "source_openings": 107,
+   "placed_through_mcp": 107,
+   "found_after_extraction": 107,
+   "mcp_calls": 110,
+   "mcp_seconds": 168.2,
+   "walls_after": 180,
+   "floors_after": 16
+  },
+  "transformer": {
+   "source_openings": 107,
+   "placed_through_mcp": 102,
+   "found_after_extraction": 101,
+   "mcp_calls": 110,
+   "mcp_seconds": 98.8,
+   "walls_after": 180,
+   "floors_after": 16
+  }
+ },
+ "metrics": {
+  "truth": {
+   "same_position_1cm": 107,
+   "same_position_and_type_1cm": 107,
+   "same_class": 107,
+   "same_type": 107,
+   "right_host": 107,
+   "host_as_asked": 107,
+   "within_10cm": 107,
+   "within_50cm": 107,
+   "within_1m": 107,
+   "distance_m_median": 0.0
+  },
+  "transformer": {
+   "same_position_1cm": 0,
+   "same_position_and_type_1cm": 0,
+   "same_class": 100,
+   "same_type": 79,
+   "right_host": 62,
+   "host_as_asked": 101,
+   "within_10cm": 0,
+   "within_50cm": 8,
+   "within_1m": 15,
+   "distance_m_median": 5.998
+  },
+  "control_rebuild_py": {
+   "doors_same_position_and_type": 83,
+   "windows_same_position_and_type": 24,
+   "hosts_kept": 107
+  }
+ },
+ "notes": [
+  "One model only (Autodesk sample): a smoke test of the assembly step through MCP.",
+  "\"truth\" places the source model's own doors and windows through MCP: it tests the route, not a prediction. \"transformer\" places E2's predictions (type, host, place on the wall); their level is given.",
+  "The MCP client sends one place_family_instance call per element (107), then commit and extract. Commit writes the queue to a job file and waits; one click on the E3 Place pyRevit button in the open Revit applies it: opens out/rebuilt.rvt in the background, deletes its doors and windows, places the queue on the host wall given by id, saves as out/e3/e3-<run>.rvt, closes, and runs extract.py. A person triggers each commit; the placements themselves come only from the MCP calls.",
+  "First attempt, failed: the open-source Demolinator/revit-mcp-server over pyRevit Routes. On Revit 2027 with pyRevit 6.5.5 its extension startup never ran (no route registered) and Revit closed twice on a Routes worker-thread error. Its place_family also hosts on the nearest wall in 3D and cannot take a host id.",
+  "Second attempt, failed: this server (revit_batch_mcp.py) in its pyrevit-run mode, starting a batch Revit; Revit stopped at start with \"The License Manager is not functioning\" (education licence), so the commit moved to the button in a Revit opened by hand.",
+  "revit_messages are what Revit reported during the run (deleting and placing), counted as reported; their cause per element is not checked.",
+  "Hand and facing flips are not predicted: the transformer run leaves the family default.",
+  "Control: rebuild.py, with no AI, from pipeline/out/summary.json.",
+  "transformer: 6 of 107 not in the saved model: 5 rolled back by Revit, 1 not found after extraction.",
+  "Validity, transformer: Revit accepted 102 of 107 predicted placements and rolled the rest back; during the run it reported overlapping inserts, inserts in conflict with joined walls and instances not cutting anything (revit_messages), not checked per element. Type and host counts are over the 101 found after saving."
+ ]
+}
