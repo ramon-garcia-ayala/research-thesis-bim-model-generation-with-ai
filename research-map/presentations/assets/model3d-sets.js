@@ -585,7 +585,7 @@ function drawPuzzle(svg, data) {
 const shade = (id, j) => {
   let h = (Number(id) * 2654435761 + j * 40503) >>> 0
   h ^= h >>> 15
-  return 0.15 + ((h % 1000) / 1000) * 0.75
+  return 0.3 + ((h % 1000) / 1000) * 0.65
 }
 
 /**
@@ -603,7 +603,7 @@ function drawNet(svg, data) {
   src.windows.forEach((w) => cls.set(w.id, 'window'))
   src.rooms.forEach((r) => cls.set(r.id, 'room'))
   const tokens = [S.hidden, ...data.e1.nodes.filter((n) => n !== S.hidden && S.piece.includes(n))]
-  const [W, H, top, gap] = [1180, 400, 38, 18]
+  const [W, H, top, gap] = [1180, 424, 38, 18]
   const y = (i) => top + i * gap
   const X = { in: 40, vec0: 130, layers: [420, 620, 820], out: 990 }
   const CELLS = 8
@@ -612,9 +612,9 @@ function drawNet(svg, data) {
     for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v)
     return e
   }
-  const label = (g, x, en, es, cls = 'nv-label') => {
+  const label = (g, x, en, es, cls = 'nv-label', at = 16) => {
     for (const [lang, t] of [['en', en], ['es', es]]) {
-      const e = el('text', { class: cls, x, y: 16, lang })
+      const e = el('text', { class: cls, x, y: at, lang })
       e.textContent = t
       g.append(e)
     }
@@ -629,8 +629,11 @@ function drawNet(svg, data) {
     const hidden = n === S.hidden
     gin.append(el('circle', { class: hidden ? 'nv-tok nv-tok--hidden' : `nv-tok nv-tok--${cls.get(n) ?? 'wall'}`, cx: X.in, cy: y(i), r: 7 }))
   })
+  const below = top + 19 * gap + 30
+  label(gin, X.in, 'one per element', 'uno por elemento', 'nv-note', below)
   // vectors: each token becomes 64 numbers (8 drawn)
   const gvec = g('nv-vec')
+  label(gvec, X.vec0 + (CELLS * 11) / 2, '8 of the 64 drawn', 'se ven 8 de 64', 'nv-note', below)
   label(gvec, X.vec0 + (CELLS * 11) / 2, '→ 64 numbers each', '→ 64 números c/u')
   tokens.forEach((n, i) => {
     for (let j = 0; j < CELLS; j++)
@@ -639,6 +642,8 @@ function drawNet(svg, data) {
   // layers: everyone looks at everyone; the links into the hidden token in blue
   const from = [X.vec0 + CELLS * 11, ...X.layers]
   const layerGroups = [g('nv-l1'), g('nv-l23'), g('nv-l23')]
+  label(layerGroups[0], X.layers[0], '○ the same 20 tokens, updated', '○ los mismos 20 tokens, actualizados', 'nv-note', below)
+  label(layerGroups[1], (X.layers[1] + X.layers[2]) / 2, 'blue: what reaches the hidden token', 'azul: lo que llega al token tapado', 'nv-note nv-note--hot', below)
   X.layers.forEach((lx, k) => {
     const grp = layerGroups[k]
     label(grp, lx, `layer ${k + 1}`, `capa ${k + 1}`)
@@ -651,9 +656,16 @@ function drawNet(svg, data) {
   // out: the hidden token answers four questions
   const gout = g('nv-out')
   label(gout, X.out + 75, '4 answers', '4 respuestas')
+  label(gout, X.out + 75, 'the wall: compared with each wall', 'el muro: comparando con cada muro', 'nv-note nv-note--wall', below)
   const answers = [['class', 'clase'], ['type', 'tipo'], ['wall', 'muro'], ['place on the wall', 'lugar en el muro']]
   answers.forEach(([en, es], k) => {
     const by = top + 36 + k * 82
+    // the wall answer compares the hidden token with every wall of the piece: their links too
+    if (k === 2)
+      tokens.forEach((n, i) => {
+        if (cls.get(n) !== 'wall') return
+        gout.append(el('path', { class: 'nv-att nv-att--wall', d: `M ${X.layers[2] + 6} ${y(i)} C ${X.layers[2] + 80} ${y(i)}, ${X.out - 70} ${by}, ${X.out} ${by}` }))
+      })
     gout.append(el('path', { class: 'nv-att nv-att--hot', d: `M ${X.layers[2] + 6} ${y(0)} C ${X.layers[2] + 70} ${y(0)}, ${X.out - 60} ${by}, ${X.out} ${by}` }))
     gout.append(el('rect', { class: 'nv-box', x: X.out, y: by - 16, width: 150, height: 32, rx: 5 }))
     for (const [lang, t] of [['en', en], ['es', es]]) {
