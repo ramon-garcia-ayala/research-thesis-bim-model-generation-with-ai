@@ -2635,6 +2635,243 @@ html[data-embed] .deck__bar {
   color: var(--ink-secondary);
 }
 
+/* -- kgraph: E1's whole graph, one panel per level, zoomable, a node clicked shows its tokens and relations
+   (deck 07, graph-view.js) -- */
+.kgraph {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: 1.2cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.6cqw;
+  overflow: hidden;
+}
+
+.kgraph__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+.kgraph__svg:active {
+  cursor: grabbing;
+}
+
+.kg-panel {
+  fill: none;
+  stroke: var(--separator);
+  vector-effect: non-scaling-stroke;
+}
+
+.kg-panel__label {
+  fill: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 2.6px;
+}
+
+.kg-edge {
+  stroke: var(--ink-tertiary);
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.55;
+}
+
+.kg-edge--hosted_by {
+  stroke: var(--ink);
+  stroke-width: 1.4;
+  opacity: 0.9;
+}
+
+.kg-edge--joins {
+  stroke: var(--ink-secondary);
+  stroke-dasharray: 4 3;
+}
+
+.kg-edge--meets_floor,
+.kg-edge--on_floor {
+  stroke-dasharray: 1 2.5;
+}
+
+.kg-node {
+  fill: var(--panel);
+  stroke: var(--ink);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+
+.kg-node--floor {
+  stroke: var(--ink-tertiary);
+  stroke-dasharray: 2 2;
+}
+
+.kg-node--door,
+.kg-node--window {
+  fill: var(--ink);
+}
+
+.kg-node--room {
+  stroke: var(--ink-secondary);
+}
+
+/* a node in focus: the rest steps back */
+.kgraph__svg.is-focus .kg-edge {
+  opacity: 0.08;
+}
+
+.kgraph__svg.is-focus .kg-node {
+  opacity: 0.25;
+}
+
+.kgraph__svg .kg-edge.is-lit {
+  stroke: var(--diff-1);
+  stroke-width: 1.8;
+  opacity: 1;
+}
+
+.kgraph__svg .kg-node:is(.is-near, .is-piece) {
+  opacity: 1;
+  stroke-width: 1.8;
+}
+
+.kgraph__svg .kg-node:is(.is-sel, .is-seed) {
+  opacity: 1;
+  fill: var(--diff-1);
+  stroke: var(--diff-1);
+}
+
+.kgraph__tools {
+  position: absolute;
+  top: 0.8cqw;
+  left: 0.8cqw;
+  display: flex;
+  gap: 0.4cqw;
+}
+
+.kgraph__tools button {
+  padding: 0.25cqw 0.6cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.3cqw;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.8cqw;
+  cursor: pointer;
+}
+
+.kgraph__tools button.is-on {
+  border-color: var(--diff-1);
+  color: var(--diff-1);
+}
+
+.kgraph__hint {
+  position: absolute;
+  left: 0.8cqw;
+  bottom: 0.6cqw;
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+  pointer-events: none;
+}
+
+.kgraph__info {
+  position: absolute;
+  top: 0.8cqw;
+  right: 0.8cqw;
+  bottom: 0.8cqw;
+  width: 30%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5cqw;
+  padding: 0.8cqw 1cqw;
+  border: 1px solid var(--diff-1);
+  border-radius: 0.4cqw;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  font-size: 0.85cqw;
+}
+
+.kgraph__info[hidden] {
+  display: none;
+}
+
+.kgraph__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6cqw;
+  font-size: 1.1cqw;
+  font-weight: 500;
+}
+
+.kgraph__head small {
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+  font-weight: 400;
+}
+
+.kgraph__tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25cqw;
+}
+
+.kgraph__tokens code {
+  padding: 0.1cqw 0.35cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.2cqw;
+  font-family: var(--font-mono);
+  font-size: 0.72cqw;
+}
+
+.kgraph__count {
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+}
+
+.slide .kgraph__rels {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.5cqw;
+}
+
+.kgraph__rels li {
+  display: grid;
+  gap: 0.1cqw;
+}
+
+.kgraph__rels b {
+  font-weight: 500;
+}
+
+.kgraph__rel {
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.kgraph__rel:hover {
+  color: var(--diff-1);
+}
+
+.kgraph__rels small {
+  color: var(--ink-tertiary);
+}
+
+/* the graph's key, under the graph */
+.slide .kgkey {
+  margin-top: 0.8cqw;
+}
+
+.kgkey b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
 /* -- tokens: half the slide says what a token is, half draws the real graph (deck 07) -- */
 .tokstage {
   flex: 1;
@@ -2643,6 +2880,34 @@ html[data-embed] .deck__bar {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 3cqw;
   margin-top: 1.4cqw;
+}
+
+/* the token slide on its own: the sentences take 60%, the rules the rest, chips a size up */
+.tokstage--wide {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  margin-top: 2cqw;
+}
+
+.tokstage--wide .tokside {
+  gap: 2cqw;
+}
+
+.tokstage--wide .tokside h3 {
+  font-size: 1.4cqw;
+}
+
+.tokstage--wide .tokrow code {
+  font-size: 1cqw;
+}
+
+.tokstage--wide .tokrow small {
+  font-size: 0.85cqw;
+}
+
+.slide .tokstage--wide .tokrules {
+  margin-top: 0;
+  align-content: start;
+  font-size: 1.15cqw;
 }
 
 .tokside {
@@ -2916,6 +3181,22 @@ html[data-embed] .deck__bar {
   grid-auto-columns: minmax(0, 1fr);
   gap: 1cqw;
   margin-top: auto;
+}
+
+/* in a results card, the numbers go one under the other, larger */
+.minikpis--col {
+  grid-auto-flow: row;
+  grid-auto-columns: auto;
+  gap: 1cqw;
+  margin-top: 0.6cqw;
+}
+
+.minikpis--col b {
+  font-size: 2.6cqw;
+}
+
+.minikpis--col small {
+  font-size: 0.95cqw;
 }
 
 /* in the narrow column beside a view, the numbers go two by two */
