@@ -55,6 +55,28 @@ const both = (doc, text, tag = 'span') => {
   return frag
 }
 
+/**
+ * How a deck plays its builds, chosen with the bar's play button and remembered: `clicks` one click per step (the
+ * default), `auto` the steps of a slide come by themselves once it is reached, `still` every slide complete at once and
+ * nothing moves. A pitch keeps `clicks`: it has its own clock.
+ */
+export const PLAY_MODES = ['clicks', 'auto', 'still']
+export const PLAY_KEY = 'research-map-play'
+/** Milliseconds between two steps in `auto`. */
+export const AUTO_MS = 1100
+/** The mode after `mode`, round the three; an unknown one starts over at `clicks`. */
+export const nextPlayMode = (mode) => PLAY_MODES[(PLAY_MODES.indexOf(mode) + 1) % PLAY_MODES.length]
+const PLAY_LABEL = {
+  clicks: { en: 'clicks', es: 'clics' },
+  auto: { en: 'auto', es: 'auto' },
+  still: { en: 'still', es: 'fijo' },
+}
+const PLAY_TITLE = {
+  clicks: { en: 'Builds: one click at a time', es: 'Pasos: un clic a la vez' },
+  auto: { en: 'Builds: they play by themselves', es: 'Pasos: se arman solos' },
+  still: { en: 'No animation: every slide complete', es: 'Sin animación: cada lámina completa' },
+}
+
 const shortDate = (iso, lang) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString(lang === 'es' ? 'es-MX' : 'en-US', { month: 'short', day: 'numeric' })
 
@@ -164,7 +186,26 @@ export function mountDeck(win, opts = {}) {
   theme.addEventListener('click', () => { toggleTheme(doc, win); themeGlyph() })
   const full = button(doc, '⤢', { en: 'Full screen (F)', es: 'Pantalla completa (F)' })
   full.hidden = !doc.fullscreenEnabled || embed
-  bar.append(prev, dots, next, count, lang, theme, full)
+  // the play button, beside the theme: clicks → auto → still; a pitch and an embedded deck keep clicks
+  const pitched = doc.body.hasAttribute('data-pitch')
+  let stored = null
+  try {
+    stored = storage?.getItem(PLAY_KEY) ?? null
+  } catch {}
+  let play = !embed && !pitched && PLAY_MODES.includes(stored) ? stored : 'clicks'
+  const playBtn = doc.createElement('button')
+  playBtn.type = 'button'
+  playBtn.className = 'deck__btn deck__play'
+  playBtn.hidden = embed || pitched
+  const paintPlay = () => {
+    playBtn.replaceChildren(both(doc, PLAY_LABEL[play]))
+    const title = PLAY_TITLE[play][doc.documentElement.dataset.lang === 'es' ? 'es' : 'en']
+    playBtn.title = title
+    playBtn.setAttribute('aria-label', title)
+    doc.documentElement.dataset.play = play
+  }
+  paintPlay()
+  bar.append(prev, dots, next, count, lang, theme, playBtn, full)
   doc.querySelector('main.deck')?.after(bar)
   watchIdle(win, doc)
 
@@ -196,16 +237,18 @@ export function mountDeck(win, opts = {}) {
   let transition = null
   /** Shows slide i at step `at`: 0 when it is reached going forward, complete (its last step) otherwise. */
   const show = (i, writeHash = true, at = Infinity) => {
+    stopAuto()
     const target = Math.min(Math.max(i, 0), slides.length - 1)
     const from = current
     current = target
-    step[current] = Math.min(at, steps[current])
+    // still: every slide complete; otherwise the step asked for
+    step[current] = Math.min(play === 'still' ? Infinity : at, steps[current])
     const swap = () => {
       slides.forEach((s, k) => { s.hidden = k !== target })
       setStep(slides[target], step[target], steps[target])
     }
     // a slide change cross-fades where the browser can and motion is welcome; a step changes in CSS alone
-    if (from >= 0 && target !== from && doc.startViewTransition && !reduce()) {
+    if (from >= 0 && target !== from && doc.startViewTransition && !reduce() && play !== 'still') {
       transition?.skipTransition?.()
       transition = doc.startViewTransition(swap)
     } else swap()
@@ -217,15 +260,33 @@ export function mountDeck(win, opts = {}) {
     announce()
     // what a slide needs to follow the deck without owning it (a persistent canvas, a timer)
     doc.dispatchEvent(new win.CustomEvent('deck:slide', { detail: { index: current, slide: slides[current], total: slides.length } }))
+    if (play === 'auto') runAuto()
+  }
+  /** auto: the slide shown builds its next step every AUTO_MS until it is complete. */
+  let autoTimer = null
+  function stopAuto() {
+    if (autoTimer !== null) win.clearTimeout(autoTimer)
+    autoTimer = null
+  }
+  function runAuto() {
+    stopAuto()
+    const tick = () => {
+      autoTimer = null
+      if (play !== 'auto' || step[current] >= steps[current]) return
+      setStep(slides[current], ++step[current], steps[current])
+      autoTimer = win.setTimeout(tick, AUTO_MS)
+    }
+    if (step[current] < steps[current]) autoTimer = win.setTimeout(tick, AUTO_MS)
   }
   /** → builds the next step of the slide, or moves on to the next slide at its first step. */
   const forward = () => {
-    if (step[current] < steps[current]) setStep(slides[current], ++step[current], steps[current])
+    // only clicks steps by hand; auto and still move on to the next slide
+    if (play === 'clicks' && step[current] < steps[current]) setStep(slides[current], ++step[current], steps[current])
     else if (current < slides.length - 1) show(current + 1, true, 0)
   }
   /** ← takes back the last step, or goes back to the previous slide, complete. */
   const back = () => {
-    if (step[current] > 0) setStep(slides[current], --step[current], steps[current])
+    if (play === 'clicks' && step[current] > 0) setStep(slides[current], --step[current], steps[current])
     else if (current > 0) show(current - 1)
   }
   // the dots, grouped by chapter: slides that share a data-chapter (data-chapter-es for Spanish) sit together after
@@ -268,11 +329,24 @@ export function mountDeck(win, opts = {}) {
     else doc.documentElement.requestFullscreen()
   }
 
+  playBtn.addEventListener('click', () => {
+    play = nextPlayMode(play)
+    try {
+      storage?.setItem(PLAY_KEY, play)
+    } catch {}
+    paintPlay()
+    // the slide shown follows at once: still completes it, auto plays what is left, clicks waits
+    if (play === 'still') show(current, false)
+    else if (play === 'auto') runAuto()
+    else stopAuto()
+  })
   prev.addEventListener('click', back)
   next.addEventListener('click', forward)
   full.addEventListener('click', fullscreen)
-  lang.addEventListener('click', () =>
-    setLang(doc, storage, doc.documentElement.dataset.lang === 'es' ? 'en' : 'es'))
+  lang.addEventListener('click', () => {
+    setLang(doc, storage, doc.documentElement.dataset.lang === 'es' ? 'en' : 'es')
+    paintPlay()
+  })
 
   /** A pitch (`<body data-pitch>`, never embedded) times the slides and is offered every key first. */
   let pitch = null

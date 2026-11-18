@@ -37,6 +37,11 @@ complete. While a step is told, the pieces before it step back a little; on the 
 cross-fade, and the six step headings (`.stepline`, `.arch`) glide between slides that show them. On a 3D diff slide,
 the legend item being told lights its colour in the views (`model3d.js` `focusOf`).
 
+**Play mode.** The button beside the theme switch goes round three ways to play the builds, and the choice is
+remembered: *clicks* (one click per step, the default), *auto* (a slide's steps come by themselves, one every 1.1 s;
+→ moves on to the next slide) and *still* (every slide complete at once, no cross-fades, nothing moves). A pitch and
+an embedded deck keep *clicks*.
+
 **Chapters.** Every deck from 07 on is split into chapters: each opens with a cover (`slide--chapter`), and every slide
 of a chapter carries `data-chapter="1 · Context" data-chapter-es="1 · Contexto"`. The bar groups the dots by chapter
 under its name; a click on the name opens the chapter's cover, and the chapter shown is marked.
