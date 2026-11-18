@@ -1,0 +1,118 @@
+{
+ "id": "e1-tokens-bfs",
+ "date": "2026-11-17",
+ "status": "done",
+ "question": "Can the 394 elements of the sample be written as tokens and a graph, and cut into ~20-node BFS subgraphs?",
+ "input": "pipeline/out/source.json",
+ "counts": {
+  "elements": 394,
+  "levels": 5,
+  "doors": 83,
+  "floors": 16,
+  "rooms": 91,
+  "walls": 180,
+  "windows": 24,
+  "skipped_by_extract": {
+   "doors without point": 18
+  },
+  "tokens_per_element": {
+   "wall": 9,
+   "floor": 8,
+   "door": 7,
+   "window": 7,
+   "room": 6
+  },
+  "vocabulary": 403,
+  "types_in_vocabulary": 49,
+  "edges": {
+   "on_level": 394,
+   "hosted_by": 107,
+   "joins": 311,
+   "meets_floor": 335,
+   "on_floor": 91
+  },
+  "edges_from_json": 501,
+  "edges_derived": 737,
+  "connected_components": 5,
+  "largest_component": 374,
+  "isolated_elements": 0,
+  "subgraphs": 394,
+  "unique_subgraphs": 286,
+  "subgraphs_with_20_nodes": 374,
+  "subgraphs_with_door_or_window": 228,
+  "elements_per_level": {
+   "01 - Entry Level": {
+    "wall": 72,
+    "floor": 6,
+    "door": 29,
+    "window": 6,
+    "room": 31
+   },
+   "02 - Floor": {
+    "wall": 53,
+    "floor": 5,
+    "door": 26,
+    "window": 9,
+    "room": 33
+   },
+   "03 - Floor": {
+    "wall": 35,
+    "floor": 5,
+    "door": 28,
+    "window": 9,
+    "room": 27
+   },
+   "Roof": {
+    "wall": 20
+   }
+  }
+ },
+ "metrics": {
+  "nodes_per_subgraph": {
+   "min": 4,
+   "mean": 19.27,
+   "max": 20
+  },
+  "levels_per_subgraph_mean": 2.5,
+  "hosts_inside_subgraph_pct": 100.0,
+  "bin_m": 0.5,
+  "quantisation_by_bin": {
+   "bin_0.1m": {
+    "mean_m": 0.041,
+    "max_m": 0.069,
+    "within_1cm": 8,
+    "vocab": 527
+   },
+   "bin_0.25m": {
+    "mean_m": 0.101,
+    "max_m": 0.174,
+    "within_1cm": 4,
+    "vocab": 463
+   },
+   "bin_0.5m": {
+    "mean_m": 0.22,
+    "max_m": 0.351,
+    "within_1cm": 0,
+    "vocab": 403
+   },
+   "bin_1m": {
+    "mean_m": 0.432,
+    "max_m": 0.704,
+    "within_1cm": 0,
+    "vocab": 334
+   }
+  }
+ },
+ "notes": [
+  "One model only (Autodesk sample): this is a smoke test of the representation, not a result about learning.",
+  "Door/window -> wall and element -> level come from the JSON; wall-wall, wall-floor and room-floor are derived from geometry (tolerances 0.30 m and 0.50 m), because extract.py does not read joins or attachments.",
+  "Levels are context: subgraphs do not walk through them, so a piece stays local.",
+  "Floors are tokenised as their bounding box and area: L-shaped outlines cannot be rebuilt from the tokens.",
+  "Door and window size is carried by the type token, not by separate size bins.",
+  "Rooms are only a point and an area: no boundaries, no adjacency between rooms.",
+  "Subgraphs start at every element, so they overlap; unique_subgraphs counts distinct node sets.",
+  "The 20 elements outside the largest component are walls on the Roof level (parapets): roofs are not extracted, so nothing joins them to the rest.",
+  "Subgraphs cross levels (levels_per_subgraph_mean): exterior walls run from the entry level to the roof and touch every slab on the way.",
+  "Bins lose position: at 0.50 m the mean error is 0.22 m, never within 1 cm. Placing a prediction for the 1 cm comparison needs the exact host wall line, not the bin centre."
+ ]
+}
