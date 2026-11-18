@@ -74,10 +74,44 @@
         <p class="stepline__below" data-build="4"><span lang="en"><mark class="kw">Decode and assemble are separate</mark>: the network gives elements, MCP builds them in Revit<sup>1</sup>. <em><mark class="kw">rebuild.py stays as the control</mark>: the same round trip, with no AI.</em></span><span lang="es"><mark class="kw">Decodificar y armar van separados</mark>: la red da elementos, MCP los construye en Revit<sup>1</sup>. <em><mark class="kw">rebuild.py queda como control</mark>: la misma ida y vuelta, sin IA.</em></span></p>
         <ol class="refs"><li><a href="https://doi.org/10.1016/j.autcon.2026.107120" target="_blank" rel="noopener noreferrer">After Zhang, Savov and Dillenburger, MaskLayout, 2026, §3.4</a></li></ol>
       </section>
-      <!-- 3b · Project structure: files and what each does (empty for now, to be filled) -->
-      <section data-chapter="1 · Context" data-chapter-es="1 · Contexto" class="slide">
+      <!-- 3b · Project structure: the two folders, their main files, and the bridge between them -->
+      <section data-chapter="1 · Context" data-chapter-es="1 · Contexto" class="slide slide--set" data-map="ifc-to-graph-recipe masking-training mcp-assembles-in-revit">
         <p class="eyebrow"><span><span lang="en">Chapter 1 · Project structure</span><span lang="es">Capítulo 1 · Estructura del proyecto</span></span><b>07</b></p>
-        <h2><span lang="en">The project: <em>its files and what each does.</em></span><span lang="es">El proyecto: <em>sus archivos y qué hace cada uno.</em></span></h2>
+        <h2><span lang="en">Two folders: <em>one talks to Revit, one shows the research.</em></span><span lang="es">Dos carpetas: <em>una habla con Revit, otra muestra la investigación.</em></span></h2>
+        <div class="repo">
+          <div class="repo__tree repo__tree--py" data-build="1">
+            <p class="repo__root"><code>pipeline/</code><small>Python · Revit 2027 + pyRevit</small></p>
+            <ul>
+              <li><code>extract.py</code><small><span lang="en">Revit → JSON</span><span lang="es">Revit → JSON</span></small></li>
+              <li><code>rebuild.py</code><small><span lang="en">JSON → Revit, the control with no AI</span><span lang="es">JSON → Revit, el control sin IA</span></small></li>
+              <li><code>compare.py</code><small><span lang="en">original vs rebuilt, at 1 cm</span><span lang="es">original vs reconstruido, a 1 cm</span></small></li>
+              <li><code>run.sh</code><small><span lang="en">the whole round trip</span><span lang="es">la ida y vuelta completa</span></small></li>
+              <li class="repo__dir"><code>experiments/</code><ul>
+                <li><code>e1_tokens_bfs.py</code><small><span lang="en">tokens, graph, BFS pieces</span><span lang="es">tokens, grafo, piezas BFS</span></small></li>
+                <li><code>e2_mask_openings.py</code><small><span lang="en">masking + the transformer</span><span lang="es">masking + el transformer</span></small></li>
+                <li><code>e3_place_via_mcp.py</code><small><span lang="en">MCP client: the placements</span><span lang="es">cliente MCP: las colocaciones</span></small></li>
+                <li><code>revit_batch_mcp.py</code><small><span lang="en">MCP server → Revit</span><span lang="es">servidor MCP → Revit</span></small></li>
+              </ul></li>
+              <li><code>out/</code><small><span lang="en">every result, as JSON</span><span lang="es">cada resultado, en JSON</span></small></li>
+            </ul>
+          </div>
+          <div class="repo__bridge" data-build="3">
+            <code>out/*.json</code><span>↓</span><code>deck-model.mjs</code><span>↓</span><b><span lang="en">the slides</span><span lang="es">las láminas</span></b>
+          </div>
+          <div class="repo__tree repo__tree--js" data-build="2">
+            <p class="repo__root"><code>research-map/</code><small><span lang="en">Node · the web app</span><span lang="es">Node · la app web</span></small></p>
+            <ul>
+              <li><code>map.json · notes/</code><small><span lang="en">the research map: papers, ideas, links</span><span lang="es">el mapa de investigación: papers, ideas, enlaces</span></small></li>
+              <li><code>papers/ · reading/</code><small><span lang="en">the paper reader: text, voice, underlines</span><span lang="es">el lector de papers: texto, voz, subrayados</span></small></li>
+              <li class="repo__dir"><code>presentations/</code><ul>
+                <li><code>deck.js · deck.css</code><small><span lang="en">the slides, builds, chapters</span><span lang="es">láminas, pasos, capítulos</span></small></li>
+                <li><code>model3d.js · model3d-sets.js</code><small><span lang="en">the 3D views</span><span lang="es">las vistas 3D</span></small></li>
+                <li><code>graph-view.js</code><small><span lang="en">the interactive graph</span><span lang="es">el grafo interactivo</span></small></li>
+              </ul></li>
+              <li><code>scripts/ · tests/</code><small><span lang="en">checker, server, tests</span><span lang="es">verificador, servidor, tests</span></small></li>
+            </ul>
+          </div>
+        </div>
       </section>
       <!-- Chapter 2 · cover -->
       <section class="slide slide--chapter" data-chapter="2 · Model" data-chapter-es="2 · Modelo">
@@ -87,10 +121,10 @@
         <p class="lede"><span lang="en">How a model becomes something a network can read, and the network that reads it.</span><span lang="es">Cómo un modelo se vuelve algo que una red puede leer, y la red que lo lee.</span></p>
       </section>
       <!-- Chapter 2 · the token: what it is and how an element is written as tokens -->
-      <section data-chapter="2 · Model" data-chapter-es="2 · Modelo" style="--refs-h: 1.8cqw" class="slide has-refs" data-map="masklayout-model-pipeline vector-quantization">
+      <section data-chapter="2 · Model" data-chapter-es="2 · Modelo" style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="masklayout-model-pipeline vector-quantization">
         <p class="eyebrow"><span><span lang="en">Chapter 2 · The token</span><span lang="es">Capítulo 2 · El token</span></span><b>07</b></p>
         <h2><span lang="en">A token is one word the network reads; <em>an element, a short sentence of them.</em></span><span lang="es">Un token es una palabra que la red lee; <em>un elemento, una frase corta de ellas.</em></span></h2>
-        <div class="tokstage tokstage--wide">
+        <div class="tokstage tokstage--stack">
           <div class="tokside">
             <div data-build="1">
               <h3><span lang="en">A door</span><span lang="es">Una puerta</span><small>7 tokens</small></h3>
