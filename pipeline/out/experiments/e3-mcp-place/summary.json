@@ -1,0 +1,26 @@
+{
+ "id": "e3-mcp-place",
+ "date": "2026-11-17",
+ "status": "failed",
+ "question": "Can the doors and windows be placed in Revit through an MCP server, and how close do E2's predictions land, at 1 cm as the round trip?",
+ "input": "pipeline/out/rebuilt.rvt (doors and windows removed) + pipeline/out/experiments/e2-mask-openings/predictions.json",
+ "counts": {
+  "server": "Demolinator/revit-mcp-server (MIT) over pyRevit Routes, port 48884",
+  "server_tools_listed_over_mcp": 48,
+  "placements_prepared": {"truth": 107, "transformer": 107},
+  "placements_with_host_wall_in_rebuilt_model": {"truth": 107, "transformer": 107},
+  "placements_done_in_revit": 0,
+  "revit_crashes": 2,
+  "pyrevit": "6.5.5 (new C# loader), Revit 2027.2"
+ },
+ "metrics": {},
+ "notes": [
+  "Not run: no door or window was placed through MCP, so there is no 1 cm comparison. rebuild.py stays the only placement result (control, no AI): 83/83 doors and 24/24 windows in place, 107/107 hosts kept.",
+  "What worked: the MCP server starts and lists its 48 tools to a Python MCP client; the 214 placements (truth and E2 transformer) are built, each with its host wall found in the rebuilt model.",
+  "Crash 1 (23:10), most likely cause: the server's status route reads revit.doc on a pyRevit Routes worker thread, not on the Revit API thread. The worker thread's exception was printed, pyRevit opened its output window from that thread (InvalidOperationException: the calling thread must be STA) and Revit 2027 closed. Patched locally (the route now takes doc and runs on the API thread).",
+  "Crash 2 (23:28): same failure path, on a probe sent right after a pyRevit reload. Any unhandled exception in a Routes worker thread closes Revit with pyRevit 6.5.5 on Revit 2027.",
+  "Blocking: pyRevit finds the extension (listed as a UIExtension) but never runs its startup.py, so no revit_mcp route is registered (RouteHandlerNotDefinedException); a trace written by startup.py never appeared after two reloads, also with a button added to the extension.",
+  "Placement through the server's place_family was not used: by reading its code, it hosts on the nearest wall in 3D and cannot take a host id, so upper-floor windows on walls that start at the entry level would land on another wall. The plan was execute_revit_code with the predicted host id.",
+  "Next: try the legacy pyRevit loader or a C# MCP bridge for Revit 2027; scripts e3_place_via_mcp.py and e3_compare.py are ready and write this file again when a run succeeds."
+ ]
+}
