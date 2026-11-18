@@ -4,7 +4,7 @@
 import { APP_NAME, PRESENTATIONS, TRACKS } from './site.js'
 import { initialLang, safeStorage, setLang } from './i18n.js'
 import { effectiveTheme, initTheme, toggleTheme } from './theme.js'
-import { mountPitch } from './pitch.js'
+import { chaptersOf, mountPitch } from './pitch.js'
 
 /** How long the pointer rests before the controls hide (only in full screen: deck.css). */
 export const IDLE_MS = 2500
@@ -209,7 +209,8 @@ export function mountDeck(win, opts = {}) {
       transition?.skipTransition?.()
       transition = doc.startViewTransition(swap)
     } else swap()
-    ;[...dots.children].forEach((d, k) => d.setAttribute('aria-current', k === current ? 'step' : 'false'))
+    dotList.forEach((d, k) => d.setAttribute('aria-current', k === current ? 'step' : 'false'))
+    groups.forEach((g) => g.el.classList.toggle('is-current', current >= g.first && current < g.first + g.count))
     count.textContent = `${current + 1} / ${slides.length}`
     if (writeHash) win.history.replaceState(null, '', `#${current + 1}`)
     syncClips()
@@ -227,13 +228,33 @@ export function mountDeck(win, opts = {}) {
     if (step[current] > 0) setStep(slides[current], --step[current], steps[current])
     else if (current > 0) show(current - 1)
   }
-  slides.forEach((_, k) => {
-    const d = doc.createElement('button')
-    d.type = 'button'
-    d.className = 'deck__dot'
-    d.setAttribute('aria-label', String(k + 1))
-    d.addEventListener('click', () => show(k))
-    dots.append(d)
+  // the dots, grouped by chapter: slides that share a data-chapter (data-chapter-es for Spanish) sit together after
+  // its name, and a click on the name goes to the chapter's first slide, its cover. A deck with no chapters has one
+  // unnamed group, as before.
+  const dotList = []
+  const groups = chaptersOf(slides).map((c) => {
+    const el = doc.createElement('div')
+    el.className = 'deck__group'
+    if (c.name) {
+      const first = slides[c.first]
+      const name = doc.createElement('button')
+      name.type = 'button'
+      name.className = 'deck__chapter'
+      name.append(both(doc, { en: c.name, es: first.dataset.chapterEs ?? c.name }))
+      name.addEventListener('click', () => show(c.first))
+      el.append(name)
+    }
+    for (let k = c.first; k < c.first + c.count; k++) {
+      const d = doc.createElement('button')
+      d.type = 'button'
+      d.className = 'deck__dot'
+      d.setAttribute('aria-label', String(k + 1))
+      d.addEventListener('click', () => show(k))
+      el.append(d)
+      dotList.push(d)
+    }
+    dots.append(el)
+    return { el, first: c.first, count: c.count }
   })
 
   const goPresentation = (dir) => {

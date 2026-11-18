@@ -379,6 +379,47 @@ describe('builds (a slide revealed one click at a time)', () => {
   })
 })
 
+describe('chapters in the bar (slides with data-chapter)', () => {
+  let slides
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/')
+    document.body.dataset.track = 'thesis'
+    document.body.dataset.presentation = 'presentacion-01'
+    document.body.innerHTML = `
+      <nav class="rail"></nav>
+      <main class="deck">
+        <section class="slide">cover</section>
+        <section class="slide" data-chapter="1 · Context" data-chapter-es="1 · Contexto">ch 1</section>
+        <section class="slide" data-chapter="1 · Context" data-chapter-es="1 · Contexto">a</section>
+        <section class="slide" data-chapter="2 · Model" data-chapter-es="2 · Modelo">ch 2</section>
+        <section class="slide" data-chapter="2 · Model" data-chapter-es="2 · Modelo">b</section>
+      </main>`
+    mountDeck(window, { presentations })
+    slides = [...document.querySelectorAll('section.slide')]
+  })
+  const shown = () => slides.findIndex((s) => !s.hidden)
+  const groups = () => [...document.querySelectorAll('.deck__group')]
+
+  it('groups the dots by chapter, one dot per slide still', () => {
+    expect(groups().map((g) => g.querySelectorAll('.deck__dot').length)).toEqual([1, 2, 2])
+    expect(document.querySelectorAll('.deck__dot')).toHaveLength(5)
+  })
+  it('names each chapter in both languages; slides with no chapter have no name', () => {
+    expect(groups()[0].querySelector('.deck__chapter')).toBeNull()
+    const name = groups()[2].querySelector('.deck__chapter')
+    expect(name.querySelector('[lang="en"]').textContent).toBe('2 · Model')
+    expect(name.querySelector('[lang="es"]').textContent).toBe('2 · Modelo')
+  })
+  it('a click on a chapter opens its first slide, its cover', () => {
+    groups()[2].querySelector('.deck__chapter').click()
+    expect(shown()).toBe(3)
+  })
+  it('marks the chapter of the slide shown', () => {
+    document.querySelectorAll('.deck__dot')[4].click()
+    expect(groups().map((g) => g.classList.contains('is-current'))).toEqual([false, false, true])
+  })
+})
+
 describe('builds when embedded', () => {
   beforeEach(() => {
     vi.spyOn(window.parent, 'postMessage').mockImplementation(() => {})
