@@ -579,16 +579,103 @@ function drawPuzzle(svg, data) {
   }
 }
 
+// ---- E2's network, layer by layer: 20 tokens → 64 numbers each → 3 layers of attention → 4 answers ---------------
+
+/** A number 0–1 from an id and a position, always the same: the drawn vector cells (illustrative, not the real values). */
+const shade = (id, j) => {
+  let h = (Number(id) * 2654435761 + j * 40503) >>> 0
+  h ^= h >>> 15
+  return 0.15 + ((h % 1000) / 1000) * 0.75
+}
+
+/**
+ * Fills a `svg.netview` (its groups .nv-in, .nv-vec, .nv-l1, .nv-l23, .nv-out are in the page, so the deck counts
+ * their builds) with E2's piece run through the network: the hidden token on top, as the model puts it first; every
+ * token of a layer linked to every token of the one before (attention), the links into the hidden token in blue.
+ */
+function drawNet(svg, data) {
+  const S = data.e2
+  const src = data.models.source
+  const cls = new Map()
+  src.walls.forEach((w) => cls.set(w.id, 'wall'))
+  src.floors.forEach((f) => cls.set(f.id, 'floor'))
+  src.doors.forEach((d) => cls.set(d.id, 'door'))
+  src.windows.forEach((w) => cls.set(w.id, 'window'))
+  src.rooms.forEach((r) => cls.set(r.id, 'room'))
+  const tokens = [S.hidden, ...data.e1.nodes.filter((n) => n !== S.hidden && S.piece.includes(n))]
+  const [W, H, top, gap] = [1180, 400, 38, 18]
+  const y = (i) => top + i * gap
+  const X = { in: 40, vec0: 130, layers: [420, 620, 820], out: 990 }
+  const CELLS = 8
+  const el = (name, attrs) => {
+    const e = svg.ownerDocument.createElementNS(SVGNS, name)
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v)
+    return e
+  }
+  const label = (g, x, en, es, cls = 'nv-label') => {
+    for (const [lang, t] of [['en', en], ['es', es]]) {
+      const e = el('text', { class: cls, x, y: 16, lang })
+      e.textContent = t
+      g.append(e)
+    }
+  }
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`)
+  const g = (name) => svg.querySelector(`.${name}`)
+
+  // in: the 20 tokens, by class; the hidden one a dashed "?"
+  const gin = g('nv-in')
+  label(gin, X.in, '20 tokens', '20 tokens')
+  tokens.forEach((n, i) => {
+    const hidden = n === S.hidden
+    gin.append(el('circle', { class: hidden ? 'nv-tok nv-tok--hidden' : `nv-tok nv-tok--${cls.get(n) ?? 'wall'}`, cx: X.in, cy: y(i), r: 7 }))
+  })
+  // vectors: each token becomes 64 numbers (8 drawn)
+  const gvec = g('nv-vec')
+  label(gvec, X.vec0 + (CELLS * 11) / 2, '→ 64 numbers each', '→ 64 números c/u')
+  tokens.forEach((n, i) => {
+    for (let j = 0; j < CELLS; j++)
+      gvec.append(el('rect', { class: n === S.hidden ? 'nv-cell nv-cell--hidden' : 'nv-cell', x: X.vec0 + j * 11, y: y(i) - 4.5, width: 9, height: 9, rx: 1.5, style: `--v: ${n === S.hidden ? 0.2 : shade(n, j).toFixed(2)}` }))
+  })
+  // layers: everyone looks at everyone; the links into the hidden token in blue
+  const from = [X.vec0 + CELLS * 11, ...X.layers]
+  const layerGroups = [g('nv-l1'), g('nv-l23'), g('nv-l23')]
+  X.layers.forEach((lx, k) => {
+    const grp = layerGroups[k]
+    label(grp, lx, `layer ${k + 1}`, `capa ${k + 1}`)
+    const fx = from[k]
+    for (let a = 0; a < tokens.length; a++)
+      for (let b = 0; b < tokens.length; b++)
+        grp.append(el('line', { class: b === 0 ? 'nv-att nv-att--hot' : 'nv-att', x1: fx + 6, y1: y(a), x2: lx - 6, y2: y(b) }))
+    tokens.forEach((n, i) => grp.append(el('circle', { class: i === 0 ? 'nv-unit nv-unit--hidden' : 'nv-unit', cx: lx, cy: y(i), r: 5.5 })))
+  })
+  // out: the hidden token answers four questions
+  const gout = g('nv-out')
+  label(gout, X.out + 75, '4 answers', '4 respuestas')
+  const answers = [['class', 'clase'], ['type', 'tipo'], ['wall', 'muro'], ['place on the wall', 'lugar en el muro']]
+  answers.forEach(([en, es], k) => {
+    const by = top + 36 + k * 82
+    gout.append(el('path', { class: 'nv-att nv-att--hot', d: `M ${X.layers[2] + 6} ${y(0)} C ${X.layers[2] + 70} ${y(0)}, ${X.out - 60} ${by}, ${X.out} ${by}` }))
+    gout.append(el('rect', { class: 'nv-box', x: X.out, y: by - 16, width: 150, height: 32, rx: 5 }))
+    for (const [lang, t] of [['en', en], ['es', es]]) {
+      const e = el('text', { class: 'nv-box__t', x: X.out + 75, y: by, lang })
+      e.textContent = t
+      gout.append(e)
+    }
+  })
+}
+
 // ---- Mounting --------------------------------------------------------------------------------------------------
 
 export async function mountSets(doc = document, url = 'views.json') {
   const hosts = [...doc.querySelectorAll('.model3d[data-mode="set"]')]
   const graphs = [...doc.querySelectorAll('svg.piecegraph')]
   const puzzles = [...doc.querySelectorAll('svg.puzzle')]
-  if (!hosts.length && !graphs.length && !puzzles.length) return
+  const nets = [...doc.querySelectorAll('svg.netview')]
+  if (!hosts.length && !graphs.length && !puzzles.length && !nets.length) return
   const data = await (await fetch(url)).json()
   graphs.forEach((svg) => drawPieceGraph(svg, data))
   puzzles.forEach((svg) => drawPuzzle(svg, data))
+  nets.forEach((svg) => drawNet(svg, data))
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   let pal = paletteOf()
 
