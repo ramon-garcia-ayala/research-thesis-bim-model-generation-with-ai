@@ -37,4 +37,5 @@ it; not necessarily a GNN) and step 05 assembles through an **MCP server for Rev
 no-AI control. Experiments: place everything at once, one by one, or one and then its neighbours; and how to tell
 "new" from "copied". Research question (2026-11-10): "Can we decompose BIM models into meaningful parts and use them
 to generate new, valid models?" It is in `research-map/map.json`; decks 01–04 keep the question of their day. The
-next deck is `presentacion-05` (masking and MCP); its date is not set yet.
+current deck is `presentacion-07` (first tests, 2026-11-18); its Tests and Results slides take only numbers from
+`pipeline/out/experiments/<id>/summary.json`, written by the experiments on branch `feat/experiments-masking-mcp`.
