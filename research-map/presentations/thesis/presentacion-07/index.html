@@ -149,23 +149,35 @@
         </ul>
         <ol class="refs"><li><span lang="en">Author, pipeline/out/experiments/e1-tokens-bfs/graph.json, read as it is: deck-model.mjs --views rebuilds it</span><span lang="es">Autor, pipeline/out/experiments/e1-tokens-bfs/graph.json, leído tal cual: deck-model.mjs --views lo vuelve a generar</span></li></ol>
       </section>
-      <!-- Chapter 2 · the transformer: what it is and what E2's does -->
-      <section data-chapter="2 · Model" data-chapter-es="2 · Modelo" style="--refs-h: 1.8cqw" class="slide has-refs" data-map="masking-training masklayout-model-pipeline hornung-2025">
+      <!-- Chapter 2 · the transformer, as a puzzle: one door hidden, the network fills it from its neighbours (E2) -->
+      <section data-chapter="2 · Model" data-chapter-es="2 · Modelo" style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="masking-training masklayout-model-pipeline">
         <p class="eyebrow"><span><span lang="en">Chapter 2 · The transformer</span><span lang="es">Capítulo 2 · El transformer</span></span><b>07</b></p>
-        <h2><span lang="en">A transformer lets every token look at all the others: <em>here, to fill in the hidden one.</em></span><span lang="es">Un transformer deja que cada token mire a todos los demás: <em>aquí, para completar el oculto.</em></span></h2>
-        <ol class="flow">
-          <li data-build="1"><b><span lang="en">In · a piece</span><span lang="es">Entra · una pieza</span></b><small><span lang="en">19 visible elements + 1 hidden [MASK]: only its level is given</span><span lang="es">19 elementos visibles + 1 oculto [MASK]: solo se da su nivel</span></small></li>
-          <li data-build="2"><b><span lang="en">Each node → a vector</span><span lang="es">Cada nodo → un vector</span></b><small><span lang="en">its tokens (class, type, level) + its place relative to the piece’s centre, turned and mirrored at random in training</span><span lang="es">sus tokens (clase, tipo, nivel) + su lugar respecto al centro de la pieza, girado y reflejado al azar al entrenar</span></small></li>
-          <li class="is-ink" data-build="3"><b><span lang="en">Attention × 3</span><span lang="es">Atención × 3</span></b><small><span lang="en">every node looks at all the others; the kind of relation (hosted, joins, meets floor…) weighs how much</span><span lang="es">cada nodo mira a todos los demás; el tipo de relación (alojada, se une, toca losa…) pesa cuánto</span></small></li>
-          <li data-build="4"><b><span lang="en">Out · four answers</span><span lang="es">Sale · cuatro respuestas</span></b><small><span lang="en">class · type · host wall (it points at one of the piece’s walls) · place along that wall (0 to 1)</span><span lang="es">clase · tipo · muro host (apunta a uno de los muros de la pieza) · lugar sobre ese muro (0 a 1)</span></small></li>
-        </ol>
-        <div class="facts" data-build="5">
-          <div><b><span lang="en">How it trains</span><span lang="es">Cómo entrena</span></b><span><span lang="en">3 folds: trains on two storeys (436–497 examples), tests on the third (218–282), never seen even as context; 80 epochs.</span><span lang="es">3 vueltas: entrena con dos pisos (436–497 ejemplos) y prueba con el tercero (218–282), que nunca vio ni como contexto; 80 épocas.</span></span></div>
-          <div><b><span lang="en">How big</span><span lang="es">Qué tan grande</span></b><span><span lang="en">About 127 thousand parameters: 3 layers, 4 heads, 64 dimensions; 23–35 s per fold on a CPU.</span><span lang="es">Unos 127 mil parámetros: 3 capas, 4 cabezas, 64 dimensiones; 23–35 s por vuelta en CPU.</span></span></div>
-          <div><b><span lang="en">Against what</span><span lang="es">Contra qué</span></b><span><span lang="en">The most frequent answer, and copying the nearest door or window of another floor.</span><span lang="es">La respuesta más frecuente, y copiar la puerta o ventana más cercana de otro piso.</span></span></div>
+        <h2><span lang="en">We hide a door: <em>the network guesses it from its neighbours.</em></span><span lang="es">Tapamos una puerta: <em>la red la adivina mirando a sus vecinos.</em></span></h2>
+        <div class="pzstage">
+          <svg class="puzzle" role="img" aria-label="E2&#39;s piece: a hidden door in the middle, its 19 visible neighbours around it, each looking at the hole">
+            <defs><marker id="pz-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker></defs>
+            <g class="pz-arrows" data-build="1"></g>
+            <g class="pz-ring"></g>
+            <g class="pz-host" data-build="2"></g>
+          </svg>
+          <div class="pzside">
+            <p class="pzside__step"><span lang="en">The piece: 19 visible, 1 hidden</span><span lang="es">La pieza: 19 visibles, 1 tapada</span></p>
+            <p class="pzside__step" data-build="1"><span lang="en">It looks at all its neighbours, 3 times</span><span lang="es">Mira a todos sus vecinos, 3 veces</span></p>
+            <ol class="pzanswers">
+              <li data-build="2" data-fill="cls"><small>①</small><span><span lang="en">door or window?</span><span lang="es">¿puerta o ventana?</span></span><b></b></li>
+              <li data-build="2" data-fill="type"><small>②</small><span><span lang="en">which type?</span><span lang="es">¿qué tipo?</span></span><b></b></li>
+              <li data-build="2" data-fill="host"><small>③</small><span><span lang="en">on which wall?</span><span lang="es">¿en qué muro?</span></span><b></b></li>
+              <li data-build="3" data-fill="place"><small>④</small><span><span lang="en">where on the wall?</span><span lang="es">¿en qué punto del muro?</span></span><b></b></li>
+            </ol>
+            <ul class="pzkey">
+              <li style="--c: var(--cls-wall)"><span lang="en">W wall</span><span lang="es">M muro</span></li>
+              <li style="--c: var(--cls-floor)"><span lang="en">F floor</span><span lang="es">L losa</span></li>
+              <li style="--c: var(--cls-door)"><span lang="en">D door</span><span lang="es">P puerta</span></li>
+              <li style="--c: var(--cls-room)">R room</li>
+            </ul>
+          </div>
         </div>
-        <p class="stepline__below" data-build="5"><span lang="en">It is MaskLayout’s masking, small: <mark class="kw">hide one element</mark>, and the network <mark class="kw">fills it from its context</mark>.</span><span lang="es">Es el masking de MaskLayout, en pequeño: <mark class="kw">se oculta un elemento</mark> y la red <mark class="kw">lo completa desde su contexto</mark>.</span></p>
-        <ol class="refs"><li><span lang="en">Author, pipeline/experiments/e2_mask_openings.py and out/experiments/e2-mask-openings/summary.json, Nov 2026</span><span lang="es">Autor, pipeline/experiments/e2_mask_openings.py y out/experiments/e2-mask-openings/summary.json, nov 2026</span></li><li><a href="https://doi.org/10.1016/j.autcon.2026.107120" target="_blank" rel="noopener noreferrer">Zhang et al., MaskLayout, 2026</a></li></ol>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/experiments/e2-mask-openings/summary.json, Nov 2026: door 152688, the one of the E1 piece</span><span lang="es">Autor, pipeline/out/experiments/e2-mask-openings/summary.json, nov 2026: la puerta 152688, la de la pieza de E1</span></li></ol>
       </section>
       <!-- Chapter 3 · cover -->
       <section class="slide slide--chapter" data-chapter="3 · Experiments" data-chapter-es="3 · Experimentos">

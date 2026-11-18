@@ -470,14 +470,101 @@ function drawPieceGraph(svg, data) {
   }
 }
 
+// ---- E2 as a puzzle: the hidden door in the middle, its 19 visible neighbours around it --------------------------
+
+const SVGNS = 'http://www.w3.org/2000/svg'
+const CLASS_NAME = { wall: ['wall', 'muro'], floor: ['floor', 'losa'], door: ['door', 'puerta'], window: ['window', 'ventana'], room: ['room', 'room'] }
+
+/**
+ * Fills a `svg.puzzle` (its groups .pz-ring, .pz-arrows, .pz-host are in the page, so the deck counts their builds)
+ * and the `[data-fill]` answers of its slide, all from views.json: E2's piece, the hidden door and what the AI said.
+ */
+function drawPuzzle(svg, data) {
+  const S = data.e2
+  const src = data.models.source
+  const cls = new Map()
+  src.walls.forEach((w) => cls.set(w.id, 'wall'))
+  src.floors.forEach((f) => cls.set(f.id, 'floor'))
+  src.doors.forEach((d) => cls.set(d.id, 'door'))
+  src.windows.forEach((w) => cls.set(w.id, 'window'))
+  src.rooms.forEach((r) => cls.set(r.id, 'room'))
+  // the visible neighbours in E1's BFS order, so the ring reads from the door outwards
+  const order = data.e1.nodes.filter((n) => n !== S.hidden && S.piece.includes(n))
+  const [W, H, cx, cy, rx, ry, r] = [600, 420, 300, 210, 240, 165, 17]
+  const at = new Map(order.map((n, i) => {
+    const a = -Math.PI / 2 + (i / order.length) * Math.PI * 2
+    return [n, [cx + rx * Math.cos(a), cy + ry * Math.sin(a)]]
+  }))
+  const el = (name, attrs) => {
+    const e = svg.ownerDocument.createElementNS(SVGNS, name)
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v)
+    return e
+  }
+  const text = (attrs, en, es) => {
+    const out = []
+    for (const [lang, t] of [['en', en], ['es', es ?? en]]) {
+      const e = el('text', { ...attrs, lang })
+      e.textContent = t
+      out.push(e)
+    }
+    return out
+  }
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`)
+  const ring = svg.querySelector('.pz-ring')
+  const arrows = svg.querySelector('.pz-arrows')
+  const host = svg.querySelector('.pz-host')
+  const R0 = 34 // the hole
+  for (const n of order) {
+    const [x, y] = at.get(n)
+    const d = Math.hypot(cx - x, cy - y)
+    const [ux, uy] = [(cx - x) / d, (cy - y) / d]
+    arrows.append(el('line', { class: 'pz-arrow', x1: x + ux * (r + 4), y1: y + uy * (r + 4), x2: cx - ux * (R0 + 8), y2: cy - uy * (R0 + 8), 'marker-end': 'url(#pz-head)' }))
+    const kind = cls.get(n) ?? 'wall'
+    const g = el('g', { class: `pz-node pz-node--${kind}` })
+    g.append(el('circle', { cx: x, cy: y, r }), ...text({ x, y }, CLASS_NAME[kind][0][0].toUpperCase(), CLASS_NAME[kind][1][0].toUpperCase()))
+    ring.append(g)
+  }
+  ring.append(el('circle', { class: 'pz-hole', cx, cy, r: R0 }), ...text({ class: 'pz-hole__q', x: cx, y: cy }, '?'))
+  arrows.append(...text({ class: 'pz-times', x: cx, y: cy + ry + r + 22 }, 'every neighbour → the hole, × 3 rounds', 'cada vecino → el hueco, × 3 vueltas'))
+  // the wall the AI chose, ringed in its blue
+  const [hx, hy] = at.get(S.pred.host) ?? [cx, cy]
+  host.append(el('circle', { class: 'pz-hostring', cx: hx, cy: hy, r: r + 7 }))
+
+  // the answers, from the same file
+  const slide = svg.closest('.slide')
+  const [ce, cs] = CLASS_NAME[S.pred.cls] ?? [S.pred.cls, S.pred.cls]
+  const fills = {
+    cls: [ce, cs, S.class_ok],
+    type: [S.pred.type.replace(' | ', ' '), null, S.type_ok],
+    host: [`wall ${S.pred.host} · ${Math.round(S.pred.host_prob * 100)}% sure`, `muro ${S.pred.host} · ${Math.round(S.pred.host_prob * 100)}% segura`, S.host_ok],
+    place: [`${S.distance_m.toFixed(2)} m from the real one`, `a ${S.distance_m.toFixed(2)} m de la real`, S.distance_m <= 0.01],
+  }
+  for (const li of slide?.querySelectorAll('[data-fill]') ?? []) {
+    const [en, es, ok] = fills[li.dataset.fill] ?? []
+    const b = li.querySelector('b')
+    if (!b || en == null) continue
+    b.replaceChildren()
+    for (const [lang, t] of [['en', en], ['es', es ?? en]]) {
+      const s = svg.ownerDocument.createElement('span')
+      s.lang = lang
+      s.textContent = t
+      b.append(s)
+    }
+    li.classList.toggle('is-ok', !!ok)
+    li.classList.toggle('is-no', !ok)
+  }
+}
+
 // ---- Mounting --------------------------------------------------------------------------------------------------
 
 export async function mountSets(doc = document, url = 'views.json') {
   const hosts = [...doc.querySelectorAll('.model3d[data-mode="set"]')]
   const graphs = [...doc.querySelectorAll('svg.piecegraph')]
-  if (!hosts.length && !graphs.length) return
+  const puzzles = [...doc.querySelectorAll('svg.puzzle')]
+  if (!hosts.length && !graphs.length && !puzzles.length) return
   const data = await (await fetch(url)).json()
   graphs.forEach((svg) => drawPieceGraph(svg, data))
+  puzzles.forEach((svg) => drawPuzzle(svg, data))
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   let pal = paletteOf()
 
