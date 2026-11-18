@@ -66,7 +66,7 @@ Preliminary, on the one sample model: smoke tests of each new step, not results 
 | Script | What it does |
 |---|---|
 | `e1_tokens_bfs.py` | E1: each element as tokens (class, type, level, position in 0.5 m cells, size, host), the graph (hosted by from the JSON; wall–wall, wall–floor, room–floor from geometry) and BFS pieces of up to 20 (a FIFO queue, nearest first; levels are context, not walked) |
-| `e2_mask_openings.py` | E2: hide one door or window per piece and predict class, type, host wall and place along it with a small graph transformer (64 numbers per token, 3 layers, 4 heads, about 127 thousand parameters, PyTorch on CPU); three folds by storey; baselines: most frequent, copy another floor |
+| `e2_mask_openings.py` | E2: hide one door or window per piece and predict class, type, host wall and place along it with a small graph transformer (64 numbers per token, 3 layers, 4 heads, about 127 thousand parameters, PyTorch on CPU); three folds by storey; baselines: most frequent, copy another floor. Saves each fold's trained model to `models/<storey>.pt` (weights, settings, vocabulary, fold, loss per epoch); `--from-checkpoint` reloads them without training and checks they give the same predictions |
 | `e3_place_via_mcp.py`, `revit_batch_mcp.py`, `e3_revit_place.py`, `e3_compare.py` | E3: an MCP client sends one placement per door or window to an own minimal MCP server; one click on a pyRevit button (`pyrevit/ThesisE3.extension`) applies the queue in the background; `extract.py` and `compare.py` judge it at 1 cm |
 | `deck_views.py` | The data the deck 07 slides draw (`out/experiments/deck-views.json`) |
 

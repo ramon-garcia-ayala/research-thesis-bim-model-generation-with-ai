@@ -12,7 +12,10 @@
 # - Two baselines on the same folds and the same walls: frequency (the most common type, on the wall type that hosts
 #   most often, at the middle of the wall) and copy (the training-storey door or window nearest to a candidate wall,
 #   projected onto it: the "copied from another floor" answer).
-import datetime, json, math, os, random, sys, time
+# - Each fold's trained model is saved to models/<test storey>.pt: its weights, settings, vocabulary, fold and loss per
+#   epoch. `--from-checkpoint` loads those files instead of training, predicts again and checks the answers are the same
+#   as predictions.json; it writes nothing.
+import datetime, hashlib, json, math, os, random, sys, time
 from collections import Counter, defaultdict, deque
 
 import numpy as np
@@ -25,6 +28,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '..', 'out')
 E1 = os.path.join(OUT, 'experiments', 'e1-tokens-bfs')
 EXP = os.path.join(OUT, 'experiments', 'e2-mask-openings')
+MODELS = os.path.join(EXP, 'models')
+FROM_CHECKPOINT = '--from-checkpoint' in sys.argv
 FT = 0.3048
 SUBGRAPH = 20
 SEED = 0
@@ -279,6 +284,49 @@ def run_fold(test_level, log):
     net = Net(len(type_ids) + 2, len(open_types))
     opt = torch.optim.AdamW(net.parameters(), lr=LR, weight_decay=1e-2)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, EPOCHS)
+    path = model_path(test_level)
+    if FROM_CHECKPOINT:
+        ck = torch.load(path, weights_only=True)
+        if ck['vocab'] != {'types': types, 'open_types': open_types}:
+            sys.exit('%s: the vocabulary changed since this model was trained; train again' % path)
+        net.load_state_dict(ck['weights'])
+        losses, secs = ck['loss_per_epoch'], 0.0
+    else:
+        losses, secs = train_net(net, opt, sched, train, type_ids, open_ids, test_level, log)
+        save_model(net, path, test_level, types, open_types, len(train), test_open, losses)
+    return predict(net, test, type_ids, open_types, train_open), {
+        'train_samples': len(train), 'test_samples': len(test), 'test_elements': len(test_open),
+        'train_seconds': secs, 'parameters': sum(p.numel() for p in net.parameters()),
+        'model': model_info(path, losses)}, test, train_open, losses
+
+
+def model_path(test_level):
+    return os.path.join(MODELS, test_level.lower().replace(' - ', '-').replace(' ', '-') + '.pt')
+
+
+def save_model(net, path, test_level, types, open_types, n_train, test_open, losses):
+    # Everything needed to use the model again without training: weights, settings, vocabulary, and the record of the
+    # training (which storey was held out, how many samples, the loss at every epoch).
+    os.makedirs(MODELS, exist_ok=True)
+    torch.save({'weights': net.state_dict(),
+                'config': {'d': D, 'heads': HEADS, 'layers': LAYERS, 'nfeat': NFEAT, 'classes': list(CLS),
+                           'epochs': EPOCHS, 'batch': BATCH, 'lr': LR, 'scale_m': SCALE, 'subgraph': SUBGRAPH,
+                           'seed': SEED},
+                'vocab': {'types': types, 'open_types': open_types},
+                'fold': {'test_level': test_level, 'train_samples': n_train, 'test_elements': sorted(test_open)},
+                'loss_per_epoch': losses, 'torch': str(torch.__version__), 'date': datetime.date.today().isoformat()},
+               path)
+
+
+def model_info(path, losses):
+    with open(path, 'rb') as fh:
+        sha = hashlib.sha256(fh.read()).hexdigest()
+    return {'file': os.path.relpath(path, os.path.join(HERE, '..', '..')).replace(os.sep, '/'),
+            'bytes': os.path.getsize(path), 'sha256': sha, 'loss_first_epoch': losses[0], 'loss_last_epoch': losses[-1]}
+
+
+def train_net(net, opt, sched, train, type_ids, open_ids, test_level, log):
+    losses = []
     t0 = time.time()
     for ep in range(EPOCHS):
         random.shuffle(train)
@@ -308,11 +356,14 @@ def run_fold(test_level, log):
             opt.step()
             tot += loss.item() * len(batch)
         sched.step()
+        losses.append(round(tot / len(train), 4))
         if ep in (0, EPOCHS - 1):
             log.append('fold %s epoch %d loss %.3f' % (test_level, ep + 1, tot / len(train)))
-    secs = time.time() - t0
+    return losses, round(time.time() - t0, 1)
 
-    # Predict: average every subgraph the element sits in.
+
+def predict(net, test, type_ids, open_types, train_open):
+    # Average every subgraph the element sits in.
     net.eval()
     acc = defaultdict(lambda: {'cls': np.zeros(2), 'typ': np.zeros(len(open_types)), 'host': Counter(),
                                't': defaultdict(list), 'n': 0})
@@ -342,9 +393,7 @@ def run_fold(test_level, log):
                     'pt': [w['p0'][0] + tt * (w['p1'][0] - w['p0'][0]), w['p0'][1] + tt * (w['p1'][1] - w['p0'][1])],
                     'sill': sill.get(typ, 0.0), 'subgraphs': a['n'],
                     'host_prob': round(a['host'][host] / a['n'], 3)}
-    return preds, {'train_samples': len(train), 'test_samples': len(test), 'test_elements': len(test_open),
-                   'train_seconds': round(secs, 1), 'parameters': sum(p.numel() for p in net.parameters())}, \
-        test, train_open
+    return preds
 
 
 def sill_by_type(ids):
@@ -405,12 +454,12 @@ def score(preds, train_open_by_elem):
 
 
 # ------------------------------------------------------------------------------------------------------------------ main
-log, folds = [], {}
+log, folds, losses_of = [], {}, {}
 allp = {'transformer': {}, 'frequency': {}, 'copy': {}}
 train_of = {}
 test_levels = [l for l in level_names if any(E[i]['level'] == l for i in OPEN)]
 for lvl in test_levels:
-    preds, info, test, train_open = run_fold(lvl, log)
+    preds, info, test, train_open, losses_of[lvl] = run_fold(lvl, log)
     freq, copy = baselines(test, train_open)
     for t in preds:
         train_of[t] = train_open
@@ -421,6 +470,17 @@ for lvl in test_levels:
                   'frequency': score(freq, {t: train_open for t in freq}),
                   'copy': score(copy, {t: train_open for t in copy})}
     print(lvl, json.dumps(folds[lvl]['transformer']), flush=True)
+
+if FROM_CHECKPOINT:
+    # The saved models, loaded without training, must give back the answers written when they were trained.
+    saved = {r['id']: r['pred'] for r in json.load(open(os.path.join(EXP, 'predictions.json'), encoding='utf-8'))['rows']
+             if r['model'] == 'transformer'}
+    keys = ('cls', 'type', 'host')
+    same = [t for t, p in allp['transformer'].items() if t in saved and
+            all(p[k] == saved[t][k] for k in keys) and [round(c, 4) for c in p['pt']] == saved[t]['pt']]
+    print('loaded %d models; %d of %d predictions identical to predictions.json' %
+          (len(test_levels), len(same), len(saved)))
+    sys.exit(0 if len(same) == len(saved) == len(allp['transformer']) else 1)
 
 truth_stacked = sum(1 for t in OPEN if min(math.dist(E[t]['pt'], E[o]['pt']) for o in train_of[t]) <= 0.10)
 metrics = {k: score(v, train_of) for k, v in allp.items()}
@@ -453,6 +513,8 @@ summary = {
                'model_parameters_per_fold': {k: v['parameters'] for k, v in folds.items()}, 'epochs': EPOCHS, 'seed': SEED,
                'train_seconds_per_fold': {k: v['train_seconds'] for k, v in folds.items()},
                'torch': torch.__version__},
+    'models': {k: v['model'] for k, v in folds.items()},
+    'loss_per_epoch': losses_of,
     'metrics': metrics,
     'notes': [
         'One model only (Autodesk sample), three storeys: a smoke test of the masking step, not a result about '
@@ -470,6 +532,9 @@ summary = {
         'No element lands within 1 cm, so the 1 cm check of E3 will place none of them exactly; E3 has to judge by host '
         'and type, and by distance bands.',
         'Settings (80 epochs, 3 layers, d=64) were fixed before the run and not tuned on the test storeys.',
+        'The trained models are the files in models/ (one per fold, listed under "models" with their sha256): weights, '
+        'settings, vocabulary, fold and loss per epoch. Each run trains from scratch; `--from-checkpoint` loads them '
+        'and checks they give the same predictions.',
         'Not tested: hiding all openings of a piece at once, walls or rooms, hand/facing flip, and more than one model.',
     ],
     'log': log,

@@ -1,6 +1,6 @@
 # Research thesis: BIM model generation with AI
 
-**Question.** Can an AI learn to decompose BIM models into meaningful parts and use them to generate new, valid models?
+**Question.** Can BIM models be decomposed into rooms and their relations to generate new, valid models?
 
 **Hypothesis.** If a BIM model is decomposed into its elements and relations, an AI can find the patterns it needs to
 understand how to build something similar.
