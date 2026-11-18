@@ -12,20 +12,20 @@
 import * as THREE from 'three'
 import { OrbitControls } from './vendor/three/OrbitControls.js'
 
-const WALL_T = 0.25
+export const WALL_T = 0.25
 const CURTAIN_T = 0.08
 const SLAB_T = 0.3
 /** Vertical field of view (degrees) of a view at least WIDE_ASPECT wide; narrower views keep its horizontal one. */
-const FOV = 32
-const WIDE_ASPECT = 1.4
-const HALF_WIDTH = Math.tan(THREE.MathUtils.degToRad(FOV / 2)) * WIDE_ASPECT
+export const FOV = 32
+export const WIDE_ASPECT = 1.4
+export const HALF_WIDTH = Math.tan(THREE.MathUtils.degToRad(FOV / 2)) * WIDE_ASPECT
 /** A room's disc covers this share of its area, so neighbours do not overlap. */
 const ROOM_SHARE = 0.25
 
-const token = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888'
+export const token = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888'
 
 /** Plan (x, y) with z up → three's y up. */
-const at = (x, y, z) => new THREE.Vector3(x, z, -y)
+export const at = (x, y, z) => new THREE.Vector3(x, z, -y)
 
 /** The colour slot (1–5) of an element's differences, the most serious first; 0 when it came back the same. */
 function slotOf(kind, found) {
@@ -36,7 +36,7 @@ function slotOf(kind, found) {
   return 0
 }
 
-function wallMesh(w) {
+export function wallMesh(w) {
   const dx = w.b[0] - w.a[0]
   const dy = w.b[1] - w.a[1]
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(dx, dy), w.h, w.curtain ? CURTAIN_T : WALL_T))
@@ -45,7 +45,7 @@ function wallMesh(w) {
   return mesh
 }
 
-function floorMesh(f) {
+export function floorMesh(f) {
   const shape = new THREE.Shape(f.pts.map(([x, y]) => new THREE.Vector2(x, y)))
   const geo = new THREE.ExtrudeGeometry(shape, { depth: SLAB_T, bevelEnabled: false })
   geo.rotateX(-Math.PI / 2)
@@ -54,7 +54,7 @@ function floorMesh(f) {
   return mesh
 }
 
-function openingMesh(o) {
+export function openingMesh(o) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(o.w, o.h, WALL_T + 0.06))
   mesh.position.copy(at(o.p[0], o.p[1], o.p[2] + o.h / 2))
   mesh.rotation.y = Math.atan2(o.dir[1], o.dir[0])

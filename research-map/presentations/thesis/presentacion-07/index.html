@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" />
     <link rel="stylesheet" href="../../assets/deck.css" />
+    <script type="importmap">{ "imports": { "three": "../../assets/vendor/three/three.module.min.js" } }</script>
   </head>
   <body data-track="thesis" data-presentation="presentacion-07">
     <nav class="rail"></nav>
@@ -71,31 +72,132 @@
         <p class="eyebrow"><span><span lang="en">03 · Project structure</span><span lang="es">03 · Estructura del proyecto</span></span><b>07</b></p>
         <h2><span lang="en">The project: <em>its files and what each does.</em></span><span lang="es">El proyecto: <em>sus archivos y qué hace cada uno.</em></span></h2>
       </section>
-      <!-- 4 · Tests -->
+      <!-- 4 · Tests: the three experiments, process and expected result, no results -->
       <section class="slide slide--roomy" data-map="bfs-subgraphs masking-training mcp-assembles-in-revit placement-order-experiments">
         <p class="eyebrow"><span><span lang="en">04 · Tests</span><span lang="es">04 · Pruebas</span></span><b>07</b></p>
         <h2><span lang="en">Three tests, <em>one for each new step.</em></span><span lang="es">Tres pruebas, <em>una por cada paso nuevo.</em></span></h2>
         <div class="points">
           <article class="card" data-build="1">
             <span class="tag tag--ink">E1 · 03</span>
-            <h3><span lang="en">Tokens and subgraphs</span><span lang="es">Tokens y subgrafos</span></h3>
-            <p><span lang="en">Write each element as tokens (class, type, position, size, host) and <mark class="kw">cut the model into BFS pieces</mark>.</span><span lang="es">Escribir cada elemento como tokens (clase, tipo, posición, tamaño, host) y <mark class="kw">cortar el modelo en piezas por BFS</mark>.</span></p>
-            <small class="card__status is-done"><span lang="en">done</span><span lang="es">hecho</span></small>
+            <h3><span lang="en">Tokens and pieces</span><span lang="es">Tokens y piezas</span></h3>
+            <p><span lang="en">Each element → tokens (class, type, level, position, size, host); the model → a graph → <mark class="kw">pieces of 20 by BFS</mark>.</span><span lang="es">Cada elemento → tokens (clase, tipo, nivel, posición, tamaño, host); el modelo → un grafo → <mark class="kw">piezas de 20 por BFS</mark>.</span></p>
+            <p class="card__expect"><span lang="en">A model written so that a network can read it.</span><span lang="es">Un modelo escrito para que una red lo pueda leer.</span></p>
           </article>
-          <article class="card is-pending" data-build="2">
+          <article class="card" data-build="2">
             <span class="tag tag--ink">E2 · 04–05</span>
-            <h3><span lang="en">Hide doors and windows</span><span lang="es">Ocultar puertas y ventanas</span></h3>
-            <p><span lang="en">They have a host wall, so <mark class="kw">a guess is easy to judge</mark>. A simple baseline first, then a small model.</span><span lang="es">Tienen un muro host, así que <mark class="kw">es fácil juzgar una predicción</mark>. Primero una base simple, luego un modelo pequeño.</span></p>
-            <small class="card__status"><span lang="en">running</span><span lang="es">en curso</span></small>
+            <h3><span lang="en">Hide and predict</span><span lang="es">Ocultar y predecir</span></h3>
+            <p><span lang="en">Hide one door or window in each piece; <mark class="kw">a small transformer proposes</mark> its class, type, wall and place. Trained on two storeys, tested on the third.</span><span lang="es">Ocultar una puerta o ventana en cada pieza; <mark class="kw">un transformer pequeño propone</mark> su clase, tipo, muro y lugar. Entrena con dos pisos y prueba con el tercero.</span></p>
+            <p class="card__expect"><span lang="en">Better than the most frequent answer and than copying another floor.</span><span lang="es">Mejor que la respuesta más frecuente y que copiar otro piso.</span></p>
           </article>
-          <article class="card is-pending" data-build="3">
+          <article class="card" data-build="3">
             <span class="tag tag--ink">E3 · 06–07</span>
-            <h3><span lang="en">Place them through MCP</span><span lang="es">Colocarlas con MCP</span></h3>
-            <p><span lang="en">An MCP server puts the predictions in Revit; <mark class="kw">compare.py measures them against rebuild.py</mark>.</span><span lang="es">Un servidor MCP pone las predicciones en Revit; <mark class="kw">compare.py las mide contra rebuild.py</mark>.</span></p>
-            <small class="card__status"><span lang="en">running</span><span lang="es">en curso</span></small>
+            <h3><span lang="en">Place through MCP</span><span lang="es">Colocar por MCP</span></h3>
+            <p><span lang="en"><mark class="kw">An MCP server</mark> receives each door and window and Revit places it; compare.py judges it at 1 cm. Twice: the real ones, then the AI’s.</span><span lang="es"><mark class="kw">Un servidor MCP</mark> recibe cada puerta y ventana y Revit la coloca; compare.py la juzga a 1 cm. Dos veces: las reales y luego las de la IA.</span></p>
+            <p class="card__expect"><span lang="en">The real ones land exactly, as with rebuild.py; the AI’s show how far it is.</span><span lang="es">Las reales caen exactas, como con rebuild.py; las de la IA muestran qué tan lejos está.</span></p>
           </article>
         </div>
-        <p class="stepline__below" data-build="4"><span lang="en">One model only, Autodesk’s sample: <mark class="kw">a test that the pipeline runs</mark>, <em>not yet a result about learning.</em></span><span lang="es">Un solo modelo, la muestra de Autodesk: <mark class="kw">una prueba de que la pipeline corre</mark>, <em>todavía no un resultado sobre aprendizaje.</em></span></p>
+        <p class="stepline__below" data-build="4"><span lang="en">One model only, Autodesk’s sample: <mark class="kw">a test that the pipeline runs</mark>, <em>not yet a result about learning.</em></span><span lang="es">Un solo modelo, el ejemplo de Autodesk: <mark class="kw">una prueba de que el pipeline corre</mark>, <em>todavía no un resultado sobre aprender.</em></span></p>
+      </section>
+      <!-- 4 · Tests · E1: tokens, relations, one BFS piece -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="bfs-subgraphs hornung-2025 ifc-to-graph-recipe">
+        <p class="eyebrow"><span><span lang="en">04 · Tests · E1</span><span lang="es">04 · Pruebas · E1</span></span><b>07</b></p>
+        <h2><span lang="en">Each element becomes tokens; <em>the model, pieces of 20.</em></span><span lang="es">Cada elemento se vuelve tokens; <em>el modelo, piezas de 20.</em></span></h2>
+        <div class="setstage">
+          <div class="model3d" data-mode="set" data-set="e1" data-side="source" data-frame="piece" data-label="The sample model, faint, with one BFS piece of 20 elements around a door"></div>
+          <div class="setside">
+            <ol class="setsteps">
+              <li data-build="1" style="--c: var(--diff-1)"><i></i><b><small>01</small><span lang="en">Tokens</span><span lang="es">Tokens</span></b><span><span lang="en">class, type, level, position (0.5 m bins), size, host</span><span lang="es">clase, tipo, nivel, posición (bins de 0.5 m), tamaño, host</span></span></li>
+              <li data-build="2"><i></i><b><small>02</small><span lang="en">Relations</span><span lang="es">Relaciones</span></b><span><span lang="en">door → its wall, read from Revit (solid); wall–wall, wall–floor, room–floor, from geometry (dashed)</span><span lang="es">puerta → su muro, leída de Revit (continua); muro–muro, muro–losa, room–losa, por geometría (punteada)</span></span></li>
+              <li data-build="3"><i></i><b><small>03</small><span lang="en">A piece by BFS</span><span lang="es">Una pieza por BFS</span></b><span><span lang="en">from one element, ring by ring, until 20</span><span lang="es">desde un elemento, anillo por anillo, hasta 20</span></span></li>
+            </ol>
+            <div class="minikpis" data-build="3">
+              <div><b>394</b><small><span lang="en">elements</span><span lang="es">elementos</span></small></div>
+              <div><b>403</b><small><span lang="en">tokens</span><span lang="es">tokens</span></small></div>
+              <div><b>1,238</b><small><span lang="en">relations (501 + 737)</span><span lang="es">relaciones (501 + 737)</span></small></div>
+              <div><b>286</b><small><span lang="en">distinct pieces</span><span lang="es">piezas distintas</span></small></div>
+            </div>
+          </div>
+        </div>
+        <p class="stepline__below" data-build="3"><span lang="en">One piece of 286: <em>15 walls, 2 floors, 2 doors and 1 room, over 2 storeys.</em></span><span lang="es">Una pieza de 286: <em>15 muros, 2 losas, 2 puertas y 1 room, en 2 pisos.</em></span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/experiments/e1-tokens-bfs/summary.json, Nov 2026</span><span lang="es">Autor, pipeline/out/experiments/e1-tokens-bfs/summary.json, nov 2026</span></li><li><a href="https://doi.org/10.25442/hku.29365832" target="_blank" rel="noopener noreferrer">Hornung et al., CAAD Futures 2025 (pieces of 20 by BFS)</a></li></ol>
+      </section>
+      <!-- 4 · Tests · E2: the door of that piece hidden and predicted -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="masking-training masklayout-model-pipeline new-not-replicated">
+        <p class="eyebrow"><span><span lang="en">04 · Tests · E2</span><span lang="es">04 · Pruebas · E2</span></span><b>07</b></p>
+        <h2><span lang="en">Hide a door: <em>the AI finds its wall, not its place.</em></span><span lang="es">Se oculta una puerta: <em>la IA encuentra su muro, no su lugar.</em></span></h2>
+        <div class="setstage">
+          <div class="model3d" data-mode="set" data-set="e2" data-side="source" data-frame="piece" data-label="The same piece: its door hidden, the AI's door in blue and the real one as a ghost"></div>
+          <div class="setside">
+            <ol class="setsteps">
+              <li data-build="1"><i class="is-dash"></i><b><small>01</small><span lang="en">Hide</span><span lang="es">Ocultar</span></b><span><span lang="en">one door or window; only its level is given</span><span lang="es">una puerta o ventana; solo se da su nivel</span></span></li>
+              <li data-build="2" style="--c: var(--diff-1)"><i></i><b><small>02</small><span lang="en">Predict</span><span lang="es">Predecir</span></b><span><span lang="en">a small transformer: class, type, wall, place</span><span lang="es">un transformer pequeño: clase, tipo, muro, lugar</span></span></li>
+              <li data-build="3"><i></i><b><small>03</small><span lang="en">Compare</span><span lang="es">Comparar</span></b><span><span lang="en">with what was hidden</span><span lang="es">con lo que estaba oculto</span></span></li>
+              <li data-build="4" style="--c: var(--diff-1)"><i></i><b><small>04</small><span lang="en">Over the 107</span><span lang="es">En las 107</span></b><span><span lang="en">% right, against two baselines</span><span lang="es">% de aciertos, contra dos referencias</span></span></li>
+            </ol>
+            <div class="bars" data-build="4">
+              <div class="bars__row"><span><span lang="en">class</span><span lang="es">clase</span></span><div class="bars__set"><i class="is-ai" style="--v: 100"><b>100</b></i><i style="--v: 77.6"><b>77.6</b></i><i style="--v: 81.3"><b>81.3</b></i></div></div>
+              <div class="bars__row"><span><span lang="en">type</span><span lang="es">tipo</span></span><div class="bars__set"><i class="is-ai" style="--v: 79.4"><b>79.4</b></i><i style="--v: 58.9"><b>58.9</b></i><i style="--v: 57.9"><b>57.9</b></i></div></div>
+              <div class="bars__row"><span><span lang="en">wall</span><span lang="es">muro</span></span><div class="bars__set"><i class="is-ai" style="--v: 61.7"><b>61.7</b></i><i style="--v: 29.9"><b>29.9</b></i><i style="--v: 32.7"><b>32.7</b></i></div></div>
+              <p class="bars__key"><span class="is-ai">transformer</span><span><span lang="en">frequency</span><span lang="es">frecuencia</span></span><span class="is-copy"><span lang="en">copy another floor</span><span lang="es">copiar otro piso</span></span></p>
+            </div>
+          </div>
+        </div>
+        <p class="stepline__below" data-build="4"><span lang="en">Type and wall are learned; <em>the place on the wall is not: <mark class="kw">3.36 m</mark>, as putting it in the middle (3.23 m). None within 1 cm.</em></span><span lang="es">El tipo y el muro se aprenden; <em>el lugar sobre el muro no: <mark class="kw">3.36 m</mark>, como ponerla a la mitad (3.23 m). Ninguna a 1 cm.</em></span></p>
+        <p class="footnote" data-build="4"><span lang="en">Small graph transformer, about 127k parameters; three folds, trains on two storeys, tests on the third; one example, averaged over the 8 pieces that hold it.</span><span lang="es">Transformer de grafos pequeño, unos 127 mil parámetros; tres vueltas, entrena con dos pisos y prueba con el tercero; un ejemplo, promediado en las 8 piezas que lo contienen.</span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/experiments/e2-mask-openings/summary.json, Nov 2026</span><span lang="es">Autor, pipeline/out/experiments/e2-mask-openings/summary.json, nov 2026</span></li></ol>
+      </section>
+      <!-- 4 · Tests · E3 · real: the 107 real openings placed through MCP -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="mcp-assembles-in-revit mcp4ifc-2025">
+        <p class="eyebrow"><span><span lang="en">04 · Tests · E3 · real</span><span lang="es">04 · Pruebas · E3 · reales</span></span><b>07</b></p>
+        <h2><span lang="en">Through MCP, <em>the real doors and windows land exactly.</em></span><span lang="es">Por MCP, <em>las puertas y ventanas reales caen exactas.</em></span></h2>
+        <div class="setstage">
+          <div class="model3d" data-mode="set" data-set="e3_truth" data-side="e3-truth" data-frame="building" data-label="The rebuilt model with the 107 real doors and windows placed through MCP, in green">
+            <p class="setbadge" data-build="3"><b>107 / 107</b><small><span lang="en">= rebuild.py (no AI)</span><span lang="es">= rebuild.py (sin IA)</span></small></p>
+          </div>
+          <div class="setside">
+            <ol class="setsteps">
+              <li data-build="1"><i class="is-dash"></i><b><small>01</small><span lang="en">Empty</span><span lang="es">Vacío</span></b><span><span lang="en">rebuilt.rvt without its 107 doors and windows</span><span lang="es">rebuilt.rvt sin sus 107 puertas y ventanas</span></span></li>
+              <li data-build="2" style="--c: var(--diff-3)"><i></i><b><small>02</small><span lang="en">MCP</span><span lang="es">MCP</span></b><span><span lang="en">110 calls: a session, 107 placements, commit, extract</span><span lang="es">110 llamadas: una sesión, 107 colocaciones, commit, extract</span></span></li>
+              <li data-build="3" style="--c: var(--diff-3)"><i></i><b><small>03</small><span lang="en">Compare at 1 cm</span><span lang="es">Comparar a 1 cm</span></b><span><span lang="en">same place, type and wall</span><span lang="es">mismo lugar, tipo y muro</span></span></li>
+            </ol>
+            <ol class="setflow" data-build="2"><li><span lang="en">MCP client</span><span lang="es">cliente MCP</span></li><li><span lang="en">MCP server · 4 tools</span><span lang="es">servidor MCP · 4 herramientas</span></li><li>Revit</li><li>extract.py</li><li>compare.py</li></ol>
+            <div class="minikpis" data-build="3">
+              <div><b>107/107</b><small><span lang="en">at 1 cm</span><span lang="es">a 1 cm</span></small></div>
+              <div><b>107</b><small><span lang="en">same type</span><span lang="es">mismo tipo</span></small></div>
+              <div><b>107</b><small><span lang="en">same wall</span><span lang="es">mismo muro</span></small></div>
+              <div><b>110</b><small><span lang="en">MCP calls</span><span lang="es">llamadas MCP</span></small></div>
+            </div>
+          </div>
+        </div>
+        <p class="stepline__below" data-build="3"><span lang="en">The route is exact: <em>it adds no error of its own, so what E3 · AI misses comes from the prediction.</em></span><span lang="es">La ruta es exacta: <em>no agrega error propio, así que lo que E3 · IA falla viene de la predicción.</em></span></p>
+        <p class="footnote" data-build="3"><span lang="en">Our own minimal MCP server. Each commit is applied by one click on a pyRevit button in an open Revit. The open-source server (pyRevit Routes) closed Revit 2027 twice, and a batch Revit did not get a licence.</span><span lang="es">Servidor MCP propio y mínimo. Cada commit lo aplica un clic en un botón de pyRevit con Revit abierto. El servidor de código abierto (pyRevit Routes) cerró Revit 2027 dos veces, y un Revit en lote no obtuvo licencia.</span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/experiments/e3-mcp-place/summary.json, Nov 2026</span><span lang="es">Autor, pipeline/out/experiments/e3-mcp-place/summary.json, nov 2026</span></li></ol>
+      </section>
+      <!-- 4 · Tests · E3 · AI: E2's 107 predictions placed through MCP -->
+      <section style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="mcp-assembles-in-revit new-not-replicated placement-order-experiments">
+        <p class="eyebrow"><span><span lang="en">04 · Tests · E3 · AI</span><span lang="es">04 · Pruebas · E3 · IA</span></span><b>07</b></p>
+        <h2><span lang="en">The AI’s go in too: <em>on the right wall 6 times in 10, none at 1 cm.</em></span><span lang="es">Las de la IA también entran: <em>en el muro correcto 6 de cada 10, ninguna a 1 cm.</em></span></h2>
+        <div class="setstage">
+          <div class="model3d" data-mode="set" data-set="e3_transformer" data-side="e3-transformer" data-frame="building" data-label="The rebuilt model with the AI's 101 doors and windows, coloured by how right each one is"></div>
+          <div class="setside">
+            <ol class="setsteps">
+              <li data-build="1" style="--c: var(--diff-3)"><i></i><b><small>50</small><span lang="en">Wall and type right</span><span lang="es">Muro y tipo bien</span></b></li>
+              <li data-build="2" style="--c: var(--diff-4)"><i></i><b><small>12</small><span lang="en">Wall right, type wrong</span><span lang="es">Muro bien, tipo mal</span></b></li>
+              <li data-build="3" style="--c: var(--diff-2)"><i></i><b><small>39</small><span lang="en">Wrong wall</span><span lang="es">Muro equivocado</span></b></li>
+              <li data-build="4"><i class="is-dash"></i><b><small>6</small><span lang="en">Not kept by Revit</span><span lang="es">Revit no las conservó</span></b></li>
+              <li data-build="5"><i></i><b><small>6.0 m</small><span lang="en">The gap</span><span lang="es">La distancia</span></b><span><span lang="en">from each real point to where it was placed; median</span><span lang="es">de cada punto real a donde se colocó; mediana</span></span></li>
+            </ol>
+            <div class="minikpis" data-build="5">
+              <div><b>102/107</b><small><span lang="en">accepted by Revit</span><span lang="es">aceptadas por Revit</span></small></div>
+              <div><b>0</b><small><span lang="en">at 1 cm</span><span lang="es">a 1 cm</span></small></div>
+              <div><b>15</b><small><span lang="en">within 1 m</span><span lang="es">a menos de 1 m</span></small></div>
+              <div><b>6.0 m</b><small><span lang="en">median</span><span lang="es">mediana</span></small></div>
+            </div>
+          </div>
+        </div>
+        <p class="stepline__below" data-build="5"><span lang="en">Revit accepts the AI’s proposals: <em>it rolls back 5, and 1 placed one is not in the saved model.</em> The yardstick is the same as for the real ones.</span><span lang="es">Revit acepta las propuestas de la IA: <em>revierte 5, y 1 colocada no aparece en el modelo guardado.</em> La vara es la misma que para las reales.</span></p>
+        <p class="footnote" data-build="5"><span lang="en">Counts over the 101 in the saved model; flips are not predicted.</span><span lang="es">Cuentas sobre las 101 del modelo guardado; los giros no se predicen.</span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/experiments/e3-mcp-place/summary.json and e2-mask-openings/predictions.json, Nov 2026</span><span lang="es">Autor, pipeline/out/experiments/e3-mcp-place/summary.json y e2-mask-openings/predictions.json, nov 2026</span></li></ol>
       </section>
       <!-- 5 · Results: the control round trip and E1 -->
       <section style="--refs-h: 1.8cqw" class="slide has-refs" data-map="bfs-subgraphs ifc-to-graph-recipe hypothesis">
@@ -140,7 +242,9 @@
     </main>
     <script type="module">
       import { mountDeck } from '../../assets/deck.js'
+      import { mountSets } from '../../assets/model3d-sets.js'
       mountDeck(window)
+      mountSets(document)
     </script>
   </body>
 </html>

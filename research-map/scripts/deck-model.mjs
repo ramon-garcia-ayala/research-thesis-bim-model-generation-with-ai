@@ -8,6 +8,7 @@
 //
 //   node scripts/deck-model.mjs
 //   node scripts/deck-model.mjs --deck=presentacion-06
+//   node scripts/deck-model.mjs --deck=presentacion-07 --views   (copies experiments/deck-views.json as views.json)
 
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
@@ -89,6 +90,13 @@ function issues(diff) {
 
 function main() {
   const named = process.argv.find((a) => a.startsWith('--deck='))?.slice('--deck='.length)
+  // --views: the experiments' views (E1–E3) for presentations/assets/model3d-sets.js, copied as the deck's views.json
+  if (process.argv.includes('--views')) {
+    const target = resolve(HERE, `../presentations/thesis/${named ?? DEFAULT_DECK}/views.json`)
+    writeFileSync(target, readFileSync(join(OUT, 'experiments/deck-views.json')))
+    console.log(`wrote ${target}`)
+    return
+  }
   const withHost = named != null
   const target = resolve(HERE, `../presentations/thesis/${named ?? DEFAULT_DECK}/model.json`)
   const model = {
