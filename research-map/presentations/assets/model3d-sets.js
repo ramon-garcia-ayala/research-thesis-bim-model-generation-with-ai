@@ -105,6 +105,10 @@ function setLook(d, look, pal) {
   } else if (look === 'ghost') {
     surface = pal.surface('ink', 0.1)
     edge = pal.line('ink', 0.55, true)
+  } else if (look === 'truth') {
+    // the real element that was hidden: green as the real ones on E3, dashed, the network does not see it
+    surface = pal.surface('green', 0.22)
+    edge = pal.line('green', 1, true)
   } else {
     surface = pal.surface(look, floor ? 0.4 : 1)
     edge = pal.line(look, 1)
@@ -251,17 +255,21 @@ function setE2(data, model, doc, host) {
     both(doc, `wall ${ok(S.host_ok)} (${Math.round(S.pred.host_prob * 100)}%)`, `muro ${ok(S.host_ok)} (${Math.round(S.pred.host_prob * 100)}%)`),
   ]
   const overlays = [
-    overlay(doc, host, 'model3d__badge', '?', a, (s) => s === 1),
-    overlay(doc, host, 'model3d__chips model3d__chips--bar', chips, null, (s) => s >= 2),
+    // the "?" floats over the hidden door, high enough to leave the green original in sight
+    overlay(doc, host, 'model3d__badge', '?', at(S.true.p[0], S.true.p[1], S.true.p[2] + h + 2.4), (s) => s === 1),
+    overlay(doc, host, 'model3d__chips model3d__chips--bar model3d__chips--amber', chips, null, (s) => s >= 2),
     overlay(doc, host, 'model3d__callout model3d__callout--ink', `${S.distance_m.toFixed(2)} m`, a.clone().add(b).multiplyScalar(0.5), (s) => s >= 3),
   ]
   function update(step, t, pal) {
-    for (const [id, d] of items) setLook(d, piece.has(id) ? 'solid' : d.kind === 'room' ? 'hidden' : 'faint', pal)
+    // the piece solid, but its other doors and windows faint: only the hidden one and its prediction are analysed
+    for (const [id, d] of items)
+      setLook(d, d.kind === 'opening' && id !== S.hidden ? 'faint' : piece.has(id) ? 'solid' : d.kind === 'room' ? 'hidden' : 'faint', pal)
     if (items.has(S.hidden)) setLook(items.get(S.hidden), step >= 1 ? 'hidden' : 'solid', pal)
-    if (step >= 2 && items.has(S.pred.host)) setLook(items.get(S.pred.host), 'blue', pal)
-    setLook(pred, step >= 2 ? 'blue' : 'hidden', pal)
-    // the original stays as a dashed ghost from the moment it is hidden: the network does not see it, the room does
-    setLook(ghost, step >= 1 ? 'ghost' : 'hidden', pal)
+    // what the AI proposes, only the door, in amber: it stands out from the green original and the grey piece; its wall
+    // stays as it was
+    setLook(pred, step >= 2 ? 'amber' : 'hidden', pal)
+    // the original stays, green and dashed, from the moment it is hidden: the network does not see it
+    setLook(ghost, step >= 1 ? 'truth' : 'hidden', pal)
     gap.visible = step >= 3
     gap.material = pal.line('ink', 0.9, true)
     return false
