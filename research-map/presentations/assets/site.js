@@ -27,5 +27,7 @@ export const PRESENTATIONS = {
     { id: 'presentacion-05', title: { en: 'Masking and MCP', es: 'Masking y MCP' } },
     { id: 'presentacion-06', title: { en: 'Pecha Kucha pitch', es: 'Pitch Pecha Kucha' } },
     { id: 'presentacion-07', date: '2026-11-18', title: { en: 'First tests', es: 'Primeras pruebas' } },
+    { id: 'presentacion-08', title: { en: 'Midterm Pecha Kucha', es: 'Pecha Kucha de medio término' } },
+    { id: 'presentacion-09', title: { en: 'Midterm Pecha Kucha, deck look', es: 'Pecha Kucha de medio término, estilo de la 07' } },
   ],
 }

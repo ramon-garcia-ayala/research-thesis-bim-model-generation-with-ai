@@ -49,8 +49,10 @@ const el = (doc, tag, className, text) => {
  * handler offers every key first (true = handled), plus `state()` and `slideElapsed()`.
  * @param {Window} win
  * @param {{ slides: HTMLElement[], index: () => number, show: (i: number, writeHash?: boolean, at?: number) => void }} api
+ * @param {(s: { state: string, index: number, elapsed: number, slideMs: number, total: number }) => void} [report]
+ *   told the pitch's state when it changes and about every 250 ms while it runs (the presenter view shows it)
  */
-export function mountPitch(win, api) {
+export function mountPitch(win, api, report) {
   const doc = win.document
   const { slides } = api
   const total = slides.length
@@ -75,9 +77,23 @@ export function mountPitch(win, api) {
   let state = 'ready'
   let elapsed = 0
   let last = Date.now()
+  let sent = ''
+
+  /** Tells `report` where the pitch is: when it differs from the last report, or always with `force`. */
+  const publish = (force = false) => {
+    const index = api.index()
+    const stamp = `${state}|${index}|${Math.floor(elapsed / 250)}`
+    if (!force && stamp === sent) return
+    sent = stamp
+    report?.({ state, index, elapsed, slideMs: SLIDE_MS, total })
+  }
 
   const render = () => {
     const index = api.index()
+    publish()
+    // the slide's own clock, in tenths of a second, for what plays along it (model3d-sets.js `data-steps-at`)
+    const t = String(Math.round(elapsed / 100) * 100)
+    if (slides[index] && slides[index].dataset.pitchT !== t) slides[index].dataset.pitchT = t
     const fills = fillsOf(chapters, index, Math.min(elapsed / SLIDE_MS, 1))
     segs.forEach((seg, k) => {
       seg.style.setProperty('--fill', String(Math.round(fills[k] * 10000) / 10000))
@@ -170,7 +186,7 @@ export function mountPitch(win, api) {
   }
 
   setState('ready')
-  return { key, state: () => state, slideElapsed: () => elapsed }
+  return { key, state: () => state, slideElapsed: () => elapsed, publish: () => publish(true) }
 }
 
 const gcd = (a, b) => (b ? gcd(b, a % b) : a)

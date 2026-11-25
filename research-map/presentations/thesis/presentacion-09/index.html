@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en" data-lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thesis 09 · Midterm Pecha Kucha</title>
+    <meta name="description" content="Midterm Pecha Kucha (MaCAD, IAAC) in the look of deck 07, written as a paper: 15 slides of 20 seconds, from the problem to the research question on rooms, two key references, the method, and the results so far at the element level." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" />
+    <link rel="stylesheet" href="../../assets/deck.css" />
+    <script type="importmap">{ "imports": { "three": "../../assets/vendor/three/three.module.min.js" } }</script>
+  </head>
+  <body data-track="thesis" data-presentation="presentacion-09" data-pitch data-look="deck" data-lang-only="en">
+    <nav class="rail"></nav>
+    <main class="deck">
+      <!-- 1 · Introduction · abstract -->
+      <section class="slide slide--title slide--title-wide" data-chapter="1 · Introduction" data-map="question">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>1 · Introduction · Abstract</span><b>09</b></p>
+        <div class="title__text">
+          <h1 class="pitch-in" style="--at: 0.3">Decomposing BIM models into rooms <em>to generate new ones.</em></h1>
+          <p class="lede pitch-in" style="--at: 4">Real Revit models are taken apart into <mark class="kw">rooms and their relations</mark>; an AI <mark class="kw">learns by masking</mark> them; a <mark class="kw">validator</mark> checks what it proposes.</p>
+          <p class="title__meta pitch-in" style="--at: 9">G. Ramón García Ayala · MaCAD, IAAC · midterm</p>
+        </div>
+        <aside class="notes">
+          <p>My thesis asks how to turn <mark class="kw">real Revit models</mark> into training data. I take a model apart into <mark class="kw">rooms and their relations</mark>, an AI learns by hiding parts and predicting them, and a <mark class="kw">validator</mark> checks what it proposes. I will go through it like a paper: problem, question, references, method, results.</p>
+        </aside>
+      </section>
+      <!-- 2 · Introduction · problem -->
+      <section class="slide has-refs" style="--refs-h: 1.8cqw" data-chapter="1 · Introduction" data-map="noardo-2021-inspection gec-guzelci-2026">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>1 · Introduction · Problem</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">Real BIM models are <em>not ready to teach an AI.</em></h2>
+        <div class="figmid figmid--stack">
+          <div class="points">
+            <article class="card pitch-in" style="--at: 3">
+              <span class="tag tag--ink">Noardo 2021</span>
+              <h3>Few are usable as they are</h3>
+              <div class="minikpis minikpis--col">
+                <div><b>5–10 of 57</b><small>IFC models from practice usable, per use case</small></div>
+              </div>
+            </article>
+            <article class="card pitch-in" style="--at: 8">
+              <span class="tag tag--ink">Geç 2026</span>
+              <h3>What is learned does not carry over</h3>
+              <div class="minikpis">
+                <div><b>0.926</b><small>one project</small></div>
+                <div><b>0.464</b><small>hospital → office</small></div>
+                <div><b>0.209</b><small>+ a third typology</small></div>
+              </div>
+            </article>
+          </div>
+        </div>
+        <p class="stepline__below pitch-in" style="--at: 13">The data exists inside offices; <em>its shape is the problem.</em></p>
+        <ol class="refs pitch-in" style="--at: 14">
+          <li><a href="https://doi.org/10.3390/app11052232" target="_blank" rel="noopener">Noardo et al., 2021, An Inspection of IFC Models from Practice</a></li>
+          <li><a href="https://www.itcon.org/papers/2026_25-ITcon-Ge%C3%A7.pdf" target="_blank" rel="noopener">Geç &amp; Güzelci, 2026, Macro-F1, door leaf material</a></li>
+        </ol>
+        <aside class="notes">
+          <p>Offices have years of models, but they are <mark class="kw">not ready to teach an AI</mark>. Noardo found only <mark class="kw">5 to 10 of 57</mark> usable as they are. And what a model learns on one project <mark class="kw">drops</mark> on the next: from 0.926 to 0.209 once a third typology comes in. The data exists; its shape is the problem.</p>
+        </aside>
+      </section>
+      <!-- 3 · Introduction · approach: the round trip -->
+      <section class="slide has-refs" style="--refs-h: 1.8cqw" data-chapter="1 · Introduction" data-map="deconstruct-for-training ifc-to-graph-recipe">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>1 · Introduction · Approach</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">Take a model apart, <em>and put it back.</em></h2>
+        <div class="figmid figmid--stack">
+          <div class="points points--chain">
+            <article class="card pitch-in" style="--at: 2"><span class="tag tag--ink">extract.py</span><h3>Revit → JSON</h3><p>every wall, floor, door, window, room</p></article>
+            <article class="card pitch-in" style="--at: 3.5"><span class="tag tag--ink">rebuild.py</span><h3>JSON → Revit</h3><p>the same model again, with no AI</p></article>
+            <article class="card pitch-in" style="--at: 5"><span class="tag tag--ink">compare.py</span><h3>Original vs rebuilt</h3><p>same place and type, at 1 cm</p></article>
+          </div>
+          <div class="minikpis pitch-in" style="--at: 8">
+            <div><b>180/180</b><small>walls · 179 in place</small></div>
+            <div><b>83/83</b><small>doors</small></div>
+            <div><b>24/24</b><small>windows</small></div>
+            <div><b>16/16</b><small>floors</small></div>
+          </div>
+        </div>
+        <p class="stepline__below pitch-in" style="--at: 11">The round trip is the <mark class="kw">control</mark>: <em>every AI result is measured against it.</em></p>
+        <ol class="refs pitch-in" style="--at: 13">
+          <li>Autodesk sample project · pipeline/out/summary.json, Nov 2026 · rooms rebuild less well: 86 of 91 stay enclosed</li>
+        </ol>
+        <aside class="notes">
+          <p>The first step is a <mark class="kw">round trip</mark> with no AI. A script reads the Revit model into JSON and another builds it again. On Autodesk's sample, <mark class="kw">every wall, door, window and floor</mark> comes back; only the rooms lose a little. This is the <mark class="kw">control</mark> every AI result is compared against.</p>
+        </aside>
+      </section>
+      <!-- 4 · Research question -->
+      <section class="slide slide--title slide--title-wide" data-chapter="2 · Research question" data-map="question hypothesis">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>2 · Research question</span><b>09</b></p>
+        <div class="title__text">
+          <h1 class="pitch-in" style="--at: 0.3">Can BIM models be decomposed into <em>rooms and their relations</em> to generate new, valid models?</h1>
+          <p class="lede pitch-in" style="--at: 7">Why the room: it is the smallest unit where a plan’s logic shows. <mark class="kw">Understand the unit first, then scale</mark>: room → plan → building.</p>
+        </div>
+        <aside class="notes">
+          <p>So the question: can BIM models be decomposed into <mark class="kw">rooms and their relations</mark> to generate <mark class="kw">new, valid</mark> models? The room is the smallest unit where a plan's logic shows: what it holds, what it touches, how you enter. The idea is to <mark class="kw">understand the unit first</mark>, then scale to the plan and the building.</p>
+        </aside>
+      </section>
+      <!-- 5 · Research question · how much to predict -->
+      <section class="slide" data-chapter="2 · Research question" data-map="prediction-formulations">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>2 · Research question · How much to predict</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">How much to predict: <em>the room.</em></h2>
+        <div class="figmid">
+          <ol class="pyramid">
+            <li class="is-out pitch-in" style="--k: 0; --at: 12"><b>Building</b><small>out of scope</small></li>
+            <li class="pitch-in" style="--k: 1; --at: 10"><b>Floor plan</b><small>stretch</small></li>
+            <li class="is-target pitch-in" style="--k: 2; --at: 7"><b>Room</b><small>target</small></li>
+            <li class="pitch-in" style="--k: 3; --at: 4.5"><b>Relation</b><small>partly · E2</small></li>
+            <li class="is-done pitch-in" style="--k: 4; --at: 2.5"><b>Element</b><small>done · E2</small></li>
+          </ol>
+        </div>
+        <p class="stepline__below pitch-in" style="--at: 14">Given its boundary, <em>predict what a room holds and how it connects.</em></p>
+        <aside class="notes">
+          <p>How much should the AI predict? Think of a <mark class="kw">pyramid</mark>. One element is done; the relation, which wall hosts a door, is partly done. The <mark class="kw">target is the room</mark>: given its boundary, predict what it holds and how it connects. The floor plan is the <mark class="kw">stretch goal</mark>; the whole building is out of scope.</p>
+        </aside>
+      </section>
+      <!-- 6 · Research question · what new and valid mean -->
+      <section class="slide" data-chapter="2 · Research question" data-map="new-not-replicated">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>2 · Research question · New and valid</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">What <em>new</em> and <em>valid</em> mean.</h2>
+        <div class="figmid">
+          <div class="points">
+            <article class="card pitch-in" style="--at: 2.5">
+              <span class="tag tag--ink">New</span>
+              <h3>How far from training</h3>
+              <ol class="dist">
+                <li class="pitch-in" style="--at: 4"><b>another storey</b>today: close to a copy</li>
+                <li class="pitch-in" style="--at: 5.5"><b>another building</b>of a typology seen</li>
+                <li class="pitch-in" style="--at: 7"><b>a new typology</b>never seen</li>
+              </ol>
+            </article>
+            <article class="card pitch-in" style="--at: 9.5">
+              <span class="tag tag--ink">Valid</span>
+              <h3>Two layers of checks</h3>
+              <ol class="chain">
+                <li class="pitch-in" style="--at: 10.5">proposal</li>
+                <li class="pitch-in" style="--at: 11.5">hard rules · script</li>
+                <li class="is-hidden pitch-in" style="--at: 12.5">judgement · LLM via MCP</li>
+              </ol>
+              <p class="pitch-in" style="--at: 13.5">A room on each side of every door; does a bathroom opening onto the kitchen make sense?</p>
+            </article>
+          </div>
+        </div>
+        <p class="stepline__below pitch-in" style="--at: 15">The drop in the scores, from near to far, <em>is how far the prediction reaches.</em></p>
+        <aside class="notes">
+          <p>Two words in the question need a measure. <mark class="kw">New</mark> is distance from training: another storey, another building, a typology never seen; the drop in the scores tells how far it reaches. <mark class="kw">Valid</mark> has two layers: <mark class="kw">hard rules</mark> by script, like a room on each side of every door, and a soft judgement by an LLM through MCP.</p>
+        </aside>
+      </section>
+      <!-- 7 · Related work · Tang 2024 -->
+      <section class="slide has-refs" style="--refs-h: 1.8cqw" data-chapter="3 · Related work" data-map="tang-2024 masking-training">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>3 · Related work · Key reference 1</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">Tang 2024: room graphs, <em>learned by masking.</em></h2>
+        <div class="refcase">
+          <figure class="pitch-in" style="--at: 3">
+            <div class="sweep">
+              <span style="--x: 0">10%</span>
+              <span class="is-best" style="--x: 0.375">40% · best</span>
+              <span style="--x: 1">90%</span>
+            </div>
+            <figcaption class="mono muted">GTGAN++ · share of the room graph hidden, swept</figcaption>
+          </figure>
+          <div class="refcase__side">
+            <article class="card pitch-in" style="--at: 8"><span class="tag tag--ink">I take</span><p>The <mark class="kw">room graph</mark>, and the share hidden as a parameter to sweep.</p></article>
+            <article class="card card--note pitch-in" style="--at: 12"><span class="tag">The gap</span><p>It ends in an <mark class="kw">image</mark>, not a model.</p></article>
+          </div>
+        </div>
+        <ol class="refs pitch-in" style="--at: 14">
+          <li><a href="https://doi.org/10.1109/tpami.2024.3355248" target="_blank" rel="noopener">Tang, Shao, Sebe &amp; Van Gool, 2024, Graph Transformer GANs with Graph Masked Modeling for Architectural Layout Generation, IEEE TPAMI, Fig. 13</a></li>
+        </ol>
+        <aside class="notes">
+          <p>The first key reference is <mark class="kw">Tang 2024</mark>. It generates layouts from a <mark class="kw">room graph</mark>, pre-trained by hiding nodes and edges. They swept how much to hide, from 10 to 90 percent: the best was <mark class="kw">40 percent</mark>; above it, too little is left to rebuild. I take the room graph and that sweep; but it ends in an image.</p>
+        </aside>
+      </section>
+      <!-- 8 · Related work · Building-Graph-AI 2025 -->
+      <section class="slide has-refs" style="--refs-h: 1.8cqw" data-chapter="3 · Related work" data-map="building-graph-ai-2025">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>3 · Related work · Key reference 2</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">Liang 2025: Revit to graph, masked, <em>and back to Revit.</em></h2>
+        <div class="refcase">
+          <ol class="chain">
+            <li class="pitch-in" style="--at: 2.5">Revit</li>
+            <li class="pitch-in" style="--at: 4">graph</li>
+            <li class="is-hidden pitch-in" style="--at: 5.5">interior walls hidden</li>
+            <li class="pitch-in" style="--at: 7">Revit</li>
+          </ol>
+          <div class="refcase__side">
+            <article class="card pitch-in" style="--at: 9"><span class="tag tag--ink">I take</span><p>The <mark class="kw">round trip</mark> back to Revit elements.</p></article>
+            <article class="card card--note pitch-in" style="--at: 12"><span class="tag">The gap</span><p><mark class="kw">Synthetic plans</mark> on a fixed wall grid; validity checked on a few layouts.</p></article>
+          </div>
+        </div>
+        <ol class="refs pitch-in" style="--at: 14">
+          <li><a href="https://doi.org/10.1177/14780771251352946" target="_blank" rel="noopener">Liang, Zhong, Zhao, Fricker &amp; Koh, 2025, Building-Graph-AI, International Journal of Architectural Computing 23(3): 27,965 HouseGAN plans extruded to Revit</a></li>
+        </ol>
+        <aside class="notes">
+          <p>The second is <mark class="kw">Building-Graph-AI</mark>, Liang 2025. It is the closest pipeline: Revit to a graph, the <mark class="kw">interior walls hidden</mark>, predicted, and built <mark class="kw">back in Revit</mark>. I take that round trip. But its models are 2D plans extruded on a fixed grid, not real BIM, and validity is checked on a few layouts only.</p>
+        </aside>
+      </section>
+      <!-- 9 · Related work · where this thesis sits -->
+      <section class="slide" data-chapter="3 · Related work" data-map="tang-2024 building-graph-ai-2025">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>3 · Related work · Position</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">Where this thesis <em>sits.</em></h2>
+        <div class="refcase">
+          <div class="quad pitch-in" style="--at: 2">
+            <span class="quad__axis quad__axis--x">output: image → Revit model</span>
+            <span class="quad__axis quad__axis--y">data: plans → real BIM</span>
+            <b class="quad__pt pitch-in" style="--x: 0.06; --y: 0.18; --at: 4">Tang 2024</b>
+            <b class="quad__pt pitch-in" style="--x: 0.6; --y: 0.32; --at: 6">Liang 2025</b>
+            <b class="quad__pt quad__pt--me pitch-in" style="--x: 0.6; --y: 0.86; --at: 9">this thesis</b>
+          </div>
+          <div class="refcase__side">
+            <article class="card card--note pitch-in" style="--at: 3"><span class="tag">How to read it</span><p><b>Across:</b> what a work gives back, an image or a Revit model. <b>Up:</b> what it learns from, plans or real BIM models.</p></article>
+            <article class="card pitch-in" style="--at: 10"><span class="tag tag--ink">This thesis</span><p><mark class="kw">Real BIM models in, a Revit model out</mark>: the corner neither reference covers.</p></article>
+          </div>
+        </div>
+        <aside class="notes">
+          <p>Put side by side: Tang learns rooms but ends in an <mark class="kw">image</mark>. Liang reaches <mark class="kw">Revit</mark>, but from synthetic plans. This thesis takes the corner neither covers: <mark class="kw">real BIM models</mark> from practice, decomposed into rooms, and a result that is a Revit model again, checked by a validator.</p>
+        </aside>
+      </section>
+      <!-- 10 · Method · the pipeline, told by kind of step -->
+      <section class="slide" data-chapter="4 · Method" data-map="ifc-to-graph-recipe masking-training mcp-assembles-in-revit">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>4 · Method · Pipeline</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">Six steps, <em>one round trip.</em></h2>
+        <div class="figmid">
+          <ol class="stepline">
+            <li class="pitch-in" style="--at: 2"><small>01</small><h3>Extract</h3><p class="stepline__does">Revit → JSON · extract.py</p><div class="stepline__foot"><span data-state="built">runs today</span></div></li>
+            <li class="is-key pitch-in" style="--at: 3.5"><small>02</small><h3>Graph</h3><p class="stepline__does">tokens and relations</p><div class="stepline__foot"><span data-state="built">elements today · rooms next</span></div></li>
+            <li class="is-ai pitch-in" style="--at: 5"><small>03</small><h3>Mask</h3><p class="stepline__does">hide a part</p><div class="stepline__foot"><span data-state="built">one element today</span></div></li>
+            <li class="is-ai pitch-in" style="--at: 6.5"><small>04</small><h3>Predict</h3><p class="stepline__does">a small transformer</p><div class="stepline__foot"><span data-state="built">runs today</span></div></li>
+            <li class="pitch-in" style="--at: 8"><small>05</small><h3>Place</h3><p class="stepline__does">back in Revit, by script</p><div class="stepline__foot"><span data-state="built">runs today</span></div></li>
+            <li class="is-off pitch-in" style="--at: 9.5"><small>06</small><h3>Validate</h3><p class="stepline__does">rules + an LLM through MCP</p><div class="stepline__foot"><span data-state="next">next</span></div></li>
+          </ol>
+        </div>
+        <ul class="stepkey pitch-in" style="--at: 11">
+          <li>Revit in and out</li>
+          <li class="is-key">the representation · this thesis</li>
+          <li class="is-ai">the AI</li>
+          <li class="is-off">next</li>
+        </ul>
+        <p class="stepline__below pitch-in" style="--at: 13">Only <mark class="kw">mask and predict</mark> are AI; <em>the MCP server becomes the validator.</em></p>
+        <aside class="notes">
+          <p>The method is <mark class="kw">six steps</mark>, of four kinds. Extract and place are Revit in and out. The <mark class="kw">graph</mark>, the representation, is the thesis's own step. Only <mark class="kw">mask and predict</mark> are AI: hide a part, a small transformer predicts it. The sixth, <mark class="kw">validate</mark>, is next: that is where the MCP server goes.</p>
+        </aside>
+      </section>
+      <!-- 11 · Method · tokens: an element as a sentence, and the room next -->
+      <section class="slide slide--set has-refs" style="--refs-h: 1.8cqw" data-chapter="4 · Method" data-map="masklayout-model-pipeline bfs-subgraphs">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>4 · Method · Tokens</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">A token is one word the network reads; <em>an element, a short sentence of them.</em></h2>
+        <div class="tokstage tokstage--stack">
+          <div class="tokside">
+            <div class="pitch-in" style="--at: 2">
+              <h3>A door <small>7 tokens · today</small></h3>
+              <ol class="tokrow is-seed">
+                <li><code>CLS:door</code><small>what it is</small></li>
+                <li><code>TYPE:M_Single-Flush | 0915 x 2134mm</code><small>its Revit type</small></li>
+                <li><code>LVL:01 - Entry Level</code><small>its level</small></li>
+                <li><code>X:45</code><small>where</small></li>
+                <li><code>Y:14</code><small>where</small></li>
+                <li><code>SILL:0</code><small>sill height</small></li>
+                <li><code>HOST:wall</code><small>what holds it</small></li>
+              </ol>
+            </div>
+            <div class="pitch-in" style="--at: 7">
+              <h3>A room <small>6 tokens today · its relations next</small></h3>
+              <ol class="tokrow">
+                <li><code>CLS:room</code><small>what it is</small></li>
+                <li><code>TYPE:Room | Men</code><small>its name</small></li>
+                <li><code>LVL:02 - Floor</code><small>its level</small></li>
+                <li><code>X:44</code><small>where</small></li>
+                <li><code>Y:7</code><small>where</small></li>
+                <li><code>AREA:15</code><small>how big</small></li>
+                <li class="is-next pitch-in" style="--at: 10"><code>BOUNDS:walls</code><small>its walls</small></li>
+                <li class="is-next pitch-in" style="--at: 11"><code>ADJ:rooms</code><small>rooms beside</small></li>
+                <li class="is-next pitch-in" style="--at: 12"><code>ACCESS:rooms</code><small>through a door</small></li>
+              </ol>
+            </div>
+          </div>
+          <ol class="tokrules pitch-in" style="--at: 14">
+            <li><b>One token per attribute:</b> what it is, where, how big, what it joins.</li>
+            <li><b>Position in 0.5 m cells</b> from the model’s corner: X:45 is 22.5 to 23 m in.</li>
+            <li><b>403 different tokens</b> in the whole model: the vocabulary the network knows.</li>
+            <li><b>Next, in blue:</b> the room’s relations become tokens too.</li>
+          </ol>
+        </div>
+        <ol class="refs pitch-in" style="--at: 15">
+          <li>pipeline/out/experiments/e1-tokens-bfs/tokens.jsonl, Nov 2026 · the door and the room of E1’s piece</li>
+        </ol>
+        <aside class="notes">
+          <p>How does a network read a model? Each element becomes a short sentence of <mark class="kw">tokens</mark>: what it is, its type, level, position, what holds it. A door is 7 tokens. A room is 6 today; next, its <mark class="kw">relations</mark> become tokens too: the walls that bound it, the rooms beside it, and <mark class="kw">access</mark> through a door.</p>
+        </aside>
+      </section>
+      <!-- 12 · Method · masking: hide a part, the network fills it from its neighbours -->
+      <section class="slide slide--set has-refs" style="--refs-h: 1.8cqw" data-chapter="4 · Method" data-map="masking-training new-not-replicated">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>4 · Method · Masking</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">Hide a part: <em>the network guesses it from its neighbours.</em></h2>
+        <div class="pzstage">
+          <svg class="puzzle pitch-in" style="--at: 2" role="img" aria-label="E2's piece: a hidden door in the middle, its 19 visible neighbours around it, each looking at the hole">
+            <defs><marker id="pz-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker></defs>
+            <g class="pz-arrows pitch-in" style="--at: 5"></g>
+            <g class="pz-ring"></g>
+          </svg>
+          <div class="pzside">
+            <ol class="pzsteps">
+              <li class="pitch-in" style="--at: 3"><small>1</small><b>Hide</b><span>one door of a piece of 20; only its level stays</span></li>
+              <li class="pitch-in" style="--at: 5"><small>2</small><b>Look</b><span>the transformer reads every visible neighbour, 3 rounds</span></li>
+              <li class="is-ai pitch-in" style="--at: 7"><small>3</small><b>Answer</b><span>door or window? · which type? · which wall? · where on it?</span></li>
+              <li class="pitch-in" style="--at: 9"><small>4</small><b>Score</b><span>against the most frequent answer and the nearest copy</span></li>
+              <li class="is-next pitch-in" style="--at: 11.5"><small>→</small><b>Next: hide more</b><span>one element → the openings of a room → its walls → a storey; split by building</span></li>
+            </ol>
+            <ul class="pzkey pitch-in" style="--at: 13">
+              <li style="--c: var(--cls-wall)">W wall</li>
+              <li style="--c: var(--cls-floor)">F floor</li>
+              <li style="--c: var(--cls-door)">D door</li>
+              <li style="--c: var(--cls-room)">R room</li>
+            </ul>
+          </div>
+        </div>
+        <ol class="refs pitch-in" style="--at: 15">
+          <li>pipeline/experiments/e2_mask_openings.py, Nov 2026 · drawn on the real piece of E1</li>
+        </ol>
+        <aside class="notes">
+          <p>This is <mark class="kw">masking</mark>. Hide one door of a piece; the transformer reads every <mark class="kw">neighbour</mark>, three rounds, and answers: door or window, which type, which wall, where. Each answer is scored against two baselines. Next, the hidden part <mark class="kw">grows</mark>: the openings of a room, its walls, a whole storey.</p>
+        </aside>
+      </section>
+      <!-- 13 · Results so far · E1, prior work at the element level, the piece built ring by ring -->
+      <section class="slide slide--set has-refs" style="--refs-h: 1.8cqw" data-chapter="5 · Results so far" data-map="bfs-subgraphs">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>5 · Results so far · E1 · Prior work, element level</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">Before the room: <em>one model written as a graph of elements.</em></h2>
+        <div class="setstage">
+          <div class="model3d pitch-in" style="--at: 1.5" data-mode="set" data-set="e1" data-side="source" data-frame="piece" data-steps-at="3,6.5,10" data-label="The sample model, faint: the seed door lights up, then its relations, then the BFS piece of 20 elements ring by ring"></div>
+          <div class="setside">
+            <ol class="ladder pitch-in" style="--at: 1.5"><li data-state="here">element</li><li data-state="partly">relation</li><li data-state="target">room</li></ol>
+            <ol class="setsteps">
+              <li class="pitch-in" style="--c: var(--diff-1); --at: 3"><i></i><b><small>01</small>Seed</b><span>one door, written as tokens</span></li>
+              <li class="pitch-in" style="--at: 6.5"><i></i><b><small>02</small>Relations</b><span>door → its wall, from Revit; the rest from geometry</span></li>
+              <li class="pitch-in" style="--at: 10"><i></i><b><small>03</small>A piece of 20</b><span>ring by ring around the seed, by BFS</span></li>
+            </ol>
+            <div class="minikpis pitch-in" style="--at: 12.5">
+              <div><b>394</b><small>elements</small></div>
+              <div><b>1,238</b><small>relations</small></div>
+              <div><b>403</b><small>words in the vocabulary</small></div>
+              <div><b>286</b><small>distinct pieces</small></div>
+            </div>
+          </div>
+        </div>
+        <p class="stepline__below pitch-in" style="--at: 14">Pieces cut around a seed, <mark class="kw">not yet grouped by room</mark>: <em>the groundwork the room graph builds on.</em></p>
+        <ol class="refs pitch-in" style="--at: 15">
+          <li>Autodesk sample project, one building · pipeline/out/experiments/e1-tokens-bfs/summary.json, 17 Nov 2026</li>
+        </ol>
+        <aside class="notes">
+          <p>Now the results, and they are <mark class="kw">prior work</mark>: at the element level, before the room. The first experiment writes the sample as a graph: a door as the seed, its relations, then a <mark class="kw">piece of 20</mark>, ring by ring. 286 distinct pieces, cut around a seed, <mark class="kw">not grouped by room</mark> yet.</p>
+        </aside>
+      </section>
+      <!-- 14 · Results so far · E2 placed by E3: the whole building, each predicted door coloured by how right it is -->
+      <section class="slide slide--set has-refs" style="--refs-h: 1.8cqw" data-chapter="5 · Results so far" data-map="masking-training mcp-assembles-in-revit">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>5 · Results so far · E2 · E3 · Element level</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">The AI’s doors, back in Revit: <em>the right wall 6 times in 10, none at 1 cm.</em></h2>
+        <div class="setstage">
+          <div class="model3d pitch-in" style="--at: 1.5" data-mode="set" data-set="e3_transformer" data-side="e3-transformer" data-frame="building" data-steps-at="2.5,4,5.5,7,8.5,10" data-label="The rebuilt model with the AI's doors and windows, coloured by how right each one is, with the gap to the real one"></div>
+          <div class="setside">
+            <ol class="ladder pitch-in" style="--at: 1.5"><li data-state="here">element</li><li data-state="partly">relation</li><li data-state="target">room</li></ol>
+            <ol class="setsteps">
+              <li class="pitch-in" style="--c: var(--diff-3); --at: 2.5"><i></i><b><small>50</small>Wall and type right</b></li>
+              <li class="pitch-in" style="--c: var(--diff-4); --at: 4"><i></i><b><small>12</small>Wall right, type wrong</b></li>
+              <li class="pitch-in" style="--c: var(--diff-2); --at: 5.5"><i></i><b><small>39</small>Wrong wall</b></li>
+              <li class="pitch-in" style="--c: var(--cls-door); --at: 7"><i class="is-dash is-tinted"></i><b><small>6</small>Not kept by Revit</b></li>
+              <li class="pitch-in" style="--at: 8.5"><i></i><b><small>→</small>The gap to the real one</b></li>
+            </ol>
+            <div class="bars pitch-in" style="--at: 11.5">
+              <div class="bars__row"><span>type</span><div class="bars__set"><i class="is-ai" style="--v: 79.4"><b>79.4</b></i><i style="--v: 58.9"><b>58.9</b></i><i style="--v: 57.9"><b>57.9</b></i></div></div>
+              <div class="bars__row"><span>wall</span><div class="bars__set"><i class="is-ai" style="--v: 61.7"><b>61.7</b></i><i style="--v: 29.9"><b>29.9</b></i><i style="--v: 32.7"><b>32.7</b></i></div></div>
+              <p class="bars__key"><span class="is-ai">transformer</span><span>most frequent</span><span class="is-copy">copy another floor</span></p>
+            </div>
+          </div>
+        </div>
+        <p class="stepline__below pitch-in" style="--at: 13.5">It learns <mark class="kw">what</mark> goes and <mark class="kw">what it joins</mark>, above both baselines; <em>not yet where exactly: 3.36 m off on the right wall.</em></p>
+        <ol class="refs pitch-in" style="--at: 15">
+          <li>% of 107 hidden doors and windows; 101 kept in the saved model · pipeline/out/experiments/e2-mask-openings and e3-mcp-place, 17–18 Nov 2026</li>
+        </ol>
+        <aside class="notes">
+          <p>Still at the element level: each door was hidden and predicted, then placed back in Revit. <mark class="kw">Green</mark>: wall and type right; amber, wall right; orange, wrong wall. The transformer beats both <mark class="kw">baselines</mark> on type and wall, but lands <mark class="kw">3.36 metres</mark> off along the right wall. None within a centimetre.</p>
+        </aside>
+      </section>
+      <!-- 15 · Results so far · the flaw, and why real projects -->
+      <section class="slide slide--roomy has-refs" style="--refs-h: 1.8cqw" data-chapter="5 · Results so far" data-map="new-not-replicated question">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>5 · Results so far · The flaw and the next step</span><b>09</b></p>
+        <h2 class="pitch-in" style="--at: 0.3">Its storeys repeat: <em>testing on another storey is close to copying.</em></h2>
+        <div class="figmid figmid--stack">
+          <div class="minikpis pitch-in" style="--at: 2.5">
+            <div><b>29%</b><small>of the real openings sit within 10 cm of one on a training storey</small></div>
+            <div><b>32.7%</b><small>right wall just by copying another floor</small></div>
+            <div><b>1</b><small>building only: “new” cannot be measured</small></div>
+          </div>
+          <div class="points points--chain">
+            <article class="card pitch-in" style="--at: 7"><span class="tag tag--ink">01</span><h3>Real projects</h3><p>More models from the office, <mark class="kw">split by building</mark>.</p></article>
+            <article class="card pitch-in" style="--at: 9.5"><span class="tag tag--ink">02</span><h3>Extract rooms</h3><p>Bounds, adjacency, access, read from Revit.</p></article>
+            <article class="card pitch-in" style="--at: 12"><span class="tag tag--ink">03</span><h3>Mask by room</h3><p>Every answer checked by <mark class="kw">rules and MCP</mark>.</p></article>
+          </div>
+        </div>
+        <ol class="refs pitch-in" style="--at: 14">
+          <li>pipeline/out/experiments/e2-mask-openings/summary.json · G. Ramón García Ayala · MaCAD, IAAC</li>
+        </ol>
+        <aside class="notes">
+          <p>And the flaw. The sample's <mark class="kw">storeys repeat</mark>: 29 percent of its openings sit within 10 centimetres of one on another storey, so testing on a storey is close to copying. That is why the next step is <mark class="kw">real projects</mark> from the office, split by building; then extract the rooms, and mask room by room.</p>
+        </aside>
+      </section>
+      <!-- 16 · Thanks: an extra slide after the five sections -->
+      <section class="slide slide--title slide--title-wide slide--thanks" data-chapter="Thanks" data-map="question">
+        <p class="eyebrow pitch-in" style="--at: 0"><span>Thanks</span><b>09</b></p>
+        <div class="title__text">
+          <h1 class="pitch-in" style="--at: 0.3">Thank you.</h1>
+          <p class="lede pitch-in" style="--at: 1.5">Can BIM models be decomposed into <mark class="kw">rooms and their relations</mark> to generate new, valid models?</p>
+          <p class="title__meta pitch-in" style="--at: 2.5">G. Ramón García Ayala · MaCAD, IAAC · questions welcome</p>
+        </div>
+        <aside class="notes">
+          <p><mark class="kw">Thank you.</mark> The question once more, and I am happy to take <mark class="kw">questions</mark>.</p>
+        </aside>
+      </section>
+    </main>
+    <script type="module">
+      import { mountDeck } from '../../assets/deck.js'
+      import { mountSets } from '../../assets/model3d-sets.js'
+      mountDeck(window)
+      mountSets(document) // the E1 and E2 views, from this folder's views.json (node scripts/deck-model.mjs --deck=presentacion-09 --views)
+    </script>
+  </body>
+</html>

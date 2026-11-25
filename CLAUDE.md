@@ -46,7 +46,12 @@ then rebuild the graph from rooms (bounds, adjacency, access); the MCP becomes a
 models from the office, split by building. The answers for the advisor, to keep working on:
 https://claude.ai/artifact/SKjfZvQfGCL9gpa4br2PRm ("Answers for the advisor session", a Claude Docs doc; read and edit
 it through the docs connector). The
-last deck is `presentacion-07` (first tests, 2026-11-18): E1–E3 on the sample model, its numbers from
+last deck is `presentacion-08`: the midterm Pecha Kucha (15 × 20 s, English only), written as a paper in five sections
+(introduction, research question, related work — Tang 2024 and Building-Graph-AI 2025 —, method, results so far); its
+building has a `rooms` phase that marks the sample's 91 rooms. `presentacion-09` is the same pitch in deck 07's look
+(`<body data-pitch data-look="deck">`: no builds, pieces come in by `--at`, 3D views step along the slide's clock with
+`data-steps-at="3,6.5,10"`), 16 slides (a thanks after the five sections), the results told as prior work at the
+element level and the flaw of the repeated storeys; the author works on 09. Before it, `presentacion-07` (first tests, 2026-11-18): E1–E3 on the sample model, its numbers from
 `pipeline/out/experiments/` (`node scripts/deck-model.mjs --deck=presentacion-07 --views` refreshes them). Its next
 steps: the same model, changing the parameters (how much and what to hide, a split that does not rely on storeys, a
 larger network, the order of placing).

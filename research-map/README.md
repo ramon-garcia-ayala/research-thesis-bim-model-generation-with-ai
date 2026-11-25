@@ -46,6 +46,12 @@ over), the clock and the step. Present the deck in its own window; the two follo
 BroadcastChannel (← → and the buttons work in either). Notes go in each slide as `<aside class="notes">…</aside>`, in
 both languages, with `<mark class="kw">` on the key words; the slide never shows them. `presenter.js`.
 
+**Presenter view of a pitch.** On a deck with `data-pitch` (a Pecha Kucha) the presenter view drives the clock, not just the
+slides: **Space** starts, pauses and resumes the pitch (the slides move by themselves every 20 s, as in the deck window),
+**→ / ←** move with the slide's 20 s started over, **R** starts over. Before Space the slides wait complete, with no
+transitions. The view shows a play button, the pitch's clock over its whole length (a click restarts) and the time left on
+the slide; the deck window reports its state over the same channel (`type: 'pitch'`).
+
 **Experiment slides (deck 07).** `model3d-sets.js` draws the experiments' 3D views and diagrams (E1 piece, E2 puzzle and
 network, E3 placements) from the deck's `views.json`; `graph-view.js` draws E1's whole graph from `graph.json` (zoom,
 pan, a click on a node, isolate a class or relation from the key, class colours `--cls-*`). Both files come from

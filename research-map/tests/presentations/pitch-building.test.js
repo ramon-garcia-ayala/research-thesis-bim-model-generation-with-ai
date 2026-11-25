@@ -105,6 +105,10 @@ describe('phaseVector', () => {
   it('puts it back, the placed openings in the accent, when rebuilt', () => {
     expect(phaseVector('rebuilt')).toMatchObject({ explode: 0, graph: 0, mask: 0, ember: 1 })
   })
+  it('marks the rooms, without the graph, when the room is the unit', () => {
+    expect(phaseVector('rooms')).toMatchObject({ alpha: 1, rooms: 1, graph: 0, mask: 0, ember: 0 })
+    expect(phaseVector('exploded').rooms).toBe(0)
+  })
   it('is assembled and quieter as a motif; anything unknown is off', () => {
     expect(phaseVector('motif').explode).toBe(0)
     expect(phaseVector('motif').alpha).toBeLessThan(1)
@@ -166,7 +170,7 @@ describe('rgbOf and places', () => {
     expect(rgbOf('', [1, 2, 3])).toEqual([1, 2, 3])
   })
   it('knows its phases and places; an unknown place is the full one', () => {
-    expect(PHASES).toEqual(['off', 'exploded', 'graph', 'masked', 'rebuilt', 'motif'])
+    expect(PHASES).toEqual(['off', 'exploded', 'graph', 'masked', 'rebuilt', 'rooms', 'motif'])
     expect(Object.keys(PLACES).sort()).toEqual(['corner', 'full', 'left', 'right'])
     expect(placeOf('nowhere')).toBe(PLACES.full)
   })

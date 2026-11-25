@@ -370,12 +370,19 @@ export function mountDeck(win, opts = {}) {
     else if (play === 'auto') runAuto()
     else stopAuto()
   })
+  // A pitch (declared below) owns the keys: the presenter view's commands go through it exactly as the same keys do in
+  // this window, so Space starts, pauses and resumes the clock, and → and ← move with the clock restarted.
+  const PITCH_KEYS = { forward: 'ArrowRight', back: 'ArrowLeft', toggle: ' ', restart: 'r' }
   channel?.addEventListener('message', (e) => {
     const m = e.data ?? {}
-    if (m.type === 'forward') forward()
+    if (pitch && PITCH_KEYS[m.type]) pitch.key({ key: PITCH_KEYS[m.type], preventDefault() {} })
+    else if (m.type === 'forward') forward()
     else if (m.type === 'back') back()
     else if (m.type === 'goto' && Number.isInteger(m.index)) show(m.index)
-    else if (m.type === 'hello') tell()
+    else if (m.type === 'hello') {
+      tell()
+      pitch?.publish()
+    }
   })
   const openPresenter = () => {
     win.open(`${win.location.pathname}?presenter`, `presenter:${win.location.pathname}`, 'width=1280,height=800')
@@ -421,7 +428,9 @@ export function mountDeck(win, opts = {}) {
 
   if (slides.length) show(slideFromHash(win.location.hash, slides.length), true, 0)
   const api = { slides, index: () => current, show }
-  if (slides.length && !embed && doc.body.hasAttribute('data-pitch')) pitch = mountPitch(win, api)
+  if (slides.length && !embed && doc.body.hasAttribute('data-pitch')) {
+    pitch = mountPitch(win, api, (s) => channel?.postMessage({ type: 'pitch', ...s }))
+  }
   return api
 }
 

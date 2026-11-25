@@ -23,8 +23,17 @@ function sizeOf(type) {
   return m ? [Number(m[1]) / 1000, Number(m[2]) / 1000] : [0.9, 2.1]
 }
 
-/** The last step of a view's slide: its highest data-build (0 when it has none). */
+/** The seconds of a pitch slide at which a view takes its steps: `data-steps-at="3,7,11"` → [3, 7, 11]. */
+const stepTimes = (host) => host.dataset.stepsAt.split(',').map(Number).filter(Number.isFinite)
+
+/**
+ * The last step of a view's slide: its highest data-build (0 when it has none). A slide that has no builds (a pitch,
+ * which times its slides instead) gives it with `data-steps` (always shown complete) or `data-steps-at` (one step at
+ * each of those seconds of the slide's clock).
+ */
 function totalOf(host) {
+  if (host.dataset.stepsAt !== undefined) return stepTimes(host).length
+  if (host.dataset.steps !== undefined) return Number(host.dataset.steps) || 0
   const slide = host.closest('.slide')
   const steps = [...(slide?.querySelectorAll('[data-build]') ?? [])].map((e) => Number(e.dataset.build) || 0)
   return Math.max(0, ...steps)
@@ -34,6 +43,15 @@ function totalOf(host) {
  * The step a view shows: its slide's data-step while it is being built, the last one when it is complete or not shown.
  */
 export function stepOf(host, total) {
+  if (host.dataset?.stepsAt !== undefined) {
+    // along the pitch's clock while it runs or pauses on this slide; complete when it waits, ends, or the slide is still
+    const slide = host.closest('.slide')
+    const state = host.ownerDocument?.body?.dataset.pitchState
+    const t = Number(slide?.dataset.pitchT)
+    if (!slide || !['running', 'paused'].includes(state) || slide.dataset.pitchStill !== undefined || !Number.isFinite(t)) return total
+    return Math.min(stepTimes(host).filter((s) => s * 1000 <= t).length, total)
+  }
+  if (host.dataset?.steps !== undefined) return total
   const slide = host.closest('.slide')
   if (!slide || slide.dataset.complete !== undefined || slide.dataset.step === undefined) return total
   const n = Number(slide.dataset.step)
@@ -782,7 +800,7 @@ export async function mountSets(doc = document, url = 'views.json') {
       view.step = next
       draw(view)
     }
-    if (slide) new MutationObserver(follow).observe(slide, { attributes: true, attributeFilter: ['data-step', 'data-complete'] })
+    if (slide) new MutationObserver(follow).observe(slide, { attributes: true, attributeFilter: ['data-step', 'data-complete', 'data-pitch-t', 'data-pitch-still'] })
     draw(view)
   }
 

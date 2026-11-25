@@ -21,6 +21,28 @@ export function clockOf(ms) {
   return h ? `${h}:${two(m)}:${two(s)}` : `${two(m)}:${two(s)}`
 }
 
+/**
+ * What the presenter view says about a pitch, from the pitch's report `{ state, index, elapsed, slideMs, total }`: the
+ * label of its main button (Space does that), the pitch's clock over its whole length, and the time left on the slide.
+ */
+export function pitchFace(p) {
+  const labels = {
+    ready: ['▶ Start', '▶ Iniciar'],
+    running: ['❚❚ Pause', '❚❚ Pausar'],
+    paused: ['▶ Resume', '▶ Seguir'],
+    done: ['↺ Again', '↺ Otra vez'],
+  }
+  const [en, es] = labels[p.state] ?? labels.ready
+  return {
+    en,
+    es,
+    now: clockOf(p.index * p.slideMs + p.elapsed),
+    all: clockOf(p.total * p.slideMs),
+    left: clockOf(p.slideMs - p.elapsed),
+    live: p.state === 'running',
+  }
+}
+
 /** The text of a slide's notes, as HTML (the deck's own markup: lang spans, key words); empty when it has none. */
 export const notesOf = (slide) => slide?.querySelector(':scope > aside.notes')?.innerHTML.trim() ?? ''
 
@@ -94,9 +116,15 @@ export function mountPresenter(win, slides) {
   back.type = fwd.type = 'button'
   back.append(both(doc, ' Back', ' Anterior'))
   fwd.prepend(both(doc, 'Next ', 'Siguiente '))
+  // a pitch (a Pecha Kucha that moves by itself) also has a play button: the same as Space in either window
+  const play = el('button', 'pv__btn pv__play')
+  play.type = 'button'
+  play.hidden = true
   const chapter = el('span', 'pv__chapter')
   const hint = both(doc, '← → or space · the deck window follows', '← → o espacio · la ventana de la presentación sigue', 'small')
-  const foot = el('footer', 'pv__foot', back, chapter, hint, fwd)
+  const pitchHint = both(doc, 'space: play / pause · ← → move · R restarts', 'espacio: play / pausa · ← → mueven · R reinicia', 'small')
+  pitchHint.hidden = true
+  const foot = el('footer', 'pv__foot', back, play, chapter, hint, pitchHint, fwd)
 
   const view = el('div', 'pv', head, el('div', 'pv__body', nowBox, side), foot)
   doc.body.append(view)
@@ -124,10 +152,36 @@ export function mountPresenter(win, slides) {
       both(doc, `Slide ${index + 1} / ${total}`, `Lámina ${index + 1} / ${total}`),
       steps ? both(doc, ` · step ${Math.min(step, steps)} of ${steps}`, ` · paso ${Math.min(step, steps)} de ${steps}`) : '',
     )
+    paintPitch() // a pitch's own line (time left) replaces the one above; paintPitch is set below, before the first paint
   }
   // the previews load after this page: show the slide once each is ready
   for (const f of [now, next]) f.addEventListener('load', () => { shown = -1; paint() })
+  // a pitch reports its clock; until it does, the deck is a normal one and Space means "next"
+  let pitch = null
+  const paintPitch = () => {
+    if (!pitch) return
+    const face = pitchFace(pitch)
+    play.replaceChildren(both(doc, face.en, face.es))
+    play.classList.toggle('is-live', face.live)
+    timer.textContent = `⏱ ${face.now} / ${face.all}`
+    timer.title = 'Restart · Reiniciar'
+    where.replaceChildren(
+      both(doc, `Slide ${state.index + 1} / ${state.total}`, `Lámina ${state.index + 1} / ${state.total}`),
+      both(doc, ` · ${face.left} left`, ` · quedan ${face.left}`),
+    )
+  }
   channel?.addEventListener('message', (e) => {
+    if (e.data?.type === 'pitch') {
+      const first = !pitch
+      pitch = e.data
+      if (first) {
+        play.hidden = false
+        hint.hidden = true
+        pitchHint.hidden = false
+      }
+      paintPitch()
+      return
+    }
     if (e.data?.type !== 'state') return
     state = { ...state, ...e.data }
     paint()
@@ -135,9 +189,12 @@ export function mountPresenter(win, slides) {
   const send = (msg) => channel?.postMessage(msg)
   back.addEventListener('click', () => send({ type: 'back' }))
   fwd.addEventListener('click', () => send({ type: 'forward' }))
+  play.addEventListener('click', () => send({ type: 'toggle' }))
   doc.addEventListener('keydown', (e) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return
-    const keys = { ArrowRight: 'forward', PageDown: 'forward', ' ': 'forward', ArrowLeft: 'back', PageUp: 'back' }
+    // on a pitch, Space is play / pause (not "next") and R starts over, as in the deck window
+    const keys = { ArrowRight: 'forward', PageDown: 'forward', ' ': pitch ? 'toggle' : 'forward', ArrowLeft: 'back', PageUp: 'back' }
+    if (pitch) Object.assign(keys, { r: 'restart', R: 'restart' })
     if (!keys[e.key]) return
     e.preventDefault()
     send({ type: keys[e.key] })
@@ -157,9 +214,13 @@ export function mountPresenter(win, slides) {
 
   // timer from the moment the view opens; a click starts it over
   let start = Date.now()
-  timer.addEventListener('click', () => { start = Date.now(); tick() })
+  // on a pitch the timer is the pitch's own clock (paintPitch) and a click restarts the pitch
+  timer.addEventListener('click', () => {
+    if (pitch) send({ type: 'restart' })
+    else { start = Date.now(); tick() }
+  })
   const tick = () => {
-    timer.textContent = `⏱ ${clockOf(Date.now() - start)}`
+    if (!pitch) timer.textContent = `⏱ ${clockOf(Date.now() - start)}`
     clock.textContent = new Date().toLocaleTimeString(doc.documentElement.dataset.lang === 'es' ? 'es-MX' : 'en-US', { hour: '2-digit', minute: '2-digit' })
   }
   tick()
