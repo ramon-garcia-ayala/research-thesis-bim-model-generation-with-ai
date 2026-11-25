@@ -1,0 +1,740 @@
+{
+  "version": 1,
+  "node": "zhang-2026",
+  "built": {
+    "date": "2026-11-15",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can a generative model produce floorplans with irregular room polygons inside non-rectangular site boundaries, and let the designer give partial input and refine it over several rounds?",
+      "es": "¿Puede un modelo generativo producir plantas con cuartos de forma irregular dentro de terrenos no rectangulares, y permitir que el diseñador dé información parcial y la refine en varias rondas?",
+      "blocks": [
+        "s0-p15",
+        "s1-p2"
+      ],
+      "key": "partial-input-floorplan",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "claim",
+      "en": "The paper lists five gaps in current floorplan generators: only rectangular rooms, few adjustable attributes, no partial design input, forward multi-stage pipelines that ignore backward dependencies, and no site orientation or surrounding-building context.",
+      "es": "El artículo enumera cinco carencias de los generadores de plantas actuales: solo cuartos rectangulares, pocos atributos ajustables, sin entrada parcial de diseño, procesos de varias etapas hacia adelante que ignoran las dependencias hacia atrás, y sin orientación del sitio ni contexto de edificios vecinos.",
+      "blocks": [
+        "s1-p2",
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Masked modeling (BERT, masked autoencoders, MaskGIT) predicts missing tokens from context. The paper treats incomplete user guidance as observed tokens and the unspecified layout attributes as the masked ones to infer.",
+      "es": "El modelado enmascarado (BERT, autoencoders enmascarados, MaskGIT) predice tokens faltantes a partir del contexto. El artículo trata la guía incompleta del usuario como tokens observados y los atributos no especificados del plano como los enmascarados que se deben inferir.",
+      "blocks": [
+        "s1-p5",
+        "s2-p18",
+        "s2-p20"
+      ],
+      "key": "masked-modeling",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "claim",
+      "en": "Against earlier systems that predict attributes in a fixed sequence, MaskLayout claims three differences: unified bidirectional decoding of all rooms and attributes, rooms held as both polygon corners and pixel regions, and acceptance of partial, evolving input instead of a full layout graph.",
+      "es": "Frente a sistemas previos que predicen los atributos en una secuencia fija, MaskLayout afirma tres diferencias: decodificación bidireccional unificada de todos los cuartos y atributos, cuartos representados como esquinas de polígono y como regiones de píxeles, y aceptación de entrada parcial y cambiante en lugar de un grafo de layout completo.",
+      "blocks": [
+        "s2-p30",
+        "s2-p31"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "dataset",
+      "en": "The benchmark is parsed from SwissDwellings (over 50k layouts). Each single apartment keeps its irregular site shape, entrance, north-up orientation and a lightweight adjacent-flat context. Layouts were filtered to a site boundary within 20 × 20 m and at most 14 rooms, leaving over 43k apartments at a fixed scale.",
+      "es": "El benchmark se obtiene de SwissDwellings (más de 50k layouts). Cada departamento conserva su forma irregular de terreno, su entrada, la orientación con el norte arriba y un contexto ligero de departamentos vecinos. Se filtraron los layouts con terreno dentro de 20 × 20 m y máximo 14 cuartos, y quedaron más de 43k departamentos a escala fija.",
+      "blocks": [
+        "s3-p3",
+        "s3-p4",
+        "s2-p29"
+      ],
+      "key": "swissdwellings",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "dataset",
+      "en": "The appendix reports the filtering: the source has 45,176 single-apartment floorplans and a 20 × 20 m canvas retains 41,672. Over 95% of layouts have at most 14 rooms, rooms with more than 20 vertices are dropped, and room area is capped at 64 m2.",
+      "es": "El apéndice reporta el filtrado: la fuente tiene 45,176 plantas de departamento individual y un lienzo de 20 × 20 m conserva 41,672. Más del 95% de los layouts tiene máximo 14 cuartos, se descartan los cuartos con más de 20 vértices y el área de cuarto se limita a 64 m2.",
+      "blocks": [
+        "s6-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "Each apartment is split into up to 14 rooms with six attributes: type, center location, size, adjacency, windows and region. Every attribute is stored twice, as a vector (for example one-hot types, 7-bit coordinates, up to 20 corner points per room) and as an image.",
+      "es": "Cada departamento se divide en hasta 14 cuartos con seis atributos: tipo, ubicación del centro, tamaño, adyacencia, ventanas y región. Cada atributo se guarda dos veces, como vector (por ejemplo tipos one-hot, coordenadas de 7 bits, hasta 20 esquinas por cuarto) y como imagen.",
+      "blocks": [
+        "s3-p5",
+        "s3-p6",
+        "s3-p7"
+      ],
+      "key": "room-attributes",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "concept",
+      "en": "The site condition B is a 128×128×4 image holding the apartment boundary mask, the entrance mask and an adjacent-flat mask. The adjacent-flat mask marks perimeter segments where façade openings are not feasible.",
+      "es": "La condición de sitio B es una imagen de 128×128×4 con la máscara del límite del departamento, la máscara de entrada y una máscara de departamentos vecinos. Esta última marca los tramos del perímetro donde no son factibles las aberturas de fachada.",
+      "blocks": [
+        "s3-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "MaskLayout is a Dual-Modality Masked Generative Transformer. Given the site B and a partial layout graph U, it learns the distribution of the full layout L over iterative masked decoding steps. Vector and image tokens exchange information through cross-attention.",
+      "es": "MaskLayout es un transformer generativo enmascarado de doble modalidad. Dados el sitio B y un grafo de layout parcial U, aprende la distribución del layout completo L mediante pasos iterativos de decodificación enmascarada. Los tokens de vector e imagen intercambian información por atención cruzada.",
+      "blocks": [
+        "s3-p9",
+        "s3-p10",
+        "s3-p13",
+        "s1-p5",
+        "fig-1",
+        "fig-4"
+      ],
+      "key": "masklayout-dmgt",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "A pretrained VQ-VAE compresses each 128×128×4 image into a 5×5 grid of visual tokens, and stays frozen while MaskLayout trains. It trained for 60 epochs in about 51 h, and turning the 3.4M images into tokens took another 59 h.",
+      "es": "Un VQ-VAE preentrenado comprime cada imagen de 128×128×4 en una malla de 5×5 tokens visuales y permanece congelado mientras se entrena MaskLayout. Se entrenó 60 épocas en unas 51 h, y convertir los 3.4M de imágenes en tokens tomó otras 59 h.",
+      "blocks": [
+        "s3-p15",
+        "s3-p16",
+        "s3-p69"
+      ],
+      "key": "vq-vae",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "The bidirectional transformer (ViT-Base settings) adds three attention masks: Partial Input Mask (attend only to unmasked user tokens), Graph-Structured Mask (attend within a room and between adjacent rooms) and Attribute-Wise Mask (attend within the same attribute category).",
+      "es": "El transformer bidireccional (configuración ViT-Base) añade tres máscaras de atención: Partial Input Mask (atiende solo a los tokens no enmascarados del usuario), Graph-Structured Mask (atiende dentro de un cuarto y entre cuartos adyacentes) y Attribute-Wise Mask (atiende dentro de la misma categoría de atributo).",
+      "blocks": [
+        "s3-p19"
+      ],
+      "key": "attention-masks",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Dynamic masking works at two levels: graph-level over the 14 room nodes (all attributes of a node hidden) and node-level over the 6 attributes of a room. A Gaussian schedule inside [0, 1] sets the masking over the steps, because a fixed ratio (15% in BERT, 75% in MAE) does not fit inputs that vary with user preferences.",
+      "es": "El enmascarado dinámico opera en dos niveles: de grafo, sobre los 14 nodos de cuarto (se ocultan todos los atributos del nodo), y de nodo, sobre los 6 atributos de un cuarto. Un calendario gaussiano dentro de [0, 1] fija el enmascarado a lo largo de los pasos, porque una proporción fija (15% en BERT, 75% en MAE) no se ajusta a entradas que varían según las preferencias del usuario.",
+      "blocks": [
+        "s3-p20",
+        "s3-p30",
+        "s3-p31"
+      ],
+      "key": "dynamic-masking",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "A Modality Fusion Encoder encodes vector and image attributes separately and adds them element-wise into an (85, h) representation. A Modality Fusion Decoder then decodes images through the frozen VQ-VAE and decodes vectors conditioned on the image branch, split into the six attributes.",
+      "es": "Un Modality Fusion Encoder codifica por separado los atributos de vector e imagen y los suma elemento a elemento en una representación (85, h). Un Modality Fusion Decoder decodifica las imágenes con el VQ-VAE congelado y los vectores condicionados a la rama de imagen, divididos en los seis atributos.",
+      "blocks": [
+        "s3-p33",
+        "s3-p34",
+        "s3-p36"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "Inference is non-autoregressive: all tokens are predicted at once. A confidence score from the image branch picks the most reliable node, as in MaskGIT but applied at graph level and node level, so decoding proceeds room by room.",
+      "es": "La inferencia no es autorregresiva: todos los tokens se predicen a la vez. Una puntuación de confianza de la rama de imagen elige el nodo más confiable, como en MaskGIT pero aplicada a nivel de grafo y de nodo, de modo que la decodificación avanza cuarto por cuarto.",
+      "blocks": [
+        "s3-p37",
+        "s3-p31"
+      ],
+      "key": "parallel-decoding",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "Training uses a hybrid loss: cross-entropy on masked visual tokens, L2 on the composed image, L2 on the vector attributes (region weight 3, adjacency weight 2, all others 1) and a Chamfer distance on predicted room corner points.",
+      "es": "El entrenamiento usa una pérdida híbrida: entropía cruzada sobre los tokens visuales enmascarados, L2 sobre la imagen compuesta, L2 sobre los atributos vectoriales (peso 3 para región, 2 para adyacencia y 1 para el resto) y una distancia de Chamfer sobre las esquinas de cuarto predichas.",
+      "blocks": [
+        "s3-p45",
+        "s3-p46",
+        "s3-p54",
+        "s3-p57",
+        "s3-p62",
+        "s3-p63"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "Post-processing uses the image prediction to correct the vector one: extract each room's pixel contour (threshold 220), align the predicted polygon to it with Procrustes plus ICP, simplify vertices by a tolerance, and restore critical corners only from the pixel contour.",
+      "es": "El posprocesamiento usa la predicción de imagen para corregir la vectorial: extrae el contorno en píxeles de cada cuarto (umbral 220), alinea el polígono predicho con Procrustes más ICP, simplifica vértices con una tolerancia y restituye esquinas críticas solo desde el contorno de píxeles.",
+      "blocks": [
+        "s3-p75",
+        "s3-p81",
+        "s3-p82",
+        "s3-p99",
+        "s3-p104"
+      ],
+      "key": "post-processing-alignment",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "claim",
+      "en": "Image-only output fits irregular sites but turns into polygons with too many corners; vector-only output struggles with irregular boundaries. The paper hypothesizes attribute value confusion in vectors, since the same token value means different things across attributes. Hence the dual design.",
+      "es": "La salida solo de imagen se ajusta a terrenos irregulares pero produce polígonos con demasiadas esquinas; la salida solo vectorial tiene problemas con límites irregulares. El artículo plantea como hipótesis una confusión de valores de atributo en los vectores, pues el mismo valor de token significa cosas distintas según el atributo. De ahí el diseño dual.",
+      "blocks": [
+        "s3-p73",
+        "s3-p74",
+        "s3-p75"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Distribution metrics are FID between rendered layouts and ground truth, and KL divergence of room-type, size, adjacency and corner-count distributions, chosen because layout generation is one-to-many. Inference time is the average per layout over 1000 samples. Data is split 80%–10%–10% and results come from held-out test sets.",
+      "es": "Las métricas de distribución son el FID entre layouts renderizados y la referencia, y la divergencia KL de las distribuciones de tipo, tamaño, adyacencia y número de esquinas de cuarto, elegida porque la generación de layouts es de uno a muchos. El tiempo de inferencia es el promedio por layout sobre 1000 muestras. Los datos se dividen 80%–10%–10% y los resultados salen de conjuntos de prueba apartados.",
+      "blocks": [
+        "s4-p2",
+        "s4-p4",
+        "s4-p5",
+        "s4-p8",
+        "s3-p68"
+      ],
+      "key": "fid",
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "Architectural-validity metrics are computed on the vectorized output: boundary IoU with leakage and void terms, room overlap rate, area feasibility per room type (for example Bedroom and Dining 12–30 m2), window feasibility (5 pixels, about 0.3 m, from the open facade), circulation accessibility from required neighbor types, and room shape compactness.",
+      "es": "Las métricas de validez arquitectónica se calculan sobre la salida vectorizada: IoU del límite con términos de fuga y vacío, tasa de traslape entre cuartos, factibilidad de área por tipo de cuarto (por ejemplo Bedroom y Dining 12–30 m2), factibilidad de ventanas (5 píxeles, unos 0.3 m, de la fachada abierta), accesibilidad de circulación según los tipos de vecino requeridos y compacidad de la forma del cuarto.",
+      "blocks": [
+        "s4-p9",
+        "s4-p10",
+        "s4-p23",
+        "s4-p29",
+        "s4-p34",
+        "s4-p50",
+        "s4-p51"
+      ],
+      "key": "layout-validity-metrics",
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "method",
+      "en": "Evaluation has three parts: a benchmark on RPLAN against six baselines (RPLAN, Graph2Plan, iPLAN, WallPlan, MaskPLAN, HouseDiffusion), a report on the proposed single-apartment dataset, and the MSD baselines (MSD-MHD, MSD-UN) on their own multi-family data.",
+      "es": "La evaluación tiene tres partes: un benchmark en RPLAN contra seis líneas base (RPLAN, Graph2Plan, iPLAN, WallPlan, MaskPLAN, HouseDiffusion), un reporte sobre el dataset propuesto de departamentos individuales, y las líneas base de MSD (MSD-MHD, MSD-UN) sobre sus propios datos multifamiliares.",
+      "blocks": [
+        "s4-p1",
+        "s4-p53"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "On RPLAN, Ours dual* outperforms existing models across most metrics. With post-processing it reaches or matches state-of-the-art across nearly all metrics, and all of the paper's models get the best average execution time t, which the paper attributes to parallel decoding. The numbers are in Table 1, not in the running text.",
+      "es": "En RPLAN, Ours dual* supera a los modelos existentes en la mayoría de las métricas. Con posprocesamiento alcanza o iguala el estado del arte en casi todas, y todos los modelos del artículo logran el mejor tiempo promedio de ejecución t, que el artículo atribuye a la decodificación paralela. Las cifras están en la Tabla 1, no en el texto corrido.",
+      "blocks": [
+        "s4-p63",
+        "s4-p69",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "MaskLayout has 164.3M parameters against 542.1M for MaskPLAN, and trains in 32 h against 127 h. The paper explains this by its integrated transformer backbone versus MaskPLAN's multi-encoder/decoder design.",
+      "es": "MaskLayout tiene 164.3M de parámetros frente a 542.1M de MaskPLAN, y entrena en 32 h frente a 127 h. El artículo lo explica por su backbone transformer integrado frente al diseño de múltiples codificadores y decodificadores de MaskPLAN.",
+      "blocks": [
+        "s3-p70"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "On the SwissDwellings single-apartment set, the full dual-modality model is best in FID_img, KL_A and KL_S, while the vector-only variant is best in KL_T (room-type distribution).",
+      "es": "En el conjunto de departamentos individuales de SwissDwellings, el modelo dual completo es el mejor en FID_img, KL_A y KL_S, mientras que la variante solo vectorial es la mejor en KL_T (distribución de tipos de cuarto).",
+      "blocks": [
+        "s4-p70",
+        "s4-p71",
+        "s4-p72"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "MSD, also derived from SwissDwellings, targets multi-family layouts and does not enforce scale consistency; MaskLayout uses a fixed scale so pixel layouts transfer to CAD at real dimensions. The two MSD baselines perform significantly worse across most metrics, though the task differs.",
+      "es": "MSD, también derivado de SwissDwellings, apunta a layouts multifamiliares y no impone consistencia de escala; MaskLayout usa escala fija para que los layouts en píxeles pasen a CAD con dimensiones reales. Las dos líneas base de MSD rinden significativamente peor en la mayoría de las métricas, aunque la tarea es distinta.",
+      "blocks": [
+        "s2-p29",
+        "s4-p73"
+      ],
+      "key": "msd",
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "Attention-mask ablation (FID_img, no post-processing): full model 4.02; without PIM 10.26; without GSM 6.29; without AWM 4.73; full attention 7.08; PIM tripled instead of the three masks 5.71. The best result comes from combining all three masks.",
+      "es": "Ablación de máscaras de atención (FID_img, sin posprocesamiento): modelo completo 4.02; sin PIM 10.26; sin GSM 6.29; sin AWM 4.73; atención completa 7.08; PIM triplicado en lugar de las tres máscaras 5.71. El mejor resultado sale de combinar las tres máscaras.",
+      "blocks": [
+        "s4-p76",
+        "s4-p83"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "Masking and decoding ablation (FID_img): linear masking schedule 4.30, evenly decoding by confidence 4.67 and an autoregressive transformer 4.84, against 4.02 for the full model. The paper reads this as node-by-node backward decoding fitting the forward graph-level masking schedule, and bidirectional attention suiting interdependent attributes.",
+      "es": "Ablación de enmascarado y decodificación (FID_img): calendario de enmascarado lineal 4.30, decodificar de forma pareja por confianza 4.67 y un transformer autorregresivo 4.84, frente a 4.02 del modelo completo. El artículo lo interpreta como que la decodificación hacia atrás nodo por nodo encaja con el calendario de enmascarado de grafo, y que la atención bidireccional sirve a atributos interdependientes.",
+      "blocks": [
+        "s4-p76",
+        "s4-p83"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "Representation ablation (FID_img): a plain VAE instead of VQ-VAE 24.52; without the fusion decoder 6.17; without the fusion encoder 4.42; without the Chamfer loss 4.90, against 4.02 for the full model. The decoder, which guides vector predictions with image priors, has the larger effect on geometric consistency.",
+      "es": "Ablación de representación (FID_img): un VAE simple en lugar de VQ-VAE 24.52; sin el decodificador de fusión 6.17; sin el codificador de fusión 4.42; sin la pérdida de Chamfer 4.90, frente a 4.02 del modelo completo. El decodificador, que guía las predicciones vectoriales con priors de imagen, tiene el mayor efecto en la consistencia geométrica.",
+      "blocks": [
+        "s4-p76",
+        "s4-p83"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "result",
+      "en": "On validity metrics, vector-only is weakest, image-only tightens the boundary but barely improves circulation, and the dual model combines both. Post-processing raises Q_bound to 0.97 IoU and moves ε_leak 0.03 →0.02, ε_void 0.06 →0.03, ε_overlap 0.08 →0.01 and ε_area 0.20 →0.07, with Q_shape = 0.87.",
+      "es": "En las métricas de validez, la versión solo vectorial es la más débil, la solo de imagen ajusta el límite pero casi no mejora la circulación, y el modelo dual combina ambas. El posprocesamiento sube Q_bound a 0.97 IoU y mueve ε_leak 0.03 →0.02, ε_void 0.06 →0.03, ε_overlap 0.08 →0.01 y ε_area 0.20 →0.07, con Q_shape = 0.87.",
+      "blocks": [
+        "s4-p84"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "result",
+      "en": "Removing the adjacent-flat mask from B gives FID_img 6.36 against 4.02 (the ablated FID is computed against ground truth that also lacks the context). Window feasibility Q_win shows the largest gap, 0.74→0.83, and post-processing cannot recover it because it cannot tell which facade segments are blocked.",
+      "es": "Quitar la máscara de departamentos vecinos de B da un FID_img de 6.36 frente a 4.02 (el FID ablacionado se calcula contra una referencia que también carece del contexto). La factibilidad de ventanas Q_win muestra la mayor diferencia, 0.74→0.83, y el posprocesamiento no puede recuperarla porque no sabe qué tramos de fachada están bloqueados.",
+      "blocks": [
+        "s4-p83",
+        "s4-p84"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "result",
+      "en": "FID_img by room count under boundary-only conditioning (500 generated layouts per count) rises from 2.78 at 3 rooms to 4.85 at 14 rooms, peaking at 5.06 at 13 rooms. It is not strictly monotonic (10 vs. 9 rooms; 14 vs. 13 rooms).",
+      "es": "El FID_img por número de cuartos con condición solo de límite (500 layouts generados por cada número) sube de 2.78 con 3 cuartos a 4.85 con 14 cuartos, con un máximo de 5.06 en 13 cuartos. No es estrictamente monótono (10 vs. 9 cuartos; 14 vs. 13 cuartos).",
+      "blocks": [
+        "s4-p85",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "result",
+      "en": "With input growing from site only to four rooms, each shown in four stochastic variations, boundary-only input already gives plausible decompositions with the most diversity. Added rooms are preserved across variations while unconstrained regions are reconfigured to fit the remaining space and adjacency.",
+      "es": "Con entradas que crecen de solo el sitio hasta cuatro cuartos, cada una mostrada en cuatro variaciones estocásticas, la entrada solo de límite ya da descomposiciones plausibles con la mayor diversidad. Los cuartos añadidos se conservan en todas las variaciones, mientras que las zonas sin restricción se reconfiguran para ajustarse al espacio y a la adyacencia restantes.",
+      "blocks": [
+        "s5-p3",
+        "s5-p4",
+        "fig-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "result",
+      "en": "With site, room types and locations fixed, requesting small or big bedroom sizes changes the whole partition: small bedrooms leave more area for shared spaces, big bedrooms expand and compress the other rooms. Layouts stay aligned with the irregular boundary and keep room-type semantics.",
+      "es": "Con sitio, tipos y ubicaciones de cuarto fijos, pedir recámaras pequeñas o grandes cambia toda la partición: las pequeñas dejan más área a los espacios compartidos, las grandes se expanden y comprimen los demás cuartos. Los layouts siguen alineados con el límite irregular y conservan la semántica de tipo de cuarto.",
+      "blocks": [
+        "s5-p6",
+        "s5-p7",
+        "fig-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "result",
+      "en": "Three architects with apartment-design experience reviewed the generated layouts over three iterations and helped refine one toward a furnished plan. They preferred the second iteration (clearer living room), found some variations interesting but impractical, and wanted wall alignment to the site boundary. They also missed inputs such as reference plans, lifestyle narratives and budget.",
+      "es": "Tres arquitectos con experiencia en diseño de departamentos revisaron los layouts generados a lo largo de tres iteraciones y ayudaron a refinar uno hasta una planta amueblada. Prefirieron la segunda iteración (sala más clara), vieron algunas variaciones como interesantes pero poco prácticas, y pidieron alineación de muros con el límite del terreno. También echaron de menos entradas como planos de referencia, narrativas de estilo de vida y presupuesto.",
+      "blocks": [
+        "s5-p9",
+        "s5-p10",
+        "fig-11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "limitation",
+      "en": "The 'ready for BIM/CAD' claim only means closed room polygons usable as a geometric scaffold. It is not practice-grade BIM output, which needs clean wall polygons, explicit door and window geometry with consistent topology, wall thickness, junction logic and opening dimensions. The architects had to derive walls by hand.",
+      "es": "La afirmación 'listo para BIM/CAD' solo significa polígonos de cuarto cerrados usables como andamio geométrico. No es una salida BIM de nivel profesional, que requiere polígonos de muro limpios, geometría explícita de puertas y ventanas con topología consistente, espesor de muro, lógica de uniones y dimensiones de aberturas. Los arquitectos tuvieron que derivar los muros a mano.",
+      "blocks": [
+        "s6-p2",
+        "s5-p10"
+      ],
+      "key": "bim-ready-gap",
+      "origin": "read"
+    },
+    {
+      "id": "i35",
+      "kind": "limitation",
+      "en": "Scope limits: single floor only, no structural elements (load-bearing walls, stairs, service shafts), sites up to 20 × 20 m and at most 14 rooms, a fixed site boundary, only a lightweight adjacent-flat context, no precedent, lifestyle or budget inputs, no check of furniture feasibility, and geometry refined through the image rather than a dedicated module.",
+      "es": "Límites de alcance: solo una planta, sin elementos estructurales (muros de carga, escaleras, ductos de servicio), terrenos de hasta 20 × 20 m y máximo 14 cuartos, límite de terreno fijo, solo un contexto ligero de departamentos vecinos, sin entradas de precedentes, estilo de vida o presupuesto, sin revisión de factibilidad de mobiliario, y geometría refinada a través de la imagen y no con un módulo dedicado.",
+      "blocks": [
+        "s6-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i36",
+      "kind": "limitation",
+      "en": "Observed failure modes: infeasible circulation (inaccessible rooms), room location drift and omitted functional spaces under sparse guidance, numeric size constraints met only approximately, and post-processing artifacts such as misaligned edges or missing corner nodes.",
+      "es": "Modos de falla observados: circulación inviable (cuartos inaccesibles), deriva en la ubicación de cuartos y omisión de espacios funcionales con guía escasa, restricciones numéricas de tamaño cumplidas solo de forma aproximada, y artefactos del posprocesamiento como bordes desalineados o esquinas faltantes.",
+      "blocks": [
+        "s6-p3",
+        "fig-12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i37",
+      "kind": "future",
+      "en": "Planned work: geometry-aware modules for irregular boundaries, and construction-aware generation that outputs clean wall polygons and explicit door and window elements with engineering information (wall thickness, junction logic, parametric opening dimensions) to reduce manual redrafting.",
+      "es": "Trabajo planeado: módulos conscientes de la geometría para límites irregulares, y generación consciente de la construcción que produzca polígonos de muro limpios y elementos explícitos de puertas y ventanas con información de ingeniería (espesor de muro, lógica de uniones, dimensiones paramétricas de aberturas) para reducir el redibujado manual.",
+      "blocks": [
+        "s6-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i38",
+      "kind": "future",
+      "en": "Further directions: nested composition (a primary bedroom with attached bathroom and closet as one module), multi-floor and 3D generation, richer urban context, inputs such as precedent references, client lifestyle narratives and budget, and an evaluation of furnishing and fixture feasibility.",
+      "es": "Otras direcciones: composición anidada (una recámara principal con baño y clóset anexos como un solo módulo), generación multinivel y 3D, contexto urbano más rico, entradas como referencias de precedentes, narrativas de estilo de vida del cliente y presupuesto, y una evaluación de factibilidad de mobiliario y accesorios.",
+      "blocks": [
+        "s6-p4"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "The five gaps in prior generators are what the question sets out to close."
+    },
+    {
+      "from": "i9",
+      "to": "i3",
+      "type": "uses",
+      "why": "Unspecified attributes are treated as masked tokens inferred from the observed ones."
+    },
+    {
+      "from": "i9",
+      "to": "i5",
+      "type": "uses",
+      "why": "MaskLayout is trained on the SwissDwellings-derived single-apartment set."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "part-of",
+      "why": "The frozen VQ-VAE turns images into the visual tokens the transformer predicts."
+    },
+    {
+      "from": "i11",
+      "to": "i9",
+      "type": "part-of",
+      "why": "The three attention masks sit inside the bidirectional transformer."
+    },
+    {
+      "from": "i12",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Dynamic masking simulates incomplete user guidance during training."
+    },
+    {
+      "from": "i13",
+      "to": "i9",
+      "type": "part-of",
+      "why": "The fusion encoder and decoder join the vector and image branches."
+    },
+    {
+      "from": "i14",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Parallel node-by-node decoding is how the model generates at inference."
+    },
+    {
+      "from": "i15",
+      "to": "i9",
+      "type": "part-of",
+      "why": "The hybrid loss trains both modalities together."
+    },
+    {
+      "from": "i16",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Post-processing turns image and vector outputs into final room polygons."
+    },
+    {
+      "from": "i6",
+      "to": "i5",
+      "type": "part-of",
+      "why": "The appendix gives the filtering details of the benchmark."
+    },
+    {
+      "from": "i7",
+      "to": "i5",
+      "type": "part-of",
+      "why": "The six attributes in two modalities are how each apartment is stored."
+    },
+    {
+      "from": "i8",
+      "to": "i5",
+      "type": "part-of",
+      "why": "The site condition image accompanies every apartment in the dataset."
+    },
+    {
+      "from": "i12",
+      "to": "i3",
+      "type": "uses",
+      "why": "Masking-ratio choices are discussed against BERT (15%) and MAE (75%)."
+    },
+    {
+      "from": "i14",
+      "to": "i3",
+      "type": "uses",
+      "why": "Confidence-based iterative decoding follows MaskGIT."
+    },
+    {
+      "from": "i17",
+      "to": "i13",
+      "type": "supports",
+      "why": "The weaknesses of single-modality outputs motivate fusing image and vector."
+    },
+    {
+      "from": "i18",
+      "to": "i21",
+      "type": "measures",
+      "why": "FID, KL and inference time are the distribution and speed metrics in the RPLAN comparison."
+    },
+    {
+      "from": "i18",
+      "to": "i23",
+      "type": "measures",
+      "why": "The same metrics compare the vector, image and dual variants."
+    },
+    {
+      "from": "i19",
+      "to": "i28",
+      "type": "measures",
+      "why": "The validity metrics expose modality and post-processing effects."
+    },
+    {
+      "from": "i19",
+      "to": "i29",
+      "type": "measures",
+      "why": "Window feasibility isolates what the adjacent-flat context adds."
+    },
+    {
+      "from": "i21",
+      "to": "i20",
+      "type": "uses",
+      "why": "The RPLAN comparison runs against the six listed baselines."
+    },
+    {
+      "from": "i24",
+      "to": "i20",
+      "type": "uses",
+      "why": "The MSD baselines are the third part of the evaluation."
+    },
+    {
+      "from": "i21",
+      "to": "i14",
+      "type": "supports",
+      "why": "The best average execution time is attributed to parallel decoding."
+    },
+    {
+      "from": "i22",
+      "to": "i4",
+      "type": "supports",
+      "why": "A smaller, faster model backs the claim of a unified design over multi-encoder pipelines."
+    },
+    {
+      "from": "i23",
+      "to": "i17",
+      "type": "supports",
+      "why": "The dual variant beats single-modality variants on most distribution metrics."
+    },
+    {
+      "from": "i27",
+      "to": "i17",
+      "type": "supports",
+      "why": "Removing the fusion decoder raises FID from 4.02 to 6.17."
+    },
+    {
+      "from": "i25",
+      "to": "i11",
+      "type": "supports",
+      "why": "Dropping or replacing the attention masks worsens FID."
+    },
+    {
+      "from": "i26",
+      "to": "i14",
+      "type": "supports",
+      "why": "Node-by-node decoding beats even decoding and autoregressive decoding."
+    },
+    {
+      "from": "i28",
+      "to": "i16",
+      "type": "supports",
+      "why": "Post-processing improves boundary, overlap, void and area metrics."
+    },
+    {
+      "from": "i29",
+      "to": "i8",
+      "type": "supports",
+      "why": "The adjacent-flat channel is shown to act as a facade-awareness signal."
+    },
+    {
+      "from": "i31",
+      "to": "i12",
+      "type": "supports",
+      "why": "Room-level constraints are kept while the rest is regenerated."
+    },
+    {
+      "from": "i32",
+      "to": "i12",
+      "type": "supports",
+      "why": "A size preference given as partial input reshapes the whole plan."
+    },
+    {
+      "from": "i33",
+      "to": "i4",
+      "type": "supports",
+      "why": "Architects used the model in a sketch–refine loop with partial input."
+    },
+    {
+      "from": "i34",
+      "to": "i37",
+      "type": "supports",
+      "why": "The gap to BIM-ready output motivates construction-aware generation."
+    },
+    {
+      "from": "i35",
+      "to": "i38",
+      "type": "supports",
+      "why": "The listed scope limits map onto the further directions."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i9",
+      "to": "zhang-2026",
+      "why": "This is the paper's own node: a floorplan as masked room-attribute graphs, filled in parallel from partial user input."
+    },
+    {
+      "idea": "i7",
+      "to": "hypothesis",
+      "why": "Splits an apartment into per-room attributes and adjacencies and recovers hidden parts from the rest, which supports the hypothesis in 2D floorplans, not in BIM."
+    },
+    {
+      "idea": "i19",
+      "to": "question",
+      "why": "Gives measurable rules for what 'valid' means for generated parts (boundary IoU, area intervals, window and circulation checks)."
+    },
+    {
+      "idea": "i12",
+      "to": "masking-training",
+      "why": "A masking scheme at two levels (whole room, single attribute) with a Gaussian schedule, because fixed ratios do not fit varied user input."
+    },
+    {
+      "idea": "i26",
+      "to": "placement-order-experiments",
+      "why": "Direct evidence on order: node-by-node confidence decoding (4.02) beats even decoding (4.67) and autoregressive (4.84)."
+    },
+    {
+      "idea": "i14",
+      "to": "chang-2022",
+      "why": "Adapts MaskGIT-style parallel, confidence-ranked decoding to graph and node level."
+    },
+    {
+      "idea": "i18",
+      "to": "new-not-replicated",
+      "why": "Uses KL because many layouts are valid and shows varied samples, but reports no test for copying training layouts, a gap the data-copying test fills."
+    },
+    {
+      "idea": "i16",
+      "to": "locks-beside-learned-part",
+      "why": "An explicit rule-based stage (alignment, simplification, corner recovery) sits after the learned model, and cannot fix window feasibility."
+    },
+    {
+      "idea": "i34",
+      "to": "production-ready",
+      "why": "Spells out what separates room-level polygons from a BIM-ready model: walls, openings with topology, thickness, junctions and dimensions."
+    },
+    {
+      "idea": "i24",
+      "to": "msd",
+      "why": "Contrasts MSD (multi-family, no scale consistency) with a fixed-scale single-apartment set derived from the same source."
+    },
+    {
+      "idea": "i31",
+      "to": "one-or-many",
+      "why": "Shows four variations per input level and that diversity shrinks as the user adds constraints."
+    },
+    {
+      "idea": "i33",
+      "to": "hands-move",
+      "why": "Architects stopped drawing and instead set constraints, compared variations and chose, which is the move from drawing to criteria and choice."
+    }
+  ]
+}

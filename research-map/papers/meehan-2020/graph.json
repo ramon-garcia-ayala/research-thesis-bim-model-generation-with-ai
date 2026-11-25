@@ -1,0 +1,704 @@
+{
+  "version": 1,
+  "node": "meehan-2020",
+  "built": {
+    "date": "2026-11-15",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "concept",
+      "en": "Data-copying is a form of overfitting in which a generative model memorizes and outputs training samples or small variations of them, instead of the true diversity of the data. Formally, a model Q data-copies training set T if, in some region C of the instance space, its samples are systematically closer to T than samples from the true distribution P are (Definition 2.1: ∆T(P|C, Q|C) < 1/2).",
+      "es": "El data-copying es una forma de sobreajuste en la que un modelo generativo memoriza y produce muestras de entrenamiento o pequeñas variaciones de ellas, en lugar de la diversidad real de los datos. Formalmente, un modelo Q copia el conjunto de entrenamiento T si, en alguna región C del espacio de instancias, sus muestras están sistemáticamente más cerca de T que las muestras de la distribución verdadera P (Definición 2.1: ∆T(P|C, Q|C) < 1/2).",
+      "blocks": [
+        "s0-p1",
+        "s1-p11",
+        "s2-p8",
+        "s2-p22"
+      ],
+      "key": "data-copying",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "question",
+      "en": "Are the existing tests that measure overfitting in generative models able to capture data-copying?",
+      "es": "¿Las pruebas existentes que miden el sobreajuste en modelos generativos son capaces de detectar el data-copying?",
+      "blocks": [
+        "s4-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "question",
+      "en": "As popular generative models range from over- to underfit, does the paper's test indicate data-copying, and to what degree?",
+      "es": "Conforme los modelos generativos populares van del sobreajuste al subajuste, ¿la prueba del artículo indica data-copying y en qué grado?",
+      "blocks": [
+        "s4-p4",
+        "s4-p15"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "VAEs and GANs involve millions of parameters but give no exact, tractable likelihood (a VAE gives only a lower bound, a GAN no density at all). So the classical check, a low generalization gap in likelihood, often does not apply, and any assessment must rely only on the samples the model produces.",
+      "es": "Los VAE y las GAN tienen millones de parámetros pero no ofrecen una verosimilitud exacta y tratable (un VAE da solo una cota inferior, una GAN no da ninguna densidad). Por eso la revisión clásica, una brecha de generalización baja en la verosimilitud, muchas veces no aplica, y cualquier evaluación debe basarse solo en las muestras que produce el modelo.",
+      "blocks": [
+        "s1-p6",
+        "s1-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "concept",
+      "en": "Over-representation is the kind of overfitting that FID and precision and recall target: the model puts much more probability than the true distribution on some region (Q(C) − P(C) ≫ 0). The paper says it is orthogonal to data-copying: a model can have either without the other, and a bootstrap sample of T data-copies without over-representing.",
+      "es": "La sobrerrepresentación es el tipo de sobreajuste que atacan FID y precision y recall: el modelo asigna mucha más probabilidad que la distribución verdadera a alguna región (Q(C) − P(C) ≫ 0). El artículo dice que es ortogonal al data-copying: un modelo puede tener uno sin el otro, y una muestra bootstrap de T copia datos sin sobrerrepresentar.",
+      "blocks": [
+        "s2-p25",
+        "s2-p26",
+        "s2-p28",
+        "fig-1"
+      ],
+      "key": "over-representation",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "The test uses three independent samples: the training set T used to build the model, a separate held-out sample Pn of n points from the true distribution, and a generated sample Qm of m points from the model.",
+      "es": "La prueba usa tres muestras independientes: el conjunto de entrenamiento T con el que se construyó el modelo, una muestra aparte Pn de n puntos de la distribución verdadera que no se usó en el entrenamiento, y una muestra generada Qm de m puntos del modelo.",
+      "blocks": [
+        "s1-p11",
+        "s2-p1",
+        "s2-p2",
+        "s2-p3"
+      ],
+      "key": "three-sample-test",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "The key insight is that an overfit generative model produces samples that are too close to the training samples, closer on average than an independently drawn test sample from the same distribution. So, given a suitable distance function, data-copying can be tested by comparing distances to the closest training point for generated versus test samples.",
+      "es": "La idea central es que un modelo generativo sobreajustado produce muestras demasiado cercanas a las de entrenamiento, más cercanas en promedio que una muestra de prueba tomada de forma independiente de la misma distribución. Así, con una función de distancia adecuada, el data-copying se puede probar comparando las distancias al punto de entrenamiento más cercano de las muestras generadas contra las de prueba.",
+      "blocks": [
+        "s1-p12",
+        "s2-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Distance to the training set is d(x) = min over t in T of ∥x − t∥2. With A drawn from the distances of P and B from the distances of Q, ∆T(P, Q) = Pr[B > A]. The null hypothesis is H0: ∆T(P, Q) = 1/2, and ∆T(P, Q) ≪ 1/2 means Q is data-copying.",
+      "es": "La distancia al conjunto de entrenamiento es d(x) = mín sobre t en T de ∥x − t∥2. Con A tomada de las distancias de P y B de las distancias de Q, ∆T(P, Q) = Pr[B > A]. La hipótesis nula es H0: ∆T(P, Q) = 1/2, y ∆T(P, Q) ≪ 1/2 significa que Q está copiando datos.",
+      "blocks": [
+        "s2-p8",
+        "s2-p13",
+        "s2-p16",
+        "s2-p20",
+        "s3-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "The global test ranks the n + m distances together and computes the Mann-Whitney U statistic for the generated sample, which counts the pairwise comparisons where a generated distance exceeds a test distance. With more than 20 samples in both, U is approximately normal under H0, giving a z-score ZU: ZU ≪ 0 implies data-copying and ZU ≫ 0 implies underfitting.",
+      "es": "La prueba global ordena juntas las n + m distancias y calcula el estadístico U de Mann-Whitney para la muestra generada, que cuenta las comparaciones por pares en las que una distancia generada supera a una de prueba. Con más de 20 muestras en ambas, U es aproximadamente normal bajo H0, lo que da un puntaje z, ZU: ZU ≪ 0 implica data-copying y ZU ≫ 0 implica subajuste.",
+      "blocks": [
+        "s3-p5",
+        "s3-p6",
+        "s3-p8",
+        "s3-p14",
+        "s3-p20"
+      ],
+      "key": "mann-whitney-u",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "The local test splits the instance space into cells with k-means run on T, computes ZU separately in each cell, and averages the cell scores weighted by the fraction of test points in each cell. Only cells that the model populates above a threshold τ are included, and the result is the summary statistic CT(Pn, Qm).",
+      "es": "La prueba local divide el espacio de instancias en celdas con k-means aplicado a T, calcula ZU por separado en cada celda y promedia los puntajes de las celdas ponderados por la fracción de puntos de prueba en cada una. Solo se incluyen las celdas que el modelo puebla por encima de un umbral τ, y el resultado es el estadístico resumen CT(Pn, Qm).",
+      "blocks": [
+        "s1-p14",
+        "s3-p24",
+        "s3-p25",
+        "s3-p27",
+        "s3-p28"
+      ],
+      "key": "ct-statistic",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "concept",
+      "en": "Modern generative models behave differently in different regions: a model can data-copy in one region and underfit in another. A global test can then fail, because overall Q may look further from T than P is while being much closer locally.",
+      "es": "Los modelos generativos modernos se comportan distinto en distintas regiones: un modelo puede copiar datos en una región y subajustar en otra. Una prueba global puede fallar entonces, porque en conjunto Q puede verse más lejos de T que P aunque localmente esté mucho más cerca.",
+      "blocks": [
+        "s1-p14",
+        "s2-p21",
+        "s3-p22",
+        "fig-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "For completeness the paper adds a per-cell z-test of representation, using a test set rather than the training set, that reports how many cells (bins) the model significantly over-represents (NDB-over) and under-represents (NDB-under) at significance level s = 0.05. Together CT, NDB-over and NDB-under describe how Q represents P without copying T.",
+      "es": "Para completar, el artículo añade una prueba z de representación por celda, con un conjunto de prueba en lugar del de entrenamiento, que reporta cuántas celdas (bins) el modelo sobrerrepresenta (NDB-over) y subrepresenta (NDB-under) significativamente con nivel de significancia s = 0.05. Juntos, CT, NDB-over y NDB-under describen cómo Q representa a P sin copiar T.",
+      "blocks": [
+        "s3-p32",
+        "s3-p35",
+        "s3-p36"
+      ],
+      "key": "ndb",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "result",
+      "en": "Theorem 1: U/(mn) is a consistent estimator of ∆T(P, Q), with the concentration bound exp(−2t²mn/(m + n)). Theorem 2: if Q = P and the distance distribution is non-atomic, the expected value of U/(mn) is 1/2 and E[ZU] = 0. These guarantees cover only the global test; guarantees for the averaged test are left for future work.",
+      "es": "Teorema 1: U/(mn) es un estimador consistente de ∆T(P, Q), con la cota de concentración exp(−2t²mn/(m + n)). Teorema 2: si Q = P y la distribución de distancias no tiene átomos, el valor esperado de U/(mn) es 1/2 y E[ZU] = 0. Estas garantías cubren solo la prueba global; las garantías para la prueba promediada quedan como trabajo futuro.",
+      "blocks": [
+        "s3-p37",
+        "s3-p39",
+        "s3-p40",
+        "s3-p48",
+        "s3-p51",
+        "s7-p29"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "result",
+      "en": "Lemma 3: for a Gaussian kernel density estimator, the maximum-likelihood σ satisfies the equal expected distance condition EX∼P[d(X)] = EY∼Q[d(Y)] (up to the approximation that holds unless σ is large). So choosing σ by this condition is a non-parametric route to the maximum-likelihood KDE, and CT ≈ 0 is expected there.",
+      "es": "Lema 3: para un estimador de densidad por kernel gaussiano, el σ de máxima verosimilitud satisface la condición de igual distancia esperada EX∼P[d(X)] = EY∼Q[d(Y)] (con la aproximación que vale salvo que σ sea grande). Elegir σ con esta condición es entonces una vía no paramétrica al KDE de máxima verosimilitud, y se espera CT ≈ 0 ahí.",
+      "blocks": [
+        "s3-p53",
+        "s3-p59",
+        "s3-p66",
+        "s3-p67"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "dataset",
+      "en": "Moons is a synthetic two-dimensional dataset of two interlocking curved manifolds with configurable noise. It gives unlimited training and test samples and needs no embedding. The experiments fix T at 2000 points, Pn at 1000 and Qm at 1000, regenerating Qm 10 times.",
+      "es": "Moons es un conjunto de datos sintético bidimensional de dos variedades curvas entrelazadas con ruido configurable. Da muestras de entrenamiento y de prueba ilimitadas y no necesita embedding. Los experimentos fijan T en 2000 puntos, Pn en 1000 y Qm en 1000, y regeneran Qm 10 veces.",
+      "blocks": [
+        "s4-p7",
+        "s7-p91",
+        "s7-p93"
+      ],
+      "key": "moons",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "dataset",
+      "en": "MNIST handwritten digits with a training sample of |T| = 50,000, a test sample of n = 10,000, a validation sample of 10,000 and generated samples of m = 10,000. All tests run in a 64-dimensional latent space from a convolutional autoencoder trained with a VGG perceptual loss, because L2 distance in pixel space is not perceptually meaningful.",
+      "es": "Dígitos manuscritos de MNIST con una muestra de entrenamiento de |T| = 50,000, una de prueba de n = 10,000, una de validación de 10,000 y muestras generadas de m = 10,000. Todas las pruebas corren en un espacio latente de 64 dimensiones de un autoencoder convolucional entrenado con una pérdida perceptual VGG, porque la distancia L2 en el espacio de píxeles no es perceptualmente significativa.",
+      "blocks": [
+        "s4-p22",
+        "s4-p23",
+        "s7-p120",
+        "s7-p121"
+      ],
+      "key": "mnist",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "dataset",
+      "en": "A pre-trained conditional BigGAN on ImageNet, run on three classes: coffee, soap bubble and schooner. Each class has 1300 training samples, 2000 generated samples and only 50 test samples. Images are embedded with InceptionV3 Pool3 features and projected onto 64 principal components of the training embeddings.",
+      "es": "Una BigGAN condicional preentrenada en ImageNet, usada en tres clases: coffee, soap bubble y schooner. Cada clase tiene 1300 muestras de entrenamiento, 2000 generadas y solo 50 de prueba. Las imágenes se embeben con las características Pool3 de InceptionV3 y se proyectan sobre 64 componentes principales de los embeddings de entrenamiento.",
+      "blocks": [
+        "s4-p35",
+        "s7-p134",
+        "s7-p136"
+      ],
+      "key": "imagenet-biggan",
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Baselines: the two-sample nearest-neighbor test, FID, binning-based evaluation and precision and recall, plus the likelihood generalization gap (ELBO for VAEs) and a three-sample kernel MMD in the appendix. The two-sample NN test needs the generated sample to equal the training sample in size, so a subsample of T is used when m < |T|.",
+      "es": "Líneas base: la prueba de vecino más cercano de dos muestras, FID, la evaluación basada en bins y precision y recall, además de la brecha de generalización de la verosimilitud (ELBO en los VAE) y un MMD con kernel de tres muestras en el apéndice. La prueba NN de dos muestras exige que la muestra generada tenga el mismo tamaño que la de entrenamiento, así que se usa una submuestra de T cuando m < |T|.",
+      "blocks": [
+        "s4-p8",
+        "s4-p9",
+        "s4-p16",
+        "s7-p108"
+      ],
+      "key": "two-sample-nn",
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "Each model family is moved from overfit to underfit with a different dial: the KDE bandwidth σ (from σ = 0.001 to σ = 10 on moons), the width of a three-layer VAE (twenty models with latent dimension d = 5 to d = 100 in steps of 5), and the truncation threshold of BigGAN.",
+      "es": "Cada familia de modelos se mueve del sobreajuste al subajuste con un control distinto: el ancho de banda σ del KDE (de σ = 0.001 a σ = 10 en moons), el ancho de un VAE de tres capas (veinte modelos con dimensión latente d = 5 a d = 100 en pasos de 5) y el umbral de truncamiento de BigGAN.",
+      "blocks": [
+        "s4-p10",
+        "s4-p11",
+        "s4-p30",
+        "s4-p36",
+        "s7-p127"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "On moons, FID and binning report effectively the same value for all σ ≤ σMLE, and the precision-recall curves are nearly identical for all σ ≤ σMLE, changing only for large σ. These tests cannot detect data-copying.",
+      "es": "En moons, FID y el método de bins reportan efectivamente el mismo valor para todo σ ≤ σMLE, y las curvas de precision y recall son casi idénticas para todo σ ≤ σMLE, y solo cambian con σ grande. Estas pruebas no pueden detectar el data-copying.",
+      "blocks": [
+        "s4-p11",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "The two-sample NN test shows only a mild change as σ decreases below σMLE and does not drop to zero, because of the subsampled training set and because a bootstrap sample includes only about 1 − 1/e of the training points. On MNIST with m ≪ |T| it gives no meaningful estimate: the most data-copying models with low σ get the scores closest to 0.5.",
+      "es": "La prueba NN de dos muestras muestra solo un cambio leve cuando σ baja de σMLE y no llega a cero, por la submuestra del conjunto de entrenamiento y porque una muestra bootstrap incluye solo cerca de 1 − 1/e de los puntos de entrenamiento. En MNIST con m ≪ |T| no da una estimación significativa: los modelos que más copian datos, con σ bajo, obtienen los puntajes más cercanos a 0.5.",
+      "blocks": [
+        "s4-p12",
+        "s4-p27",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "On moons, CT identifies the maximum-likelihood model at CT ≈ 0 and responds sharply to σ above and below σMLE. The generalization gap captures data-copying but is insensitive to underfitting and needs a tractable likelihood. The NN baseline also finds the MLE model at training accuracy ≈ 0.5, but with higher variance and less sensitivity for σ ≪ σMLE.",
+      "es": "En moons, CT identifica el modelo de máxima verosimilitud en CT ≈ 0 y responde con fuerza a σ por encima y por debajo de σMLE. La brecha de generalización capta el data-copying pero es insensible al subajuste y necesita una verosimilitud tratable. La línea base NN también encuentra el modelo MLE con exactitud de entrenamiento ≈ 0.5, pero con más varianza y menos sensibilidad cuando σ ≪ σMLE.",
+      "blocks": [
+        "s4-p19",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "On MNIST with a KDE, CT reacts decisively to over- and underfitting. It falsely calls the MLE σ slightly overfit, but the region where CT moves from over- to underfit (−13 ≤ CT ≤ 13) is relatively tight and includes the MLE σ.",
+      "es": "En MNIST con un KDE, CT reacciona de forma decisiva al sobreajuste y al subajuste. Califica erróneamente el σ MLE como ligeramente sobreajustado, pero la región donde CT pasa de sobreajuste a subajuste (−13 ≤ CT ≤ 13) es relativamente estrecha e incluye el σ MLE.",
+      "blocks": [
+        "s4-p26",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "On MNIST VAEs, more complex models overfit and force CT ≪ 0, while less complex models underfit and force CT ≫ 0, with a smaller range of values than for KDEs. The ELBO generalization gap is entirely insensitive to over- and underfit models, and the NN accuracies are all above 0.5 for all latent dimensions and do not show where the best validation ELBO is.",
+      "es": "En los VAE de MNIST, los modelos más complejos se sobreajustan y fuerzan CT ≪ 0, mientras que los menos complejos subajustan y fuerzan CT ≫ 0, con un rango de valores menor que en los KDE. La brecha de generalización con ELBO es totalmente insensible a los modelos sobreajustados y subajustados, y las exactitudes NN están todas por encima de 0.5 para todas las dimensiones latentes y no muestran dónde está el mejor ELBO de validación.",
+      "blocks": [
+        "s4-p32",
+        "s4-p33",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "On BigGAN, CT stays well below zero until the truncation threshold is nearly maximized, so the model produces samples closer to the training set than real samples tend to be. FID finds the distributions roughly similar in aggregate, and the two-sample NN training accuracy stays around 0.5 across all truncation values.",
+      "es": "En BigGAN, CT se mantiene muy por debajo de cero hasta que el umbral de truncamiento está casi al máximo, así que el modelo produce muestras más cercanas al conjunto de entrenamiento de lo que suelen estar las muestras reales. FID encuentra las distribuciones aproximadamente similares en conjunto, y la exactitud de entrenamiento del NN de dos muestras se queda alrededor de 0.5 en todos los valores de truncamiento.",
+      "blocks": [
+        "s4-p37",
+        "s4-p38",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "Because CT is built from per-cell ZU scores, one can inspect which cells copy and which do not. For the coffee and bubble classes the underfit cells are more diverse than the data-copied cells (ZU = −1.46 and −1.00 for data-copied cells, ZU = +1.40 and +0.71 for underfit cells), and the people in the underfit bubbles cell are highly distorted.",
+      "es": "Como CT se construye con puntajes ZU por celda, se puede revisar qué celdas copian y cuáles no. En las clases coffee y bubble las celdas subajustadas son más diversas que las celdas con data-copying (ZU = −1.46 y −1.00 en las celdas con data-copying, ZU = +1.40 y +0.71 en las subajustadas), y las personas en la celda subajustada de bubbles están muy distorsionadas.",
+      "blocks": [
+        "s4-p39",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "The three-sample kernel MMD test does not detect data-copying: on moons it stays near zero for all σ below σMLE and treats the MLE model like the overfit ones, and on MNIST VAEs it is not sensitive to over-parametrized models (d > 50). It does detect underfitting. The paper suspects that when Q data-copies, both kMMDs are near zero.",
+      "es": "La prueba de MMD con kernel de tres muestras no detecta el data-copying: en moons se queda cerca de cero para todo σ por debajo de σMLE y trata el modelo MLE como los sobreajustados, y en los VAE de MNIST no es sensible a los modelos sobreparametrizados (d > 50). Sí detecta el subajuste. El artículo sospecha que, cuando Q copia datos, ambos kMMD quedan cerca de cero.",
+      "blocks": [
+        "s4-p14",
+        "s7-p143",
+        "s7-p145",
+        "s7-p146",
+        "fig-11"
+      ],
+      "key": "kmmd",
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "CT is limited by the number of test samples n. Without enough of them the statistic has higher variance and the partition cannot be fine-grained, so some cells may be mischaracterized. With only 50 test samples per ImageNet class, the BigGAN experiment is limited to three cells.",
+      "es": "CT está limitada por el número de muestras de prueba n. Sin suficientes, el estadístico tiene más varianza y la partición no puede ser fina, así que algunas celdas pueden quedar mal caracterizadas. Con solo 50 muestras de prueba por clase de ImageNet, el experimento de BigGAN se limita a tres celdas.",
+      "blocks": [
+        "s4-p45",
+        "s7-p134",
+        "fig-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "limitation",
+      "en": "The test only requires a meaningful distance metric. For images this meant building an embedding (an autoencoder with perceptual loss for MNIST, InceptionV3 features with PCA for ImageNet), because L2 distance in pixel space is not perceptually meaningful.",
+      "es": "La prueba solo requiere una métrica de distancia significativa. En imágenes esto implicó construir un embedding (un autoencoder con pérdida perceptual para MNIST, características de InceptionV3 con PCA para ImageNet), porque la distancia L2 en el espacio de píxeles no es perceptualmente significativa.",
+      "blocks": [
+        "s3-p21",
+        "s4-p22",
+        "s4-p23",
+        "s4-p35"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "limitation",
+      "en": "The performance guarantees cover only the global test statistic. Guarantees for the averaged local statistic CT are described as more complicated and left as a direction for future work, and the experiments are called preliminary.",
+      "es": "Las garantías de desempeño cubren solo el estadístico de la prueba global. Las garantías para el estadístico local promediado CT se describen como más complicadas y se dejan como dirección de trabajo futuro, y los experimentos se llaman preliminares.",
+      "blocks": [
+        "s3-p37",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "future",
+      "en": "Future work: more data-efficient ways to handle heterogeneity across the instance space, more theoretical properties of data-copying, convergence guarantees for the tests, and experiments with different model parameters.",
+      "es": "Trabajo futuro: formas más eficientes en datos de manejar la heterogeneidad del espacio de instancias, más propiedades teóricas del data-copying, garantías de convergencia de las pruebas y experimentos con distintos parámetros de los modelos.",
+      "blocks": [
+        "s4-p45",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "claim",
+      "en": "The test is completely model agnostic and uses no estimate of likelihood: it needs only samples and a meaningful distance metric. It also scales to cases the two-sample NN test cannot handle, since CT has no restriction on the size of T and Qm.",
+      "es": "La prueba es completamente agnóstica al modelo y no usa ninguna estimación de verosimilitud: solo necesita muestras y una métrica de distancia significativa. Además escala a casos que la prueba NN de dos muestras no maneja, pues CT no impone restricción al tamaño de T y Qm.",
+      "blocks": [
+        "s1-p21",
+        "s3-p21",
+        "s4-p24"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "claim",
+      "en": "Most existing tests (IS, FID, precision and recall, binning, kernel MMD) look for mode dropping and mode collapse and compare training and generated samples in aggregate. A model that simply reproduces the training set or small variations of it passes most of them, so they do not detect even extreme data-copying.",
+      "es": "La mayoría de las pruebas existentes (IS, FID, precision y recall, bins, MMD con kernel) buscan la pérdida y el colapso de modos y comparan en conjunto las muestras de entrenamiento y las generadas. Un modelo que simplemente reproduce el conjunto de entrenamiento o pequeñas variaciones suyas pasa la mayoría, así que no detectan ni siquiera el data-copying extremo.",
+      "blocks": [
+        "s1-p10",
+        "s1-p16",
+        "s1-p17",
+        "s4-p13",
+        "s4-p40"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "claim",
+      "en": "CT detects explicitly forced data-copying in KDEs and also data-copying in complex overfit generative models such as VAEs and GANs: as models overfit more, CT drops below 0 and significantly below −1.",
+      "es": "CT detecta el data-copying forzado explícitamente en los KDE y también el data-copying en modelos generativos complejos sobreajustados como los VAE y las GAN: conforme los modelos se sobreajustan más, CT baja de 0 y significativamente por debajo de −1.",
+      "blocks": [
+        "s4-p44",
+        "s1-p15",
+        "s5-p1"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i6",
+      "to": "i7",
+      "type": "part-of",
+      "why": "The three samples are what lets the closeness-to-training insight be tested."
+    },
+    {
+      "from": "i7",
+      "to": "i1",
+      "type": "supports",
+      "why": "The idea that copying means being closer to T than held-out data is the intuition behind the formal definition."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "uses",
+      "why": "It turns the closeness idea into a distance d(x) and a probability ∆T."
+    },
+    {
+      "from": "i8",
+      "to": "i6",
+      "type": "uses",
+      "why": "∆T compares distances of the test sample Pn and the generated sample Qm to the training set."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "uses",
+      "why": "The Mann-Whitney U statistic estimates the probability ∆T."
+    },
+    {
+      "from": "i9",
+      "to": "i1",
+      "type": "measures",
+      "why": "ZU ≪ 0 signals data-copying and ZU ≫ 0 signals underfitting, globally."
+    },
+    {
+      "from": "i11",
+      "to": "i10",
+      "type": "supports",
+      "why": "Regions that copy and regions that underfit in the same model are why the test is made local."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "uses",
+      "why": "CT averages the ZU score computed in each cell."
+    },
+    {
+      "from": "i10",
+      "to": "i1",
+      "type": "measures",
+      "why": "CT is the summary statistic for the average degree of data-copying."
+    },
+    {
+      "from": "i12",
+      "to": "i5",
+      "type": "measures",
+      "why": "NDB-over and NDB-under count the cells that are over- and under-represented."
+    },
+    {
+      "from": "i5",
+      "to": "i1",
+      "type": "contradicts",
+      "why": "The paper argues they are independent: a model can show one without the other."
+    },
+    {
+      "from": "i4",
+      "to": "i32",
+      "type": "supports",
+      "why": "Without tractable likelihoods, a test must be sample-based and model agnostic."
+    },
+    {
+      "from": "i13",
+      "to": "i9",
+      "type": "supports",
+      "why": "Theorems give consistency for U/(mn) and mean zero for ZU when Q = P."
+    },
+    {
+      "from": "i14",
+      "to": "i22",
+      "type": "supports",
+      "why": "Lemma 3 explains why CT is expected to be near 0 at the maximum-likelihood KDE."
+    },
+    {
+      "from": "i18",
+      "to": "i2",
+      "type": "measures",
+      "why": "The baselines are the existing tests probed in the first question."
+    },
+    {
+      "from": "i19",
+      "to": "i3",
+      "type": "measures",
+      "why": "The dials give a controlled range from over- to underfit for the second question."
+    },
+    {
+      "from": "i20",
+      "to": "i15",
+      "type": "uses",
+      "why": "This experiment runs the baselines on moons with a Gaussian KDE."
+    },
+    {
+      "from": "i20",
+      "to": "i2",
+      "type": "supports",
+      "why": "FID, binning and precision-recall do not respond below σMLE."
+    },
+    {
+      "from": "i21",
+      "to": "i2",
+      "type": "supports",
+      "why": "Only the NN test shows a mild response, and it breaks down when subsampling is needed."
+    },
+    {
+      "from": "i27",
+      "to": "i2",
+      "type": "supports",
+      "why": "A three-sample baseline also fails to detect data-copying."
+    },
+    {
+      "from": "i20",
+      "to": "i33",
+      "type": "supports",
+      "why": "Concrete evidence that aggregate tests are blind to explicit data-copying."
+    },
+    {
+      "from": "i27",
+      "to": "i33",
+      "type": "supports",
+      "why": "Even a test that uses a held-out sample misses data-copying when it is global."
+    },
+    {
+      "from": "i22",
+      "to": "i15",
+      "type": "uses",
+      "why": "CT is compared to the NN baseline and the generalization gap on moons."
+    },
+    {
+      "from": "i23",
+      "to": "i16",
+      "type": "uses",
+      "why": "KDEs are fit on the 64-dimensional MNIST latent codes."
+    },
+    {
+      "from": "i24",
+      "to": "i16",
+      "type": "uses",
+      "why": "VAEs are trained on MNIST and tested in the same latent space."
+    },
+    {
+      "from": "i25",
+      "to": "i17",
+      "type": "uses",
+      "why": "BigGAN samples for three ImageNet classes are tested with CT."
+    },
+    {
+      "from": "i22",
+      "to": "i3",
+      "type": "supports",
+      "why": "CT locates the MLE model and reacts to both sides of it."
+    },
+    {
+      "from": "i24",
+      "to": "i3",
+      "type": "supports",
+      "why": "CT falls below 0 as VAE complexity grows, where ELBO and NN do not."
+    },
+    {
+      "from": "i25",
+      "to": "i3",
+      "type": "supports",
+      "why": "CT shows a GAN copying where FID sees only similar distributions."
+    },
+    {
+      "from": "i34",
+      "to": "i3",
+      "type": "supports",
+      "why": "It states the answer to the second question across KDEs, VAEs and GANs."
+    },
+    {
+      "from": "i26",
+      "to": "i10",
+      "type": "uses",
+      "why": "It reads the per-cell ZU scores that CT is averaged from."
+    },
+    {
+      "from": "i26",
+      "to": "i17",
+      "type": "uses",
+      "why": "The cells shown come from the coffee and soap bubble classes."
+    },
+    {
+      "from": "i28",
+      "to": "i10",
+      "type": "contradicts",
+      "why": "It caps how fine the partition can be, so some cells may be mischaracterized."
+    },
+    {
+      "from": "i29",
+      "to": "i32",
+      "type": "contradicts",
+      "why": "The test is model agnostic but still depends on having a meaningful distance."
+    },
+    {
+      "from": "i30",
+      "to": "i13",
+      "type": "contradicts",
+      "why": "The guarantees stop at the global statistic and do not cover CT."
+    },
+    {
+      "from": "i31",
+      "to": "i28",
+      "type": "supports",
+      "why": "More data-efficient handling of heterogeneity addresses the test-sample limit."
+    },
+    {
+      "from": "i31",
+      "to": "i30",
+      "type": "supports",
+      "why": "Convergence guarantees and more theory address the missing guarantees."
+    },
+    {
+      "from": "i16",
+      "to": "i29",
+      "type": "example-of",
+      "why": "The MNIST autoencoder embedding is a case of building a distance for the test."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i1",
+      "to": "new-not-replicated",
+      "why": "Gives a formal name and definition to a generator replaying its training set: samples systematically closer to the training data than held-out data are."
+    },
+    {
+      "idea": "i10",
+      "to": "new-not-replicated",
+      "why": "A method to borrow: compare each generated model's distance to its nearest training example against the same distance for held-out examples, cell by cell."
+    },
+    {
+      "idea": "i6",
+      "to": "accuracy-on-own-models",
+      "why": "It shows why a held-out sample, separate from training, is needed to tell copying from generalizing, which is the same concern as a score on a model's own data."
+    },
+    {
+      "idea": "i1",
+      "to": "hypothesis",
+      "why": "Challenges the hypothesis: an AI that builds something similar may only be copying a decomposed model, so similar needs a check against copying."
+    },
+    {
+      "idea": "i29",
+      "to": "question",
+      "why": "A gap: the test needs a meaningful distance, and one for decomposed BIM models made of elements and relations would have to be defined."
+    },
+    {
+      "idea": "i28",
+      "to": "real-or-synthetic-data",
+      "why": "The test needs held-out real samples that were not used for training, which is a cost when real BIM models are scarce."
+    }
+  ]
+}

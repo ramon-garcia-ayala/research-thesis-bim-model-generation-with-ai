@@ -1,0 +1,545 @@
+{
+  "version": 1,
+  "node": "chen-2021",
+  "built": {
+    "date": "2026-11-15",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "How can an autoregressive graph generator be trained by maximum likelihood when many different node sequences produce the same graph, so that the likelihood of a graph is intractable?",
+      "es": "¿Cómo se puede entrenar por máxima verosimilitud un generador autorregresivo de grafos cuando muchas secuencias de nodos distintas producen el mismo grafo, de modo que la verosimilitud de un grafo es intratable?",
+      "blocks": [
+        "s0-p1",
+        "s1-p5"
+      ],
+      "key": "node-ordering",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Autoregressive graph models build a graph by adding nodes and edges one step at a time. Because a graph does not change when its nodes are permuted, a node ordering π is normally chosen (for example DFS or BFS) to pin down one generation sequence.",
+      "es": "Los modelos autorregresivos de grafos construyen un grafo agregando nodos y aristas paso a paso. Como un grafo no cambia al permutar sus nodos, normalmente se elige un orden de nodos π (por ejemplo DFS o BFS) para fijar una sola secuencia de generación.",
+      "blocks": [
+        "s1-p4"
+      ],
+      "key": "autoregressive-graph-generation",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Two formulations are studied: one generates the rows of a lower-triangular adjacency matrix (GraphRNN, GraphGEN), the other generates a sequence of growing graphs G1:n by adding a node and its edges at each step (DeepGMG).",
+      "es": "Se estudian dos formulaciones: una genera las filas de una matriz de adyacencia triangular inferior (GraphRNN, GraphGEN) y la otra genera una secuencia de grafos crecientes G1:n agregando un nodo y sus aristas en cada paso (DeepGMG).",
+      "blocks": [
+        "s2-p4",
+        "s2-p6",
+        "s2-p8",
+        "s2-p10"
+      ],
+      "key": "adjacency-vs-graph-sequence",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "claim",
+      "en": "Fixing one ordering (DFS, BFS, a canonical order or a uniformly random order) does not correspond rigorously to maximum likelihood. The bounds such choices give are likely to be loose, and the log-likelihood of the model cannot be obtained or compared.",
+      "es": "Fijar un solo orden (DFS, BFS, un orden canónico o un orden uniformemente aleatorio) no corresponde rigurosamente a la máxima verosimilitud. Las cotas que dan esas elecciones probablemente son holgadas, y la log-verosimilitud del modelo no se puede obtener ni comparar.",
+      "blocks": [
+        "s1-p5",
+        "s1-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "concept",
+      "en": "The ordering π is treated as a random variable. (G, π) determines A, which determines G1:n, but not the reverse, so p(G, π) is derived as p(A) divided by |Π[A]| (or p(G1:n) divided by |Π[G1:n]|), and p(G) is the sum of that joint over π.",
+      "es": "El orden π se trata como una variable aleatoria. (G, π) determina A, que determina G1:n, pero no al revés; por eso se deriva p(G, π) como p(A) dividido entre |Π[A]| (o p(G1:n) entre |Π[G1:n]|), y p(G) es la suma de ese conjunto sobre π.",
+      "blocks": [
+        "s2-p20",
+        "s2-p21",
+        "s2-p31",
+        "s2-p32",
+        "fig-1"
+      ],
+      "key": "joint-graph-ordering",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "For the adjacency-matrix formulation, Π[A] is the set of automorphisms of the graph, so p(π|A) needs the number of automorphisms. The Nauty package computes it, in practice for a graph with thousands of nodes within 10−3 seconds.",
+      "es": "En la formulación con matriz de adyacencia, Π[A] es el conjunto de automorfismos del grafo, así que p(π|A) requiere contar los automorfismos. El paquete Nauty lo calcula; en la práctica, para un grafo con miles de nodos toma menos de 10−3 segundos.",
+      "blocks": [
+        "s2-p26",
+        "s2-p28"
+      ],
+      "key": "nauty-automorphisms",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "result",
+      "en": "Theorem 1: the number of node orderings that give the same graph sequence equals the product, over steps, of the size of the orbit of the node added at that step. For a complete graph with n nodes this gives n!.",
+      "es": "Teorema 1: el número de órdenes de nodos que dan la misma secuencia de grafos es igual al producto, sobre los pasos, del tamaño de la órbita del nodo agregado en ese paso. Para un grafo completo con n nodos da n!.",
+      "blocks": [
+        "s2-p36",
+        "s2-p40",
+        "s2-p43"
+      ],
+      "key": "orbit-product-theorem",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Exact orbits can be expensive, so the 1-Weisfeiler-Lehman color refinement algorithm approximates them. This gives a bound on |Π[G1:n]| and therefore a lower bound on the joint p(G, π), which the paper says is tight in practice.",
+      "es": "Calcular órbitas exactas puede ser costoso, por lo que el algoritmo de refinamiento de color 1-Weisfeiler-Lehman las aproxima. Esto da una cota para |Π[G1:n]| y, por lo tanto, una cota inferior de la conjunta p(G, π), que según el artículo es ajustada en la práctica.",
+      "blocks": [
+        "s2-p46",
+        "s2-p50",
+        "s2-p51"
+      ],
+      "key": "color-refinement",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "result",
+      "en": "GraphGEN scores p(G) with one canonical order but does not control the order when sampling. The paper found that only 9.1% of the generated graphs use the canonical order, so the sampling frequency of a graph will not converge to the probability the model assigns to it.",
+      "es": "GraphGEN calcula p(G) con un orden canónico, pero no controla el orden al muestrear. El artículo encontró que solo el 9.1% de los grafos generados usan el orden canónico, por lo que la frecuencia de muestreo de un grafo no convergerá a la probabilidad que el modelo le asigna.",
+      "blocks": [
+        "s1-p13",
+        "s2-p52"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Because summing over n! orderings is intractable, the paper maximizes a variational lower bound on log pθ(G): the expectation under qφ(π|G) of log pθ(G, π) minus log qφ(π|G), fitting θ and φ together.",
+      "es": "Como sumar sobre n! órdenes es intratable, el artículo maximiza una cota inferior variacional de log pθ(G): la esperanza bajo qφ(π|G) de log pθ(G, π) menos log qφ(π|G), ajustando θ y φ a la vez.",
+      "blocks": [
+        "s3-p1",
+        "s3-p2",
+        "s3-e1",
+        "s3-p3"
+      ],
+      "key": "elbo-over-orderings",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "The variational distribution (Recurrent Ordering Structure) picks the next node from a categorical distribution given G and the nodes already chosen. A GNN, a 3-layer, 6-head GAT with residual connections that did better than GCN and APPNP, gives the logits from node features carrying positional embeddings of the partial order.",
+      "es": "La distribución variacional (Recurrent Ordering Structure) elige el siguiente nodo con una distribución categórica dados G y los nodos ya elegidos. Una GNN, una GAT de 3 capas y 6 cabezas con conexiones residuales que superó a GCN y APPNP, da los logits a partir de rasgos de nodo con embeddings posicionales del orden parcial.",
+      "blocks": [
+        "s3-p5",
+        "s3-p6",
+        "s3-p9",
+        "s3-p10",
+        "s3-p16",
+        "s3-p21",
+        "fig-2"
+      ],
+      "key": "recurrent-ordering-structure",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Training samples S orderings from qφ for each graph, sets pθ(G, π) as p(A) over |Π[A]| (or the graph-sequence analogue), and updates θ by Monte Carlo and φ by the score function estimator. The generative model is therefore trained on the orderings most likely to generate G, not on ad-hoc ones.",
+      "es": "El entrenamiento muestrea S órdenes de qφ para cada grafo, fija pθ(G, π) como p(A) entre |Π[A]| (o su análogo con secuencias de grafos), y actualiza θ por Monte Carlo y φ con el estimador de función de puntaje. Así el modelo generativo se entrena con los órdenes más probables para generar G, no con órdenes ad hoc.",
+      "blocks": [
+        "s3-p20",
+        "s3-p22",
+        "s3-p32",
+        "s3-p34"
+      ],
+      "key": "vi-training-algorithm",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "result",
+      "en": "The score function estimator did not cause instability. The main text says S = 4 samples were enough, while Appendix A.1 sets S = 8 in all experiments. In both places the objective decreases smoothly and the variance falls as samples increase, because qφ concentrates on few orders.",
+      "es": "El estimador de función de puntaje no causó inestabilidad. El texto principal dice que S = 4 muestras fueron suficientes, mientras que el Apéndice A.1 fija S = 8 en todos los experimentos. En ambos lugares el objetivo disminuye suavemente y la varianza baja al aumentar las muestras, porque qφ se concentra en pocos órdenes.",
+      "blocks": [
+        "s3-p33",
+        "app-a-p1",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "limitation",
+      "en": "Gradient computation costs O(Sn|E|), so the method is hard to scale to large graphs. The paper says it can still be preferable when training time is not critical.",
+      "es": "El cálculo del gradiente cuesta O(Sn|E|), por lo que el método es difícil de escalar a grafos grandes. El artículo dice que aun así puede ser preferible cuando el tiempo de entrenamiento no es crítico.",
+      "blocks": [
+        "s3-p37",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "future",
+      "en": "Future work: speed up the algorithm, for example by proposing the node ordering in one shot, and try other gradient estimation techniques.",
+      "es": "Trabajo futuro: acelerar el algoritmo, por ejemplo proponiendo el orden de nodos en un solo paso, y probar otras técnicas de estimación del gradiente.",
+      "blocks": [
+        "s3-p33",
+        "s3-p37",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "dataset",
+      "en": "Six datasets: Community-small (500 graphs, 12 to 20 nodes), Citeseer-small (200 subgraphs, 5 to 20 nodes), Enzymes (563 protein graphs, 10 to 125 nodes), Lung (400 chemical graphs, 6 to 50 nodes), Yeast (400 chemical graphs, 5 to 50 nodes) and Cora (400 subgraphs, 9 to 97 nodes).",
+      "es": "Seis conjuntos de datos: Community-small (500 grafos, de 12 a 20 nodos), Citeseer-small (200 subgrafos, de 5 a 20 nodos), Enzymes (563 grafos de proteínas, de 10 a 125 nodos), Lung (400 grafos químicos, de 6 a 50 nodos), Yeast (400 grafos químicos, de 5 a 50 nodos) y Cora (400 subgrafos, de 9 a 97 nodos).",
+      "blocks": [
+        "s4-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "DeepGMG, GraphRNN and GraphGEN are each trained with their original methods and default hyperparameters as baselines, and compared with the same model trained with VI. Differences are checked with a paired t-test at the 5% significance level.",
+      "es": "DeepGMG, GraphRNN y GraphGEN se entrenan cada uno con sus métodos originales e hiperparámetros por defecto como líneas base, y se comparan con el mismo modelo entrenado con VI. Las diferencias se verifican con una prueba t pareada al nivel de significancia del 5%.",
+      "blocks": [
+        "s4-p3",
+        "s4-p15"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Test log-likelihood is estimated by importance sampling with qφ as proposal and L = 1,000 samples per graph (a uniform proposal for the uniform-order baselines; only the canonical order for GraphGEN). On graphs under 10 nodes, the gap to the exact value is under 0.1 beyond 1000 samples, and 2200 samples are very accurate.",
+      "es": "La log-verosimilitud de prueba se estima por muestreo por importancia con qφ como propuesta y L = 1,000 muestras por grafo (propuesta uniforme para las líneas base de orden uniforme; solo el orden canónico para GraphGEN). En grafos de menos de 10 nodos, la diferencia con el valor exacto es menor que 0.1 con más de 1000 muestras, y 2200 muestras son muy precisas.",
+      "blocks": [
+        "s4-p8",
+        "s4-p13",
+        "s4-p14",
+        "app-a-p12",
+        "fig-6"
+      ],
+      "key": "importance-sampling-ll",
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "VI gives better test log-likelihood on most datasets. On Community-small: GraphRNN -154.6 (uniform) vs -53.7 (VI), GraphGEN -263.74 (DFS) vs -26.6 (VI), DeepGMG -206.2 vs -124.8. The ELBO is relatively tight, for example -59.9 for GraphRNN with VI on Community-small.",
+      "es": "VI da mejor log-verosimilitud de prueba en la mayoría de los conjuntos de datos. En Community-small: GraphRNN -154.6 (uniforme) vs -53.7 (VI), GraphGEN -263.74 (DFS) vs -26.6 (VI), DeepGMG -206.2 vs -124.8. El ELBO es relativamente ajustado, por ejemplo -59.9 para GraphRNN con VI en Community-small.",
+      "blocks": [
+        "s4-p15",
+        "tab-1",
+        "s4-p5",
+        "s4-p6",
+        "s4-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "The size of the gain depends on the data. On Yeast, VI is very close to the DeepGMG baseline and its sampled orders resemble DFS. On Community-small the gap is much larger, because every graph joins two communities with one edge. On Citeseer-small and Cora, built from random walks, the gap is smaller.",
+      "es": "El tamaño de la mejora depende de los datos. En Yeast, VI queda muy cerca de la línea base DeepGMG y sus órdenes muestreados se parecen a DFS. En Community-small la brecha es mucho mayor, porque todos los grafos unen dos comunidades con una arista. En Citeseer-small y Cora, construidos con caminatas aleatorias, la brecha es menor.",
+      "blocks": [
+        "s4-p16"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "In samples from GraphRNN, the VI model captures the pattern of a single edge between two communities (with one exception). The BFS model generates two communities but does not generally join them with a single edge, and the uniform model fails to generate two communities. On Enzymes, VI samples form long strips, two with large cycles, and its averaged adjacency matrices are bands near the diagonal.",
+      "es": "En las muestras de GraphRNN, el modelo VI captura el patrón de una sola arista entre dos comunidades (con una excepción). El modelo BFS genera dos comunidades pero en general no las une con una sola arista, y el modelo uniforme no logra generar dos comunidades. En Enzymes, las muestras de VI forman tiras largas, dos con ciclos grandes, y sus matrices de adyacencia promedio son bandas cerca de la diagonal.",
+      "blocks": [
+        "s4-p17",
+        "s4-p18",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "Graph quality is measured as MMD to a test set on degree distribution, clustering coefficient and 4-node orbit occurrences (lower is better). VI improves the three models on four datasets (Community-small, Enzymes, Yeast, Cora), with minor drops on the other two.",
+      "es": "La calidad de los grafos se mide como MMD respecto a un conjunto de prueba en distribución de grados, coeficiente de agrupamiento y ocurrencias de órbitas de 4 nodos (menor es mejor). VI mejora los tres modelos en cuatro conjuntos de datos (Community-small, Enzymes, Yeast, Cora), con caídas menores en los otros dos.",
+      "blocks": [
+        "s4-p19",
+        "s4-p20",
+        "tab-2"
+      ],
+      "key": "mmd-graph-metrics",
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "For DeepGMG, the sequences sampled from the learned variational distribution strongly prefer sequences of connected graphs. On Community-small the model builds one community at a time, as GraphRNN does, without any prior knowledge of this.",
+      "es": "En DeepGMG, las secuencias muestreadas de la distribución variacional aprendida prefieren fuertemente secuencias de grafos conectados. En Community-small el modelo construye una comunidad a la vez, como lo hace GraphRNN, sin conocimiento previo de esto.",
+      "blocks": [
+        "app-a-p13",
+        "fig-5",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "The variational lower bound is tighter than the bounds of previous schemes. Estimating the marginal log-likelihood allows standard statistical model checking and comparison, and could support other tasks such as density-based anomaly detection.",
+      "es": "La cota inferior variacional es más ajustada que las cotas de esquemas previos. Estimar la log-verosimilitud marginal permite verificar y comparar modelos de forma estadística estándar, y podría apoyar otras tareas como la detección de anomalías basada en densidad.",
+      "blocks": [
+        "s0-p1",
+        "s1-p6",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "claim",
+      "en": "Contributions: a rigorous definition of the probability of node orderings in autoregressive graph models, an analysis of how graph probabilities relate to graph automorphism, variational inference to infer node orderings, and better quantitative and qualitative performance.",
+      "es": "Contribuciones: una definición rigurosa de la probabilidad de los órdenes de nodos en modelos autorregresivos de grafos, un análisis de cómo se relacionan las probabilidades de los grafos con el automorfismo de grafos, inferencia variacional para inferir órdenes de nodos y mejor desempeño cuantitativo y cualitativo.",
+      "blocks": [
+        "s1-p11",
+        "s1-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "concept",
+      "en": "Training with uniformly random node orderings is the same as using a uniform variational distribution, which corresponds to a looser log-likelihood bound than a learned qφ.",
+      "es": "Entrenar con órdenes de nodos uniformemente aleatorios equivale a usar una distribución variacional uniforme, lo que corresponde a una cota de log-verosimilitud más holgada que con un qφ aprendido.",
+      "blocks": [
+        "s3-p32",
+        "s4-p14"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i3",
+      "to": "i2",
+      "type": "part-of",
+      "why": "The adjacency-matrix and graph-sequence formulations are the two forms of autoregressive generation studied."
+    },
+    {
+      "from": "i4",
+      "to": "i1",
+      "type": "supports",
+      "why": "Ad-hoc fixed orderings are why maximum likelihood is not rigorous and the question matters."
+    },
+    {
+      "from": "i9",
+      "to": "i4",
+      "type": "example-of",
+      "why": "GraphGEN's canonical order is a case where the training order and the sampling order disagree."
+    },
+    {
+      "from": "i5",
+      "to": "i3",
+      "type": "uses",
+      "why": "The joint over G and π is derived separately for each formulation."
+    },
+    {
+      "from": "i6",
+      "to": "i5",
+      "type": "part-of",
+      "why": "Counting automorphisms gives p(π|A) for the matrix formulation."
+    },
+    {
+      "from": "i7",
+      "to": "i5",
+      "type": "part-of",
+      "why": "The orbit product gives |Π[G1:n]| for the graph-sequence formulation."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "uses",
+      "why": "Color refinement replaces the exact orbits in Theorem 1 with a bound."
+    },
+    {
+      "from": "i10",
+      "to": "i5",
+      "type": "uses",
+      "why": "The bound is built on the joint pθ(G, π)."
+    },
+    {
+      "from": "i11",
+      "to": "i10",
+      "type": "part-of",
+      "why": "qφ(π|G) is the variational distribution inside the bound."
+    },
+    {
+      "from": "i26",
+      "to": "i10",
+      "type": "example-of",
+      "why": "A uniform qφ is the special case that gives the looser bound."
+    },
+    {
+      "from": "i12",
+      "to": "i10",
+      "type": "uses",
+      "why": "Training maximizes the bound with respect to θ and φ."
+    },
+    {
+      "from": "i12",
+      "to": "i11",
+      "type": "uses",
+      "why": "Orderings are sampled from the learned qφ for each graph."
+    },
+    {
+      "from": "i13",
+      "to": "i12",
+      "type": "supports",
+      "why": "Shows the score function estimator trains stably with few samples."
+    },
+    {
+      "from": "i14",
+      "to": "i12",
+      "type": "part-of",
+      "why": "The O(Sn|E|) cost is a limitation of this training procedure."
+    },
+    {
+      "from": "i15",
+      "to": "i14",
+      "type": "supports",
+      "why": "The future work is aimed at making the method faster and more scalable."
+    },
+    {
+      "from": "i18",
+      "to": "i19",
+      "type": "measures",
+      "why": "The log-likelihood values in Table 1 are importance-sampling estimates."
+    },
+    {
+      "from": "i18",
+      "to": "i11",
+      "type": "uses",
+      "why": "The learned qφ is the proposal distribution for the estimate."
+    },
+    {
+      "from": "i19",
+      "to": "i16",
+      "type": "uses",
+      "why": "Log-likelihoods are reported on the six datasets."
+    },
+    {
+      "from": "i19",
+      "to": "i17",
+      "type": "uses",
+      "why": "Each VI result is compared with the baseline's original training method."
+    },
+    {
+      "from": "i20",
+      "to": "i19",
+      "type": "supports",
+      "why": "Explains why the gains differ across datasets."
+    },
+    {
+      "from": "i19",
+      "to": "i24",
+      "type": "supports",
+      "why": "Better log-likelihood and a tight ELBO back the claim of a tighter bound."
+    },
+    {
+      "from": "i22",
+      "to": "i17",
+      "type": "uses",
+      "why": "MMD compares the VI-trained models with the same three baselines."
+    },
+    {
+      "from": "i22",
+      "to": "i16",
+      "type": "uses",
+      "why": "MMD is reported on the six datasets."
+    },
+    {
+      "from": "i21",
+      "to": "i22",
+      "type": "supports",
+      "why": "Samples and averaged adjacency matrices illustrate the MMD improvement."
+    },
+    {
+      "from": "i23",
+      "to": "i21",
+      "type": "supports",
+      "why": "DeepGMG shows the same community-by-community preference as GraphRNN."
+    },
+    {
+      "from": "i22",
+      "to": "i11",
+      "type": "supports",
+      "why": "Higher-quality graphs are credited to the learned orderings."
+    },
+    {
+      "from": "i24",
+      "to": "i25",
+      "type": "supports",
+      "why": "The tighter bound and better results back the stated contributions."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i4",
+      "to": "placement-order-experiments",
+      "why": "The order in which elements are placed is a modeling choice, and this paper says fixing it (BFS, DFS, uniform) is not rigorous maximum likelihood."
+    },
+    {
+      "idea": "i4",
+      "to": "sun-2024",
+      "why": "Walking scene objects breadth-first is the kind of fixed BFS order this paper argues gives loose bounds."
+    },
+    {
+      "idea": "i11",
+      "to": "assemble-node-by-node",
+      "why": "A method to borrow: a GNN learns which node comes next given the nodes already placed, instead of a fixed order, at a higher training cost."
+    },
+    {
+      "idea": "i5",
+      "to": "deconstruct-for-training",
+      "why": "Taking a graph apart into a training sequence is not unique, since many orderings give the same graph when it has symmetric nodes, and this paper counts them through automorphisms."
+    },
+    {
+      "idea": "i9",
+      "to": "assemble-node-by-node",
+      "why": "Warns that training in one order and generating in another makes the model's probability disagree with what it produces (only 9.1% canonical in GraphGEN)."
+    },
+    {
+      "idea": "i23",
+      "to": "placement-order-experiments",
+      "why": "The learned orders prefer connected sequences and finish one community before the next, close to placing one element and its neighbours."
+    },
+    {
+      "idea": "i21",
+      "to": "hypothesis",
+      "why": "Supports the idea that a model finds patterns in relations: with learned orders it reproduced two communities joined by a single edge."
+    },
+    {
+      "idea": "i14",
+      "to": "hypothesis",
+      "why": "Gap: the method costs O(Sn|E|) and was tested only on graphs up to 125 nodes, so its fit for large element graphs is not shown."
+    },
+    {
+      "idea": "i22",
+      "to": "new-not-replicated",
+      "why": "Quality is similarity to a test set measured with MMD; the paper does not check whether generated graphs copy training graphs."
+    }
+  ]
+}

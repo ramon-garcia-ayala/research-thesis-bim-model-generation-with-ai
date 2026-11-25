@@ -1,0 +1,617 @@
+{
+  "version": 1,
+  "node": "besnier-2025",
+  "built": {
+    "date": "2026-11-15",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "concept",
+      "en": "MaskGIT represents an image as a grid of discrete tokens and is trained by masking some tokens and letting the network predict them, which is a classification task. At inference it starts from a fully masked grid and samples tokens step by step.",
+      "es": "MaskGIT representa una imagen como una cuadrícula de tokens discretos y se entrena ocultando algunos tokens para que la red los prediga, lo cual es una tarea de clasificación. En la inferencia parte de una cuadrícula totalmente oculta y muestrea los tokens paso a paso.",
+      "blocks": [
+        "s1-p3",
+        "s1-p4",
+        "fig-2"
+      ],
+      "key": "maskgit",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "The scheduler decides which tokens are unmasked at each step. Formally it is an ordered list of token sets that partitions all the tokens, with no overlap and none left out.",
+      "es": "El scheduler decide qué tokens se revelan en cada paso. Formalmente es una lista ordenada de conjuntos de tokens que particiona todos los tokens, sin traslape y sin dejar ninguno fuera.",
+      "blocks": [
+        "s1-p4",
+        "s3-p1",
+        "s3-p2"
+      ],
+      "key": "unmasking-scheduler",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "question",
+      "en": "Which tokens should be unmasked together at each step so that images keep high quality and diversity while the number of steps stays small?",
+      "es": "¿Qué tokens conviene revelar juntos en cada paso para que las imágenes conserven alta calidad y diversidad sin necesitar muchos pasos?",
+      "blocks": [
+        "s0-p1",
+        "s1-p4",
+        "s3-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "The Confidence scheduler of the original MaskGIT unmasks the most certain tokens first. Because the area around tokens already predicted is also certain, it picks clustered tokens and gains little information per step.",
+      "es": "El scheduler de confianza del MaskGIT original revela primero los tokens más seguros. Como la zona alrededor de los tokens ya predichos también es segura, elige tokens agrupados y gana poca información por paso.",
+      "blocks": [
+        "s1-p5",
+        "s3-p34",
+        "fig-3"
+      ],
+      "key": "confidence-scheduler",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "claim",
+      "en": "The paper argues the Confidence scheduler performs inadequately. The code adds Gumbel noise to the confidence score, which the original publication does not discuss, to reduce clustering, but it only partly works: entropy still spikes in the last steps and the noise is hard to tune.",
+      "es": "El artículo sostiene que el scheduler de confianza funciona de forma inadecuada. El código agrega ruido de Gumbel a la puntuación de confianza, algo que la publicación original no discute, para reducir el agrupamiento, pero solo funciona en parte: la entropía aún se dispara en los últimos pasos y el ruido es difícil de ajustar.",
+      "blocks": [
+        "s3-p35",
+        "s5-p1",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "concept",
+      "en": "MaskGIT is trained with a cross-entropy loss on each token, so it only estimates each token's marginal distribution. Sampling several tokens in one step therefore draws from the product of marginals, a loose stand-in for the joint distribution that is needed.",
+      "es": "MaskGIT se entrena con una pérdida de entropía cruzada por token, así que solo estima la distribución marginal de cada token. Muestrear varios tokens en un paso equivale entonces a tomar el producto de las marginales, un sustituto aproximado de la distribución conjunta que se necesita.",
+      "blocks": [
+        "s3-p5",
+        "s3-p9",
+        "s3-p10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "The gap between the product and the joint distribution is their Kullback-Leibler divergence, read as the mutual information of the tokens in a step. Summed over steps it splits into (a) the entropy of the tokens to predict and (b) the information the tokens of a step share, which risks incompatibilities such as two petals of one flower with conflicting shapes.",
+      "es": "La brecha entre el producto y la distribución conjunta es su divergencia de Kullback-Leibler, interpretada como la información mutua de los tokens de un paso. Sumada sobre los pasos se divide en (a) la entropía de los tokens por predecir y (b) la información que comparten los tokens de un mismo paso, lo que arriesga incompatibilidades como dos pétalos de una misma flor con formas en conflicto.",
+      "blocks": [
+        "s3-p10",
+        "s3-p13",
+        "s3-p23"
+      ],
+      "key": "mutual-information-schedule",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Term (b) cannot be computed, so the paper assumes that the dependence between two tokens grows as they get closer in space and uses spatial distance as a proxy. In an appendix it shows that nearby tokens also have similar representations in the tokenizer's feature space.",
+      "es": "El término (b) no se puede calcular, así que el artículo supone que la dependencia entre dos tokens crece cuanto más cerca están en el espacio y usa la distancia espacial como aproximación. En un apéndice muestra que los tokens cercanos también tienen representaciones parecidas en el espacio de características del tokenizador.",
+      "blocks": [
+        "s3-p24",
+        "app-b-p1",
+        "fig-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "The Halton scheduler takes token positions from a 2D Halton sequence with bases 2 and 3, discretized onto the token grid with duplicates discarded. The order is fixed, so the tokens already unmasked and those being unmasked are spread across the image at every step.",
+      "es": "El scheduler de Halton toma las posiciones de los tokens de una secuencia de Halton 2D con bases 2 y 3, discretizada sobre la cuadrícula de tokens y descartando duplicados. El orden es fijo, así que los tokens ya revelados y los que se revelan están repartidos por toda la imagen en cada paso.",
+      "blocks": [
+        "s3-p29",
+        "s3-p31",
+        "s3-p36",
+        "app-e-p1",
+        "fig-2"
+      ],
+      "key": "halton-scheduler",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "concept",
+      "en": "A low-discrepancy sequence is deterministic and covers a space uniformly with little clustering, and in the Halton sequence consecutive points tend to be far apart. That keeps tokens sampled together as independent as possible and lets the known tokens estimate the whole image.",
+      "es": "Una secuencia de baja discrepancia es determinista y cubre un espacio de forma uniforme con poco agrupamiento, y en la secuencia de Halton los puntos consecutivos tienden a quedar lejos entre sí. Eso mantiene lo más independientes posible los tokens muestreados juntos y permite que los tokens conocidos estimen toda la imagen.",
+      "blocks": [
+        "s3-p26",
+        "s2-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "claim",
+      "en": "The scheduler needs no retraining, no noise injection and no extra compute or data. It plugs into existing MaskGIT models as a drop-in replacement.",
+      "es": "El scheduler no requiere reentrenamiento, inyección de ruido ni cómputo o datos adicionales. Se conecta a modelos MaskGIT existentes como reemplazo directo.",
+      "blocks": [
+        "s0-p1",
+        "s1-p6",
+        "s1-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "dataset",
+      "en": "ImageNet has 1.2 million images in 1,000 classes. The class-to-image experiments train and evaluate on it at 256×256 and 512×512.",
+      "es": "ImageNet tiene 1.2 millones de imágenes en 1,000 clases. Los experimentos de clase a imagen entrenan y evalúan con él a 256×256 y 512×512.",
+      "blocks": [
+        "s4-p4",
+        "tab-1",
+        "tab-2"
+      ],
+      "key": "imagenet",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "dataset",
+      "en": "For text-to-image the authors gathered about 17 million images from CC12M, a subset of Segment Anything, JourneyDB and DiffusionDB. They evaluate zero-shot on COCO with FID, CLIP-Score, Precision and Recall.",
+      "es": "Para texto a imagen los autores reunieron cerca de 17 millones de imágenes de CC12M, un subconjunto de Segment Anything, JourneyDB y DiffusionDB. Evalúan en COCO sin ajuste previo (zero-shot) con FID, CLIP-Score, Precision y Recall.",
+      "blocks": [
+        "s4-p63",
+        "s4-p64"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "The class-to-image model uses a pre-trained VQ-GAN with codebook size 16,384 and down-scaling factor 8, and ViT-XL and ViT-L backbones conditioned on the class through Adaptive Layer Norm. The Halton scheduler is compared with the Confidence scheduler and with a Random scheduler that unmasks tokens at random positions.",
+      "es": "El modelo de clase a imagen usa un VQ-GAN preentrenado con codebook de 16,384 y factor de reducción 8, y arquitecturas ViT-XL y ViT-L condicionadas por la clase mediante Adaptive Layer Norm. El scheduler de Halton se compara con el de confianza y con un scheduler aleatorio que revela tokens en posiciones al azar.",
+      "blocks": [
+        "s4-p16",
+        "s4-p17",
+        "app-a-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "concept",
+      "en": "FID is the main quality number reported. The paper recalls that tuning training and sampling hyper-parameters directly to lower FID is known to lower it without necessarily improving image quality.",
+      "es": "El FID es la principal cifra de calidad que se reporta. El artículo recuerda que ajustar directamente los hiperparámetros de entrenamiento y muestreo para bajar el FID es una estrategia conocida por bajarlo sin necesariamente mejorar la calidad de la imagen.",
+      "blocks": [
+        "s2-p5",
+        "s4-p4"
+      ],
+      "key": "fid",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "On ImageNet 256×256 with the authors' own MaskGIT, the Halton scheduler improves FID by −2.19 over the Confidence scheduler. On 512×512, with a public reproduction, pre-trained and with no retraining, it reaches −2.27 FID at 32 steps.",
+      "es": "En ImageNet 256×256 con el MaskGIT propio de los autores, el scheduler de Halton mejora el FID en −2.19 frente al scheduler de confianza. En 512×512, con una reproducción pública, preentrenada y sin reentrenar, logra −2.27 FID con 32 pasos.",
+      "blocks": [
+        "s4-p17",
+        "tab-1",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "When the number of steps varies, the Halton scheduler improves performance above 12 steps and keeps improving as steps grow. The Confidence scheduler gets worse as steps increase.",
+      "es": "Al variar el número de pasos, el scheduler de Halton mejora el desempeño por encima de 12 pasos y sigue mejorando conforme aumentan. El scheduler de confianza empeora al aumentar los pasos.",
+      "blocks": [
+        "s4-p59",
+        "s4-p60"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "Against the original MaskGIT, the paper's implementation with the Halton scheduler reduces FID by almost 40% and improves IS by over 50%. It is competitive with other masked image modeling methods without the FID-targeted optimization used by AutoNAT.",
+      "es": "Frente al MaskGIT original, la implementación del artículo con el scheduler de Halton reduce el FID en casi 40% y mejora el IS en más de 50%. Es competitiva con otros métodos de modelado de imágenes enmascaradas sin la optimización dirigida al FID que usa AutoNAT.",
+      "blocks": [
+        "s4-p61",
+        "tab-3",
+        "tab-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "On zero-shot COCO the model beats aMused, the only open-source text-conditioned MaskGIT, by a reduction of 10.1 in FID. The Halton scheduler adds a further reduction of 2.7 in FID over the Confidence scheduler at no additional computational cost.",
+      "es": "En COCO zero-shot el modelo supera a aMused, el único MaskGIT de código abierto con condición de texto, con una reducción de 10.1 en FID. El scheduler de Halton añade una reducción adicional de 2.7 en FID frente al scheduler de confianza sin costo computacional extra.",
+      "blocks": [
+        "s4-p65",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Tracking entropy and distance between tokens at each step, the Confidence scheduler keeps entropy low but it rises sharply at the end, while its tokens stay close to each other and to seen tokens. The Halton scheduler progresses slowly, linearly across steps, and stays nearer the desirable corner of the plot.",
+      "es": "Al seguir la entropía y la distancia entre tokens en cada paso, el scheduler de confianza mantiene la entropía baja pero esta sube bruscamente al final, mientras sus tokens permanecen cerca entre sí y de los tokens ya vistos. El scheduler de Halton avanza despacio, de forma lineal a lo largo de los pasos, y se mantiene más cerca de la esquina deseable de la gráfica.",
+      "blocks": [
+        "s3-p34",
+        "s3-p36",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "Qualitatively, Halton images are sharper, show more intricate details and have more diverse backgrounds. The Confidence scheduler gives overly simple, smooth images with poorly defined backgrounds.",
+      "es": "Cualitativamente, las imágenes con Halton son más nítidas, muestran detalles más finos y tienen fondos más diversos. El scheduler de confianza produce imágenes demasiado simples y suaves, con fondos mal definidos.",
+      "blocks": [
+        "s4-p66",
+        "app-g-p1",
+        "fig-11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "With the Halton scheduler most of an image is fixed early. In the macaw example colour and background are set after four steps (25/1024 ≈2% of tokens unmasked), the shape at the 8th step (8%) and the texture at 12 steps (16%); the last 12 steps only decrease FID by 0.14 points.",
+      "es": "Con el scheduler de Halton la mayor parte de la imagen queda fijada pronto. En el ejemplo del guacamayo el color y el fondo se fijan tras cuatro pasos (25/1024 ≈2% de tokens revelados), la forma en el 8.º paso (8%) y la textura a los 12 pasos (16%); los últimos 12 pasos solo reducen el FID en 0.14 puntos.",
+      "blocks": [
+        "app-d-p1",
+        "fig-10",
+        "tab-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "In the ablations the Halton scheduler outperforms the other schedulers, in particular a purely random scheduler.",
+      "es": "En las ablaciones el scheduler de Halton supera a los demás schedulers, en particular a uno puramente aleatorio.",
+      "blocks": [
+        "tab-1",
+        "tab-2",
+        "s4-p17"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "MaskGIT is less understood than other generative models. Earlier gains came from a better tokenizer, a post-hoc critic or tuning hyper-parameters for FID, and M2T used a deterministic pseudo-random scheduler (QLDS) but for image compression.",
+      "es": "MaskGIT se entiende menos que otros modelos generativos. Las mejoras anteriores vinieron de un mejor tokenizador, un crítico posterior o el ajuste de hiperparámetros para el FID, y M2T usó un scheduler determinista pseudoaleatorio (QLDS) pero para compresión de imágenes.",
+      "blocks": [
+        "s2-p4",
+        "s2-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "claim",
+      "en": "MaskGIT needs dozens of inference steps, against hundreds for auto-regressive and diffusion models, and the Halton scheduler keeps this speed.",
+      "es": "MaskGIT necesita decenas de pasos de inferencia, frente a cientos en los modelos autorregresivos y de difusión, y el scheduler de Halton conserva esa velocidad.",
+      "blocks": [
+        "s1-p3",
+        "app-c-p1",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "limitation",
+      "en": "The Halton scheduler breaks short-range dependencies between tokens but not long-range ones. Failure cases include repeated objects, such as several goldfish or a bird with two heads.",
+      "es": "El scheduler de Halton rompe las dependencias de corto alcance entre tokens, pero no las de largo alcance. Los casos de falla incluyen objetos repetidos, como varios peces dorados o un ave con dos cabezas.",
+      "blocks": [
+        "s5-p2",
+        "app-h-p1",
+        "app-h-p4",
+        "fig-12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "Once a token is predicted it stays fixed even if it is wrong. Unlike diffusion models, MaskGIT has no mechanism to correct earlier predictions.",
+      "es": "Una vez que se predice un token, queda fijo aunque sea incorrecto. A diferencia de los modelos de difusión, MaskGIT no tiene un mecanismo para corregir predicciones anteriores.",
+      "blocks": [
+        "app-h-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "The model struggles with some complex classes and prompts: human faces and bodies in ImageNet, coherent scene compositions, and rendering text such as the word \"HALTON\".",
+      "es": "El modelo tiene dificultades con algunas clases y prompts complejos: rostros y cuerpos humanos en ImageNet, composiciones de escena coherentes y la representación de texto como la palabra \"HALTON\".",
+      "blocks": [
+        "app-h-p6",
+        "app-h-p7",
+        "fig-12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "limitation",
+      "en": "The analysis assumes that training gives accurate marginal distributions for each token. Miscalibration or bias could affect it, although the predictions agree with the experiments.",
+      "es": "El análisis supone que el entrenamiento da distribuciones marginales precisas para cada token. La mala calibración o los sesgos podrían afectarlo, aunque las predicciones coinciden con los experimentos.",
+      "blocks": [
+        "s3-p37"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "limitation",
+      "en": "Masked generative transformers still underperform diffusion-based approaches in text-to-image, although those methods use larger datasets and more trainable parameters.",
+      "es": "Los transformers generativos enmascarados aún rinden menos que los enfoques basados en difusión en texto a imagen, aunque esos métodos usan conjuntos de datos más grandes y más parámetros entrenables.",
+      "blocks": [
+        "s4-p65",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "future",
+      "en": "Solving long-range dependencies while keeping MaskGIT's fast inference is named as an open frontier. It may require rethinking the image's encoding, scheduling and decoding as one integrated framework.",
+      "es": "Resolver las dependencias de largo alcance conservando la inferencia rápida de MaskGIT se plantea como una frontera abierta. Podría requerir repensar la codificación, el scheduling y la decodificación de la imagen como un solo marco integrado.",
+      "blocks": [
+        "s5-p2"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "part-of",
+      "why": "The scheduler is an essential component of the MaskGIT sampling loop."
+    },
+    {
+      "from": "i4",
+      "to": "i2",
+      "type": "example-of",
+      "why": "The Confidence scheduler is the one designed for the original MaskGIT."
+    },
+    {
+      "from": "i9",
+      "to": "i2",
+      "type": "example-of",
+      "why": "The Halton scheduler is the paper's replacement for the Confidence scheduler."
+    },
+    {
+      "from": "i9",
+      "to": "i3",
+      "type": "supports",
+      "why": "The Halton scheduler is the paper's answer to which tokens to unmask together."
+    },
+    {
+      "from": "i24",
+      "to": "i3",
+      "type": "supports",
+      "why": "The gap in earlier work on MaskGIT sampling is what makes the question worth asking."
+    },
+    {
+      "from": "i4",
+      "to": "i5",
+      "type": "supports",
+      "why": "Its greedy choice of the most certain tokens is the reason it clusters."
+    },
+    {
+      "from": "i7",
+      "to": "i6",
+      "type": "measures",
+      "why": "Mutual information quantifies the gap between the product and the joint distribution."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "part-of",
+      "why": "The distance proxy stands in for the intractable term (b) of the analysis."
+    },
+    {
+      "from": "i29",
+      "to": "i7",
+      "type": "part-of",
+      "why": "The accurate-marginals assumption underlies the whole mutual information analysis."
+    },
+    {
+      "from": "i9",
+      "to": "i10",
+      "type": "uses",
+      "why": "Token positions come from the Halton low-discrepancy sequence."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "uses",
+      "why": "Spreading tokens apart only helps if distance reflects dependence between tokens."
+    },
+    {
+      "from": "i9",
+      "to": "i11",
+      "type": "supports",
+      "why": "A fixed order needs no training or noise, so it can replace the old scheduler."
+    },
+    {
+      "from": "i14",
+      "to": "i1",
+      "type": "uses",
+      "why": "The experiments train and sample MaskGIT models with different schedulers."
+    },
+    {
+      "from": "i14",
+      "to": "i15",
+      "type": "uses",
+      "why": "FID is the main number used to compare schedulers."
+    },
+    {
+      "from": "i16",
+      "to": "i9",
+      "type": "measures",
+      "why": "FID against the Confidence scheduler on ImageNet."
+    },
+    {
+      "from": "i16",
+      "to": "i12",
+      "type": "uses",
+      "why": "Both results are on ImageNet at 256×256 and 512×512."
+    },
+    {
+      "from": "i16",
+      "to": "i11",
+      "type": "supports",
+      "why": "The 512×512 gain comes from a pre-trained model with no retraining."
+    },
+    {
+      "from": "i17",
+      "to": "i9",
+      "type": "measures",
+      "why": "Shows how the Halton scheduler scales as steps increase."
+    },
+    {
+      "from": "i17",
+      "to": "i5",
+      "type": "supports",
+      "why": "The Confidence scheduler deteriorating with more steps matches the saturation of the noised version."
+    },
+    {
+      "from": "i18",
+      "to": "i9",
+      "type": "measures",
+      "why": "Compares the Halton model with the original MaskGIT and other MIM methods."
+    },
+    {
+      "from": "i19",
+      "to": "i9",
+      "type": "measures",
+      "why": "FID gain of the Halton scheduler over the Confidence scheduler on COCO."
+    },
+    {
+      "from": "i19",
+      "to": "i13",
+      "type": "uses",
+      "why": "The text-to-image model is trained on about 17 million images and tested on COCO."
+    },
+    {
+      "from": "i20",
+      "to": "i7",
+      "type": "measures",
+      "why": "Figure 4 plots entropy (term a) against token distance, a reversed proxy for term (b)."
+    },
+    {
+      "from": "i20",
+      "to": "i9",
+      "type": "supports",
+      "why": "The Halton curve stays closer to the desirable corner than the others."
+    },
+    {
+      "from": "i21",
+      "to": "i16",
+      "type": "supports",
+      "why": "Visual comparisons back up the FID numbers, which can drop without better images."
+    },
+    {
+      "from": "i22",
+      "to": "i9",
+      "type": "supports",
+      "why": "Spread-out early tokens fix composition first and leave high-frequency detail to the later steps."
+    },
+    {
+      "from": "i23",
+      "to": "i9",
+      "type": "supports",
+      "why": "Beating a random scheduler shows the gain is more than just spreading tokens by chance."
+    },
+    {
+      "from": "i25",
+      "to": "i1",
+      "type": "supports",
+      "why": "Fast inference is the reason to improve MaskGIT rather than switch to diffusion."
+    },
+    {
+      "from": "i26",
+      "to": "i9",
+      "type": "contradicts",
+      "why": "The paper says Halton solves some, but not all, of the problems of parallel sampling."
+    },
+    {
+      "from": "i27",
+      "to": "i1",
+      "type": "part-of",
+      "why": "A property of masked generation itself, not of the scheduler."
+    },
+    {
+      "from": "i28",
+      "to": "i21",
+      "type": "contradicts",
+      "why": "The gains in detail and diversity coexist with failures on faces, bodies and rendered text."
+    },
+    {
+      "from": "i30",
+      "to": "i19",
+      "type": "part-of",
+      "why": "A caveat attached to the text-to-image comparison."
+    },
+    {
+      "from": "i31",
+      "to": "i26",
+      "type": "supports",
+      "why": "The future direction targets the long-range dependency limitation."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i6",
+      "to": "masking-training",
+      "why": "A model trained to fill each masked element on its own only gives marginals, so filling several masked elements in one pass ignores how they depend on each other."
+    },
+    {
+      "idea": "i7",
+      "to": "placement-order-experiments",
+      "why": "Gives a reason why elements placed in the same step can conflict, which helps read the all-at-once versus one-by-one options."
+    },
+    {
+      "idea": "i9",
+      "to": "placement-order-experiments",
+      "why": "A method to borrow: choose which elements are decided together so they are far apart, but it is defined on an image grid and a BIM graph has no grid."
+    },
+    {
+      "idea": "i4",
+      "to": "chang-2022",
+      "why": "Challenges MaskGIT's confidence-first order, which clusters around what is already placed, and notes the Gumbel noise in its code is not in the original paper."
+    },
+    {
+      "idea": "i8",
+      "to": "hypothesis",
+      "why": "Pixels have no explicit relations, so dependence is guessed from distance; a BIM graph has explicit relations that could replace that guess, which this paper does not test."
+    },
+    {
+      "idea": "i27",
+      "to": "assemble-node-by-node",
+      "why": "A caution: once an element is predicted it stays fixed, so an early wrong element cannot be revised later in the assembly."
+    },
+    {
+      "idea": "i17",
+      "to": "placement-order-experiments",
+      "why": "Evidence that the number of steps interacts with the order: more steps helped Halton but hurt the Confidence order."
+    }
+  ]
+}

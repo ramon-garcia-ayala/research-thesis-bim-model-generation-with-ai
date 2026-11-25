@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { IDLE_MS, latestPresentation, mountDeck, neighborPresentation, openLatest, slideFromHash, watchIdle } from '../../presentations/assets/deck.js'
+import { AUTO_MS, IDLE_MS, PLAY_KEY, latestPresentation, mountDeck, neighborPresentation, nextPlayMode, openLatest, slideFromHash, watchIdle } from '../../presentations/assets/deck.js'
 import { APP_NAME } from '../../presentations/assets/site.js'
 
 const presentations = [
@@ -351,13 +351,12 @@ describe('builds (a slide revealed one click at a time)', () => {
     key('ArrowRight')
     expect(shown()).toBe(2)
   })
-  it('the left arrow takes back one step, then goes to the previous slide', () => {
+  it('the left arrow never plays a slide backwards: it goes to the previous slide, complete', () => {
     key('ArrowRight'); key('ArrowRight')
-    key('ArrowLeft')
     expect(shown()).toBe(1)
-    expect($('.a').dataset.built).toBeUndefined()
     key('ArrowLeft')
     expect(shown()).toBe(0)
+    expect(slides[0].dataset.complete).toBe('')
   })
   it('coming back to a slide shows it complete', () => {
     key('ArrowRight'); key('ArrowRight'); key('ArrowRight'); key('ArrowRight'); key('ArrowRight')
@@ -376,6 +375,106 @@ describe('builds (a slide revealed one click at a time)', () => {
     key('ArrowRight'); key('ArrowRight')
     expect($('.a').style.getPropertyValue('--d')).toBe('0')
     expect($('.b').style.getPropertyValue('--d')).toBe('1')
+  })
+})
+
+describe('play modes (the bar\'s clicks · auto · still button)', () => {
+  let slides
+  const mount = (mode) => {
+    window.history.replaceState(null, '', '/')
+    window.localStorage.clear()
+    if (mode) window.localStorage.setItem(PLAY_KEY, mode)
+    document.body.dataset.track = 'thesis'
+    document.body.dataset.presentation = 'presentacion-01'
+    document.body.innerHTML = `
+      <nav class="rail"></nav>
+      <main class="deck">
+        <section class="slide">one</section>
+        <section class="slide"><p data-build="1">a</p><p data-build="2">b</p></section>
+        <section class="slide">three</section>
+      </main>`
+    mountDeck(window, { presentations })
+    slides = [...document.querySelectorAll('section.slide')]
+  }
+  const key = (k) => document.dispatchEvent(new KeyboardEvent('keydown', { key: k }))
+  const shown = () => slides.findIndex((s) => !s.hidden)
+  afterEach(() => {
+    vi.useRealTimers()
+    window.localStorage.clear()
+  })
+
+  it('goes round clicks → auto → still', () => {
+    expect(nextPlayMode('clicks')).toBe('auto')
+    expect(nextPlayMode('auto')).toBe('still')
+    expect(nextPlayMode('still')).toBe('clicks')
+    expect(nextPlayMode('nonsense')).toBe('clicks')
+  })
+  it('starts in clicks and remembers the mode the button sets', () => {
+    mount()
+    const btn = document.querySelector('.deck__play')
+    expect(document.documentElement.dataset.play).toBe('clicks')
+    btn.click()
+    expect(document.documentElement.dataset.play).toBe('auto')
+    expect(window.localStorage.getItem(PLAY_KEY)).toBe('auto')
+  })
+  it('still: a slide reached going forward is complete at once', () => {
+    mount('still')
+    key('ArrowRight')
+    expect(shown()).toBe(1)
+    expect(slides[1].dataset.complete).toBe('')
+    key('ArrowRight')
+    expect(shown()).toBe(2)
+  })
+  it('auto: the steps come by themselves, one every AUTO_MS', () => {
+    vi.useFakeTimers()
+    mount('auto')
+    key('ArrowRight')
+    expect(slides[1].dataset.step).toBe('0')
+    vi.advanceTimersByTime(AUTO_MS)
+    expect(slides[1].dataset.step).toBe('1')
+    vi.advanceTimersByTime(AUTO_MS)
+    expect(slides[1].dataset.complete).toBe('')
+  })
+})
+
+describe('chapters in the bar (slides with data-chapter)', () => {
+  let slides
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/')
+    document.body.dataset.track = 'thesis'
+    document.body.dataset.presentation = 'presentacion-01'
+    document.body.innerHTML = `
+      <nav class="rail"></nav>
+      <main class="deck">
+        <section class="slide">cover</section>
+        <section class="slide" data-chapter="1 · Context" data-chapter-es="1 · Contexto">ch 1</section>
+        <section class="slide" data-chapter="1 · Context" data-chapter-es="1 · Contexto">a</section>
+        <section class="slide" data-chapter="2 · Model" data-chapter-es="2 · Modelo">ch 2</section>
+        <section class="slide" data-chapter="2 · Model" data-chapter-es="2 · Modelo">b</section>
+      </main>`
+    mountDeck(window, { presentations })
+    slides = [...document.querySelectorAll('section.slide')]
+  })
+  const shown = () => slides.findIndex((s) => !s.hidden)
+  const groups = () => [...document.querySelectorAll('.deck__group')]
+
+  it('groups the dots by chapter, one dot per slide still', () => {
+    expect(groups().map((g) => g.querySelectorAll('.deck__dot').length)).toEqual([1, 2, 2])
+    expect(document.querySelectorAll('.deck__dot')).toHaveLength(5)
+  })
+  it('names each chapter in both languages; slides with no chapter have no name', () => {
+    expect(groups()[0].querySelector('.deck__chapter')).toBeNull()
+    const name = groups()[2].querySelector('.deck__chapter')
+    expect(name.querySelector('[lang="en"]').textContent).toBe('2 · Model')
+    expect(name.querySelector('[lang="es"]').textContent).toBe('2 · Modelo')
+  })
+  it('a click on a chapter opens its first slide, its cover', () => {
+    groups()[2].querySelector('.deck__chapter').click()
+    expect(shown()).toBe(3)
+  })
+  it('marks the chapter of the slide shown', () => {
+    document.querySelectorAll('.deck__dot')[4].click()
+    expect(groups().map((g) => g.classList.contains('is-current'))).toEqual([false, false, true])
   })
 })
 

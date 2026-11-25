@@ -8,7 +8,7 @@
 // The pure part (geometry, phases, projection, fit) is exported for the tests; `mountBuilding` is the canvas.
 
 /** What a slide asks for with `data-phase`. */
-export const PHASES = ['off', 'exploded', 'graph', 'masked', 'rebuilt', 'motif']
+export const PHASES = ['off', 'exploded', 'graph', 'masked', 'rebuilt', 'rooms', 'motif']
 
 /** The box the drawing fits in, as fractions of the stage (`data-place`). */
 export const PLACES = {
@@ -86,10 +86,10 @@ export function geometryOf(model) {
 /**
  * How the drawing looks in a phase, as numbers that tween: alpha (all of it), explode (the strata apart), labels (their
  * names), graph (elements become nodes and host edges), mask (the openings hidden, in the accent), ember (the openings
- * placed back, in the accent).
+ * placed back, in the accent), rooms (each room a mark in the accent, the rest stepped back).
  */
 export function phaseVector(phase) {
-  const base = { alpha: 0, explode: 0, labels: 0, graph: 0, mask: 0, ember: 0 }
+  const base = { alpha: 0, explode: 0, labels: 0, graph: 0, mask: 0, ember: 0, rooms: 0 }
   switch (phase) {
     case 'exploded':
       return { ...base, alpha: 1, explode: 1, labels: 1 }
@@ -99,6 +99,8 @@ export function phaseVector(phase) {
       return { ...base, alpha: 1, explode: 0.55, graph: 1, mask: 1 }
     case 'rebuilt':
       return { ...base, alpha: 1, ember: 1 }
+    case 'rooms':
+      return { ...base, alpha: 1, explode: 0.55, rooms: 1 }
     case 'motif':
       return { ...base, alpha: 0.75 }
     default:
@@ -283,7 +285,7 @@ export function mountBuilding(win, model) {
     }
     g.lineWidth = 1
     g.lineCap = 'round'
-    const model = 1 - V.graph * 0.75 // the drawing steps back while the graph shows
+    const model = 1 - V.graph * 0.75 - V.rooms * 0.55 // the drawing steps back while the graph or the rooms show
 
     // dashed guides through the whole stack, while the strata are apart
     if (V.explode > 0.02) {
@@ -365,6 +367,22 @@ export function mountBuilding(win, model) {
     for (const r of geo.rooms) {
       const [x, y] = P(r.p[0], r.p[1], r.p[2] + 0.05, r.level)
       g.fillRect(x - d / 2, y - d / 2, d, d)
+    }
+    // the rooms as the unit: a mark in the accent with a soft halo, one per room of the model
+    const RM = A * V.rooms
+    if (RM > 0.004) {
+      const r = Math.max(2, 2.6 * s)
+      for (const room of geo.rooms) {
+        const [x, y] = P(room.p[0], room.p[1], room.p[2] + 0.05, room.level)
+        g.fillStyle = rgba(ember, 0.16 * RM)
+        g.beginPath()
+        g.arc(x, y, r * 2.4, 0, Math.PI * 2)
+        g.fill()
+        g.fillStyle = rgba(ember, 0.95 * RM)
+        g.beginPath()
+        g.arc(x, y, r, 0, Math.PI * 2)
+        g.fill()
+      }
     }
 
     // the graph: a node per wall and per opening, an edge from each opening to its host wall

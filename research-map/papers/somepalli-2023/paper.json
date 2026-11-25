@@ -1,0 +1,1918 @@
+{
+  "version": 1,
+  "node": "somepalli-2023",
+  "title": "Diffusion Art or Digital Forgery? Investigating Data Replication in Diffusion Models",
+  "source": "files/Diffusion Art or Digital Forgery Investigating Data Replication in Diffusion Models.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Abstract",
+        "es": "Resumen"
+      },
+      "blocks": [
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Cutting-edge diffusion models produce images with high quality and customizability, enabling them to be used for commercial art and graphic design purposes. But do diffusion models create unique works of art, or are they replicating content directly from their training sets? In this work, we study image retrieval frameworks that enable us to compare generated images with training samples and detect when content has been replicated. Applying our frameworks to diffusion models trained on multiple datasets including Oxford ﬂowers, Celeb-A, ImageNet, and LAION, we discuss how factors such as training set size impact rates of content replication. We also identify cases where diffusion models, including the popular Stable Diffusion model, blatantly copy from their training data.",
+            "es": "Los modelos de difusión (diffusion models) de vanguardia producen imágenes de alta calidad y gran capacidad de personalización, lo que permite usarlos para arte comercial y diseño gráfico. Pero ¿los modelos de difusión crean obras de arte únicas, o replican contenido directamente de sus conjuntos de entrenamiento? En este trabajo estudiamos marcos de recuperación de imágenes (image retrieval) que nos permiten comparar las imágenes generadas con las muestras de entrenamiento y detectar cuándo se ha replicado contenido. Al aplicar nuestros marcos a modelos de difusión entrenados con múltiples conjuntos de datos, entre ellos Oxford ﬂowers, Celeb-A, ImageNet y LAION, analizamos cómo factores como el tamaño del conjunto de entrenamiento influyen en las tasas de replicación de contenido. También identificamos casos en los que los modelos de difusión, incluido el popular modelo Stable Diffusion, copian descaradamente de sus datos de entrenamiento."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1. Introduction",
+        "es": "1. Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "The rapid rise of diffusion models has led to new generative tools with the potential to be used for commercial art and graphic design. The power of the diffusion paradigm stems in large part from its reliance on simple denoising networks that maintain their stability when trained on huge web-scale datasets containing billions of imagecaption pairs.",
+            "es": "El rápido ascenso de los modelos de difusión ha dado lugar a nuevas herramientas generativas con potencial para usarse en arte comercial y diseño gráfico. El poder del paradigma de difusión proviene en gran parte de su dependencia de redes de eliminación de ruido (denoising networks) sencillas que mantienen su estabilidad cuando se entrenan con enormes conjuntos de datos a escala web que contienen miles de millones de pares imagen-descripción."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "These mega-datasets have the power to forge commercial models like DALL·E [52] and Stable Diffusion [54], but also bring with them a number of legal and ethical risks [7]. Because these datasets are too large for careful human curation, the origins and intellectual property rights of the data sources are largely unknown. This fact, combined with the ability of large models to memorize their training data [9,10,22], raises questions about the originality of diffusion outputs. There is a risk that diffusion models might, without notice, reproduce data from the training set directly, or present a collage of multiple training images.",
+            "es": "Estos mega-conjuntos de datos tienen la capacidad de dar origen a modelos comerciales como DALL·E [52] y Stable Diffusion [54], pero también traen consigo una serie de riesgos legales y éticos [7]. Como estos conjuntos de datos son demasiado grandes para una curaduría humana cuidadosa, los orígenes y los derechos de propiedad intelectual de las fuentes de datos son en gran medida desconocidos. Este hecho, combinado con la capacidad de los modelos grandes de memorizar sus datos de entrenamiento [9,10,22], plantea dudas sobre la originalidad de los resultados de la difusión. Existe el riesgo de que los modelos de difusión reproduzcan, sin previo aviso, datos del conjunto de entrenamiento de forma directa, o presenten un collage de varias imágenes de entrenamiento."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We informally refer to the reproduction of training images, either in part or in whole, as content replication. In principle, replicating partial or complete information from the training data has implications for the ethical and legal use of diffusion models in terms of attributions to artists and photographers. Replicants are either a beneﬁt or a hazard; there may be situations where content replication is acceptable, desirable, or fair use, and others where it is “stealing.” While these ethical boundaries are unclear at this time, we focus on the scientiﬁc question of whether replication actually happens with modern state-of-the-art diffusion models, and to what degree.",
+            "es": "Nos referimos de manera informal a la reproducción de imágenes de entrenamiento, ya sea en parte o en su totalidad, como replicación de contenido (content replication). En principio, replicar información parcial o completa de los datos de entrenamiento tiene implicaciones para el uso ético y legal de los modelos de difusión en cuanto a la atribución a artistas y fotógrafos. Los réplicas (replicants) son un beneficio o un peligro; puede haber situaciones en las que la replicación de contenido sea aceptable, deseable o uso legítimo (fair use), y otras en las que sea “robo”. Si bien estos límites éticos no están claros por el momento, nos centramos en la pregunta científica de si la replicación realmente ocurre con los modelos de difusión modernos de última generación, y en qué grado."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Our contributions are as follows. We begin with a study of how to detect content replication, and we consider a range of image similarity metrics developed in the selfsupervised learning and image retrieval communities. We benchmark the performance of different image feature extractors using real and purpose-built synthetic datasets and show that state-of-the-art instance retrieval models work well for this task.",
+            "es": "Nuestras contribuciones son las siguientes. Comenzamos con un estudio de cómo detectar la replicación de contenido y consideramos una gama de métricas de similitud de imágenes desarrolladas en las comunidades de aprendizaje autosupervisado (self-supervised learning) y de recuperación de imágenes. Evaluamos el desempeño de diferentes extractores de características de imágenes usando conjuntos de datos reales y sintéticos creados para este fin, y mostramos que los modelos de recuperación de instancias (instance retrieval) de última generación funcionan bien para esta tarea."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Armed with new and existing tools, we search for data replication behavior in a range of diffusion models with different dataset properties. We show that for small and medium dataset sizes, replication happens frequently, while for a model trained on the large and diverse ImageNet dataset, replication seems undetectable.",
+            "es": "Armados con herramientas nuevas y existentes, buscamos comportamiento de replicación de datos en una variedad de modelos de difusión con distintas propiedades del conjunto de datos. Mostramos que, para conjuntos de datos de tamaño pequeño y mediano, la replicación ocurre con frecuencia, mientras que, para un modelo entrenado con el conjunto de datos ImageNet, grande y diverso, la replicación parece indetectable."
+          }
+        },
+        {
+          "id": "s1-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "This latter ﬁnding may lead one to believe that replication is not a problem for large-scale models. However, the even larger Stable Diffusion model exhibits clear replication in various forms (Fig 1). Furthermore, we believe that the rate of content replication we identify in Stable Diffu-sion likely underestimates the true rate because the model is trained on a large 2B image split of LAION, but we only search for matches in the much smaller 12M “Aesthetics v2 6+” subset. The level of image similarity required for something to count as “replication” is subjective and may depend on both the amount of diversity within the image’s class as well as the observer. Some replication behaviors we uncover are unambiguous, while in other instances they fall into a gray area. Rather than choosing an arbitrary deﬁnition, we focus on presenting quantitative and qualitative results to the reader, leaving each person to draw their own conclusions based on their role and stake in the process of generative AI.",
+            "es": "Este último hallazgo podría llevar a pensar que la replicación no es un problema para los modelos a gran escala. Sin embargo, el modelo Stable Diffusion, aún más grande, exhibe una clara replicación en diversas formas (Fig 1). Además, creemos que la tasa de replicación de contenido que identificamos en Stable Diffu-sion probablemente subestima la tasa real, porque el modelo se entrena con una división grande de 2B imágenes de LAION, pero nosotros solo buscamos coincidencias en el subconjunto mucho más pequeño de 12M “Aesthetics v2 6+”. El nivel de similitud de imagen requerido para que algo cuente como “replicación” es subjetivo y puede depender tanto de la cantidad de diversidad dentro de la clase de la imagen como del observador. Algunos comportamientos de replicación que descubrimos son inequívocos, mientras que en otros casos caen en una zona gris. En lugar de elegir una definición arbitraria, nos centramos en presentar resultados cuantitativos y cualitativos al lector, dejando que cada persona saque sus propias conclusiones según su papel e interés en el proceso de la IA generativa."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2. Background",
+        "es": "2. Antecedentes"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Below, we review the background and related work in image retrieval, generative models, and memorization literature.",
+            "es": "A continuación, revisamos los antecedentes y el trabajo relacionado en la literatura sobre recuperación de imágenes, modelos generativos y memorización."
+          }
+        },
+        {
+          "id": "s2-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Image retrieval and copy detection. The process of searching a database for images containing reference features from a source image is known as image retrieval. The related task of inexact copy detection requires high semantic similarity between the source and match [17]. Image retrieval works with image descriptors based on all types of neural networks [3, 53]. High-performance descriptors can be ﬁne-tuned speciﬁcally for retrieval after unsupervised training [49, 50] using structure-from-motion (SfM) or contrastive objectives [14,27]. A natural basis for image retrieval methods are self-supervised models that inherently learn strong feature descriptors, matching similar images to similar representations [11,13,15,28,30]. A particularly relevant SSL method for our purposes is DINO [12], which is shown to perform competitively on instance retrieval tasks.",
+            "es": "Recuperación de imágenes y detección de copias (copy detection). El proceso de buscar en una base de datos imágenes que contengan características de referencia de una imagen fuente se conoce como recuperación de imágenes. La tarea relacionada de detección de copias inexactas (inexact copy detection) requiere una alta similitud semántica entre la fuente y la coincidencia [17]. La recuperación de imágenes funciona con descriptores de imagen (image descriptors) basados en todo tipo de redes neuronales [3, 53]. Los descriptores de alto desempeño pueden ajustarse (fine-tuned) específicamente para la recuperación después de un entrenamiento no supervisado [49, 50] usando estructura a partir del movimiento (structure-from-motion, SfM) u objetivos contrastivos [14,27]. Una base natural para los métodos de recuperación de imágenes son los modelos autosupervisados, que aprenden de manera inherente descriptores de características sólidos, haciendo corresponder imágenes similares con representaciones similares [11,13,15,28,30]. Un método SSL particularmente relevante para nuestros fines es DINO [12], que muestra un desempeño competitivo en tareas de recuperación de instancias."
+          }
+        },
+        {
+          "id": "s2-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Recent approaches adopt strong vision transformers as architectural backbones for retrieval [6, 19, 26, 34, 58]. Historical progress in this ﬁeld is tracked by public image similarity challenges [18]. A recent SOTA approach is SSCD [47], which builds on previous work in selfsupervised representation learning and optimizes a descriptor for copy detection using entropic regularization and an array of task-speciﬁc data augmentations.",
+            "es": "Los enfoques recientes adoptan potentes transformadores de visión (vision transformers) como arquitecturas base para la recuperación [6, 19, 26, 34, 58]. El progreso histórico en este campo se sigue mediante desafíos públicos de similitud de imágenes [18]. Un enfoque reciente de vanguardia (SOTA) es SSCD [47], que se basa en trabajo previo de aprendizaje de representaciones autosupervisado y optimiza un descriptor para la detección de copias mediante regularización entrópica y un conjunto de aumentos de datos (data augmentations) específicos de la tarea."
+          }
+        },
+        {
+          "id": "s2-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Memorization in deep learning. While it is widely known and discussed that large models can memorize their data, there is no universally accepted deﬁnition of memorization. To ML theorists, memorization is synonymous with overﬁtting [2, 21, 23]. In the ﬁeld of membership inference attacks, one seeks to determine whether a chosen image was part of the training set [8, 32, 63, 64]. Indeed, it has been shown that models retain a memory of the contents of their training set, particularly when training samples are repeated [64]. Note that membership inference can be done by reconstructing original training data from the model [63], although this is not the goal of most membership inference methods. The problem of explicitly reconstructing images from the training set of a classiﬁer is known as model inversion, and recent research has been able to do this with both convolutional and transformer models [25,67]. However, it is crucial to note the relationship of memorization, membership inference, inversion and replication: A generative model that memorizes data might allow for model inversion or only membership inference, yet the same model might never spontaneously generate the training data by accident.",
+            "es": "Memorización en el aprendizaje profundo (deep learning). Aunque es ampliamente sabido y discutido que los modelos grandes pueden memorizar sus datos, no existe una definición de memorización universalmente aceptada. Para los teóricos del aprendizaje automático (ML), la memorización es sinónimo de sobreajuste (overfitting) [2, 21, 23]. En el campo de los ataques de inferencia de pertenencia (membership inference attacks), se busca determinar si una imagen elegida formó parte del conjunto de entrenamiento [8, 32, 63, 64]. De hecho, se ha demostrado que los modelos conservan una memoria del contenido de su conjunto de entrenamiento, en particular cuando las muestras de entrenamiento se repiten [64]. Nótese que la inferencia de pertenencia puede realizarse reconstruyendo los datos de entrenamiento originales a partir del modelo [63], aunque este no es el objetivo de la mayoría de los métodos de inferencia de pertenencia. El problema de reconstruir explícitamente imágenes del conjunto de entrenamiento de un clasificador se conoce como inversión de modelos (model inversion), y la investigación reciente ha logrado hacerlo tanto con modelos convolucionales como con transformadores [25,67]. Sin embargo, es crucial señalar la relación entre memorización, inferencia de pertenencia, inversión y replicación: un modelo generativo que memoriza datos podría permitir la inversión del modelo o solo la inferencia de pertenencia, y aun así ese mismo modelo podría nunca generar espontáneamente los datos de entrenamiento por accidente."
+          }
+        },
+        {
+          "id": "s2-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Memorization in language. It is well known that generative language models risk replication from their training set [9,10] and the amount of replicated data is broadly proportional to the size of the model, amount of duplication of the data point in the training set, and the amount of prompting. Interestingly, such replication behavior occurs even for models that are not overﬁtting to their training data [33,60].",
+            "es": "Memorización en el lenguaje. Es bien sabido que los modelos generativos de lenguaje corren el riesgo de replicar su conjunto de entrenamiento [9,10] y que la cantidad de datos replicados es, en términos generales, proporcional al tamaño del modelo, a la cantidad de duplicación del dato en el conjunto de entrenamiento y a la cantidad de indicaciones (prompting). Curiosamente, este comportamiento de replicación ocurre incluso en modelos que no están sobreajustando sus datos de entrenamiento [33,60]."
+          }
+        },
+        {
+          "id": "s2-p6",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Diffusion models. Diffusion is a process for converting samples from a Gaussian noise distribution into samples from an arbitrary and more complex distribution, such as the distribution of natural images.",
+            "es": "Modelos de difusión. La difusión es un proceso para convertir muestras de una distribución de ruido gaussiano en muestras de una distribución arbitraria y más compleja, como la distribución de las imágenes naturales."
+          }
+        },
+        {
+          "id": "s2-p7",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "We consider several variants of diffusion models. Stable Diffusion is a state-of-the-art text-conditional latent diffusion model [54], trained on the LAION database [57]. The version we analyze in this work (v1.4) was initially trained on over 2B images and then ﬁne-tuned with 600M images from the LAION Aesthetics v2 5+ subset, which is ﬁltered for image quality. We search for matches only in the much smaller 12M LAION Aesthetics v2 6+ split to keep storage costs manageable.",
+            "es": "Consideramos varias variantes de modelos de difusión. Stable Diffusion es un modelo de difusión latente (latent diffusion model) condicionado por texto de vanguardia [54], entrenado con la base de datos LAION [57]. La versión que analizamos en este trabajo (v1.4) se entrenó inicialmente con más de 2B imágenes y luego se ajustó (fine-tuned) con 600M imágenes del subconjunto LAION Aesthetics v2 5+, que está filtrado por calidad de imagen. Buscamos coincidencias solo en la división LAION Aesthetics v2 6+, mucho más pequeña, de 12M, para mantener manejables los costos de almacenamiento."
+          }
+        },
+        {
+          "id": "s2-p8",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Related work. Replication behavior in GANs has been studied in a number of works. Meehan et al [39] describe a hypothesis test that discerns whether generated images are on average closer to the training data than a random sample from a hold-out set. Note that this test is at the population level, and is not designed to ﬂag individual instances of replication. Feng et al. [24] study the conditions that lead GANs to replicate training data. They look for copies in pixel-space and ﬁnd that such replications are inversely proportional to dataset complexity and dataset size. Web-ster et al [63] show on face datasets that GANs can occasionally replicate. Interestingly, these models can produce novel images of known identities from the training data without making verbatim copies. FID scores for ranking GANs favor models that memorize training data [4], leading toward a search for measures of generalization without memorization [29]. This includes “authenticity scores” that detect replication [1], but only in the form of noisy pixelby-pixel copies of the training data. Similarly, authors of large-scale diffusion models have investigated image replication themselves [40], reducing replication through training data de-duplication, and checking for simple nearestneighbor matches.",
+            "es": "Trabajo relacionado. El comportamiento de replicación en las GAN se ha estudiado en varios trabajos. Meehan et al [39] describen una prueba de hipótesis que discierne si las imágenes generadas están, en promedio, más cerca de los datos de entrenamiento que una muestra aleatoria de un conjunto de reserva (hold-out set). Nótese que esta prueba es a nivel poblacional y no está diseñada para señalar casos individuales de replicación. Feng et al. [24] estudian las condiciones que llevan a las GAN a replicar los datos de entrenamiento. Buscan copias en el espacio de píxeles y encuentran que dichas replicaciones son inversamente proporcionales a la complejidad y al tamaño del conjunto de datos. Web-ster et al [63] muestran en conjuntos de datos de rostros que las GAN pueden replicar ocasionalmente. Curiosamente, estos modelos pueden producir imágenes novedosas de identidades conocidas a partir de los datos de entrenamiento sin hacer copias literales. Las puntuaciones FID para clasificar GAN favorecen a los modelos que memorizan los datos de entrenamiento [4], lo que conduce a la búsqueda de medidas de generalización sin memorización [29]. Esto incluye “puntuaciones de autenticidad” (authenticity scores) que detectan la replicación [1], pero solo en forma de copias ruidosas píxel por píxel de los datos de entrenamiento. De manera similar, los autores de modelos de difusión a gran escala han investigado por sí mismos la replicación de imágenes [40], reduciéndola mediante la deduplicación de los datos de entrenamiento y comprobando coincidencias simples de vecino más cercano (nearest-neighbor)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3. What Counts as Replication?",
+        "es": "3. ¿Qué cuenta como replicación?"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "There are many different notions of replication from creative work, but we will narrow our scope for the purpose of designing a detection system for replicated content. We consider the following (informal) deﬁnition:",
+            "es": "Existen muchas nociones distintas de replicación en el trabajo creativo, pero acotaremos nuestro alcance con el fin de diseñar un sistema de detección de contenido replicado. Consideramos la siguiente definición (informal):"
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "We say that a generated image has replicated content if it contains an object (either in the foreground or background) that appears identically in a training image, neglecting minor variations in appearance that could result from data augmentation.",
+            "es": "Decimos que una imagen generada tiene contenido replicado si contiene un objeto (ya sea en primer plano o en el fondo) que aparece de forma idéntica en una imagen de entrenamiento, sin tomar en cuenta variaciones menores de apariencia que podrían deberse al aumento de datos."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "We focus on object-level similarity because it is likely to be the subject of intellectual property disputes. We also discount minor differences in appearance that can be explained by data augmentation as these variations would typically not be relevant to a copyright claim. An alternative notion is style-wise or semantic similarity. We do not focus on such deﬁnitions here as they are highly subjective, typically are not considered an infringement of intellectual property, and also because many images lack a well-deﬁned style (e.g., natural, unﬁltered images from a standard camera).",
+            "es": "Nos centramos en la similitud a nivel de objeto porque es probable que sea el objeto de disputas de propiedad intelectual. También descartamos las diferencias menores de apariencia que pueden explicarse por el aumento de datos, ya que estas variaciones normalmente no serían relevantes para un reclamo de derechos de autor. Una noción alternativa es la similitud de estilo o semántica. No nos centramos aquí en tales definiciones porque son altamente subjetivas, normalmente no se consideran una infracción de la propiedad intelectual y, además, porque muchas imágenes carecen de un estilo bien definido (por ejemplo, imágenes naturales y sin filtrar de una cámara estándar)."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 3,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Figure 2. Synthetic datasets. (a) Original images. (b) Segmix generation. (c) Diagonal outpainting. (d) Patch outpainting. Please refer to Sec. 4 for more details. (a) (b) (c) (d)",
+            "es": "Figura 2: Conjuntos de datos sintéticos. (a) Imágenes originales. (b) Generación Segmix. (c) Extrapolación (outpainting) diagonal. (d) Extrapolación (outpainting) por parches. Consulte la Sec. 4 para más detalles. (a) (b) (c) (d)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4. Detecting Content Replication",
+        "es": "4. Detección de la replicación de contenido"
+      },
+      "blocks": [
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Our goal is to construct a system to detect replication as deﬁned above. To ﬁnd a powerful system, we consider 10 different prototypes of feature extractors drawn from the SSL and image retrieval literature. We compare and contrast these methods using 10 different datasets that we curate for measuring the performance of replication detectors.",
+            "es": "Nuestro objetivo es construir un sistema para detectar la replicación tal como se definió arriba. Para encontrar un sistema potente, consideramos 10 prototipos distintos de extractores de características (feature extractors) tomados de la literatura de aprendizaje autosupervisado (SSL) y de recuperación de imágenes (image retrieval). Comparamos y contrastamos estos métodos utilizando 10 conjuntos de datos distintos que seleccionamos para medir el desempeño de los detectores de replicación."
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Synthetic datasets. There are currently no existing labeled datasets that capture our notion of replication as deﬁned above. Thus, we create 5 synthetic datasets. Our IN-Cutmix dataset is built by pasting random square patches from one image into a random location in another. The size of the pasted patch is randomly chosen. We use ImageNet as the source for base images [56]. Our IN-Dif-Patch dataset is created by masking 80% of the image except for a random square patch and then outpainting the rest of the pixels using the method proposed by Lugmayr et al [38].",
+            "es": "Conjuntos de datos sintéticos (Synthetic datasets). Actualmente no existen conjuntos de datos etiquetados que capturen nuestra noción de replicación tal como se definió arriba. Por ello, creamos 5 conjuntos de datos sintéticos. Nuestro conjunto IN-Cutmix se construye pegando parches cuadrados aleatorios de una imagen en una ubicación aleatoria de otra. El tamaño del parche pegado se elige al azar. Usamos ImageNet como fuente de las imágenes base [56]. Nuestro conjunto IN-Dif-Patch se crea enmascarando el 80% de la imagen, excepto un parche cuadrado aleatorio, y luego completando el resto de los píxeles mediante extrapolación (outpainting) con el método propuesto por Lugmayr et al [38]."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "In the above two datasets, the replicated content lies inside a square patch. Vision transformer models naturally rely on square patches, and so we create the IN-Dif-Diagonal dataset by masking a random triangular half of an ImageNet image (above or below the diagonal) and using diffusion to outpaint the masked region, resulting in an image that shares half the content of the original.",
+            "es": "En los dos conjuntos anteriores, el contenido replicado se encuentra dentro de un parche cuadrado. Los modelos transformadores de visión (vision transformer) se apoyan de forma natural en parches cuadrados, por lo que creamos el conjunto IN-Dif-Diagonal enmascarando una mitad triangular aleatoria de una imagen de ImageNet (por encima o por debajo de la diagonal) y utilizando difusión para extrapolar la región enmascarada, lo que produce una imagen que comparte la mitad del contenido del original."
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Since real world objects may have irregular shapes, we next use the segmentation masks from the MS COCO [35] and Pasal VOC [20] datasets to generate the synthetic data. For a random query image, we choose either a single object or its background. We then apply a plethora of augmentations (ﬂips, blur, autocontrast, solarize, colorjitter) to the selected region before pasting it into another random image. If a foreground object is chosen, we also resize and reposition the object at random. We call these challenging datasets MSCOCO Segmix and VOC Segmix. See Fig. 2.",
+            "es": "Dado que los objetos del mundo real pueden tener formas irregulares, a continuación usamos las máscaras de segmentación de los conjuntos de datos MS COCO [35] y Pasal VOC [20] para generar los datos sintéticos. Para una imagen de consulta aleatoria, elegimos un solo objeto o su fondo. Luego aplicamos una gran variedad de aumentos (flips, blur, autocontrast, solarize, colorjitter) a la región seleccionada antes de pegarla en otra imagen aleatoria. Si se elige un objeto de primer plano, también cambiamos su tamaño y lo reubicamos al azar. Llamamos a estos conjuntos de datos desafiantes MSCOCO Segmix y VOC Segmix. Véase la Fig. 2."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 4,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1. We present the mAP scores for all 10 models across 10 datasets. The ﬁrst ﬁve datasets are real and the next ﬁve are synthetic. In the last column we show the average rank of each model across datasets. We split the models into 3 sub-categories depending on the style of training. The descriptions of the short forms used in the table are: CD/IR - Copy Detection/ Instance Retrieval, PT - Pre-Trained, SSL - Self-Supervised Learning. Refer Sec. 4 for more details on models, datasets and the metric. mAP higher the better. Average rank lower the better.",
+            "es": "Tabla 1. Presentamos los puntajes de mAP de los 10 modelos en los 10 conjuntos de datos. Los primeros cinco conjuntos de datos son reales y los siguientes cinco son sintéticos. En la última columna mostramos el rango promedio de cada modelo a través de los conjuntos de datos. Dividimos los modelos en 3 subcategorías según el estilo de entrenamiento. Las descripciones de las abreviaturas usadas en la tabla son: CD/IR - Detección de copias/Recuperación de instancias (Copy Detection/Instance Retrieval), PT - Preentrenado (Pre-Trained), SSL - Aprendizaje autosupervisado (Self-Supervised Learning). Consulte la Sec. 4 para más detalles sobre los modelos, los conjuntos de datos y la métrica. Para mAP, mayor es mejor. Para el rango promedio, menor es mejor."
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Real datasets. Similarity-based image retrieval is closely related to copy detection, although the matching criteria is less stringent for retrieval. We choose 5 image retrieval datasets with high diversity. Oxford [45] and Paris [46] are geographic landmark datasets where query and gallery images contain the same building. We use the cleaned-up version with corrected labels [48]. INSTRE [62] contains objects like toys or irregularly-shaped products placed in different locations and conditions. GPR1200 is a general-purpose content retrieval dataset with 1200 classes sampled from other datasets such as Google Landmarks V2 [65], Stanford Online Products [42], IMDB-WIKI [55] and others. Caltech-UCSD Birds-200 or CUB-200 [61] is a dataset with ﬁne-grained classes of birds in different backgrounds, poses and lighting conditions.",
+            "es": "Conjuntos de datos reales (Real datasets). La recuperación de imágenes basada en similitud está estrechamente relacionada con la detección de copias, aunque el criterio de coincidencia es menos estricto en la recuperación. Elegimos 5 conjuntos de datos de recuperación de imágenes con alta diversidad. Oxford [45] y Paris [46] son conjuntos de datos de monumentos geográficos en los que la imagen de consulta y las imágenes de la galería contienen el mismo edificio. Usamos la versión depurada con etiquetas corregidas [48]. INSTRE [62] contiene objetos como juguetes o productos de formas irregulares colocados en distintas ubicaciones y condiciones. GPR1200 es un conjunto de datos de recuperación de contenido de propósito general con 1200 clases muestreadas de otros conjuntos de datos como Google Landmarks V2 [65], Stanford Online Products [42], IMDB-WIKI [55] y otros. Caltech-UCSD Birds-200 o CUB-200 [61] es un conjunto de datos con clases de aves de granularidad fina en distintos fondos, poses y condiciones de iluminación."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Models. Several recent self-supervised (SSL) methods are competitive with supervised retrieval techniques. To the best of our knowledge, no rigorous study exists that compares multiple SSL models to retrieval specialist models across multiple datasets. Our study uses the following candidate models and training methodologies.",
+            "es": "Modelos (Models). Varios métodos autosupervisados (SSL) recientes son competitivos frente a las técnicas de recuperación supervisadas. Hasta donde sabemos, no existe un estudio riguroso que compare múltiples modelos SSL con modelos especializados en recuperación a través de múltiples conjuntos de datos. Nuestro estudio utiliza los siguientes modelos candidatos y metodologías de entrenamiento."
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "MultiGrain [6] trains a retrieval model with both classiﬁcation and retrieval triplet loss. We used the bestperforming ImageNet pre-trained ResNet-50 checkpoint from the ofﬁcial repo1. SSCD [47] is a self-supervised copy detection method trained in the style of SimCLR [13] using InfoNCE loss [43], entropy regularization on latent space representations, and many strong augmentations. We used the ofﬁcial ResNet-50 checkpoint trained on ImageNet2. Some established methods use pre-trained models as backbones to perform image retrieval tasks [14]. Hence we also evaluate 4 models from timm [66] that are trained in a supervised fashion. ViT-Small/16 [16] pre-trained on ImageNet, ViT-Base/16 pre-trained on ImageNet-21k, ViT-Base/32 image encoder from the CLIP [51] model trained on LAION [57], and ﬁnally a Swin-Transformer [36] with",
+            "es": "MultiGrain [6] entrena un modelo de recuperación con una pérdida de clasificación y una pérdida de tripletes (triplet loss) de recuperación. Usamos el punto de control (checkpoint) de ResNet-50 preentrenado en ImageNet con mejor desempeño del repositorio oficial1. SSCD [47] es un método autosupervisado de detección de copias entrenado al estilo de SimCLR [13] usando la pérdida InfoNCE [43], regularización de entropía sobre las representaciones del espacio latente y muchos aumentos fuertes. Usamos el punto de control oficial de ResNet-50 entrenado en ImageNet2. Algunos métodos establecidos usan modelos preentrenados como columnas vertebrales (backbones) para realizar tareas de recuperación de imágenes [14]. Por ello, también evaluamos 4 modelos de timm [66] entrenados de forma supervisada: ViT-Small/16 [16] preentrenado en ImageNet, ViT-Base/16 preentrenado en ImageNet-21k, el codificador de imágenes ViT-Base/32 del modelo CLIP [51] entrenado en LAION [57] y, por último, un Swin-Transformer [36] con"
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "1github.com/facebookresearch/multigrain 2github.com/facebookresearch/sscd-copy-detection base patch 4 and window 7 trained on ImageNet.",
+            "es": "1github.com/facebookresearch/multigrain 2github.com/facebookresearch/sscd-copy-detection parche base 4 y ventana 7 entrenado en ImageNet."
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Lastly, we explored 3 self-supervised models. First is a ViT-Base/16 variant trained with the DINO [12] framework3. We also consider ResNet-50 from VICRegL [5]4. Finally we consider ViT-Base/16 from MoCo v3 [15]5, and a variant of MoCo v3 that we ﬁne-tune for 50 epochs with CutMix [68] as an additional augmentation with the goal of boosting its copy detection performance.",
+            "es": "Por último, exploramos 3 modelos autosupervisados. El primero es una variante ViT-Base/16 entrenada con el marco DINO [12]3. También consideramos el ResNet-50 de VICRegL [5]4. Finalmente consideramos el ViT-Base/16 de MoCo v3 [15]5, y una variante de MoCo v3 que ajustamos finamente (fine-tune) durante 50 épocas con CutMix [68] como aumento adicional, con el objetivo de mejorar su desempeño en la detección de copias."
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Computing the similarity. It is common to compare two images via the inner product of feature vectors (either the [CLS] token or average-pooled representations) [12,14, 15]. Inner product metrics measure global, rather than local similarity. This is because inner product spaces are metric spaces and thus satisfy the triangle inequality. To see why this is a problem, consider an example in which generated image Igen contains a car and a tree directly stolen from two unrelated images Icar and Itree, respectively. Then we would like d(Igen, Icar) and d(Igen, Itree) to be very small indicating replication. But by the triangle inequality, the two unrelated images satisfy d(Icar, Itree) ≤d(Igen, Icar) + d(Igen, Itree), and are also scored as similar even though they share nothing.",
+            "es": "Cálculo de la similitud (Computing the similarity). Es común comparar dos imágenes mediante el producto interno de vectores de características (ya sea el token [CLS] o representaciones con agrupación por promedio) [12,14, 15]. Las métricas de producto interno miden la similitud global, en lugar de la local. Esto se debe a que los espacios con producto interno son espacios métricos y, por lo tanto, satisfacen la desigualdad triangular. Para ver por qué esto es un problema, considere un ejemplo en el que la imagen generada Igen contiene un automóvil y un árbol tomados directamente de dos imágenes no relacionadas, Icar e Itree, respectivamente. Entonces querríamos que d(Igen, Icar) y d(Igen, Itree) fueran muy pequeñas, lo que indicaría replicación. Pero por la desigualdad triangular, las dos imágenes no relacionadas satisfacen d(Icar, Itree) ≤d(Igen, Icar) + d(Igen, Itree), y también se califican como similares aunque no comparten nada."
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "To bypass this potential problem, we implement a splitproduct metric that breaks each feature vector into chunks, computes inner products between corresponding chunks, and returns the maximum across these inner products. In vision transformers, we use the representation corresponding to each token as a chunk since they are more local in nature than the [CLS] token. Under this strategy, if d(Igen, Icar) and d(Igen, Itree) are small, then for each of these two image pairs, at least one such feature vector chunk must yield a high inner product. However, the locations of these two chunks, each corresponding to one of the image pairs, may differ so that d(Icar, Itree) may remain large. We test both the split-product and standard inner product metric and ﬁnd that both can return suitable, and often differing, matches.",
+            "es": "Para evitar este posible problema, implementamos una métrica de producto dividido (split-product) que descompone cada vector de características en fragmentos, calcula los productos internos entre fragmentos correspondientes y devuelve el máximo de estos productos internos. En los transformadores de visión, usamos como fragmento la representación correspondiente a cada token, ya que son de naturaleza más local que el token [CLS]. Bajo esta estrategia, si d(Igen, Icar) y d(Igen, Itree) son pequeñas, entonces para cada uno de estos dos pares de imágenes al menos un fragmento del vector de características debe producir un producto interno alto. Sin embargo, las ubicaciones de estos dos fragmentos, cada uno correspondiente a uno de los pares de imágenes, pueden diferir, de modo que d(Icar, Itree) puede seguir siendo grande. Probamos tanto la métrica de producto dividido como la de producto interno estándar y encontramos que ambas pueden devolver coincidencias adecuadas y, con frecuencia, distintas."
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "3github.com/facebookresearch/dino 4github.com/facebookresearch/VICRegL 5github.com/facebookresearch/moco-v3",
+            "es": "3github.com/facebookresearch/dino 4github.com/facebookresearch/VICRegL 5github.com/facebookresearch/moco-v3"
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Qualitatively, the split product metric is a more semantic measure of similarity. As expected, the inner product metrics enforces a stricter notion of pixel-wise similarity. See Figure 9.",
+            "es": "Cualitativamente, la métrica de producto dividido es una medida de similitud más semántica. Como era de esperarse, las métricas de producto interno imponen una noción más estricta de similitud píxel a píxel. Véase la Figura 9."
+          }
+        },
+        {
+          "id": "s4-p14",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Performance metrics. We measure model performance using mean-Average-Precision or mAP [44]. We ﬁrst compute the average precision for a given query image, and then compute the mean over all queries to ﬁnd the mAP. An-other metric is Recall@k which measures the proportion of correct matches among the top k. MRR (Mean Reciprocal Rank) records the number of results returned before the ﬁrst correct match, and computes the mean of the reciprocal of these misses. Higher is better for all metrics.",
+            "es": "Métricas de desempeño (Performance metrics). Medimos el desempeño de los modelos mediante la precisión promedio media o mAP (mean-Average-Precision) [44]. Primero calculamos la precisión promedio para una imagen de consulta dada y luego calculamos la media sobre todas las consultas para obtener el mAP. Otra métrica es Recall@k, que mide la proporción de coincidencias correctas entre las k primeras. El MRR (Mean Reciprocal Rank, rango recíproco medio) registra el número de resultados devueltos antes de la primera coincidencia correcta y calcula la media del recíproco de esos fallos. Para todas las métricas, mayor es mejor."
+          }
+        },
+        {
+          "id": "s4-h1",
+          "type": "heading",
+          "page": 5,
+          "text": {
+            "en": "4.1. Choosing the Best Replication Detector",
+            "es": "4.1. Elección del mejor detector de replicación"
+          }
+        },
+        {
+          "id": "s4-p15",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Table 1 shows mAP scores for all the models across different datasets. We also present average ranks of each model averaged across all datasets (Lower is better). DINO [12] with split-product performed the best on average across all 10 datasets. For real datasets, the winner is Swin Transformer [36], and for synthetic datasets SSCD [47] does best. We also observed similar ranking order when evaluated with other metrics such as MRR, Re-call@1, Recall@5, etc (see supplementary material).",
+            "es": "La Tabla 1 muestra los puntajes de mAP de todos los modelos en los distintos conjuntos de datos. También presentamos los rangos promedio de cada modelo promediados a través de todos los conjuntos de datos (menor es mejor). DINO [12] con producto dividido tuvo el mejor desempeño promedio en los 10 conjuntos de datos. En los conjuntos reales, el ganador es Swin Transformer [36], y en los conjuntos sintéticos SSCD [47] es el mejor. También observamos un orden de clasificación similar al evaluar con otras métricas como MRR, Recall@1, Recall@5, etc. (véase el material suplementario)."
+          }
+        },
+        {
+          "id": "s4-p16",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Below, we focus our studies on SSCD, Swin, and DINO (with split-product) as best performing methods in Table 1.",
+            "es": "A continuación, centramos nuestros estudios en SSCD, Swin y DINO (con producto dividido) por ser los métodos de mejor desempeño en la Tabla 1."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5. Do Diffusion Models Copy?",
+        "es": "5. ¿Copian los modelos de difusión?"
+      },
+      "blocks": [
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "In this section, we methodically explore diffusion models trained on different datasets with varying amounts of training data. We observe that the diffusion models trained on smaller datasets tend to generate images that are copied from the training data. The amount of replication reduces as we increase the size of the training set.",
+            "es": "En esta sección exploramos metódicamente modelos de difusión entrenados en distintos conjuntos de datos con cantidades variables de datos de entrenamiento. Observamos que los modelos de difusión entrenados en conjuntos de datos más pequeños tienden a generar imágenes copiadas de los datos de entrenamiento. La cantidad de replicación disminuye a medida que aumentamos el tamaño del conjunto de entrenamiento."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Experimental setup. We train Denoising Diffusion Probabilistic Models (DDPM) [31] with a discrete denoising scheduler on various datasets using the HuggingFace implementation6. For Celeb-A [37], we train two models on 300 and 3000 training images. We also use the full dataset pre-trained checkpoint from the ofﬁcial repository7. For Oxford Flowers [41], we train models on 100, 1083 (top 5 classes), and 8189 (complete dataset) images. We train all models with random horizontal ﬂip and random crop augmentations. In all cases, we train the models until generations appear to be high quality, for at least 300k steps and until the FID [59] scores are lower than 50. We do quantitative analysis on 10000 generations for Celeb-A and 5000 generations for Oxford Flowers.",
+            "es": "Configuración experimental (Experimental setup). Entrenamos modelos probabilísticos de difusión para eliminación de ruido (Denoising Diffusion Probabilistic Models, DDPM) [31] con un planificador de eliminación de ruido discreto sobre diversos conjuntos de datos usando la implementación de HuggingFace6. Para Celeb-A [37], entrenamos dos modelos con 300 y 3000 imágenes de entrenamiento. También usamos el punto de control preentrenado con el conjunto de datos completo del repositorio oficial7. Para Oxford Flowers [41], entrenamos modelos con 100, 1083 (las 5 clases principales) y 8189 (conjunto de datos completo) imágenes. Entrenamos todos los modelos con aumentos de volteo horizontal aleatorio y recorte aleatorio. En todos los casos, entrenamos los modelos hasta que las generaciones parecen ser de alta calidad, durante al menos 300k pasos y hasta que los puntajes FID [59] sean menores que 50. Realizamos el análisis cuantitativo sobre 10000 generaciones para Celeb-A y 5000 generaciones para Oxford Flowers."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Finding matches. For each generated image, we search the training set using dot products between its features",
+            "es": "Búsqueda de coincidencias (Finding matches). Para cada imagen generada, buscamos en el conjunto de entrenamiento usando productos punto entre sus características"
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "6huggingface.co/docs/diffusers/api/pipelines/ddpm 7huggingface.co/google/ddpm-celebahq-256",
+            "es": "6huggingface.co/docs/diffusers/api/pipelines/ddpm 7huggingface.co/google/ddpm-celebahq-256"
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Figure 3. The top two matches (according to different feature extractors) for generations across diffusion models trained on datasets of size 300, 3000 and 30000 (whole dataset). Across the board, we can see full replication in the ﬁrst 2 models (indicated in green). Very close but not exact copies are indicated in Blue. However in the model trained on the whole dataset, the ﬁrst matches are very similar but not the same. Refer to Sec. 5 for more details about this experiment.",
+            "es": "Figura 3. Las dos mejores coincidencias (según distintos extractores de características) para generaciones de modelos de difusión entrenados en conjuntos de datos de tamaño 300, 3000 y 30000 (conjunto completo). En todos los casos, podemos ver replicación completa en los primeros 2 modelos (indicada en verde). Las copias muy cercanas pero no exactas se indican en azul. Sin embargo, en el modelo entrenado con el conjunto de datos completo, las primeras coincidencias son muy similares pero no iguales. Consulte la Sec. 5 para más detalles sobre este experimento."
+          }
+        },
+        {
+          "id": "s5-p5",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "100 1083 8189 and training samples (except for DINO which uses splitproduct). All the generations used in ﬁgures are from the",
+            "es": "100 1083 8189 y muestras de entrenamiento (excepto para DINO, que usa producto dividido). Todas las generaciones usadas en las figuras provienen del"
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Figure 4. Each row shows the top-6 matches based on the DINO split-product extractor for a given generation. We show two generations from all the three models discussed in Sec. 5. Full replications decrease as we move from top to bottom.",
+            "es": "Figura 4. Cada fila muestra las 6 mejores coincidencias según el extractor DINO con producto dividido para una generación dada. Mostramos dos generaciones de cada uno de los tres modelos analizados en la Sec. 5. Las replicaciones completas disminuyen conforme avanzamos de arriba hacia abajo."
+          }
+        },
+        {
+          "id": "s5-p6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "(a) 300 points",
+            "es": "(a) 300 puntos"
+          }
+        },
+        {
+          "id": "s5-p7",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "(b) 3000 points",
+            "es": "(b) 3000 puntos"
+          }
+        },
+        {
+          "id": "s5-p8",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "(c) All points",
+            "es": "(c) Todos los puntos"
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 6,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Figure 5. The histograms of top-1 similarity scores between generations and the training data and the top-1 self-similarity scores of training data across 3 diffusion models trained with different amounts of training data. Varying amount of training data is used in each plot but 10000 generations are used across all.",
+            "es": "Figura 5. Los histogramas de los puntajes de similitud top-1 entre las generaciones y los datos de entrenamiento, y de los puntajes de autosimilitud top-1 de los datos de entrenamiento, para 3 modelos de difusión entrenados con distintas cantidades de datos de entrenamiento. En cada gráfica se usa una cantidad distinta de datos de entrenamiento, pero en todas se usan 10000 generaciones."
+          }
+        },
+        {
+          "id": "s5-p9",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "20 generated images with highest top-1 similarity scores for standard diffusion models, and are among images with similarity > 0.5 for Stable Diffusion.",
+            "es": "20 imágenes generadas con los puntajes de similitud top-1 más altos para los modelos de difusión estándar, y están entre las imágenes con similitud > 0.5 para Stable Diffusion."
+          }
+        },
+        {
+          "id": "s5-p10",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Qualitative observations. Figure 3 and Figure 4 show generated images and their corresponding top matches from the training dataset. We consider diffusion models (DDPM) trained with varying amounts of training data. In the case of Celeb-A, diffusion models trained on 300 and 3000 images blatantly copy from their training images. However, when the model is trained on the whole dataset, generations may appear that are similar to training samples, but not identical. We observe similar trends in diffusion models trained on the Oxford Flowers dataset as well. Curiously, the model trained on just 1083 images is already able to create unique (but minor) variations of the training data. Note that the samples in Fig. 3 and Fig. 4 are not cherry-picked, but they are chosen from the small subset of 20 images with highest top-1 similarity to the training data.",
+            "es": "Observaciones cualitativas (Qualitative observations). La Figura 3 y la Figura 4 muestran imágenes generadas y sus correspondientes mejores coincidencias del conjunto de datos de entrenamiento. Consideramos modelos de difusión (DDPM) entrenados con cantidades variables de datos de entrenamiento. En el caso de Celeb-A, los modelos de difusión entrenados con 300 y 3000 imágenes copian descaradamente de sus imágenes de entrenamiento. Sin embargo, cuando el modelo se entrena con el conjunto de datos completo, pueden aparecer generaciones similares a las muestras de entrenamiento, pero no idénticas. Observamos tendencias similares en los modelos de difusión entrenados con el conjunto de datos Oxford Flowers. Curiosamente, el modelo entrenado con solo 1083 imágenes ya es capaz de crear variaciones únicas (pero menores) de los datos de entrenamiento. Obsérvese que las muestras de la Fig. 3 y la Fig. 4 no fueron seleccionadas selectivamente (cherry-picked), sino que se eligieron del pequeño subconjunto de 20 imágenes con mayor similitud top-1 con los datos de entrenamiento."
+          }
+        },
+        {
+          "id": "s5-p11",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Quantitative observations. To further complement our visual inspection, we can also examine the distribution of similarity scores between generated images and training samples. Figure 5 contains histograms of similarity scores between generations and their best match from the training data. As a baseline, we also draw random training images and compute the similarity with their closest match from the remaining training images. If most scores between generated and training images lie to the right of this baseline, then the model is generating images that are closer to their training samples than the training samples are to each other.",
+            "es": "Observaciones cuantitativas (Quantitative observations). Para complementar nuestra inspección visual, también podemos examinar la distribución de los puntajes de similitud entre las imágenes generadas y las muestras de entrenamiento. La Figura 5 contiene histogramas de los puntajes de similitud entre las generaciones y su mejor coincidencia en los datos de entrenamiento. Como línea base, también tomamos imágenes de entrenamiento al azar y calculamos la similitud con su coincidencia más cercana entre las demás imágenes de entrenamiento. Si la mayoría de los puntajes entre imágenes generadas y de entrenamiento se ubican a la derecha de esta línea base, entonces el modelo está generando imágenes más cercanas a sus muestras de entrenamiento de lo que las muestras de entrenamiento lo están entre sí."
+          }
+        },
+        {
+          "id": "s5-p12",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Most samples generated by the 300-sample model are extremely similar to the training data, having very high similarity scores. However, the histogram’s mass shifts drastically to left when we train the model instead on 3000 points. We do see blatant copies from this model too, but this phenomenon occurs infrequently. The histograms of similarity scores computed using the full dataset model are highly overlapping. This strong alignment indicates that the model is not, on average, copying its training images any more than its training images are copies of each other. The histogram of generated images (gray) no longer has a long right tail, indicating that the model is unlikely to generate exact copies of its training samples. Note that a small proportion of the dataset self-similarity scores in Figure 5 (c) are greater than 0.9, indicating that there are repetitions or near repetitions in the training data.",
+            "es": "La mayoría de las muestras generadas por el modelo de 300 muestras son extremadamente similares a los datos de entrenamiento, con puntajes de similitud muy altos. Sin embargo, la masa del histograma se desplaza drásticamente hacia la izquierda cuando entrenamos el modelo con 3000 puntos. También vemos copias descaradas de este modelo, pero este fenómeno ocurre con poca frecuencia. Los histogramas de los puntajes de similitud calculados con el modelo del conjunto de datos completo se superponen en gran medida. Esta fuerte alineación indica que el modelo no está copiando, en promedio, sus imágenes de entrenamiento más de lo que las imágenes de entrenamiento son copias entre sí. El histograma de las imágenes generadas (gris) ya no tiene una cola derecha larga, lo que indica que es poco probable que el modelo genere copias exactas de sus muestras de entrenamiento. Obsérvese que una pequeña proporción de los puntajes de autosimilitud del conjunto de datos en la Figura 5 (c) es mayor que 0.9, lo que indica que hay repeticiones o casi repeticiones en los datos de entrenamiento."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": {
+        "en": "6. Case Study: ImageNet LDM",
+        "es": "6. Estudio de caso: ImageNet LDM"
+      },
+      "blocks": [
+        {
+          "id": "s6-p1",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Experimental setup. In the previous section, we observed copying behavior when diffusion models are trained on small datasets, and the rate of copying decreases as models are trained on more data. In this section, we extend our study to an off-the-shelf class conditional Latent Diffusion Model [54] trained on ImageNet. We search for copying both at the class level and the population level. We use the pre-trained checkpoint from the ofﬁcial repo.8 We randomly choose 100 classes for this study and then generate 1000 samples per class (comparable to the size of training data per class in ImageNet).",
+            "es": "Configuración experimental (Experimental setup). En la sección anterior observamos un comportamiento de copia cuando los modelos de difusión se entrenan con conjuntos de datos pequeños, y la tasa de copia disminuye a medida que los modelos se entrenan con más datos. En esta sección extendemos nuestro estudio a un modelo de difusión latente (Latent Diffusion Model) [54] condicionado por clase, listo para usar, entrenado en ImageNet. Buscamos copias tanto a nivel de clase como a nivel de población. Usamos el punto de control preentrenado del repositorio oficial.8 Elegimos al azar 100 clases para este estudio y luego generamos 1000 muestras por clase (comparable con el tamaño de los datos de entrenamiento por clase en ImageNet)."
+          }
+        },
+        {
+          "id": "s6-p2",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Observations. Qualitatively, we observe no signiﬁcant copying in any of the generations by this model. In Figure 6 (a), we present a scatter plot with x-axis showing the maximum similarity scores observed between generations of a given class and ImageNet training samples. On the y-axis, we show the average similarity scores per class observed between training samples in that class. For a few interesting points, we also show the corresponding generation and the top match in the training data. We see the similarity scores never cross 0.65, and when we manually sift through the high similarity score examples in each of the 100 classes, they are very similar but never exact copies, and may be explained by low intra-class diversity",
+            "es": "Observaciones (Observations). Cualitativamente, no observamos copias significativas en ninguna de las generaciones de este modelo. En la Figura 6 (a), presentamos una gráfica de dispersión con el eje x mostrando los puntajes máximos de similitud observados entre las generaciones de una clase dada y las muestras de entrenamiento de ImageNet. En el eje y, mostramos los puntajes promedio de similitud por clase observados entre las muestras de entrenamiento de esa clase. Para algunos puntos interesantes, también mostramos la generación correspondiente y la mejor coincidencia en los datos de entrenamiento. Vemos que los puntajes de similitud nunca superan 0.65, y cuando revisamos manualmente los ejemplos con puntajes de similitud altos en cada una de las 100 clases, son muy similares pero nunca copias exactas, y pueden explicarse por la baja diversidad intraclase"
+          }
+        },
+        {
+          "id": "s6-p3",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "We also check if there is a relationship between the intraclass diversity and similarity scores, and indeed classes with higher self-similarity scores on average have higher",
+            "es": "También verificamos si existe una relación entre la diversidad intraclase y los puntajes de similitud, y en efecto las clases con puntajes de autosimilitud más altos en promedio tienen un mayor"
+          }
+        },
+        {
+          "id": "s6-p4",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "8github.com/CompVis/stable-diffusion maximum similarity score amongst matches with generated samples. Speciﬁcally, the points in the scatter plot have a correlation of 0.6 and the line of best ﬁt has slope 0.39. The classes with the highest similarity between generated images and training data are theater curtain, peacock, and bananas. Meanwhile sea lion, shopping cart, bee, and swing are at the lower end of the spectrum. In Figure 6 (b), we consolidate our results across the classes into a histogram of similarity scores between generations and matches from the training set and the similarity scores of training images with matches from the remaining training samples. The average similarity scores are relatively low for this dataset as well as for this diffusion model showing that the chance of replication is very low.",
+            "es": "8github.com/CompVis/stable-diffusion puntaje máximo de similitud entre las coincidencias con las muestras generadas. Específicamente, los puntos de la gráfica de dispersión tienen una correlación de 0.6 y la recta de mejor ajuste tiene pendiente 0.39. Las clases con la mayor similitud entre las imágenes generadas y los datos de entrenamiento son theater curtain, peacock y bananas. Por su parte, sea lion, shopping cart, bee y swing se encuentran en el extremo inferior del espectro. En la Figura 6 (b), consolidamos nuestros resultados de todas las clases en un histograma de los puntajes de similitud entre las generaciones y las coincidencias del conjunto de entrenamiento, y de los puntajes de similitud de las imágenes de entrenamiento con coincidencias entre las demás muestras de entrenamiento. Los puntajes promedio de similitud son relativamente bajos tanto para este conjunto de datos como para este modelo de difusión, lo que muestra que la probabilidad de replicación es muy baja."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 7,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Figure 6. (Left) For each individual class, we plot top-1 similarity between a generation and training data vs the mean of the top-1 similarity scores of the training data to itself. We also show a few images for some interesting classes. Left image is generation and right image is closest match. (Right) We show histograms of top-1 similarity scores for all the generations in 100 classes and the self-similarity scores of training data (within the class).",
+            "es": "Figura 6. (Izquierda) Para cada clase individual, graficamos la similitud top-1 entre una generación y los datos de entrenamiento frente a la media de los puntajes de similitud top-1 de los datos de entrenamiento consigo mismos. También mostramos algunas imágenes de clases interesantes. La imagen izquierda es la generación y la imagen derecha es la coincidencia más cercana. (Derecha) Mostramos histogramas de los puntajes de similitud top-1 de todas las generaciones en 100 clases y de los puntajes de autosimilitud de los datos de entrenamiento (dentro de la clase)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "title": {
+        "en": "7. Case Study: Stable Diffusion",
+        "es": "7. Caso de estudio: Stable Diffusion"
+      },
+      "blocks": [
+        {
+          "id": "s7-p1",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "In this section, we evaluate Stable Diffusion v.1.4 [54], which was trained on the publicly available LAION [57] dataset. Since it is outside the computational reach of our meager academic cluster to store and search 2 billion+ images, we narrow our search scope to the smaller LAION Aesthetics v2 6+ dataset which has 12M images and is a subset of images that were used for the ﬁnal rounds of training. We load the model and the checkpoints via Hugging-Face 9.",
+            "es": "En esta sección evaluamos Stable Diffusion v.1.4 [54], que fue entrenado con el conjunto de datos (dataset) LAION [57], disponible públicamente. Como almacenar y buscar entre más de 2 mil millones de imágenes queda fuera del alcance computacional de nuestro modesto clúster académico, restringimos el alcance de la búsqueda al conjunto más pequeño LAION Aesthetics v2 6+, que tiene 12M de imágenes y es un subconjunto de las imágenes que se usaron en las rondas finales de entrenamiento. Cargamos el modelo y los puntos de control (checkpoints) a través de Hugging-Face 9."
+          }
+        },
+        {
+          "id": "s7-p2",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "In the ﬁrst experiment, we randomly sample 9000 images, which we call source images, from LAION Aesthetics 12M and retrieve the corresponding captions. These source images provide us with a large pool of random captions. Then, we generate synthetic images by passing those captions into Stable Diffusion. We study the top-1 matches, which we call match images, for each generated sample. See the supplementary material for all the prompts used to generate the images for ﬁgures as well as the analysis in this section."
+          }
+        },
+        {
+          "id": "s7-p3",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "9huggingface.co/CompVis/stable-diffusion-v1-4",
+            "es": "9huggingface.co/CompVis/stable-diffusion-v1-4"
+          }
+        },
+        {
+          "id": "s7-p4",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "We attempt to answer the following questions in this analysis. 1) Is there copying in the generations? 2) If yes, what kind of copying? 3) Does a caption sampled from the training set produce an image that matches its original source? 4) Is content replication behavior associated with training images that have many replications in the dataset?",
+            "es": "En este análisis intentamos responder las siguientes preguntas. 1) ¿Hay copia en las generaciones? 2) Si es así, ¿qué tipo de copia? 3) ¿Una descripción muestreada del conjunto de entrenamiento produce una imagen que coincide con su fuente original? 4) ¿Se asocia el comportamiento de replicación de contenido con imágenes de entrenamiento que tienen muchas réplicas en el conjunto de datos?"
+          }
+        },
+        {
+          "id": "s7-p5",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "In previous experiments, we observed that DINO with split-product is slightly better than SSCD at ﬁnding copies. Here, we ﬁnd that SSCD and DINO often ﬂag the same generated images, but DINO is capable of ﬁnding more diverse matches with lower pixel similarity (Figure 9). We constructed visualizations in this section by choosing from images with an SSCD similarity > 0.5.",
+            "es": "En experimentos anteriores observamos que DINO con producto dividido (split-product) es ligeramente mejor que SSCD para encontrar copias. Aquí encontramos que SSCD y DINO con frecuencia marcan las mismas imágenes generadas, pero DINO es capaz de encontrar coincidencias más diversas con menor similitud de píxeles (Figura 9). Construimos las visualizaciones de esta sección eligiendo entre imágenes con una similitud SSCD > 0.5."
+          }
+        },
+        {
+          "id": "s7-p6",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Observations. In Figure 7, we visualize instances of copying found in samples generated by Stable Diffusion. We choose them from a small set of points (≈170 images) whose top-1 similarity scores are > 0.5 (top 1.88 percentile). Above this 0.5 threshold, we observe a signiﬁcant amount of copying. The ﬁrst row (where only the painting changed) shows verbatim usage of an object and background. The 4th and 6th rows show local copying where only the background is recycled from the training set. We see similar trends in other images with high similarity scores.",
+            "es": "Observaciones. En la Figura 7 visualizamos casos de copia encontrados en muestras generadas por Stable Diffusion. Los elegimos de un conjunto pequeño de puntos (≈170 imágenes) cuyas puntuaciones de similitud top-1 son > 0.5 (percentil superior 1.88). Por encima de este umbral de 0.5 observamos una cantidad significativa de copia. La primera fila (donde solo cambió la pintura) muestra el uso literal de un objeto y del fondo. Las filas 4 y 6 muestran copia local en la que solo se recicla el fondo del conjunto de entrenamiento. Vemos tendencias similares en otras imágenes con puntuaciones de similitud altas."
+          }
+        },
+        {
+          "id": "s7-p7",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "While all synthetic images were generated using captions sourced from LAION, none of the generations match their respective source image.",
+            "es": "Aunque todas las imágenes sintéticas se generaron usando descripciones tomadas de LAION, ninguna de las generaciones coincide con su respectiva imagen fuente."
+          }
+        },
+        {
+          "id": "s7-p8",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "In fact, sometimes the caption of the source image is not representative of the source image content, and the generation is quite different from the source. This behavior can be seen in the ﬁrst row of Figure 7. In the ﬁfth row, the match image is more representative of the source caption than the source itself.",
+            "es": "De hecho, a veces la descripción de la imagen fuente no es representativa del contenido de la imagen fuente, y la generación es bastante distinta de la fuente. Este comportamiento puede verse en la primera fila de la Figura 7. En la quinta fila, la imagen coincidente es más representativa de la descripción fuente que la propia fuente."
+          }
+        },
+        {
+          "id": "s7-p9",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "In those 170 images, we ﬁnd instances where replication behavior is highly dependent on key phrases in the caption. We show two examples in Figure 10 and highlight the key phrase in red. For the ﬁrst row, the presence of the text Canvas Wall Art Print frequently (≈20% of",
+            "es": "En esas 170 imágenes encontramos casos en los que el comportamiento de replicación depende en gran medida de frases clave de la descripción. Mostramos dos ejemplos en la Figura 10 y resaltamos la frase clave en rojo. En la primera fila, la presencia del texto Canvas Wall Art Print con frecuencia (≈20% de"
+          }
+        },
+        {
+          "id": "s7-p10",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Caption Source Generation Top Match",
+            "es": "Descripción Fuente Generación Mejor coincidencia"
+          }
+        },
+        {
+          "id": "s7-p11",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Source caption: Hill Country Castle by R Del Angel",
+            "es": "Descripción fuente: Hill Country Castle by R Del Angel"
+          }
+        },
+        {
+          "id": "s7-p12",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Match caption: Ben Hogan Portrait Golf Legend&quot (2014) by GinetteCallaway",
+            "es": "Descripción de la coincidencia: Ben Hogan Portrait Golf Legend&quot (2014) by GinetteCallaway"
+          }
+        },
+        {
+          "id": "s7-p13",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Source caption: Captain Marvel Exclusive Ccxp Poster Released Online By Marvel",
+            "es": "Descripción fuente: Captain Marvel Exclusive Ccxp Poster Released Online By Marvel"
+          }
+        },
+        {
+          "id": "s7-p14",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Match caption: Marvel Studios releases new poster of 'Captain Marvel'",
+            "es": "Descripción de la coincidencia: Marvel Studios releases new poster of 'Captain Marvel'"
+          }
+        },
+        {
+          "id": "s7-p15",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Source caption: the colors of the mountain fall color colorado highway 145 in the san juan mountains Match caption: Boreal Forest「Detail on the Yukon Mountains of the colorful tundra in autumn among spruce trees…",
+            "es": "Descripción fuente: the colors of the mountain fall color colorado highway 145 in the san juan mountains Descripción de la coincidencia: Boreal Forest「Detail on the Yukon Mountains of the colorful tundra in autumn among spruce trees…"
+          }
+        },
+        {
+          "id": "s7-p16",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Source caption: 85th Annual Academy Awards – Arrivals",
+            "es": "Descripción fuente: 85th Annual Academy Awards – Arrivals"
+          }
+        },
+        {
+          "id": "s7-p17",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Match caption: gown-inspo-rooney-mara-givenchy-1",
+            "es": "Descripción de la coincidencia: gown-inspo-rooney-mara-givenchy-1"
+          }
+        },
+        {
+          "id": "s7-p18",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Source caption: Portrait of Tiger in black and white by Lukas Holas Match caption: Tiger Black And White Wallpapers Top Free Tiger Black And White Backgrounds Wallpaperaccess",
+            "es": "Descripción fuente: Portrait of Tiger in black and white by Lukas Holas Descripción de la coincidencia: Tiger Black And White Wallpapers Top Free Tiger Black And White Backgrounds Wallpaperaccess"
+          }
+        },
+        {
+          "id": "s7-p19",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Source caption: Rosie Huntington-Whiteley short hair (2015 Vanity Fair Oscar Party) (Venturelli, photographer for Getty Images) Match caption: 2017 Vanity Fair Oscar Party Hosted By Graydon Carter - Arrivals",
+            "es": "Descripción fuente: Rosie Huntington-Whiteley short hair (2015 Vanity Fair Oscar Party) (Venturelli, photographer for Getty Images) Descripción de la coincidencia: 2017 Vanity Fair Oscar Party Hosted By Graydon Carter - Arrivals"
+          }
+        },
+        {
+          "id": "s7-p20",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Source caption: VAN GOGH CAFE TERASSE copy.jpg",
+            "es": "Descripción fuente: VAN GOGH CAFE TERASSE copy.jpg"
+          }
+        },
+        {
+          "id": "s7-p21",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Match caption: Cafe Terrace at Night  by Van Gogh -1000 pc. jigsaw puzzle",
+            "es": "Descripción de la coincidencia: Cafe Terrace at Night  by Van Gogh -1000 pc. jigsaw puzzle"
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 8,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Figure 7. Selected Stable Diffusion generations using captions sampled from LAION images, with similarity score ≥0.5.",
+            "es": "Figura 7: Generaciones seleccionadas de Stable Diffusion usando descripciones muestreadas de imágenes de LAION, con puntuación de similitud ≥0.5."
+          }
+        },
+        {
+          "id": "s7-h1",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "Content and style copied Style copied",
+            "es": "Contenido y estilo copiados Estilo copiado"
+          }
+        },
+        {
+          "id": "s7-h2",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "Generation",
+            "es": "Generación"
+          }
+        },
+        {
+          "id": "s7-h3",
+          "type": "heading",
+          "page": 9,
+          "text": {
+            "en": "Top Match",
+            "es": "Mejor coincidencia"
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Figure 8. Stable Diffusion replicates pixel-level details, structures, and styles of well known paintings.",
+            "es": "Figura 8: Stable Diffusion replica detalles a nivel de píxel, estructuras y estilos de pinturas muy conocidas."
+          }
+        },
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-9.png",
+          "text": {
+            "en": "Figure 9. The top-10 SSCD matches for this generation are identical copies of the same training image, and edges (see the shoulder and height of the dress) overlap strictly with the generation. In contrast, DINO focuses on semantic, rather than pixel-level, similarity and ﬁnds a more diverse range of matches.",
+            "es": "Figura 9: Las 10 mejores coincidencias de SSCD para esta generación son copias idénticas de la misma imagen de entrenamiento, y los bordes (véanse el hombro y la longitud del vestido) se superponen estrictamente con la generación. En contraste, DINO se centra en la similitud semántica, en lugar de la de nivel de píxel, y encuentra una gama más diversa de coincidencias."
+          }
+        },
+        {
+          "id": "fig-10",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-10.png",
+          "text": {
+            "en": "Figure 10. Including the phrase highlighted in red into a random prompt for Stable Diffusion leads to exact replications of the sofa (top row) and wave shape (bottom row).",
+            "es": "Figura 10: Incluir la frase resaltada en rojo en un prompt aleatorio para Stable Diffusion conduce a réplicas exactas del sofá (fila superior) y de la forma de la ola (fila inferior)."
+          }
+        },
+        {
+          "id": "s7-p22",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "the time) results in generations containing a particular sofa from LAION (also see Fig 1). Similarly, the second row shows various generations by tweaking the prompt A painting of the Great Wave off Kanagawa by Katsushika Hokusai. We gradually remove words until only painting and wave remain. All of the generations have a wave structure that resembles the original painting.",
+            "es": "las veces) da como resultado generaciones que contienen un sofá particular de LAION (véase también la Fig. 1). De manera similar, la segunda fila muestra varias generaciones al modificar el prompt A painting of the Great Wave off Kanagawa by Katsushika Hokusai. Eliminamos palabras gradualmente hasta que solo quedan painting y wave. Todas las generaciones tienen una estructura de ola que se parece a la pintura original."
+          }
+        },
+        {
+          "id": "s7-p23",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "We also notice instances of generations where style is copied rather than content. This can be explicitly seen when the name of an artist is used in the generation prompt. We generate many paintings with the prompt style “<Name of the painting> by <Name of the artist>”. We tried around 20 classical and contemporary artists, and we observe that the generations frequently reproduce known paintings with varying degrees of accuracy. In Figure 8, as we go from left to right, we see that content copying is reduced, however, style copying is still prevalent. We refer the reader to the appendix for the exact prompts used to generate Fig. 10 and Fig. 8.",
+            "es": "También notamos casos de generaciones en las que se copia el estilo en lugar del contenido. Esto puede verse de forma explícita cuando se usa el nombre de un artista en el prompt de generación. Generamos muchas pinturas con el formato de prompt “<Nombre de la pintura> by <Nombre del artista>”. Probamos con alrededor de 20 artistas clásicos y contemporáneos, y observamos que las generaciones con frecuencia reproducen pinturas conocidas con distintos grados de exactitud. En la Figura 8, de izquierda a derecha, vemos que la copia de contenido se reduce; sin embargo, la copia de estilo sigue siendo prevalente. Remitimos al lector al apéndice para ver los prompts exactos usados para generar la Fig. 10 y la Fig. 8."
+          }
+        },
+        {
+          "id": "s7-p24",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Role of caption sampling. Several of our studies sample random captions from LAION itself, and this may lead to a replica of the caption source image. Figure 11 (left) shows histograms of top-1 similarity scores for 1000 random generations, and the top-1 similarity scores of the 1000 corresponding images from which we sourced the captions. We ﬁnd the mean generation similarity scores to be much lower than those of the source images, indicating that this method of caption sampling does not typically produce a replica of the caption source.",
+            "es": "Papel del muestreo de descripciones. Varios de nuestros estudios muestrean descripciones aleatorias del propio LAION, y esto puede llevar a una réplica de la imagen fuente de la descripción. La Figura 11 (izquierda) muestra histogramas de las puntuaciones de similitud top-1 de 1000 generaciones aleatorias y las puntuaciones de similitud top-1 de las 1000 imágenes correspondientes de las que obtuvimos las descripciones. Encontramos que las puntuaciones medias de similitud de las generaciones son mucho más bajas que las de las imágenes fuente, lo que indica que este método de muestreo de descripciones no suele producir una réplica de la fuente de la descripción."
+          }
+        },
+        {
+          "id": "s7-p25",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Still, captions from LAION will sometimes contain “key phrases” that are closely associated with dataset images and therefore conjure a memorized image. For this reason, LAION-based caption sampling may lead to higher rates of data replication than other sampling methods. It is difﬁcult to correct this bias in a scientiﬁc way, as there is no baseline sampler for “typical” captions. Furthermore, captions used by experienced diffusion users will often exploit powerful key phrases (e.g. “art station,” “35mm,” or the name of an artist) that widely appear in LAION.",
+            "es": "Aun así, las descripciones de LAION a veces contienen “frases clave” que están estrechamente asociadas con imágenes del conjunto de datos y por ello evocan una imagen memorizada. Por esta razón, el muestreo de descripciones basado en LAION puede conducir a tasas de replicación de datos más altas que otros métodos de muestreo. Es difícil corregir este sesgo de manera científica, pues no existe un muestreador de referencia para descripciones “típicas”. Además, las descripciones que usan los usuarios experimentados de difusión suelen aprovechar frases clave poderosas (p. ej., “art station”, “35mm” o el nombre de un artista) que aparecen ampliamente en LAION."
+          }
+        },
+        {
+          "id": "s7-p26",
+          "type": "paragraph",
+          "page": 9,
+          "text": {
+            "en": "Role of duplicate training data. Many LAION training images appear in the dataset multiple times. It is natural to suspect that duplicated images have a higher probability of being reproduced by Stable Diffusion. Figure 11 (right) shows a histogram of how many times a training image is duplicated in LAION-Aesthetics, where “duplicate” is deﬁned as having SSCD score > 0.95. We plot a histogram for two populations. First, the 1000 uniformly sampled source images. Second, we generate 1000 synthetic images, search for their closest match in the training set, and plot the duplication histogram for these “match” images. Surprisingly, we see that a typical random image from the dataset is duplicated 11.6 times, which is more often than a typical matched image, which is duplicated 3.1 times. However, if we look only at very close matches (> .5 SSCD), these match images are replicated on average 34.1 times – far more often than a typical image. It seems that replicated content tends to be drawn from training images that are duplicated more than a typical image.",
+            "es": "Papel de los datos de entrenamiento duplicados. Muchas imágenes de entrenamiento de LAION aparecen en el conjunto de datos varias veces. Es natural sospechar que las imágenes duplicadas tienen una mayor probabilidad de ser reproducidas por Stable Diffusion. La Figura 11 (derecha) muestra un histograma de cuántas veces se duplica una imagen de entrenamiento en LAION-Aesthetics, donde “duplicada” se define como tener una puntuación SSCD > 0.95. Graficamos un histograma para dos poblaciones. Primero, las 1000 imágenes fuente muestreadas de manera uniforme. Segundo, generamos 1000 imágenes sintéticas, buscamos su coincidencia más cercana en el conjunto de entrenamiento y graficamos el histograma de duplicación de estas imágenes “coincidentes”. Sorprendentemente, vemos que una imagen aleatoria típica del conjunto de datos está duplicada 11.6 veces, lo cual es más frecuente que una imagen coincidente típica, que está duplicada 3.1 veces. Sin embargo, si miramos solo las coincidencias muy cercanas (> .5 SSCD), estas imágenes coincidentes están replicadas en promedio 34.1 veces, mucho más a menudo que una imagen típica. Parece que el contenido replicado tiende a provenir de imágenes de entrenamiento que están duplicadas más que una imagen típica."
+          }
+        },
+        {
+          "id": "fig-11",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-11.png",
+          "text": {
+            "en": "Figure 11. Stable Diffusion density plots. (Left) Similarity scores of all 9000 generations w.r.t. train data. (Center) Similarity scores of 1000 random generations with train data and the corresponding 1000 caption source images with train data. (Right) Histogram of number of training set duplications for 1000 random source images and 1000 match images. Random data (source) is relatively repeated more than matched images.",
+            "es": "Figura 11: Gráficas de densidad de Stable Diffusion. (Izquierda) Puntuaciones de similitud de las 9000 generaciones con respecto a los datos de entrenamiento. (Centro) Puntuaciones de similitud de 1000 generaciones aleatorias con los datos de entrenamiento y de las 1000 imágenes fuente de las descripciones correspondientes con los datos de entrenamiento. (Derecha) Histograma del número de duplicaciones en el conjunto de entrenamiento de 1000 imágenes fuente aleatorias y 1000 imágenes coincidentes. Los datos aleatorios (fuente) se repiten relativamente más que las imágenes coincidentes."
+          }
+        },
+        {
+          "id": "fig-12",
+          "type": "figure",
+          "page": 10,
+          "image": "fig/fig-12.png",
+          "text": {
+            "en": "Figure 12. Stable Diffusion generates the painting “The Scream.” This image is within the 600M image LAION-Aesthetics-5+ split that was used for training, but is not within the 12M image LAION-Aesthetics-6+ split that we searched in this study.",
+            "es": "Figura 12: Stable Diffusion genera la pintura “The Scream”. Esta imagen está dentro de la partición LAION-Aesthetics-5+ de 600M de imágenes que se usó para el entrenamiento, pero no está dentro de la partición LAION-Aesthetics-6+ de 12M de imágenes en la que buscamos en este estudio."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s8",
+      "title": {
+        "en": "8. Possible causes of replication",
+        "es": "8. Posibles causas de la replicación"
+      },
+      "blocks": [
+        {
+          "id": "s8-p1",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Data replication in generative models is not inevitable; previous studies of GANs have not found it, and our study of ImageNet LDM did not ﬁnd any evidence of signiﬁcant data replication. What makes Stable Diffusion different?",
+            "es": "La replicación de datos en los modelos generativos no es inevitable; estudios previos de GANs no la han encontrado, y nuestro estudio de ImageNet LDM no encontró ninguna evidencia de replicación de datos significativa. ¿Qué hace diferente a Stable Diffusion?"
+          }
+        },
+        {
+          "id": "s8-p2",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "We note that both ImageNet LDM (Section 6) and Stable",
+            "es": "Notamos que tanto ImageNet LDM (Sección 6) como Stable"
+          }
+        },
+        {
+          "id": "s8-p3",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Diffusion are built using similar update rules and training routines, and contain similar numbers of parameters. This rules out a number of factors that may contribute to their difference in behavior.",
+            "es": "Diffusion se construyen usando reglas de actualización y rutinas de entrenamiento similares, y contienen números similares de parámetros. Esto descarta varios factores que podrían contribuir a su diferencia de comportamiento."
+          }
+        },
+        {
+          "id": "s8-p4",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The most obvious culprit is image duplication within the training set. However this explanation is incomplete and oversimpliﬁed; Our models in Section 5 consistently show strong replication when they are trained with small datasets that are unlikely to have any duplicated images. Further-more, a dataset in which all images are unique should yield the same model as a dataset in which all images are duplicated 1000 times, provided the same number of training updates are used.",
+            "es": "El culpable más obvio es la duplicación de imágenes dentro del conjunto de entrenamiento. Sin embargo, esta explicación es incompleta y simplista; nuestros modelos de la Sección 5 muestran sistemáticamente una fuerte replicación cuando se entrenan con conjuntos de datos pequeños en los que es poco probable que haya imágenes duplicadas. Además, un conjunto de datos en el que todas las imágenes son únicas debería producir el mismo modelo que un conjunto de datos en el que todas las imágenes están duplicadas 1000 veces, siempre que se use el mismo número de actualizaciones de entrenamiento."
+          }
+        },
+        {
+          "id": "s8-p5",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "We speculate that replication behavior in Stable Diffu-sion arises from a complex interaction of factors, which include that it is text (rather than class) conditioned, it has a highly skewed distribution of image repetitions in the training set, and the number of gradient updates during training is large enough to overﬁt on a subset of the data.",
+            "es": "Especulamos que el comportamiento de replicación en Stable Diffusion surge de una interacción compleja de factores, entre los que se incluyen que está condicionado por texto (en lugar de por clase), que tiene una distribución muy sesgada de repeticiones de imágenes en el conjunto de entrenamiento, y que el número de actualizaciones de gradiente durante el entrenamiento es lo bastante grande como para sobreajustarse (overfit) a un subconjunto de los datos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s9",
+      "title": {
+        "en": "9. Limitations & Conclusion",
+        "es": "9. Limitaciones y conclusión"
+      },
+      "blocks": [
+        {
+          "id": "s9-p1",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "The goal of this study was to evaluate whether diffusion models are capable of reproducing high-ﬁdelity content from their training data, and we ﬁnd that they are. While typical images from large-scale models do not appear to contain copied content that was detectable using our feature extractors, copies do appear to occur often enough that their presence cannot be safely ignored; Stable Diffusion images with dataset similarity ≥.5, as depicted in Fig. 7, account for approximate 1.88% of our random generations.",
+            "es": "El objetivo de este estudio era evaluar si los modelos de difusión son capaces de reproducir contenido de alta fidelidad a partir de sus datos de entrenamiento, y encontramos que lo son. Si bien las imágenes típicas de modelos a gran escala no parecen contener contenido copiado detectable con nuestros extractores de características, las copias parecen ocurrir con la frecuencia suficiente como para que su presencia no pueda ignorarse sin riesgo; las imágenes de Stable Diffusion con similitud con el conjunto de datos ≥.5, como se muestra en la Fig. 7, representan aproximadamente el 1.88% de nuestras generaciones aleatorias."
+          }
+        },
+        {
+          "id": "s9-p2",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Note, however, that our search for replication in Sta-ble Diffusion only covered the 12M images in the LAION Aesthetics v2 6+ dataset. The model was ﬁrst trained on over 2 billion images, before being ﬁne-tuned on the 600M LAION Aesthetics V2 5+ split. The dataset that we searched in our study is a small subset of this ﬁne-tuning data, comprising less than 0.6% of the total training data.",
+            "es": "Sin embargo, nótese que nuestra búsqueda de replicación en Stable Diffusion solo cubrió las 12M de imágenes del conjunto de datos LAION Aesthetics v2 6+. El modelo se entrenó primero con más de 2 mil millones de imágenes, antes de ajustarse (fine-tuned) en la partición LAION Aesthetics V2 5+ de 600M. El conjunto de datos en el que buscamos en nuestro estudio es un subconjunto pequeño de estos datos de ajuste fino, y comprende menos del 0.6% del total de los datos de entrenamiento."
+          }
+        },
+        {
+          "id": "s9-p3",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "Examples certainly exist of content replication from sources outside the 12M LAION Aesthetics v2 6+ split – see Fig 12. Furthermore, it is highly likely that replication exists that our retrieval method is unable to identify. For both of these reasons, the results here systematically underestimate the amount of replication in Stable Diffusion and other models.",
+            "es": "Ciertamente existen ejemplos de replicación de contenido de fuentes fuera de la partición LAION Aesthetics v2 6+ de 12M; véase la Fig. 12. Además, es muy probable que exista replicación que nuestro método de recuperación no puede identificar. Por ambas razones, los resultados aquí presentados subestiman sistemáticamente la cantidad de replicación en Stable Diffusion y otros modelos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s10",
+      "title": {
+        "en": "10. Acknowledgements",
+        "es": "10. Agradecimientos"
+      },
+      "blocks": [
+        {
+          "id": "s10-p1",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "This work was supported by the ONR MURI program, Ofﬁce of Naval Research (N000142112557), the AFOSR MURI program, DARPA GARD (HR00112020007), and the National Science Foundation (IIS-2212182 & DMS-1912866). Further support was provided by Capital One Bank.",
+            "es": "Este trabajo fue apoyado por el programa ONR MURI, Office of Naval Research (N000142112557), el programa AFOSR MURI, DARPA GARD (HR00112020007) y la National Science Foundation (IIS-2212182 y DMS-1912866). Capital One Bank brindó apoyo adicional."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[1] Ahmed Alaa, Boris Van Breugel, Evgeny S. Saveliev, and Mihaela van der Schaar. How Faithful is your Synthetic Data? Sample-level Metrics for Evaluating and Auditing Generative Models. In Proceedings of the 39th International Conference on Machine Learning, pages 290–306. PMLR, June 2022. 3"
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[2] Devansh Arpit, Stanislaw Jastrzebski, Nicolas Ballas, David Krueger, Emmanuel Bengio, Maxinder S Kanwal, Tegan Maharaj, Asja Fischer, Aaron Courville, Yoshua Bengio, et al. A closer look at memorization in deep networks. In International conference on machine learning, pages 233– 242. PMLR, 2017. 2"
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[3] Artem Babenko, Anton Slesarev, Alexandr Chigorin, and Victor Lempitsky. Neural codes for image retrieval. In European conference on computer vision, pages 584–599. Springer, 2014. 2"
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[4] Ching-Yuan Bai, Hsuan-Tien Lin, Colin Raffel, and Wendy Chi-wen Kan. On Training Sample Memorization: Lessons from Benchmarking Generative Modeling with a Large-scale Competition. In Proceedings of the 27th ACM SIGKDD Con-ference on Knowledge Discovery & Data Mining, KDD ’21, pages 2534–2542, New York, NY, USA, Aug. 2021. Associ-ation for Computing Machinery. 3"
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[5] Adrien Bardes, Jean Ponce, and Yann LeCun. Vicregl: Self-supervised learning of local visual features. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[6] Maxim Berman, Herv´e J´egou, Andrea Vedaldi, Iasonas Kokkinos, and Matthijs Douze. Multigrain: a uniﬁed image embedding for classes and instances. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[7] Abeba Birhane, Vinay Uday Prabhu, and Emmanuel Kahem-bwe. Multimodal datasets: Misogyny, pornography, and malignant stereotypes. arxiv:2110.01963[cs], Oct. 2021. 1"
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[8] Nicholas Carlini, Steve Chien, Milad Nasr, Shuang Song, Andreas Terzis, and Florian Tram`er. Membership Inference Attacks From First Principles. In 2022 IEEE Symposium on Security and Privacy (SP), pages 1897–1914, May 2022. 2"
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[9] Nicholas Carlini, Daphne Ippolito, Matthew Jagielski, Katherine Lee, Florian Tramer, and Chiyuan Zhang. Quan-tifying Memorization Across Neural Language Models. arxiv:2202.07646[cs], Feb. 2022. 1, 2"
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[10] Nicholas Carlini, Florian Tram`er, Eric Wallace, Matthew Jagielski, Ariel Herbert-Voss, Katherine Lee, Adam Roberts, Tom Brown, Dawn Song, ´Ulfar Erlingsson, Alina Oprea, and Colin Raffel. Extracting Training Data from Large Language Models. In 30th USENIX Security Symposium (USENIX Se-curity 21), pages 2633–2650, 2021. 1, 2"
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[11] Mathilde Caron, Piotr Bojanowski, Armand Joulin, and Matthijs Douze. Deep clustering for unsupervised learning of visual features. In Proceedings of the European conference on computer vision (ECCV), pages 132–149, 2018. 2"
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[12] Mathilde Caron, Hugo Touvron, Ishan Misra, Herv´e J´egou, Julien Mairal, Piotr Bojanowski, and Armand Joulin. Emerg-ing properties in self-supervised vision transformers. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 9650–9660, 2021. 2, 4, 5"
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[13] Ting Chen, Simon Kornblith, Mohammad Norouzi, and Ge-offrey Hinton. A simple framework for contrastive learning of visual representations. In International conference on machine learning, pages 1597–1607. PMLR, 2020. 2, 4"
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[14] Wei Chen, Yu Liu, Weiping Wang, Erwin M Bakker, Theodoros Georgiou, Paul Fieguth, Li Liu, and Michael S Lew. Deep learning for instance retrieval: A survey. IEEE Transactions on Pattern Analysis and Machine Intelligence, 2022. 2, 4"
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[15] Xinlei Chen, Saining Xie, and Kaiming He. An empirical study of training self-supervised vision transformers. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 9640–9649, 2021. 2, 4"
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[16] Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Syl-vain Gelly, et al. An image is worth 16x16 words: Trans-formers for image recognition at scale. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[17] Matthijs Douze, Herv´e J´egou, Harsimrat Sandhawalia, Lau-rent Amsaleg, and Cordelia Schmid. Evaluation of gist descriptors for web-scale image search. In Proceedings of the ACM International Conference on Image and Video Re-trieval, pages 1–8, 2009. 2"
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[18] Matthijs Douze, Giorgos Tolias, Ed Pizzi, Zo¨e Papakipos, Lowik Chanussot, Filip Radenovic, Tomas Jenicek, Maxim Maximov, Laura Leal-Taix´e, Ismail Elezi, et al. The 2021 image similarity dataset and challenge. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[19] Alaaeldin El-Nouby, Natalia Neverova, Ivan Laptev, and Herv´e J´egou. Training vision transformers for image retrieval. arXiv preprint arXiv:2102.05644, 2021. 2"
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[20] Mark Everingham, SM Eslami, Luc Van Gool, Christo-pher KI Williams, John Winn, and Andrew Zisserman. The pascal visual object classes challenge: A retrospective. Inter-national journal of computer vision, 111(1):98–136, 2015. 3"
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "[21] Vitaly Feldman. Does learning require memorization? a short tale about a long tail. In Proceedings of the 52nd Annual ACM SIGACT Symposium on Theory of Computing, pages 954–959, 2020. 2"
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[22] Vitaly Feldman and Chiyuan Zhang. What Neural Networks Memorize and Why: Discovering the Long Tail via Inﬂuence Estimation. arxiv:2008.03703[cs, stat], Aug. 2020. 1"
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[23] Vitaly Feldman and Chiyuan Zhang. What neural networks memorize and why: Discovering the long tail via inﬂuence estimation. Advances in Neural Information Processing Sys-tems, 33:2881–2891, 2020. 2"
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[24] Qianli Feng, Chenqi Guo, Fabian Benitez-Quiroz, and Aleix M Martinez. When do gans replicate? on the choice of dataset size. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 6701–6710, 2021. 3"
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[25] Amin Ghiasi, Hamid Kazemi, Steven Reich, Chen Zhu, Micah Goldblum, and Tom Goldstein. Plug-In Inversion: Model-Agnostic Inversion for Vision with Data Augmenta-tions. In Proceedings of the 39th International Conference on Machine Learning, pages 7484–7512. PMLR, June 2022. 2"
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[26] Yunchao Gong, Liwei Wang, Ruiqi Guo, and Svetlana Lazebnik. Multi-scale orderless pooling of deep convolutional activation features. In European conference on computer vision, pages 392–407. Springer, 2014. 2"
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[27] Albert Gordo, Jon Almaz´an, Jerome Revaud, and Diane Lar-lus. Deep image retrieval: Learning global representations for image search. In European conference on computer vision, pages 241–257. Springer, 2016. 2"
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[28] Jean-Bastien Grill, Florian Strub, Florent Altch´e, Corentin Tallec, Pierre Richemond, Elena Buchatskaya, Carl Doersch, Bernardo Avila Pires, Zhaohan Guo, Mohammad Ghesh-laghi Azar, et al. Bootstrap your own latent-a new approach to self-supervised learning. Advances in neural information processing systems, 33:21271–21284, 2020. 2"
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[29] Ishaan Gulrajani, Colin Raffel, and Luke Metz. Towards GAN Benchmarks Which Require Generalization. In In-ternational Conference on Learning Representations, Feb. 2022. 3"
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[30] Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Doll´ar, and Ross Girshick. Masked autoencoders are scalable vision learners. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 16000– 16009, 2022. 2"
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[31] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. Advances in Neural Information Processing Systems, 33:6840–6851, 2020. 5"
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[32] Hailong Hu and Jun Pang. Membership Inference Attacks against GANs by Leveraging Over-representation Regions. In Proceedings of the 2021 ACM SIGSAC Conference on Computer and Communications Security, CCS ’21, pages 2387–2389, New York, NY, USA, Nov. 2021. Association for Computing Machinery. 2"
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[33] Matthew Jagielski, Om Thakkar, Florian Tram`er, Daphne Ippolito, Katherine Lee, Nicholas Carlini, Eric Wallace, Shuang Song, Abhradeep Thakurta, Nicolas Papernot, and Chiyuan Zhang. Measuring Forgetting of Memorized Train-ing Examples. arxiv:2207.00099[cs], June 2022. 2"
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[34] Young Kyun Jang and Nam Ik Cho. Self-supervised product quantization for deep unsupervised image retrieval. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 12085–12094, 2021. 2"
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[35] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Doll´ar, and C Lawrence Zitnick. Microsoft coco: Common objects in context. In European conference on computer vision, pages 740–755. Springer, 2014. 3"
+          }
+        },
+        {
+          "id": "refs-36",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[36] Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and Baining Guo. Swin transformer: Hierarchical vision transformer using shifted windows. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 10012–10022, 2021. 4, 5"
+          }
+        },
+        {
+          "id": "refs-37",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[37] Ziwei Liu, Ping Luo, Xiaogang Wang, and Xiaoou Tang. Deep learning face attributes in the wild. In Proceedings of International Conference on Computer Vision (ICCV), De-cember 2015. 5"
+          }
+        },
+        {
+          "id": "refs-38",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[38] Andreas Lugmayr, Martin Danelljan, Andres Romero, Fisher Yu, Radu Timofte, and Luc Van Gool. Repaint: Inpainting using denoising diffusion probabilistic models. In Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 11461–11471, 2022. 3"
+          }
+        },
+        {
+          "id": "refs-39",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[39] Casey Meehan, Kamalika Chaudhuri, and Sanjoy Dasgupta. A non-parametric test to detect data-copying in generative models. In International Conference on Artiﬁcial Intelli-gence and Statistics, 2020. 3"
+          }
+        },
+        {
+          "id": "refs-40",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[40] Alex Nichol, Aditya Ramesh, Pamela Mishkin, Prafulla Dariwal, Joanne Jang, and Mark Chen. DALL·E 2 Pre-Training Mitigations, June 2022. 3"
+          }
+        },
+        {
+          "id": "refs-41",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[41] Maria-Elena Nilsback and Andrew Zisserman. Automated ﬂower classiﬁcation over a large number of classes. In In-dian Conference on Computer Vision, Graphics and Image Processing, Dec 2008. 5"
+          }
+        },
+        {
+          "id": "refs-42",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[42] Hyun Oh Song, Yu Xiang, Stefanie Jegelka, and Silvio Savarese. Deep metric learning via lifted structured feature embedding. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 4004–4012, 2016. 4"
+          }
+        },
+        {
+          "id": "refs-43",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[43] Aaron van den Oord, Yazhe Li, and Oriol Vinyals. Repre-sentation learning with contrastive predictive coding. arXiv preprint arXiv:1807.03748, 2018. 4"
+          }
+        },
+        {
+          "id": "refs-44",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[44] Florent Perronnin, Yan Liu, and Jean-Michel Renders. A family of contextual measures of similarity between distributions with application to image retrieval. In 2009 IEEE Con-ference on computer vision and pattern recognition, pages 2358–2365. IEEE, 2009. 5"
+          }
+        },
+        {
+          "id": "refs-45",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[45] James Philbin, Ondrej Chum, Michael Isard, Josef Sivic, and Andrew Zisserman. Object retrieval with large vocabularies and fast spatial matching. In 2007 IEEE conference on computer vision and pattern recognition, pages 1–8. IEEE, 2007. 4"
+          }
+        },
+        {
+          "id": "refs-46",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[46] James Philbin, Ondrej Chum, Michael Isard, Josef Sivic, and Andrew Zisserman. Lost in quantization: Improving particular object retrieval in large scale image databases. In 2008 IEEE conference on computer vision and pattern recognition, pages 1–8. IEEE, 2008. 4"
+          }
+        },
+        {
+          "id": "refs-47",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[47] Ed Pizzi, Sreya Dutta Roy, Sugosh Nagavara Ravindra, Priya Goyal, and Matthijs Douze. A self-supervised descriptor for image copy detection. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition, pages 14532–14542, 2022. 2, 4, 5"
+          }
+        },
+        {
+          "id": "refs-48",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "[48] Filip Radenovi´c, Ahmet Iscen, Giorgos Tolias, Yannis Avrithis, and Ondˇrej Chum. Revisiting oxford and paris: Large-scale image retrieval benchmarking. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 5706–5715, 2018. 4"
+          }
+        },
+        {
+          "id": "refs-49",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[49] Filip Radenovi´c, Giorgos Tolias, and Ondˇrej Chum. Cnn image retrieval learns from bow: Unsupervised ﬁne-tuning with hard examples. In European conference on computer vision, pages 3–20. Springer, 2016. 2"
+          }
+        },
+        {
+          "id": "refs-50",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[50] Filip Radenovi´c, Giorgos Tolias, and Ondˇrej Chum. Fine-tuning cnn image retrieval with no human annotation. IEEE transactions on pattern analysis and machine intelligence, 41(7):1655–1668, 2018. 2"
+          }
+        },
+        {
+          "id": "refs-51",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[51] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learn-ing transferable visual models from natural language supervision. In International Conference on Machine Learning, pages 8748–8763. PMLR, 2021. 4"
+          }
+        },
+        {
+          "id": "refs-52",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[52] Aditya Ramesh, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark Chen. Hierarchical text-conditional image generation with clip latents. arXiv preprint arXiv:2204.06125, 2022. 1"
+          }
+        },
+        {
+          "id": "refs-53",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[53] Ali S Razavian, Josephine Sullivan, Stefan Carlsson, and At-suto Maki. Visual instance retrieval with deep convolutional networks. ITE Transactions on Media Technology and Ap-plications, 4(3):251–258, 2016. 2"
+          }
+        },
+        {
+          "id": "refs-54",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[54] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bj¨orn Ommer. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 10684–10695, 2022. 1, 3, 6, 7"
+          }
+        },
+        {
+          "id": "refs-55",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[55] Rasmus Rothe, Radu Timofte, and LV Gool. Imdb-wiki-500k+ face images with age and gender labels. Online] URL: https://data. vision. ee. ethz. ch/cvl/rrothe/imdb-wiki. 4"
+          }
+        },
+        {
+          "id": "refs-56",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[56] Olga Russakovsky, Jia Deng, Hao Su, Jonathan Krause, San-jeev Satheesh, Sean Ma, Zhiheng Huang, Andrej Karpathy, Aditya Khosla, Michael Bernstein, et al. Imagenet large scale visual recognition challenge. International journal of computer vision, 115(3):211–252, 2015. 3"
+          }
+        },
+        {
+          "id": "refs-57",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[57] Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell Worts-man, et al. Laion-5b: An open large-scale dataset for training next generation image-text models. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-58",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[58] Chull Hwan Song, Jooyoung Yoon, Shunghyun Choi, and Yannis Avrithis. Boosting vision transformers for image retrieval. arXiv preprint arXiv:2210.11909, 2022. 2"
+          }
+        },
+        {
+          "id": "refs-59",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[59] Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jonathon Shlens, and Zbigniew Wojna. Rethinking the inception architecture for computer vision. 2015. arXiv preprint arXiv:1512.00567, 2015. 5"
+          }
+        },
+        {
+          "id": "refs-60",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[60] Kushal Tirumala, Aram H Markosyan, Luke Zettlemoyer, and Armen Aghajanyan. Memorization without overﬁtting: Analyzing the training dynamics of large language models. arXiv preprint arXiv:2205.10770, 2022. 2"
+          }
+        },
+        {
+          "id": "refs-61",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[61] Catherine Wah, Steve Branson, Peter Welinder, Pietro Per-ona, and Serge Belongie. The caltech-ucsd birds-200-2011 dataset. 2011. 4"
+          }
+        },
+        {
+          "id": "refs-62",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[62] Shuang Wang and Shuqiang Jiang. Instre: a new benchmark for instance-level object retrieval and recognition. ACM Transactions on Multimedia Computing, Communications, and Applications (TOMM), 11(3):1–21, 2015. 4"
+          }
+        },
+        {
+          "id": "refs-63",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[63] Ryan Webster, Julien Rabin, Loic Simon, and Frederic Jurie. This Person (Probably) Exists. Identity Membership Attacks Against GAN Generated Faces. arxiv:2107.06018[cs], July 2021. 2, 3"
+          }
+        },
+        {
+          "id": "refs-64",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[64] Yuxin Wen, Arpit Bansal, Hamid Kazemi, Eitan Borgnia, Micah Goldblum, Jonas Geiping, and Tom Goldstein. Ca-nary in a Coalmine: Better Membership Inference with En-sembled Adversarial Queries. arxiv:2210.10750[cs], Oct. 2022. 2"
+          }
+        },
+        {
+          "id": "refs-65",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[65] T. Weyand, A. Araujo, B. Cao, and J. Sim. Google Land-marks Dataset v2 - A Large-Scale Benchmark for Instance-Level Recognition and Retrieval. In Proc. CVPR, 2020. 4"
+          }
+        },
+        {
+          "id": "refs-66",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[66] Ross Wightman. Pytorch image models. https : / / github . com / rwightman / pytorch - image -models, 2019. 4"
+          }
+        },
+        {
+          "id": "refs-67",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[67] Hongxu Yin, Pavlo Molchanov, Zhizhong Li, Jose M. Al-varez, Arun Mallya, Derek Hoiem, Niraj K. Jha, and Jan Kautz. Dreaming to Distill: Data-free Knowledge Transfer via DeepInversion. arxiv:1912.08795[cs, stat], June 2020. 2"
+          }
+        },
+        {
+          "id": "refs-68",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "[68] Sangdoo Yun, Dongyoon Han, Seong Joon Oh, Sanghyuk Chun, Junsuk Choe, and Youngjoon Yoo. Cutmix: Regu-larization strategy to train strong classiﬁers with localizable features. In Proceedings of the IEEE/CVF international conference on computer vision, pages 6023–6032, 2019. 4"
+          }
+        }
+      ]
+    },
+    {
+      "id": "diffusion-art-or-digital-forgery-investigating-data-replication-in-diffusion",
+      "title": {
+        "en": "Diffusion Art or Digital Forgery? Investigating Data Replication in Diffusion",
+        "es": "¿Arte de difusión o falsificación digital? Investigación de la replicación de datos en los modelos de difusión"
+      },
+      "blocks": [
+        {
+          "id": "diffusion-art-or-digital-forgery-investigating-data-replication-in-diffusion-h1",
+          "type": "heading",
+          "page": 14,
+          "text": {
+            "en": "Models",
+            "es": "Modelos"
+          }
+        },
+        {
+          "id": "diffusion-art-or-digital-forgery-investigating-data-replication-in-diffusion-h2",
+          "type": "heading",
+          "page": 14,
+          "text": {
+            "en": "Supplementary Material",
+            "es": "Material suplementario"
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-a",
+      "title": {
+        "en": "A. Additional Stable Diffusion results",
+        "es": "A. Resultados adicionales de Stable Diffusion"
+      },
+      "blocks": [
+        {
+          "id": "app-a-p1",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Here we provide details for the prompts used in the Sta-ble Diffusion section of the main paper. We present the prompts used for ﬁgures in the main paper in the following tables. We also present additional ﬁgures to accompany the observations in the main paper.",
+            "es": "Aquí proporcionamos detalles de los prompts usados en la sección de Stable Diffusion del artículo principal. Presentamos los prompts usados para las figuras del artículo principal en las siguientes tablas. También presentamos figuras adicionales que acompañan las observaciones del artículo principal."
+          }
+        },
+        {
+          "id": "app-a-p2",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "1. We present the source caption and the match caption for Fig. 1 in Fig. 13.",
+            "es": "1. Presentamos la descripción fuente y la descripción de la coincidencia de la Fig. 1 en la Fig. 13."
+          }
+        },
+        {
+          "id": "app-a-p3",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "2. We present the prompts used to generate Fig. 10 in Tab. 2 and Tab. 3 in the same order as the ﬁgure.",
+            "es": "2. Presentamos los prompts usados para generar la Fig. 10 en la Tab. 2 y la Tab. 3, en el mismo orden que la figura."
+          }
+        },
+        {
+          "id": "app-a-p4",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "3. We present the 20 hand-curated prompts for generating famous paintings which we used to understand the copying of content and style in Tab. 4. The 6 prompts used to generate Fig. 8 are on the top part of the table in the same order as they appear in the ﬁgure.",
+            "es": "3. Presentamos los 20 prompts curados a mano para generar pinturas famosas que usamos para entender la copia de contenido y de estilo en la Tab. 4. Los 6 prompts usados para generar la Fig. 8 están en la parte superior de la tabla, en el mismo orden en que aparecen en la figura."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-b",
+      "title": {
+        "en": "B. Trained diffusion models",
+        "es": "B. Modelos de difusión entrenados"
+      },
+      "blocks": [
+        {
+          "id": "app-b-h1",
+          "type": "heading",
+          "page": 14,
+          "text": {
+            "en": "B.1. Hyperparameters for training",
+            "es": "B.1. Hiperparámetros de entrenamiento"
+          }
+        },
+        {
+          "id": "app-b-p1",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Celeb-A We trained the 300 image model using a batch size of 4 for 4000 epochs with a learning rate of 5e −5 and 200 warmup steps. For the model with 3000 images, we used a batch-size of 20, learning rate of 5e −4 and 200 warmup steps, and trained for 4000 epochs. We used the ofﬁcial pre-trained checkpoint from https:// huggingface.co/google/ddpm-celebahq-256 for the whole dataset.",
+            "es": "Celeb-A Entrenamos el modelo de 300 imágenes usando un tamaño de lote (batch size) de 4 durante 4000 épocas (epochs) con una tasa de aprendizaje (learning rate) de 5e −5 y 200 pasos de calentamiento (warmup steps). Para el modelo con 3000 imágenes, usamos un tamaño de lote de 20, una tasa de aprendizaje de 5e −4 y 200 pasos de calentamiento, y entrenamos durante 4000 épocas. Usamos el punto de control preentrenado oficial de https:// huggingface.co/google/ddpm-celebahq-256 para el conjunto de datos completo."
+          }
+        },
+        {
+          "id": "app-b-p2",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Oxford Flowers We trained the 100-image model for 2000 epochs with a batch size of 5, learning rate of 5e −5, and 100 warmup steps. The 1000-image model is trained with batch size 20 for 2000 epochs with learning rate 1e−4 and with 400 warmup steps. The model with all data is trained for 1000 epochs with batch size 32, learning rate 1e −4, and 100 warmup steps.",
+            "es": "Oxford Flowers Entrenamos el modelo de 100 imágenes durante 2000 épocas con un tamaño de lote de 5, una tasa de aprendizaje de 5e −5 y 100 pasos de calentamiento. El modelo de 1000 imágenes se entrena con un tamaño de lote de 20 durante 2000 épocas con una tasa de aprendizaje de 1e−4 y con 400 pasos de calentamiento. El modelo con todos los datos se entrena durante 1000 épocas con un tamaño de lote de 32, una tasa de aprendizaje de 1e −4 y 100 pasos de calentamiento."
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-c",
+      "title": {
+        "en": "C. Stable Diffusion settings",
+        "es": "C. Configuración de Stable Diffusion"
+      },
+      "blocks": [
+        {
+          "id": "app-c-p1",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "For the Stable Diffusion experiment, we sampled 9000 captions from whole LAION-Aesthetics (v.6+) dataset with replacement. For each caption, we produced a single generation and did not handpick the generations. The following hyperparameters are used: guidance scale=7.5, strength=0.5, steps=50.",
+            "es": "Para el experimento con Stable Diffusion, muestreamos 9000 descripciones (captions) del conjunto de datos completo LAION-Aesthetics (v.6+) con reemplazo. Para cada descripción produjimos una sola generación y no seleccionamos las generaciones a mano. Se usan los siguientes hiperparámetros (hyperparameters): escala de guía (guidance scale)=7.5, intensidad (strength)=0.5, pasos (steps)=50."
+          }
+        },
+        {
+          "id": "tab-2",
+          "type": "table",
+          "page": 14,
+          "image": "fig/tab-2.png",
+          "text": {
+            "en": "Table 2. Prompts used in generation of Fig. 10 (Top row)",
+            "es": "Tabla 2. Prompts utilizados en la generación de la Fig. 10 (fila superior)"
+          }
+        },
+        {
+          "id": "app-c-p2",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Florian Pond Behind The House Garden Painting Canvas Wall Art Print Starry night painting Canvas Wall Art Print A poster with letter V Canvas Wall Art Print A painting of an avocado chair Canvas Wall Art Print",
+            "es": "Florian Pond Behind The House Garden Painting Canvas Wall Art Print Starry night painting Canvas Wall Art Print A poster with letter V Canvas Wall Art Print A painting of an avocado chair Canvas Wall Art Print"
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 14,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3. Prompts used in generation of Fig. 10 (Bottom row)",
+            "es": "Tabla 3. Prompts utilizados en la generación de la Fig. 10 (fila inferior)"
+          }
+        },
+        {
+          "id": "app-c-h1",
+          "type": "heading",
+          "page": 14,
+          "text": {
+            "en": "C.1. Misc results",
+            "es": "C.1. Resultados varios"
+          }
+        },
+        {
+          "id": "app-c-p3",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "We also include the top 10 generations and their top 5 matches for DINO split-product on the Celeb-A dataset for all 3 diffusion models (trained on 300, 3000 and 30k images) in Fig. 15. We further present a few generations from the pretrained ImageNet conditional-LDM model and their closest matches in the ImageNet train set in Fig. 14.",
+            "es": "También incluimos las 10 mejores generaciones y sus 5 mejores coincidencias para DINO split-product en el conjunto de datos Celeb-A para los 3 modelos de difusión (diffusion models) (entrenados con 300, 3000 y 30k imágenes) en la Fig. 15. Además, presentamos algunas generaciones del modelo LDM condicional preentrenado en ImageNet y sus coincidencias más cercanas en el conjunto de entrenamiento de ImageNet en la Fig. 14."
+          }
+        },
+        {
+          "id": "app-c-p4",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Generation Top Match",
+            "es": "Generación Mejor coincidencia"
+          }
+        },
+        {
+          "id": "app-c-p5",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Source caption: Golden Globes best fashion on the red carpet , CNN Style",
+            "es": "Descripción de origen: Golden Globes best fashion on the red carpet , CNN Style"
+          }
+        },
+        {
+          "id": "app-c-p6",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Match caption: A photo of Red Carpet Wedding Dress Inspiration from the Golden Globes",
+            "es": "Descripción de la coincidencia: A photo of Red Carpet Wedding Dress Inspiration from the Golden Globes"
+          }
+        },
+        {
+          "id": "app-c-p7",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Source caption: Sony Boss Confirms Bloodborne Expansion is Coming",
+            "es": "Descripción de origen: Sony Boss Confirms Bloodborne Expansion is Coming"
+          }
+        },
+        {
+          "id": "app-c-p8",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Match caption: Bloodborne 32 Minute Speedrun",
+            "es": "Descripción de la coincidencia: Bloodborne 32 Minute Speedrun"
+          }
+        },
+        {
+          "id": "app-c-p9",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Source caption: New Orleans House Galaxy Case",
+            "es": "Descripción de origen: New Orleans House Galaxy Case"
+          }
+        },
+        {
+          "id": "app-c-p10",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Match caption: iPhone Cover - Viking - EURO Trailer",
+            "es": "Descripción de la coincidencia: iPhone Cover - Viking - EURO Trailer"
+          }
+        },
+        {
+          "id": "app-c-p11",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Source caption: Adidas Equipment Support ADV white-white side",
+            "es": "Descripción de origen: Adidas Equipment Support ADV white-white side"
+          }
+        },
+        {
+          "id": "app-c-p12",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Match caption: Adidas Men Equipment Support ADV (white / off white / clear brown / trace yellow)",
+            "es": "Descripción de la coincidencia: Adidas Men Equipment Support ADV (white / off white / clear brown / trace yellow)"
+          }
+        },
+        {
+          "id": "app-c-p13",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Source caption: <i>The Long Dark</i> Gets First Trailer, Steam Early Access",
+            "es": "Descripción de origen: <i>The Long Dark</i> Gets First Trailer, Steam Early Access"
+          }
+        },
+        {
+          "id": "app-c-p14",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Match caption: <i>The Long Dark</i> Gets First Trailer, Steam Early Access",
+            "es": "Descripción de la coincidencia: <i>The Long Dark</i> Gets First Trailer, Steam Early Access"
+          }
+        },
+        {
+          "id": "app-c-p15",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Source caption: A painting with letter M written on it Canvas Wall Art Print",
+            "es": "Descripción de origen: A painting with letter M written on it Canvas Wall Art Print"
+          }
+        },
+        {
+          "id": "app-c-p16",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Match caption: Epic Art 'Manhattan Sketches II' by Silvia Vassileva, Acrylic Glass Wall Art,36x36",
+            "es": "Descripción de la coincidencia: Epic Art 'Manhattan Sketches II' by Silvia Vassileva, Acrylic Glass Wall Art,36x36"
+          }
+        },
+        {
+          "id": "fig-13",
+          "type": "figure",
+          "page": 15,
+          "image": "fig/fig-13.png",
+          "text": {
+            "en": "Figure 13. Expanded version of teaser ﬁgure (Fig. 1). We present the caption used for generation and the caption of the top match.",
+            "es": "Figura 13. Versión ampliada de la figura de presentación (teaser) (Fig. 1). Presentamos la descripción utilizada para la generación y la descripción de la mejor coincidencia."
+          }
+        },
+        {
+          "id": "tab-4",
+          "type": "table",
+          "page": 16,
+          "image": "fig/tab-4.png",
+          "text": {
+            "en": "Table 4. We show the 20 manually curated prompts we used to understanding the copying of style vs content. The 6 prompts at the top of list are used (in order) to make Fig. 8.",
+            "es": "Tabla 4. Mostramos los 20 prompts seleccionados manualmente que usamos para comprender la copia de estilo frente a contenido. Los 6 prompts al inicio de la lista se usan (en orden) para elaborar la Fig. 8."
+          }
+        },
+        {
+          "id": "app-c-p17",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "Bal du moulin de la Galette by Pierre-Auguste Renoir Under the Tree of Life by Gustav Klimt Horn of Babel by Vladimir Kush Man in a Bowler Hat by Rene Magritte The Autumn by Alphonse Mucha Blue Lovers by Marc Chagall Marilyn Monroe By Andy Warhol Dora Maar au Chat By Pablo Picasso A girl with pearl earring by Johannes Vermeer The Persistence of Memory by Salvador Dali Ophelia by Sir John Everett Millais Cafe Terrace at Night by Vincent van Gogh The Scream by Edvard Munch",
+            "es": "Bal du moulin de la Galette by Pierre-Auguste Renoir Under the Tree of Life by Gustav Klimt Horn of Babel by Vladimir Kush Man in a Bowler Hat by Rene Magritte The Autumn by Alphonse Mucha Blue Lovers by Marc Chagall Marilyn Monroe By Andy Warhol Dora Maar au Chat By Pablo Picasso A girl with pearl earring by Johannes Vermeer The Persistence of Memory by Salvador Dali Ophelia by Sir John Everett Millais Cafe Terrace at Night by Vincent van Gogh The Scream by Edvard Munch"
+          }
+        },
+        {
+          "id": "fig-14",
+          "type": "figure",
+          "page": 16,
+          "image": "fig/fig-14.png",
+          "text": {
+            "en": "Figure 14. We present a few generations (in yellow boxes) from the ImageNet conditional LDM model and the top 4 matches from the ImageNet training set using DINO split-product.",
+            "es": "Figura 14. Presentamos algunas generaciones (en recuadros amarillos) del modelo LDM condicional de ImageNet y las 4 mejores coincidencias del conjunto de entrenamiento de ImageNet usando DINO split-product."
+          }
+        },
+        {
+          "id": "fig-15",
+          "type": "figure",
+          "page": 17,
+          "image": "fig/fig-15.png",
+          "text": {
+            "en": "Figure 15. We show the expanded version of Fig. 3 for DINO split-product. The generations are in yellow bounding boxes and we show the top 4 matches per image.",
+            "es": "Figura 15. Mostramos la versión ampliada de la Fig. 3 para DINO split-product. Las generaciones están en recuadros delimitadores amarillos y mostramos las 4 mejores coincidencias por imagen."
+          }
+        }
+      ]
+    }
+  ]
+}

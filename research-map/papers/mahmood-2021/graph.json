@@ -1,0 +1,630 @@
+{
+  "version": 1,
+  "node": "mahmood-2021",
+  "built": {
+    "date": "2026-11-15",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "How can new molecules with desired properties be designed in silico, given the very large combinatorial space of all possible synthesizable molecules?",
+      "es": "¿Cómo diseñar in silico moléculas nuevas con propiedades deseadas, dado el enorme espacio combinatorio de todas las moléculas sintetizables?",
+      "blocks": [
+        "s1-p3",
+        "s2-p1"
+      ],
+      "key": "de-novo-molecule-design",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Autoregressive models must fix an ordering of nodes and edges in advance. The choice is largely arbitrary, and it is hard to predict how it will affect learning.",
+      "es": "Los modelos autorregresivos deben fijar de antemano un orden de nodos y aristas. La elección es en gran medida arbitraria y es difícil predecir cómo afectará el aprendizaje.",
+      "blocks": [
+        "s2-p3"
+      ],
+      "key": "autoregressive-ordering",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Latent variable models (VAEs, adversarial autoencoders) need no predefined ordering, but they must marginalize the latent variables, which is often intractable. They maximize a lower bound instead.",
+      "es": "Los modelos de variables latentes (VAE, autoencoders adversariales) no necesitan un orden predefinido, pero deben marginalizar las variables latentes, lo cual suele ser intratable. En su lugar maximizan una cota inferior.",
+      "blocks": [
+        "s2-p4"
+      ],
+      "key": "latent-variable-models",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "Modeling molecules directly as graphs avoids finding better ways to serialize them as strings. It also allows graph-specific features, such as distances between atoms, that strings do not readily encode.",
+      "es": "Modelar las moléculas directamente como grafos evita buscar mejores formas de serializarlas como cadenas de texto. También permite usar rasgos propios de los grafos, como las distancias entre átomos, que las cadenas no codifican fácilmente.",
+      "blocks": [
+        "s2-p5"
+      ],
+      "key": "graph-vs-string-representation",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "concept",
+      "en": "The paper's idea: you do not need to model the joint distribution p(G) to sample from it. A masked graph model learns the conditional distribution of masked nodes and edges given the rest of the graph, and samples with a procedure similar to Gibbs sampling.",
+      "es": "La idea del artículo: no hace falta modelar la distribución conjunta p(G) para muestrear de ella. Un modelo de grafos enmascarados aprende la distribución condicional de nodos y aristas enmascarados dados el resto del grafo, y muestrea con un procedimiento parecido al muestreo de Gibbs.",
+      "blocks": [
+        "s1-p3",
+        "s2-p9"
+      ],
+      "key": "masked-graph-modeling",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "claim",
+      "en": "The authors argue that sampling from a trained denoising autoencoder is theoretically equivalent to sampling from the full joint distribution. So sampling repeatedly from the learned conditionals is equivalent to sampling from the joint distribution of graphs.",
+      "es": "Los autores sostienen que muestrear de un autoencoder de eliminación de ruido entrenado es, en teoría, equivalente a muestrear de la distribución conjunta completa. Por eso, muestrear repetidamente de las condicionales aprendidas equivale a muestrear de la distribución conjunta de los grafos.",
+      "blocks": [
+        "s2-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "A graph has N vertices, each with an index and one of T node types, and edges, each with two indices and one of R edge types. The masked components are assumed conditionally independent of each other given the rest of the graph.",
+      "es": "Un grafo tiene N vértices, cada uno con un índice y uno de T tipos de nodo, y aristas, cada una con dos índices y uno de R tipos de arista. Se supone que los componentes enmascarados son condicionalmente independientes entre sí dado el resto del grafo.",
+      "blocks": [
+        "s2-p11",
+        "s2-p12",
+        "s2-p14"
+      ],
+      "key": "typed-graph-representation",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Training corrupts each full graph by replacing node and edge features with a MASK symbol, then maximizes the log probability of the masked components given the rest. The masking rate α is varied uniformly between 0 and 0.2 during training, and fixed at 0.1 during validation.",
+      "es": "El entrenamiento corrompe cada grafo completo sustituyendo rasgos de nodos y aristas por un símbolo MASK, y maximiza la log-probabilidad de los componentes enmascarados dado el resto. La tasa de enmascarado α varía uniformemente entre 0 y 0.2 en el entrenamiento y se fija en 0.1 en la validación.",
+      "blocks": [
+        "s2-p15",
+        "s2-p82",
+        "s2-p83"
+      ],
+      "key": "masked-training",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "Generation starts from a training graph (training initialization) or from components drawn from the training marginals (marginal initialization). Then, for K steps, a random fraction α of components is masked and resampled from the model's predicted distribution. The paper runs 400 iterations on QM9 and 300 on ChEMBL.",
+      "es": "La generación parte de un grafo de entrenamiento (inicialización de entrenamiento) o de componentes tomados de las marginales del entrenamiento (inicialización marginal). Luego, durante K pasos, se enmascara una fracción α al azar de los componentes y se vuelven a muestrear de la distribución predicha. El artículo corre 400 iteraciones en QM9 y 300 en ChEMBL.",
+      "blocks": [
+        "s2-p16",
+        "s2-p17",
+        "s2-p86"
+      ],
+      "key": "iterative-mask-and-resample",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "One message passing neural network (MPNN) parameterizes every conditional. It updates both node and edge representations at each layer, with parameters tied across layers: 4 layers for QM9, 6 for ChEMBL, embedding dimension d0 = 2048. Any graph network that models node and edge features well could replace it.",
+      "es": "Una sola red neuronal de paso de mensajes (MPNN) parametriza todas las condicionales. Actualiza las representaciones de nodos y de aristas en cada capa, con parámetros compartidos entre capas: 4 capas para QM9, 6 para ChEMBL, con dimensión de embedding d0 = 2048. Cualquier red de grafos que modele bien los rasgos de nodos y aristas podría sustituirla.",
+      "blocks": [
+        "s2-p12",
+        "s2-p60",
+        "s2-p81",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "Each node carries six properties (atom type, number of hydrogens, charge, chirality, is-in-ring, is-aromatic) and each edge one (bond type: no, single, double, triple or aromatic bond). Each property is masked independently. Masking all features of a node together gave a significantly higher cross-entropy loss.",
+      "es": "Cada nodo lleva seis propiedades (tipo de átomo, número de hidrógenos, carga, quiralidad, si está en un anillo, si es aromático) y cada arista una (tipo de enlace: sin enlace, simple, doble, triple o aromático). Cada propiedad se enmascara de forma independiente. Enmascarar todos los rasgos de un nodo a la vez dio una pérdida de entropía cruzada significativamente mayor.",
+      "blocks": [
+        "s2-p72",
+        "s2-p73",
+        "s2-p76",
+        "s2-p79",
+        "s2-p80"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "Conditional generation adds a graph-level property y as an extra input: it is standardized, embedded and added to every node embedding. During training y is the molecule's true value, and at generation time it is the target value. A separate model is trained for each property.",
+      "es": "La generación condicional agrega como entrada una propiedad y a nivel de grafo: se estandariza, se embebe y se suma al embedding de cada nodo. En el entrenamiento y es el valor real de la molécula, y al generar es el valor objetivo. Se entrena un modelo distinto para cada propiedad.",
+      "blocks": [
+        "s2-p18",
+        "s2-p19",
+        "s2-p87"
+      ],
+      "key": "conditional-generation",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "dataset",
+      "en": "QM9 has approximately 132,000 molecules with a median and maximum of 9 heavy atoms each, T = 4 atom types (C, N, O, F) and R = 5 bond types.",
+      "es": "QM9 tiene aproximadamente 132,000 moléculas con una mediana y un máximo de 9 átomos pesados cada una, T = 4 tipos de átomo (C, N, O, F) y R = 5 tipos de enlace.",
+      "blocks": [
+        "s2-p93"
+      ],
+      "key": "qm9",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "dataset",
+      "en": "The ChEMBL subset has approximately 1,591,000 molecules with a median of 27 and a maximum of 88 heavy atoms each, and T = 12 atom types. It has no chirality information.",
+      "es": "El subconjunto de ChEMBL tiene aproximadamente 1,591,000 moléculas con una mediana de 27 y un máximo de 88 átomos pesados cada una, y T = 12 tipos de átomo. No incluye información de quiralidad.",
+      "blocks": [
+        "s2-p93",
+        "s2-p77"
+      ],
+      "key": "chembl",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "The GuacaMol distribution-learning benchmark scores validity, uniqueness, novelty, KL-divergence and Fréchet ChemNet Distance on 10,000 sampled molecules. Generated graphs must first be converted to SMILES strings.",
+      "es": "El benchmark de aprendizaje de distribuciones GuacaMol califica validez, unicidad, novedad, divergencia KL y distancia Fréchet ChemNet sobre 10,000 moléculas muestreadas. Los grafos generados primero deben convertirse a cadenas SMILES.",
+      "blocks": [
+        "s2-p10",
+        "s2-p95",
+        "s2-p96"
+      ],
+      "key": "guacamol",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "The authors train their own SMILES-based autoregressive baselines: an LSTM, a Transformer Small (4 layers, embedding 512) and a Transformer Regular (6 layers, embedding 1024). A sampling temperature controls how sharp their output is, and raising it increases novelty. Other baselines come from the literature.",
+      "es": "Los autores entrenan sus propios modelos autorregresivos base sobre SMILES: un LSTM, un Transformer Small (4 capas, embedding de 512) y un Transformer Regular (6 capas, embedding de 1024). Una temperatura de muestreo controla qué tan marcada es su salida, y subirla aumenta la novedad. Los demás modelos base provienen de la literatura.",
+      "blocks": [
+        "s2-p21",
+        "s2-p90",
+        "s2-p91"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "Validity, KL-divergence and Fréchet ChemNet Distance scores correlate highly with each other and negatively with novelty. Uniqueness does not correlate strongly with any other metric.",
+      "es": "Los puntajes de validez, divergencia KL y distancia Fréchet ChemNet se correlacionan fuertemente entre sí y de forma negativa con la novedad. La unicidad no se correlaciona fuertemente con ninguna otra métrica.",
+      "blocks": [
+        "s2-p22",
+        "tab-1",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "claim",
+      "en": "Because the metrics are correlated, comparing models by the trade-off between them may be more informative than comparing them by a heuristic such as the sum of the metrics.",
+      "es": "Como las métricas están correlacionadas, comparar los modelos por el equilibrio entre ellas puede ser más informativo que compararlos con una heurística como la suma de las métricas.",
+      "blocks": [
+        "s2-p20",
+        "s2-p50"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "On QM9 and ChEMBL, the Fréchet ChemNet Distance score falls as novelty rises for every model. The slope is smaller in magnitude for the masked graph model than for the autoregressive ones, so it trades novelty for similarity to the dataset more effectively and gives more control.",
+      "es": "En QM9 y ChEMBL, el puntaje de distancia Fréchet ChemNet baja al subir la novedad en todos los modelos. La pendiente es menor en magnitud para el modelo de grafos enmascarados que para los autorregresivos, así que cambia novedad por similitud con el conjunto de datos de forma más eficaz y da más control.",
+      "blocks": [
+        "s2-p24",
+        "s2-p27",
+        "s2-p31"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "On QM9, masking rates of 10% and 20% keep a larger Fréchet score as novelty rises, and several points lie beyond the baselines' Pareto frontier. On ChEMBL, a 1% rate gives points beyond those of 5%, so masking many components hurts quality even when it is a small percentage of the graph.",
+      "es": "En QM9, las tasas de enmascarado de 10% y 20% conservan un puntaje Fréchet mayor al subir la novedad, y varios puntos quedan más allá de la frontera de Pareto de los modelos base. En ChEMBL, una tasa de 1% da puntos más allá de los de 5%, así que enmascarar muchos componentes daña la calidad aunque sea un porcentaje pequeño del grafo.",
+      "blocks": [
+        "s2-p25",
+        "s2-p26"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "On QM9 (10% masking, training initialization), the model has higher validity and uniqueness than CharacterVAE, GrammarVAE, GraphVAE and MolGAN, with lower novelty. Compared with the LSTM and Transformers, it has lower validity, KL-divergence and Fréchet scores, but slightly higher uniqueness and significantly higher novelty.",
+      "es": "En QM9 (10% de enmascarado, inicialización de entrenamiento), el modelo tiene mayor validez y unicidad que CharacterVAE, GrammarVAE, GraphVAE y MolGAN, con menor novedad. Frente al LSTM y los Transformers tiene menores puntajes de validez, divergencia KL y Fréchet, pero una unicidad ligeramente mayor y una novedad significativamente mayor.",
+      "blocks": [
+        "s2-p29",
+        "s2-p30",
+        "s2-p32",
+        "tab-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "On ChEMBL (1% masking, training initialization), the model outperforms graph-based methods, with significantly higher KL-divergence and Fréchet scores than Graph MCTS and the non-autoregressive graph VAE. It also outperforms ORGAN on all five metrics. It lags the LSTM and both Transformers, beating the Transformers only on KL-divergence.",
+      "es": "En ChEMBL (1% de enmascarado, inicialización de entrenamiento), el modelo supera a los métodos basados en grafos, con puntajes de divergencia KL y Fréchet significativamente mayores que Graph MCTS y el VAE de grafos no autorregresivo. También supera a ORGAN en las cinco métricas. Queda por debajo del LSTM y de ambos Transformers, y solo los supera en divergencia KL.",
+      "blocks": [
+        "s2-p33",
+        "s2-p34",
+        "s2-p35",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "In trajectories from training initialization, small changes lead to novel molecules, and after 100 generation steps the molecule converges to another non-novel one before novel ones appear again. From marginal initialization, disjoint fragments become a connected graph within the first three steps, form a ring and a chiral center by the 10-th step, and converge to a non-novel molecule by 200 steps.",
+      "es": "En las trayectorias con inicialización de entrenamiento, cambios pequeños llevan a moléculas nuevas, y tras 100 pasos de generación la molécula converge a otra no novedosa antes de que vuelvan a aparecer novedosas. Con inicialización marginal, fragmentos desconectados forman un grafo conectado en los primeros tres pasos, generan un anillo y un centro quiral hacia el paso 10 y convergen a una molécula no novedosa hacia los 200 pasos.",
+      "blocks": [
+        "s2-p37",
+        "s2-p38",
+        "s2-p39",
+        "fig-2",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "In the trajectories, molecules converge toward the space of dataset molecules whichever initialization is used. A higher masking rate gives bigger changes between iterations and molecules less similar to the dataset. The authors hypothesize that more of the graph is updated per step and that predictions come from a more masked, higher-entropy graph.",
+      "es": "En las trayectorias, las moléculas convergen hacia el espacio de las moléculas del conjunto de datos sin importar la inicialización. Una tasa de enmascarado mayor produce cambios más grandes entre iteraciones y moléculas menos parecidas al conjunto de datos. Los autores plantean que se actualiza una parte mayor del grafo en cada paso y que las predicciones salen de un grafo más enmascarado y de mayor entropía.",
+      "blocks": [
+        "s2-p53",
+        "s2-p54"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "In conditional generation on QM9, the mean property of MGM molecules is closer to the target than NAT GraphVAE for MolWt=120, MolWt=125, LogP=0.2 and LogP=0.8, and slightly further for MolWt=130 and LogP=−0.4. KL-divergence scores are generally higher than NAT GraphVAE and greater than 0.8 in all cases but one.",
+      "es": "En la generación condicional sobre QM9, la propiedad media de las moléculas de MGM queda más cerca del objetivo que la de NAT GraphVAE para MolWt=120, MolWt=125, LogP=0.2 y LogP=0.8, y ligeramente más lejos para MolWt=130 y LogP=−0.4. Los puntajes de divergencia KL suelen ser mayores que los de NAT GraphVAE y superiores a 0.8 en todos los casos menos uno.",
+      "blocks": [
+        "s2-p43",
+        "s2-p44",
+        "tab-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "Generation time per sample per sampling iteration is on the order of milliseconds, because the forward pass is cheap and many molecules are processed in parallel. All experiments used one Nvidia Tesla P100-SXM2 GPU with 16 GB of memory.",
+      "es": "El tiempo de generación por muestra y por iteración de muestreo es del orden de milisegundos, porque el paso hacia adelante es barato y se procesan muchas moléculas en paralelo. Todos los experimentos usaron una GPU Nvidia Tesla P100-SXM2 con 16 GB de memoria.",
+      "blocks": [
+        "s2-p48",
+        "tab-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "concept",
+      "en": "Every node pair counts as a prospective edge, so the number masked at a fixed rate grows with the square of the number of nodes. A 1% rate on a median ChEMBL molecule and a 10% rate on a median QM9 molecule both mask approximately 4 prospective edges. The authors conclude that the absolute number masked affects quality, and recommend masking about 5–10.",
+      "es": "Cada par de nodos cuenta como una arista potencial, así que con una tasa fija la cantidad enmascarada crece con el cuadrado del número de nodos. Una tasa de 1% en una molécula mediana de ChEMBL y una de 10% en una molécula mediana de QM9 enmascaran ambas aproximadamente 4 aristas potenciales. Los autores concluyen que el número absoluto enmascarado afecta la calidad, y recomiendan enmascarar alrededor de 5–10.",
+      "blocks": [
+        "s2-p51",
+        "s2-p84"
+      ],
+      "key": "masking-rate-as-absolute-count",
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "On ChEMBL the model underperforms the SMILES-based LSTM and Transformers. The authors offer possible causes: differences between the datasets, more work on language models than on graph networks, and the conversion of graphs to SMILES that GuacaMol requires. They leave the investigation to future work.",
+      "es": "En ChEMBL el modelo queda por debajo del LSTM y los Transformers basados en SMILES. Los autores ofrecen posibles causas: diferencias entre los conjuntos de datos, más trabajo en modelos de lenguaje que en redes de grafos, y la conversión de grafos a SMILES que exige GuacaMol. Dejan la investigación para trabajo futuro.",
+      "blocks": [
+        "s2-p52"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "limitation",
+      "en": "Masking many prospective edges makes the graph unnaturally dense, because masked 'no edge' entries look like edges to the MPNN, which is problematic for it. For this reason marginal initialization could not be used on ChEMBL, and scaling to larger molecules needs a fix.",
+      "es": "Enmascarar muchas aristas potenciales vuelve el grafo artificialmente denso, porque las entradas enmascaradas de 'sin arista' le parecen aristas a la MPNN, lo cual le resulta problemático. Por eso no se pudo usar la inicialización marginal en ChEMBL, y escalar a moléculas más grandes requiere una solución.",
+      "blocks": [
+        "s2-p31",
+        "s2-p58",
+        "s2-p84"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "limitation",
+      "en": "Existing benchmarks provide data as strings and evaluate string-based properties, so features that strings do not encode, such as spatial information, are not used by either text-based or graph-based models and cannot be part of evaluation.",
+      "es": "Los benchmarks existentes entregan los datos como cadenas y evalúan propiedades basadas en cadenas, así que los rasgos que las cadenas no codifican, como la información espacial, no los usan ni los modelos de texto ni los de grafos y no pueden formar parte de la evaluación.",
+      "blocks": [
+        "s2-p52",
+        "s2-p57"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "future",
+      "en": "Add information such as inter-atomic distances to the graph representation, and develop benchmarks that account for the spatial nature of molecules, for example with 3D coordinates.",
+      "es": "Agregar a la representación del grafo información como las distancias interatómicas, y desarrollar benchmarks que consideren la naturaleza espacial de las moléculas, por ejemplo con coordenadas 3D.",
+      "blocks": [
+        "s2-p57"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "future",
+      "en": "Make the model semi-supervised, extend it to proteins (amino acids as nodes, a contact map as the adjacency matrix), adapt it to lead optimization, and apply it to non-molecular graph datasets.",
+      "es": "Hacer el modelo semisupervisado, extenderlo a proteínas (aminoácidos como nodos y un mapa de contactos como matriz de adyacencia), adaptarlo a la optimización de compuestos líder y aplicarlo a conjuntos de datos de grafos no moleculares.",
+      "blocks": [
+        "s2-p59"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "future",
+      "en": "Find an automated way of setting the masking rate, and a way to handle the disproportionately large number of prospective edges masked in large molecules.",
+      "es": "Encontrar una forma automática de fijar la tasa de enmascarado, y una manera de manejar la cantidad desproporcionada de aristas potenciales enmascaradas en moléculas grandes.",
+      "blocks": [
+        "s2-p58",
+        "s2-p84"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i5",
+      "type": "supports",
+      "why": "The arbitrary-ordering problem motivates a model that needs no fixed order."
+    },
+    {
+      "from": "i3",
+      "to": "i5",
+      "type": "supports",
+      "why": "Intractable marginalization motivates learning exact conditionals instead."
+    },
+    {
+      "from": "i4",
+      "to": "i7",
+      "type": "supports",
+      "why": "The case for graph over string representations leads to modeling typed nodes and edges directly."
+    },
+    {
+      "from": "i7",
+      "to": "i5",
+      "type": "part-of",
+      "why": "The typed graph is the object the masked model operates on."
+    },
+    {
+      "from": "i8",
+      "to": "i5",
+      "type": "part-of",
+      "why": "Masked training is how the conditionals are learned."
+    },
+    {
+      "from": "i9",
+      "to": "i5",
+      "type": "part-of",
+      "why": "Iterative mask-and-resample is how new graphs are sampled."
+    },
+    {
+      "from": "i8",
+      "to": "i10",
+      "type": "uses",
+      "why": "One MPNN parameterizes all the conditional distributions being trained."
+    },
+    {
+      "from": "i11",
+      "to": "i10",
+      "type": "part-of",
+      "why": "The property embeddings are the node and edge inputs to the MPNN."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "uses",
+      "why": "Sampling needs the conditionals learned during masked training."
+    },
+    {
+      "from": "i6",
+      "to": "i9",
+      "type": "supports",
+      "why": "The denoising-autoencoder argument justifies sampling from the joint via repeated conditional updates."
+    },
+    {
+      "from": "i12",
+      "to": "i9",
+      "type": "uses",
+      "why": "Conditional generation reuses the same sampler with an extra input y."
+    },
+    {
+      "from": "i12",
+      "to": "i8",
+      "type": "uses",
+      "why": "It trains with the same masked objective, adding the property as conditioning."
+    },
+    {
+      "from": "i15",
+      "to": "i21",
+      "type": "measures",
+      "why": "GuacaMol metrics produce the QM9 comparison."
+    },
+    {
+      "from": "i15",
+      "to": "i22",
+      "type": "measures",
+      "why": "GuacaMol metrics produce the ChEMBL comparison."
+    },
+    {
+      "from": "i15",
+      "to": "i25",
+      "type": "measures",
+      "why": "KL-divergence is used to check that conditioned molecules stay similar to the dataset."
+    },
+    {
+      "from": "i21",
+      "to": "i13",
+      "type": "uses",
+      "why": "The comparison is run on QM9."
+    },
+    {
+      "from": "i22",
+      "to": "i14",
+      "type": "uses",
+      "why": "The comparison is run on ChEMBL."
+    },
+    {
+      "from": "i21",
+      "to": "i16",
+      "type": "uses",
+      "why": "The LSTM and Transformer baselines are the main comparison."
+    },
+    {
+      "from": "i19",
+      "to": "i16",
+      "type": "uses",
+      "why": "The autoregressive baselines supply the trade-off slopes MGM is compared against."
+    },
+    {
+      "from": "i17",
+      "to": "i18",
+      "type": "supports",
+      "why": "The correlations are the reason to look at trade-offs, not sums."
+    },
+    {
+      "from": "i18",
+      "to": "i19",
+      "type": "supports",
+      "why": "The trade-off view is what the Fréchet-versus-novelty plots put into practice."
+    },
+    {
+      "from": "i20",
+      "to": "i27",
+      "type": "supports",
+      "why": "Quality dropping at larger masking rates on ChEMBL points to the absolute count of masked components."
+    },
+    {
+      "from": "i27",
+      "to": "i29",
+      "type": "supports",
+      "why": "The quadratic growth of prospective edges explains the dense-graph problem."
+    },
+    {
+      "from": "i23",
+      "to": "i24",
+      "type": "supports",
+      "why": "The trajectories show the convergence toward dataset molecules."
+    },
+    {
+      "from": "i24",
+      "to": "i6",
+      "type": "supports",
+      "why": "Converging to the dataset space is taken to verify that the sampler draws from the trained distribution."
+    },
+    {
+      "from": "i22",
+      "to": "i28",
+      "type": "supports",
+      "why": "The ChEMBL gap with SMILES models is what the limitation tries to explain."
+    },
+    {
+      "from": "i26",
+      "to": "i9",
+      "type": "supports",
+      "why": "Cheap forward passes make many sampling iterations affordable."
+    },
+    {
+      "from": "i30",
+      "to": "i31",
+      "type": "supports",
+      "why": "The string-only benchmarks are the reason given for building spatial ones."
+    },
+    {
+      "from": "i29",
+      "to": "i33",
+      "type": "supports",
+      "why": "The masking-rate and large-molecule problems motivate the automated-rate future work."
+    },
+    {
+      "from": "i25",
+      "to": "i12",
+      "type": "uses",
+      "why": "The conditional results come from the property-conditioned model."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i5",
+      "to": "hypothesis",
+      "why": "Supports it: a typed graph of nodes and edges, hidden in part, lets a model learn conditionals and then generate new graphs that match the training distribution."
+    },
+    {
+      "idea": "i8",
+      "to": "masking-training",
+      "why": "A concrete training recipe to borrow: random masking of node and edge features, loss only on the masked parts, rate drawn between 0 and 0.2."
+    },
+    {
+      "idea": "i11",
+      "to": "masking-training",
+      "why": "Masking each property independently, instead of all features of a node together, gave a lower loss; this could apply to element parameters in a BIM graph."
+    },
+    {
+      "idea": "i27",
+      "to": "masking-training",
+      "why": "Choose the masking rate as an absolute number of hidden relations (about 5–10), not a percentage, because relations pairs grow with the square of the node count."
+    },
+    {
+      "idea": "i29",
+      "to": "masking-training",
+      "why": "A gap to watch: masking many 'no relation' pairs makes a sparse graph look dense, which is likely in building graphs with many elements."
+    },
+    {
+      "idea": "i2",
+      "to": "placement-order-experiments",
+      "why": "Gives the reason an order of elements is a problem for one-by-one assembly: the order is arbitrary and affects learning."
+    },
+    {
+      "idea": "i9",
+      "to": "assemble-node-by-node",
+      "why": "An alternative to predicting the next element in a fixed order: mask and resample any part of the graph over many iterations."
+    },
+    {
+      "idea": "i23",
+      "to": "new-not-replicated",
+      "why": "The sampling chain passes through copies of training molecules before producing novel ones, which shows how replaying training data can occur during generation."
+    },
+    {
+      "idea": "i17",
+      "to": "new-not-replicated",
+      "why": "Novelty (share of generated items not in the dataset) is anti-correlated with similarity and validity, a measurable trade-off that the thesis can reuse."
+    }
+  ]
+}

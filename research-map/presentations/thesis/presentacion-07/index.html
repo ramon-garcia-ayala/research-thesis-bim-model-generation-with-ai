@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en" data-lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thesis 07 · First tests</title>
+    <meta name="description" content="Presentation 07 for the thesis (MaCAD, IAAC), six slides: the research question, the literature and its highlights, the updated pipeline, the tests, the results and the next steps." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" />
+    <link rel="stylesheet" href="../../assets/deck.css" />
+    <script type="importmap">{ "imports": { "three": "../../assets/vendor/three/three.module.min.js" } }</script>
+  </head>
+  <body data-track="thesis" data-presentation="presentacion-07">
+    <nav class="rail"></nav>
+    <main class="deck">
+      <!-- 1 · Research question -->
+      <section class="slide slide--title slide--title-wide" data-map="question hypothesis">
+        <p class="eyebrow"><span><span lang="en">Research question</span><span lang="es">Pregunta de investigación</span></span><b>07</b></p>
+        <div class="title__text">
+          <h1><span lang="en">Can we decompose BIM models into meaningful parts and use them to <em>generate new, valid models?</em></span><span lang="es">¿Podemos descomponer modelos BIM en partes con sentido y usarlas para <em>generar modelos nuevos y válidos?</em></span></h1>
+          <p class="lede" data-build="1"><span lang="en">Hypothesis: if a BIM model is <mark class="kw">decomposed into its elements and relations</mark>, an AI can <mark class="kw">find the patterns</mark> it needs to understand how to <mark class="kw">build something similar</mark>.</span><span lang="es">Hipótesis: si un modelo BIM <mark class="kw">se descompone en sus elementos y relaciones</mark>, una IA puede <mark class="kw">encontrar los patrones</mark> que necesita para entender cómo <mark class="kw">armar algo parecido</mark>.</span></p>
+          <p class="title__meta"><span lang="en">G. Ramón García Ayala · MaCAD, IAAC</span><span lang="es">G. Ramón García Ayala · MaCAD, IAAC</span></p>
+        </div>
+        <aside class="notes"><ul><li><span lang="en">Open with the <mark class="kw">question</mark>: can BIM models be decomposed into meaningful parts and used to generate new, valid ones?</span><span lang="es">Abrir con la <mark class="kw">pregunta</mark>: ¿se pueden descomponer modelos BIM en partes con sentido y usarlas para generar modelos nuevos y válidos?</span></li><li><span lang="en">Hypothesis: with <mark class="kw">elements and relations</mark>, an AI finds the patterns to build something similar.</span><span lang="es">Hipótesis: con <mark class="kw">elementos y relaciones</mark>, una IA encuentra los patrones para armar algo parecido.</span></li><li><span lang="en">Today: the <mark class="kw">first tests</mark> of masking and MCP.</span><span lang="es">Hoy: las <mark class="kw">primeras pruebas</mark> de masking y MCP.</span></li></ul></aside>
+      </section>
+      <!-- Chapter 1 · cover -->
+      <section class="slide slide--chapter" data-chapter="1 · Context" data-chapter-es="1 · Contexto">
+        <p class="eyebrow"><span><span lang="en">Chapter 1</span><span lang="es">Capítulo 1</span></span><b>07</b></p>
+        <span class="chapter__n">01</span>
+        <h1><span lang="en">Literature and pipeline</span><span lang="es">Literatura y pipeline</span></h1>
+        <p class="lede"><span lang="en">What the literature says, and the pipeline it leads to.</span><span lang="es">Lo que dice la literatura y el pipeline al que lleva.</span></p>
+        <aside class="notes"><ul><li><span lang="en">First the <mark class="kw">context</mark>: what the literature says, the pipeline and how the project is built.</span><span lang="es">Primero el <mark class="kw">contexto</mark>: lo que dice la literatura, el pipeline y cómo está armado el proyecto.</span></li></ul></aside>
+      </section>
+      <!-- 2 · Literature and highlights -->
+      <section data-chapter="1 · Context" data-chapter-es="1 · Contexto" style="--refs-h: 1.8cqw" class="slide has-refs" data-map="masking-training tang-2024 mahmood-2021 zhang-2026 chang-2022 hornung-2025 bu-2023 meehan-2020 bfs-subgraphs new-not-replicated">
+        <p class="eyebrow"><span><span lang="en">Chapter 1 · Literature and highlights</span><span lang="es">Capítulo 1 · Literatura y hallazgos</span></span><b>07</b></p>
+        <h2><span lang="en">Masking has to answer <em>four questions.</em></span><span lang="es">El masking tiene que responder <em>cuatro preguntas.</em></span></h2>
+        <div class="points">
+          <article class="card" data-build="1">
+            <span class="tag tag--ink">01</span>
+            <h3><span lang="en">How much to hide?</span><span lang="es">¿Cuánto ocultar?</span></h3>
+            <p><span lang="en">On house graphs, <mark class="kw">40%</mark> works best<sup>1</sup>. Hiding more gives <mark class="kw">more novelty, less validity</mark><sup>2</sup>.</span><span lang="es">En grafos de casas, el <mark class="kw">40%</mark> funciona mejor<sup>1</sup>. Ocultar más da <mark class="kw">más novedad, menos validez</mark><sup>2</sup>.</span></p>
+          </article>
+          <article class="card" data-build="2">
+            <span class="tag tag--ink">02</span>
+            <h3><span lang="en">How to predict?</span><span lang="es">¿Cómo predecir?</span></h3>
+            <p><span lang="en"><mark class="kw">All at once</mark><sup>3</sup>: FID 4.02, against 4.84 one after another and 6.36 without the neighbour as context<sup>4</sup>.</span><span lang="es"><mark class="kw">Todo a la vez</mark><sup>3</sup>: FID 4.02, contra 4.84 uno tras otro y 6.36 sin el vecino como contexto<sup>4</sup>.</span></p>
+          </article>
+          <article class="card" data-build="3">
+            <span class="tag tag--ink">03</span>
+            <h3><span lang="en">In which pieces?</span><span lang="es">¿En qué piezas?</span></h3>
+            <p><span lang="en">Subgraphs of <mark class="kw">20 elements by BFS</mark><sup>5</sup>. As an order to generate, BFS is weak for an exact graph<sup>6</sup>.</span><span lang="es">Subgrafos de <mark class="kw">20 elementos por BFS</mark><sup>5</sup>. Como orden para generar, BFS es débil para un grafo exacto<sup>6</sup>.</span></p>
+          </article>
+          <article class="card" data-build="4">
+            <span class="tag tag--ink">04</span>
+            <h3><span lang="en">New or a copy?</span><span lang="es">¿Nuevo o copia?</span></h3>
+            <p><span lang="en">Compare <mark class="kw">training, held-out and generated</mark>: copying is being closer to training than held-out is<sup>7</sup>.</span><span lang="es">Comparar <mark class="kw">entrenamiento, prueba y generado</mark>: copiar es quedar más cerca del entrenamiento que la prueba<sup>7</sup>.</span></p>
+          </article>
+        </div>
+        <ol class="refs"><li><a href="https://doi.org/10.1109/tpami.2024.3355248" target="_blank" rel="noopener noreferrer">Tang et al., TPAMI 2024</a><span class="refs__read"><span lang="en">read 14%</span><span lang="es">leído 14%</span></span></li><li><a href="https://doi.org/10.1038/s41467-021-23415-2" target="_blank" rel="noopener noreferrer">Mahmood et al., Nat. Commun. 2021</a><span class="refs__read is-unread"><span lang="en">to read</span><span lang="es">por leer</span></span></li><li><a href="https://doi.org/10.1109/cvpr52688.2022.01103" target="_blank" rel="noopener noreferrer">Chang et al., MaskGIT, CVPR 2022</a><span class="refs__read is-unread"><span lang="en">to read</span><span lang="es">por leer</span></span></li><li><a href="https://doi.org/10.1016/j.autcon.2026.107120" target="_blank" rel="noopener noreferrer">Zhang et al., MaskLayout, 2026, Table 2</a><span class="refs__read"><span lang="en">read 55%</span><span lang="es">leído 55%</span></span></li><li><a href="https://doi.org/10.25442/hku.29365832" target="_blank" rel="noopener noreferrer">Hornung et al., CAAD Futures 2025</a><span class="refs__read"><span lang="en">read 52%</span><span lang="es">leído 52%</span></span></li><li><a href="https://arxiv.org/abs/2305.15562" target="_blank" rel="noopener noreferrer">Bu et al., arXiv 2023</a><span class="refs__read is-unread"><span lang="en">to read</span><span lang="es">por leer</span></span></li><li><a href="https://arxiv.org/abs/2004.05675" target="_blank" rel="noopener noreferrer">Meehan et al., AISTATS 2020</a><span class="refs__read is-unread"><span lang="en">to read</span><span lang="es">por leer</span></span></li></ol>
+        <aside class="notes"><ul><li><span lang="en">Masking has to answer <mark class="kw">four questions</mark>.</span><span lang="es">El masking tiene que responder <mark class="kw">cuatro preguntas</mark>.</span></li><li><span lang="en">How much: <mark class="kw">40%</mark> works best on house graphs (Tang); hiding more trades validity for novelty (Mahmood).</span><span lang="es">Cuánto: el <mark class="kw">40%</mark> funciona mejor en grafos de casas (Tang); ocultar más cambia validez por novedad (Mahmood).</span></li><li><span lang="en">How: <mark class="kw">all at once</mark>, as MaskLayout: FID 4.02 against 4.84 one by one.</span><span lang="es">Cómo: <mark class="kw">todo a la vez</mark>, como MaskLayout: FID 4.02 contra 4.84 uno tras otro.</span></li><li><span lang="en">Pieces of <mark class="kw">20 by BFS</mark> (Hornung); new or a copy: the three-sample test (Meehan).</span><span lang="es">Piezas de <mark class="kw">20 por BFS</mark> (Hornung); nuevo o copia: la prueba de tres muestras (Meehan).</span></li><li><span lang="en">The marks under the references say how much of each paper I have read.</span><span lang="es">Las marcas bajo las referencias dicen cuánto he leído de cada paper.</span></li></ul></aside>
+      </section>
+      <!-- 3 · Updated pipeline -->
+      <section data-chapter="1 · Context" data-chapter-es="1 · Contexto" style="--refs-h: 1.8cqw" class="slide has-refs" data-map="masking-training mcp-assembles-in-revit bfs-subgraphs masklayout-model-pipeline">
+        <p class="eyebrow"><span><span lang="en">Chapter 1 · Updated pipeline</span><span lang="es">Capítulo 1 · Pipeline actualizada</span></span><b>07</b></p>
+        <h2><span lang="en">Seven steps: <em>tokens, masking and decoding are new.</em></span><span lang="es">Siete pasos: <em>tokens, masking y decodificar son nuevos.</em></span></h2>
+        <ol class="stepline stepline--7">
+          <li class="is-on" data-build-state="1"><small>01</small><h3><span lang="en">BIM model</span><span lang="es">Modelo BIM</span></h3><p class="stepline__does"><span lang="en">a Revit model</span><span lang="es">un modelo Revit</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today</span><span lang="es">corre hoy</span></span></div></li>
+          <li class="is-on" data-build-state="1"><small>02</small><h3><span lang="en">Decompose</span><span lang="es">Descomponer</span></h3><p class="stepline__does"><span lang="en">elements to JSON · extract.py</span><span lang="es">elementos a JSON · extract.py</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today</span><span lang="es">corre hoy</span></span></div></li>
+          <li class="is-key" data-build-state="2"><small>03</small><h3><span lang="en">Tokens</span><span lang="es">Tokens</span></h3><p class="stepline__does"><span lang="en">each element as tokens, cut by BFS</span><span lang="es">cada elemento en tokens, cortado por BFS</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">new · E1 runs</span><span lang="es">nuevo · E1 corre</span></span></div></li>
+          <li class="is-key" data-build-state="2"><small>04</small><h3><span lang="en">Masking</span><span lang="es">Masking</span></h3><p class="stepline__does"><span lang="en">hide part, predict it</span><span lang="es">ocultar parte, predecirla</span></p><div class="stepline__foot"><span data-state="next"><span lang="en">new · testing</span><span lang="es">nuevo · en prueba</span></span></div></li>
+          <li class="is-key" data-build-state="2"><small>05</small><h3><span lang="en">Decode</span><span lang="es">Decodificar</span></h3><p class="stepline__does"><span lang="en">tokens back to elements</span><span lang="es">tokens de vuelta a elementos</span></p><div class="stepline__foot"><span data-state="next"><span lang="en">new · testing</span><span lang="es">nuevo · en prueba</span></span></div></li>
+          <li class="is-on" data-build-state="3"><small>06</small><h3><span lang="en">MCP · assemble</span><span lang="es">MCP · armar</span></h3><p class="stepline__does"><span lang="en">elements into Revit</span><span lang="es">elementos a Revit</span></p><div class="stepline__foot"><ul><li data-state="built"><span lang="en">rebuild.py, control</span><span lang="es">rebuild.py, control</span></li><li data-state="next"><span lang="en">MCP · testing</span><span lang="es">MCP · en prueba</span></li></ul></div></li>
+          <li class="is-on" data-build-state="1"><small>07</small><h3><span lang="en">Validate</span><span lang="es">Validar</span></h3><p class="stepline__does"><span lang="en">original vs new, at 1 cm</span><span lang="es">original vs nuevo, a 1 cm</span></p><div class="stepline__foot"><span data-state="built"><span lang="en">runs today</span><span lang="es">corre hoy</span></span></div></li>
+        </ol>
+        <p class="stepline__below" data-build="4"><span lang="en"><mark class="kw">Decode and assemble are separate</mark>: the network gives elements, MCP builds them in Revit<sup>1</sup>. <em><mark class="kw">rebuild.py stays as the control</mark>: the same round trip, with no AI.</em></span><span lang="es"><mark class="kw">Decodificar y armar van separados</mark>: la red da elementos, MCP los construye en Revit<sup>1</sup>. <em><mark class="kw">rebuild.py queda como control</mark>: la misma ida y vuelta, sin IA.</em></span></p>
+        <ol class="refs"><li><a href="https://doi.org/10.1016/j.autcon.2026.107120" target="_blank" rel="noopener noreferrer">After Zhang, Savov and Dillenburger, MaskLayout, 2026, §3.4</a></li></ol>
+        <aside class="notes"><ul><li><span lang="en">Seven steps; <mark class="kw">tokens, masking and decoding</mark> are new.</span><span lang="es">Siete pasos; <mark class="kw">tokens, masking y decodificar</mark> son nuevos.</span></li><li><span lang="en">Decoding and assembling stay <mark class="kw">separate</mark>: the network gives elements, MCP builds them.</span><span lang="es">Decodificar y armar van <mark class="kw">separados</mark>: la red da elementos, MCP los construye.</span></li><li><span lang="en"><mark class="kw">rebuild.py</mark> is the control: the same round trip with no AI.</span><span lang="es"><mark class="kw">rebuild.py</mark> es el control: la misma ida y vuelta sin IA.</span></li></ul></aside>
+      </section>
+      <!-- 3b · Project structure: the two folders, their main files, and the bridge between them -->
+      <section data-chapter="1 · Context" data-chapter-es="1 · Contexto" class="slide slide--set" data-map="ifc-to-graph-recipe masking-training mcp-assembles-in-revit">
+        <p class="eyebrow"><span><span lang="en">Chapter 1 · Project structure</span><span lang="es">Capítulo 1 · Estructura del proyecto</span></span><b>07</b></p>
+        <h2><span lang="en">Two folders: <em>one talks to Revit, one shows the research.</em></span><span lang="es">Dos carpetas: <em>una habla con Revit, otra muestra la investigación.</em></span></h2>
+        <div class="repo">
+          <div class="repo__tree repo__tree--py" data-build="1">
+            <p class="repo__root"><code>pipeline/</code><small>Python · Revit 2027 + pyRevit</small></p>
+            <ul>
+              <li><code>extract.py</code><small><span lang="en">Revit → JSON</span><span lang="es">Revit → JSON</span></small></li>
+              <li><code>rebuild.py</code><small><span lang="en">JSON → Revit, the control with no AI</span><span lang="es">JSON → Revit, el control sin IA</span></small></li>
+              <li><code>compare.py</code><small><span lang="en">original vs rebuilt, at 1 cm</span><span lang="es">original vs reconstruido, a 1 cm</span></small></li>
+              <li><code>run.sh</code><small><span lang="en">the whole round trip</span><span lang="es">la ida y vuelta completa</span></small></li>
+              <li class="repo__dir"><code>experiments/</code><ul>
+                <li><code>e1_tokens_bfs.py</code><small><span lang="en">tokens, graph, BFS pieces</span><span lang="es">tokens, grafo, piezas BFS</span></small></li>
+                <li><code>e2_mask_openings.py</code><small><span lang="en">masking + the transformer</span><span lang="es">masking + el transformer</span></small></li>
+                <li><code>e3_place_via_mcp.py</code><small><span lang="en">MCP client: the placements</span><span lang="es">cliente MCP: las colocaciones</span></small></li>
+                <li><code>revit_batch_mcp.py</code><small><span lang="en">MCP server → Revit</span><span lang="es">servidor MCP → Revit</span></small></li>
+              </ul></li>
+              <li><code>out/</code><small><span lang="en">every result, as JSON</span><span lang="es">cada resultado, en JSON</span></small></li>
+            </ul>
+          </div>
+          <div class="repo__bridge" data-build="3">
+            <code>out/*.json</code><span>↓</span><code>deck-model.mjs</code><span>↓</span><b><span lang="en">the slides</span><span lang="es">las láminas</span></b>
+          </div>
+          <div class="repo__tree repo__tree--js" data-build="2">
+            <p class="repo__root"><code>research-map/</code><small><span lang="en">Node · the web app</span><span lang="es">Node · la app web</span></small></p>
+            <ul>
+              <li><code>map.json · notes/</code><small><span lang="en">the research map: papers, ideas, links</span><span lang="es">el mapa de investigación: papers, ideas, enlaces</span></small></li>
+              <li><code>papers/ · reading/</code><small><span lang="en">the paper reader: text, voice, underlines</span><span lang="es">el lector de papers: texto, voz, subrayados</span></small></li>
+              <li class="repo__dir"><code>presentations/</code><ul>
+                <li><code>deck.js · deck.css</code><small><span lang="en">the slides, builds, chapters</span><span lang="es">láminas, pasos, capítulos</span></small></li>
+                <li><code>model3d.js · model3d-sets.js</code><small><span lang="en">the 3D views</span><span lang="es">las vistas 3D</span></small></li>
+                <li><code>graph-view.js</code><small><span lang="en">the interactive graph</span><span lang="es">el grafo interactivo</span></small></li>
+              </ul></li>
+              <li><code>scripts/ · tests/</code><small><span lang="en">checker, server, tests</span><span lang="es">verificador, servidor, tests</span></small></li>
+            </ul>
+          </div>
+        </div>
+        <aside class="notes"><ul><li><span lang="en">Quick slide: <mark class="kw">two folders</mark>.</span><span lang="es">Lámina rápida: <mark class="kw">dos carpetas</mark>.</span></li><li><span lang="en">pipeline/ talks to <mark class="kw">Revit</mark> in Python; research-map/ is the web app: map, reader, slides.</span><span lang="es">pipeline/ habla con <mark class="kw">Revit</mark> en Python; research-map/ es la app web: mapa, lector, láminas.</span></li><li><span lang="en">The bridge: every result is <mark class="kw">JSON</mark> in out/, and the slides read it.</span><span lang="es">El puente: cada resultado es <mark class="kw">JSON</mark> en out/, y las láminas lo leen.</span></li></ul></aside>
+      </section>
+      <!-- Chapter 2 · cover -->
+      <section class="slide slide--chapter" data-chapter="2 · Model" data-chapter-es="2 · Modelo">
+        <p class="eyebrow"><span><span lang="en">Chapter 2</span><span lang="es">Capítulo 2</span></span><b>07</b></p>
+        <span class="chapter__n">02</span>
+        <h1><span lang="en">Token, graph and transformer</span><span lang="es">Token, grafo y transformer</span></h1>
+        <p class="lede"><span lang="en">How a model becomes something a network can read, and the network that reads it.</span><span lang="es">Cómo un modelo se vuelve algo que una red puede leer, y la red que lo lee.</span></p>
+        <aside class="notes"><ul><li><span lang="en">How a model becomes something a <mark class="kw">network</mark> can read, and the network that reads it.</span><span lang="es">Cómo un modelo se vuelve algo que una <mark class="kw">red</mark> puede leer, y la red que lo lee.</span></li></ul></aside>
+      </section>
+      <!-- Chapter 2 · the token: what it is and how an element is written as tokens -->
+      <section data-chapter="2 · Model" data-chapter-es="2 · Modelo" style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="masklayout-model-pipeline vector-quantization">
+        <p class="eyebrow"><span><span lang="en">Chapter 2 · The token</span><span lang="es">Capítulo 2 · El token</span></span><b>07</b></p>
+        <h2><span lang="en">A token is one word the network reads; <em>an element, a short sentence of them.</em></span><span lang="es">Un token es una palabra que la red lee; <em>un elemento, una frase corta de ellas.</em></span></h2>
+        <div class="tokstage tokstage--stack">
+          <div class="tokside">
+            <div data-build="1">
+              <h3><span lang="en">A door</span><span lang="es">Una puerta</span><small>7 tokens</small></h3>
+              <ol class="tokrow is-seed">
+                <li><code>CLS:door</code><small><span lang="en">what it is</span><span lang="es">qué es</span></small></li>
+                <li><code>TYPE:M_Single-Flush | 0915 x 2134mm</code><small><span lang="en">its Revit type (and size)</span><span lang="es">su tipo de Revit (y tamaño)</span></small></li>
+                <li><code>LVL:01 - Entry Level</code><small><span lang="en">its level</span><span lang="es">su nivel</span></small></li>
+                <li><code>X:45</code><small><span lang="en">where</span><span lang="es">dónde</span></small></li>
+                <li><code>Y:14</code><small><span lang="en">where</span><span lang="es">dónde</span></small></li>
+                <li><code>SILL:0</code><small><span lang="en">sill height</span><span lang="es">antepecho</span></small></li>
+                <li><code>HOST:wall</code><small><span lang="en">what holds it</span><span lang="es">qué la aloja</span></small></li>
+              </ol>
+            </div>
+            <div data-build="2">
+              <h3><span lang="en">Its wall</span><span lang="es">Su muro</span><small>9 tokens</small></h3>
+              <ol class="tokrow">
+                <li><code>CLS:wall</code><small><span lang="en">what it is</span><span lang="es">qué es</span></small></li>
+                <li><code>TYPE:Basic Wall | Interior - 138mm Partition (1-hr)</code><small><span lang="en">its Revit type</span><span lang="es">su tipo de Revit</span></small></li>
+                <li><code>LVL:01 - Entry Level</code><small><span lang="en">its level</span><span lang="es">su nivel</span></small></li>
+                <li><code>X0:47</code><small><span lang="en">one end</span><span lang="es">un extremo</span></small></li>
+                <li><code>Y0:14</code><small><span lang="en">one end</span><span lang="es">un extremo</span></small></li>
+                <li><code>X1:29</code><small><span lang="en">other end</span><span lang="es">otro extremo</span></small></li>
+                <li><code>Y1:14</code><small><span lang="en">other end</span><span lang="es">otro extremo</span></small></li>
+                <li><code>H:8</code><small><span lang="en">height</span><span lang="es">altura</span></small></li>
+                <li><code>TOP:02 - Floor</code><small><span lang="en">where it ends</span><span lang="es">dónde termina</span></small></li>
+              </ol>
+            </div>
+          </div>
+          <ol class="tokrules" data-build="3">
+            <li><b><span lang="en">One token per attribute:</span><span lang="es">Un token por atributo:</span></b> <span lang="en">what it is, where, how big, what it joins.</span><span lang="es">qué es, dónde, cuánto mide, con qué se une.</span></li>
+            <li><b><span lang="en">Position in 0.5 m cells</span><span lang="es">Posición en casillas de 0.5 m</span></b> <span lang="en">from the model’s lower-left corner: X:45 is 22.5 to 23 m in.</span><span lang="es">desde la esquina inferior izquierda del modelo: X:45 va de 22.5 a 23 m.</span></li>
+            <li><b><span lang="en">Size:</span><span lang="es">Tamaño:</span></b> <span lang="en">height in 0.5 m cells (H:8 ≈ 4 m); area in cells 19% wide; a door’s size is in its type.</span><span lang="es">altura en casillas de 0.5 m (H:8 ≈ 4 m); área en casillas de 19% de ancho; el tamaño de una puerta va en su tipo.</span></li>
+            <li><b><span lang="en">6 to 9 per element, 403 different ones</span><span lang="es">De 6 a 9 por elemento, 403 distintos</span></b> <span lang="en">in the whole model: that is the vocabulary the network knows.</span><span lang="es">en todo el modelo: ese es el vocabulario que conoce la red.</span></li>
+          </ol>
+        </div>
+        <ol class="refs"><li><span lang="en">Author, pipeline/experiments/e1_tokens_bfs.py and out/experiments/e1-tokens-bfs/tokens.jsonl, Nov 2026</span><span lang="es">Autor, pipeline/experiments/e1_tokens_bfs.py y out/experiments/e1-tokens-bfs/tokens.jsonl, nov 2026</span></li></ol>
+        <aside class="notes"><ul><li><span lang="en">A <mark class="kw">token</mark> is one word the network reads; an element is a short sentence of them.</span><span lang="es">Un <mark class="kw">token</mark> es una palabra que la red lee; un elemento es una frase corta de ellas.</span></li><li><span lang="en">The door: <mark class="kw">7 tokens</mark>; its wall: 9. One token per attribute: what, where, how big, what it joins.</span><span lang="es">La puerta: <mark class="kw">7 tokens</mark>; su muro: 9. Un token por atributo: qué, dónde, cuánto mide, con qué se une.</span></li><li><span lang="en">Positions in <mark class="kw">0.5 m cells</mark>; <mark class="kw">403</mark> different tokens in the whole model.</span><span lang="es">Posiciones en <mark class="kw">casillas de 0.5 m</mark>; <mark class="kw">403</mark> tokens distintos en todo el modelo.</span></li></ul></aside>
+      </section>
+      <!-- Chapter 2 · the graph: E1's real graph, interactive (graph-view.js, graph.json from pipeline/out) -->
+      <section data-chapter="2 · Model" data-chapter-es="2 · Modelo" style="--refs-h: 1.8cqw" class="slide has-refs slide--graph" data-map="bfs-subgraphs ifc-to-graph-recipe hornung-2025">
+        <p class="eyebrow"><span><span lang="en">Chapter 2 · The graph</span><span lang="es">Capítulo 2 · El grafo</span></span><b>07</b></p>
+        <h2><span lang="en">The real graph: <em>each element a node, each relation an edge.</em></span><span lang="es">El grafo real: <em>cada elemento un nodo, cada relación una arista.</em></span></h2>
+        <div class="kgraph is-colour" data-src="graph.json"></div>
+        <ul class="tokkey kgkey is-colour">
+          <li class="kgkey__cls" data-iso="cls:wall" style="--c: var(--cls-wall)"><i></i><span lang="en">wall</span><span lang="es">muro</span> <b data-count="cls:wall"></b></li>
+          <li class="kgkey__cls" data-iso="cls:floor" style="--c: var(--cls-floor)"><i></i><span lang="en">floor</span><span lang="es">losa</span> <b data-count="cls:floor"></b></li>
+          <li class="kgkey__cls" data-iso="cls:door" style="--c: var(--cls-door)"><i></i><span lang="en">door</span><span lang="es">puerta</span> <b data-count="cls:door"></b></li>
+          <li class="kgkey__cls" data-iso="cls:window" style="--c: var(--cls-window)"><i></i><span lang="en">window</span><span lang="es">ventana</span> <b data-count="cls:window"></b></li>
+          <li class="kgkey__cls" data-iso="cls:room" style="--c: var(--cls-room)"><i></i>room <b data-count="cls:room"></b></li>
+          <li><span lang="en">elements</span><span lang="es">elementos</span> <b data-count="nodes"></b> · <span lang="en">relations</span><span lang="es">relaciones</span> <b data-count="edges"></b></li>
+          <li class="kgkey__switch"><button type="button" aria-pressed="true"><span lang="en">● colours</span><span lang="es">● colores</span></button></li>
+          <li class="kgkey__fit"><button type="button"><span lang="en">⟲ first view</span><span lang="es">⟲ vista inicial</span></button></li>
+          <li class="kgkey__break"></li>
+          <li data-iso="kind:hosted_by"><i></i><span lang="en">hosted by · from Revit</span><span lang="es">alojada en · de Revit</span> <b data-count="hosted_by"></b></li>
+          <li data-iso="kind:joins"><i class="is-joins"></i><span lang="en">wall joins wall</span><span lang="es">muro con muro</span> <b data-count="joins"></b></li>
+          <li data-iso="kind:meets_floor,on_floor"><i class="is-floor"></i><span lang="en">wall meets floor · room on floor</span><span lang="es">muro toca losa · room sobre losa</span> <b data-count="meets_floor"></b> + <b data-count="on_floor"></b></li>
+          <li><span lang="en">on level = its panel</span><span lang="es">en nivel = su panel</span> <b data-count="on_level"></b></li>
+        </ul>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/experiments/e1-tokens-bfs/graph.json, read as it is: deck-model.mjs --views rebuilds it</span><span lang="es">Autor, pipeline/out/experiments/e1-tokens-bfs/graph.json, leído tal cual: deck-model.mjs --views lo vuelve a generar</span></li></ol>
+        <aside class="notes"><ul><li><span lang="en">The <mark class="kw">real graph</mark>: 394 elements, 1,238 relations, read from E1's output.</span><span lang="es">El <mark class="kw">grafo real</mark>: 394 elementos, 1,238 relaciones, leído de la salida de E1.</span></li><li><span lang="en">Demo: <mark class="kw">click a node</mark>, its tokens and relations show; click a class in the key to isolate it.</span><span lang="es">Demo: <mark class="kw">clic en un nodo</mark>, salen sus tokens y relaciones; clic en una clase de la leyenda para aislarla.</span></li><li><span lang="en">Solid: hosted by, read from Revit; dashed: <mark class="kw">derived from geometry</mark>, because the extraction does not read joins.</span><span lang="es">Continua: alojada en, leída de Revit; punteada: <mark class="kw">sacada de la geometría</mark>, porque la extracción no lee uniones.</span></li></ul></aside>
+      </section>
+      <!-- Chapter 2 · the transformer, as a puzzle: one door hidden, the network fills it from its neighbours (E2) -->
+      <section data-chapter="2 · Model" data-chapter-es="2 · Modelo" style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="masking-training masklayout-model-pipeline">
+        <p class="eyebrow"><span><span lang="en">Chapter 2 · The transformer</span><span lang="es">Capítulo 2 · El transformer</span></span><b>07</b></p>
+        <h2><span lang="en">We hide a door: <em>the network guesses it from its neighbours.</em></span><span lang="es">Tapamos una puerta: <em>la red la adivina mirando a sus vecinos.</em></span></h2>
+        <div class="pzstage">
+          <svg class="puzzle" role="img" aria-label="E2&#39;s piece: a hidden door in the middle, its 19 visible neighbours around it, each looking at the hole">
+            <defs><marker id="pz-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker></defs>
+            <g class="pz-arrows" data-build="1"></g>
+            <g class="pz-ring"></g>
+          </svg>
+          <div class="pzside">
+            <ol class="pzsteps">
+              <li><small>1</small><b><span lang="en">Hide</span><span lang="es">Tapar</span></b><span><span lang="en">one door or window of the piece; only its level stays</span><span lang="es">una puerta o ventana de la pieza; solo queda su nivel</span></span></li>
+              <li data-build="1"><small>2</small><b><span lang="en">Look</span><span lang="es">Mirar</span></b><span><span lang="en">the network reads every visible neighbour, 3 rounds</span><span lang="es">la red lee a cada vecino visible, 3 vueltas</span></span></li>
+              <li data-build="2" class="is-ai"><small>3</small><b><span lang="en">Answer</span><span lang="es">Contestar</span></b><span><span lang="en">door or window? · which type? · on which wall of the piece? · where on that wall?</span><span lang="es">¿puerta o ventana? · ¿qué tipo? · ¿en qué muro de la pieza? · ¿en qué punto de ese muro?</span></span></li>
+              <li data-build="3"><small>4</small><b><span lang="en">Compare and correct</span><span lang="es">Comparar y corregir</span></b><span><span lang="en">against what was hidden; repeated over two storeys, tested on the third</span><span lang="es">contra lo que se tapó; se repite en dos pisos y se prueba en el tercero</span></span></li>
+              <li data-build="4" class="is-next"><small>→</small><b><span lang="en">Next</span><span lang="es">Próximamente</span></b><span><span lang="en">hide by share (20%, 40%, 90%) and by class: walls, floors, rooms</span><span lang="es">tapar por porcentaje (20%, 40%, 90%) y por clase: muros, losas, rooms</span></span></li>
+            </ol>
+            <ul class="pzkey">
+              <li style="--c: var(--cls-wall)"><span lang="en">W wall</span><span lang="es">M muro</span></li>
+              <li style="--c: var(--cls-floor)"><span lang="en">F floor</span><span lang="es">L losa</span></li>
+              <li style="--c: var(--cls-door)"><span lang="en">D door</span><span lang="es">P puerta</span></li>
+              <li style="--c: var(--cls-room)">R room</li>
+            </ul>
+          </div>
+        </div>
+        <ol class="refs"><li><span lang="en">Author, pipeline/experiments/e2_mask_openings.py, Nov 2026; drawn on the real piece of E1</span><span lang="es">Autor, pipeline/experiments/e2_mask_openings.py, nov 2026; dibujado sobre la pieza real de E1</span></li></ol>
+        <aside class="notes"><ul><li><span lang="en">Like a <mark class="kw">puzzle</mark>: hide one door, the network guesses it from its neighbours.</span><span lang="es">Como un <mark class="kw">rompecabezas</mark>: se tapa una puerta y la red la adivina mirando a sus vecinos.</span></li><li><span lang="en">Hide → look (3 rounds) → <mark class="kw">answer four questions</mark> → compare and correct.</span><span lang="es">Tapar → mirar (3 vueltas) → <mark class="kw">contestar cuatro preguntas</mark> → comparar y corregir.</span></li><li><span lang="en">Next: hide by <mark class="kw">share</mark> (20%, 40%, 90%) and by class.</span><span lang="es">Siguiente: tapar por <mark class="kw">porcentaje</mark> (20%, 40%, 90%) y por clase.</span></li></ul></aside>
+      </section>
+      <!-- Chapter 2 · inside the transformer: the network, layer by layer, with its size -->
+      <section data-chapter="2 · Model" data-chapter-es="2 · Modelo" style="--refs-h: 1.8cqw" class="slide has-refs slide--set slide--net" data-map="masking-training masklayout-model-pipeline">
+        <p class="eyebrow"><span><span lang="en">Chapter 2 · Inside the transformer</span><span lang="es">Capítulo 2 · Dentro del transformer</span></span><b>07</b></p>
+        <h2><span lang="en">A small neural network: <em>20 tokens, 3 layers, 4 answers.</em></span><span lang="es">Una red neuronal pequeña: <em>20 tokens, 3 capas, 4 respuestas.</em></span></h2>
+        <svg class="netview" role="img" aria-label="The network: 20 tokens become vectors of 64 numbers, three layers where every token looks at every other, and the hidden token gives four answers">
+          <g class="nv-in"></g>
+          <g class="nv-vec" data-build="1"></g>
+          <g class="nv-l1" data-build="2"></g>
+          <g class="nv-l23" data-build="3"></g>
+          <g class="nv-out" data-build="4"></g>
+        </svg>
+        <div class="minikpis netfacts" data-build="5">
+          <div><b><span lang="en">Neural network</span><span lang="es">Red neuronal</span></b><small><span lang="en">deep learning, a kind of AI: it learns its own numbers</span><span lang="es">deep learning, un tipo de IA: aprende sus propios números</span></small></div>
+          <div><b>CPU</b><small><span lang="en">PyTorch on this laptop, no GPU</span><span lang="es">PyTorch en esta laptop, sin GPU</span></small></div>
+          <div><b><span lang="en">127 thousand</span><span lang="es">127 mil</span></b><small><span lang="en">parameters: the numbers it learns</span><span lang="es">parámetros: los números que aprende</span></small></div>
+          <div><b>≈ 2 M</b><small><span lang="en">multiplications per answer: milliseconds</span><span lang="es">multiplicaciones por respuesta: milisegundos</span></small></div>
+          <div><b>23–35 s</b><small><span lang="en">to train it, 80 passes over the data</span><span lang="es">para entrenarla, 80 pasadas por los datos</span></small></div>
+        </div>
+        <ol class="refs"><li><span lang="en">Author, pipeline/experiments/e2_mask_openings.py and out/experiments/e2-mask-openings/summary.json, Nov 2026</span><span lang="es">Autor, pipeline/experiments/e2_mask_openings.py y out/experiments/e2-mask-openings/summary.json, nov 2026</span></li></ol>
+        <aside class="notes"><ul><li><span lang="en">It is a <mark class="kw">small neural network</mark>: deep learning, a kind of AI, on the laptop's CPU.</span><span lang="es">Es una <mark class="kw">red neuronal pequeña</mark>: deep learning, un tipo de IA, en el CPU de la laptop.</span></li><li><span lang="en">Each token becomes <mark class="kw">64 numbers</mark>: class + type + level + place, learned.</span><span lang="es">Cada token se vuelve <mark class="kw">64 números</mark>: clase + tipo + nivel + lugar, aprendidos.</span></li><li><span lang="en">3 layers: every token looks at all the others; <mark class="kw">blue</mark> is what reaches the hidden one.</span><span lang="es">3 capas: cada token mira a todos los demás; lo <mark class="kw">azul</mark> es lo que llega al tapado.</span></li><li><span lang="en">127 thousand parameters, <mark class="kw">milliseconds</mark> per answer, 23–35 s to train.</span><span lang="es">127 mil parámetros, <mark class="kw">milisegundos</mark> por respuesta, 23–35 s para entrenar.</span></li></ul></aside>
+      </section>
+      <!-- Chapter 3 · cover -->
+      <section class="slide slide--chapter" data-chapter="3 · Experiments" data-chapter-es="3 · Experimentos">
+        <p class="eyebrow"><span><span lang="en">Chapter 3</span><span lang="es">Capítulo 3</span></span><b>07</b></p>
+        <span class="chapter__n">03</span>
+        <h1><span lang="en">Experiments</span><span lang="es">Experimentos</span></h1>
+        <p class="lede"><span lang="en">Three tests, one for each new step of the pipeline.</span><span lang="es">Tres pruebas, una por cada paso nuevo del pipeline.</span></p>
+        <aside class="notes"><ul><li><span lang="en"><mark class="kw">Three tests</mark>, one for each new step. One model only: a test that it runs, not yet that it learns.</span><span lang="es"><mark class="kw">Tres pruebas</mark>, una por cada paso nuevo. Un solo modelo: prueba de que corre, todavía no de que aprende.</span></li></ul></aside>
+      </section>
+      <!-- 4 · Tests: the three experiments, process and expected result, no results -->
+      <section data-chapter="3 · Experiments" data-chapter-es="3 · Experimentos" class="slide slide--roomy" data-map="bfs-subgraphs masking-training mcp-assembles-in-revit placement-order-experiments">
+        <p class="eyebrow"><span><span lang="en">Chapter 3 · Experiments</span><span lang="es">Capítulo 3 · Experimentos</span></span><b>07</b></p>
+        <h2><span lang="en">Three tests, <em>one for each new step.</em></span><span lang="es">Tres pruebas, <em>una por cada paso nuevo.</em></span></h2>
+        <div class="points">
+          <article class="card" data-build="1">
+            <span class="tag tag--ink">E1 · 03</span>
+            <h3><span lang="en">Tokens and pieces</span><span lang="es">Tokens y piezas</span></h3>
+            <p><span lang="en">Each element → tokens (class, type, level, position, size, host); the model → a graph → <mark class="kw">pieces of 20 by BFS</mark> (“breadth-first search”: from one element, ring by ring).</span><span lang="es">Cada elemento → tokens (clase, tipo, nivel, posición, tamaño, host); el modelo → un grafo → <mark class="kw">piezas de 20 por BFS</mark> (“búsqueda en anchura”: desde un elemento, anillo por anillo).</span></p>
+            <p class="card__expect"><span lang="en">A model written so that a network can read it.</span><span lang="es">Un modelo escrito para que una red lo pueda leer.</span></p>
+          </article>
+          <article class="card" data-build="2">
+            <span class="tag tag--ink">E2 · 04–05</span>
+            <h3><span lang="en">Hide and predict</span><span lang="es">Ocultar y predecir</span></h3>
+            <p><span lang="en">Hide one door or window in each piece; <mark class="kw">a small transformer proposes</mark> its class, type, wall and place. Trained on two storeys, tested on the third.</span><span lang="es">Ocultar una puerta o ventana en cada pieza; <mark class="kw">un transformer pequeño propone</mark> su clase, tipo, muro y lugar. Entrena con dos pisos y prueba con el tercero.</span></p>
+            <p class="card__expect"><span lang="en">Better than the most frequent answer and than copying another floor.</span><span lang="es">Mejor que la respuesta más frecuente y que copiar otro piso.</span></p>
+          </article>
+          <article class="card" data-build="3">
+            <span class="tag tag--ink">E3 · 06–07</span>
+            <h3><span lang="en">Place through MCP</span><span lang="es">Colocar por MCP</span></h3>
+            <p><span lang="en"><mark class="kw">An MCP server</mark> receives each door and window and Revit places it; compare.py judges it at 1 cm. Twice: the real ones, then the AI’s.</span><span lang="es"><mark class="kw">Un servidor MCP</mark> recibe cada puerta y ventana y Revit la coloca; compare.py la juzga a 1 cm. Dos veces: las reales y luego las de la IA.</span></p>
+            <p class="card__expect"><span lang="en">The real ones land exactly, as with rebuild.py; the AI’s show how far it is.</span><span lang="es">Las reales caen exactas, como con rebuild.py; las de la IA muestran qué tan lejos está.</span></p>
+          </article>
+        </div>
+        <p class="stepline__below" data-build="4"><span lang="en">One model only, Autodesk’s sample: <mark class="kw">a test that the pipeline runs</mark>, <em>not yet a result about learning.</em></span><span lang="es">Un solo modelo, el ejemplo de Autodesk: <mark class="kw">una prueba de que el pipeline corre</mark>, <em>todavía no un resultado sobre aprender.</em></span></p>
+        <aside class="notes"><ul><li><span lang="en">E1 <mark class="kw">tokens and pieces</mark>; E2 hide and predict; E3 place through MCP.</span><span lang="es">E1 <mark class="kw">tokens y piezas</mark>; E2 ocultar y predecir; E3 colocar por MCP.</span></li><li><span lang="en">Each card: the process, then the <mark class="kw">expected result</mark>.</span><span lang="es">Cada tarjeta: el proceso y luego el <mark class="kw">resultado esperado</mark>.</span></li></ul></aside>
+      </section>
+      <!-- 4 · Tests · E1: tokens, relations, one BFS piece -->
+      <section data-chapter="3 · Experiments" data-chapter-es="3 · Experimentos" style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="bfs-subgraphs hornung-2025 ifc-to-graph-recipe">
+        <p class="eyebrow"><span><span lang="en">Chapter 3 · Experiments · E1</span><span lang="es">Capítulo 3 · Experimentos · E1</span></span><b>07</b></p>
+        <h2><span lang="en">Each element becomes tokens; <em>the model, pieces of 20.</em></span><span lang="es">Cada elemento se vuelve tokens; <em>el modelo, piezas de 20.</em></span></h2>
+        <div class="setstage">
+          <div class="model3d" data-mode="set" data-set="e1" data-side="source" data-frame="piece" data-label="The sample model, faint, with one BFS piece of 20 elements around a door"></div>
+          <div class="setside">
+            <ol class="setsteps">
+              <li data-build="1" style="--c: var(--diff-1)"><i></i><b><small>01</small><span lang="en">Tokens</span><span lang="es">Tokens</span></b><span><span lang="en">class, type, level, position (0.5 m bins), size, host</span><span lang="es">clase, tipo, nivel, posición (bins de 0.5 m), tamaño, host</span></span></li>
+              <li data-build="2"><i></i><b><small>02</small><span lang="en">Relations</span><span lang="es">Relaciones</span></b><span><span lang="en">door → its wall, read from Revit (solid); wall–wall, wall–floor, room–floor, from geometry (dashed)</span><span lang="es">puerta → su muro, leída de Revit (continua); muro–muro, muro–losa, room–losa, por geometría (punteada)</span></span></li>
+              <li data-build="3"><i></i><b><small>03</small><span lang="en">A piece by BFS (“breadth-first search”)</span><span lang="es">Una pieza por BFS (“búsqueda en anchura”)</span></b><span><span lang="en">from one element, ring by ring, until 20 · a FIFO queue (first in, first out): the nearest neighbours first; past 20, the rest is left out</span><span lang="es">desde un elemento, anillo por anillo, hasta 20 · cola FIFO (primero en entrar, primero en salir): los vecinos más cercanos primero; pasando 20, el resto queda fuera</span></span></li>
+            </ol>
+            <div class="minikpis" data-build="3">
+              <div><b>394</b><small><span lang="en">elements</span><span lang="es">elementos</span></small></div>
+              <div><b>403</b><small><span lang="en">tokens</span><span lang="es">tokens</span></small></div>
+              <div><b>1,238</b><small><span lang="en">relations (501 + 737)</span><span lang="es">relaciones (501 + 737)</span></small></div>
+              <div><b>286</b><small><span lang="en">distinct pieces</span><span lang="es">piezas distintas</span></small></div>
+            </div>
+          </div>
+        </div>
+        <p class="stepline__below" data-build="3"><span lang="en">One piece of 286: <em>15 walls, 2 floors, 2 doors and 1 room, over 2 storeys.</em></span><span lang="es">Una pieza de 286: <em>15 muros, 2 losas, 2 puertas y 1 room, en 2 pisos.</em></span></p>
+        <p class="footnote" data-build="3"><span lang="en">20 is a cap we set, as Hornung et al. do: a piece only gathers elements with a real relation, ring by ring, and stops at 20; 374 of the 394 pieces reach it, the smallest has 4.</span><span lang="es">20 es un tope que fijamos, como Hornung et al.: una pieza solo junta elementos con relación real, anillo por anillo, y se detiene en 20; 374 de las 394 piezas lo alcanzan, la más chica tiene 4.</span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/experiments/e1-tokens-bfs/summary.json, Nov 2026</span><span lang="es">Autor, pipeline/out/experiments/e1-tokens-bfs/summary.json, nov 2026</span></li><li><a href="https://doi.org/10.25442/hku.29365832" target="_blank" rel="noopener noreferrer">Hornung et al., CAAD Futures 2025 (pieces of 20 by BFS)</a></li></ol>
+        <aside class="notes"><ul><li><span lang="en">The door's <mark class="kw">tokens</mark>, its relations, then one <mark class="kw">BFS piece</mark> ring by ring.</span><span lang="es">Los <mark class="kw">tokens</mark> de la puerta, sus relaciones, y una <mark class="kw">pieza BFS</mark> anillo por anillo.</span></li><li><span lang="en">BFS is a <mark class="kw">FIFO queue</mark>: nearest neighbours first; past 20 the rest is left out.</span><span lang="es">BFS es una <mark class="kw">cola FIFO</mark>: primero los vecinos más cercanos; pasando 20, el resto queda fuera.</span></li><li><span lang="en"><mark class="kw">286</mark> distinct pieces. 20 is a cap we set; a piece only takes real relations.</span><span lang="es"><mark class="kw">286</mark> piezas distintas. 20 es un tope que fijamos; una pieza solo toma relaciones reales.</span></li></ul></aside>
+      </section>
+      <!-- 4 · Tests · E2: the door of that piece hidden and predicted -->
+      <section data-chapter="3 · Experiments" data-chapter-es="3 · Experimentos" style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="masking-training masklayout-model-pipeline new-not-replicated">
+        <p class="eyebrow"><span><span lang="en">Chapter 3 · Experiments · E2</span><span lang="es">Capítulo 3 · Experimentos · E2</span></span><b>07</b></p>
+        <h2><span lang="en">Hide a door: <em>the AI finds its wall, not its place.</em></span><span lang="es">Se oculta una puerta: <em>la IA encuentra su muro, no su lugar.</em></span></h2>
+        <div class="setstage">
+          <div class="model3d" data-mode="set" data-set="e2" data-side="source" data-frame="piece" data-label="The same piece: its door hidden, the AI's door in blue and the real one as a ghost"></div>
+          <div class="setside">
+            <ol class="setsteps">
+              <li data-build="1" style="--c: var(--diff-3)"><i class="is-dash is-tinted"></i><b><small>01</small><span lang="en">Hide</span><span lang="es">Ocultar</span></b><span><span lang="en">one door or window; only its level is given · green dashed: the original, which the network does not see</span><span lang="es">una puerta o ventana; solo se da su nivel · verde punteada: la original, que la red no ve</span></span></li>
+              <li data-build="2" style="--c: var(--diff-4)"><i></i><b><small>02</small><span lang="en">Predict</span><span lang="es">Predecir</span></b><span><span lang="en">a small transformer: class, type, wall, place (amber)</span><span lang="es">un transformer pequeño: clase, tipo, muro, lugar (amarillo)</span></span></li>
+              <li data-build="3"><i></i><b><small>03</small><span lang="en">Compare</span><span lang="es">Comparar</span></b><span><span lang="en">with what was hidden</span><span lang="es">con lo que estaba oculto</span></span></li>
+              <li data-build="4" style="--c: var(--diff-1)"><i></i><b><small>04</small><span lang="en">Over the 107</span><span lang="es">En las 107</span></b><span><span lang="en">% right, against two baselines</span><span lang="es">% de aciertos, contra dos referencias</span></span></li>
+            </ol>
+            <div class="bars" data-build="4">
+              <div class="bars__row"><span><span lang="en">class</span><span lang="es">clase</span></span><div class="bars__set"><i class="is-ai" style="--v: 100"><b>100</b></i><i style="--v: 77.6"><b>77.6</b></i><i style="--v: 81.3"><b>81.3</b></i></div></div>
+              <div class="bars__row"><span><span lang="en">type</span><span lang="es">tipo</span></span><div class="bars__set"><i class="is-ai" style="--v: 79.4"><b>79.4</b></i><i style="--v: 58.9"><b>58.9</b></i><i style="--v: 57.9"><b>57.9</b></i></div></div>
+              <div class="bars__row"><span><span lang="en">wall</span><span lang="es">muro</span></span><div class="bars__set"><i class="is-ai" style="--v: 61.7"><b>61.7</b></i><i style="--v: 29.9"><b>29.9</b></i><i style="--v: 32.7"><b>32.7</b></i></div></div>
+              <p class="bars__key"><span class="is-ai">transformer</span><span><span lang="en">frequency</span><span lang="es">frecuencia</span></span><span class="is-copy"><span lang="en">copy another floor</span><span lang="es">copiar otro piso</span></span></p>
+            </div>
+          </div>
+        </div>
+        <p class="stepline__below" data-build="4"><span lang="en">Type and wall are learned; <em>the place on the wall is not: <mark class="kw">3.36 m</mark>, as putting it in the middle (3.23 m). None within 1 cm.</em></span><span lang="es">El tipo y el muro se aprenden; <em>el lugar sobre el muro no: <mark class="kw">3.36 m</mark>, como ponerla a la mitad (3.23 m). Ninguna a 1 cm.</em></span></p>
+        <p class="footnote" data-build="4"><span lang="en">Small graph transformer, about 127k parameters; three folds, trains on two storeys, tests on the third; one example, averaged over the 8 pieces that hold it.</span><span lang="es">Transformer de grafos pequeño, unos 127 mil parámetros; tres vueltas, entrena con dos pisos y prueba con el tercero; un ejemplo, promediado en las 8 piezas que lo contienen.</span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/experiments/e2-mask-openings/summary.json, Nov 2026</span><span lang="es">Autor, pipeline/out/experiments/e2-mask-openings/summary.json, nov 2026</span></li></ol>
+        <aside class="notes"><ul><li><span lang="en">The door is hidden: the AI finds its <mark class="kw">wall</mark>, not its <mark class="kw">place</mark>.</span><span lang="es">Se tapa la puerta: la IA encuentra su <mark class="kw">muro</mark>, no su <mark class="kw">lugar</mark>.</span></li><li><span lang="en">Green dashed: the <mark class="kw">original</mark>, which the network does not see; <mark class="kw">amber</mark>: the prediction. The piece's other door is faint: it is not analysed.</span><span lang="es">Verde punteada: la <mark class="kw">original</mark>, que la red no ve; <mark class="kw">amarilla</mark>: la predicción. La otra puerta de la pieza va tenue: no se analiza.</span></li><li><span lang="en">Type <mark class="kw">79.4%</mark> against 58.9%; wall <mark class="kw">61.7%</mark> against 29.9%.</span><span lang="es">Tipo <mark class="kw">79.4%</mark> contra 58.9%; muro <mark class="kw">61.7%</mark> contra 29.9%.</span></li><li><span lang="en">Place: <mark class="kw">3.36 m</mark> off, as if put in the middle of the wall (3.23 m). None at 1 cm.</span><span lang="es">Lugar: <mark class="kw">3.36 m</mark> de error, como ponerla a la mitad del muro (3.23 m). Ninguna a 1 cm.</span></li></ul></aside>
+      </section>
+      <!-- 4 · Tests · E3 · real: the 107 real openings placed through MCP -->
+      <section data-chapter="3 · Experiments" data-chapter-es="3 · Experimentos" style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="mcp-assembles-in-revit mcp4ifc-2025">
+        <p class="eyebrow"><span><span lang="en">Chapter 3 · Experiments · E3 · real</span><span lang="es">Capítulo 3 · Experimentos · E3 · reales</span></span><b>07</b></p>
+        <h2><span lang="en">Through MCP, <em>the real doors and windows land exactly.</em></span><span lang="es">Por MCP, <em>las puertas y ventanas reales caen exactas.</em></span></h2>
+        <div class="setstage">
+          <div class="model3d" data-mode="set" data-set="e3_truth" data-side="e3-truth" data-frame="building" data-label="The rebuilt model with the 107 real doors and windows placed through MCP, in green">
+            <p class="setbadge" data-build="3"><b>107 / 107</b><small><span lang="en">= rebuild.py (no AI)</span><span lang="es">= rebuild.py (sin IA)</span></small></p>
+          </div>
+          <div class="setside">
+            <ol class="setsteps">
+              <li data-build="1"><i class="is-dash"></i><b><small>01</small><span lang="en">Empty</span><span lang="es">Vacío</span></b><span><span lang="en">rebuilt.rvt without its 107 doors and windows</span><span lang="es">rebuilt.rvt sin sus 107 puertas y ventanas</span></span></li>
+              <li data-build="2" style="--c: var(--diff-3)"><i></i><b><small>02</small><span lang="en">MCP</span><span lang="es">MCP</span></b><span><span lang="en">110 calls: a session, 107 placements, commit, extract</span><span lang="es">110 llamadas: una sesión, 107 colocaciones, commit, extract</span></span></li>
+              <li data-build="3" style="--c: var(--diff-3)"><i></i><b><small>03</small><span lang="en">Compare at 1 cm</span><span lang="es">Comparar a 1 cm</span></b><span><span lang="en">same place, type and wall</span><span lang="es">mismo lugar, tipo y muro</span></span></li>
+            </ol>
+            <ol class="setflow" data-build="2"><li><span lang="en">MCP client</span><span lang="es">cliente MCP</span></li><li><span lang="en">MCP server · 4 tools</span><span lang="es">servidor MCP · 4 herramientas</span></li><li>Revit</li><li>extract.py</li><li>compare.py</li></ol>
+            <div class="minikpis" data-build="3">
+              <div><b>107/107</b><small><span lang="en">at 1 cm</span><span lang="es">a 1 cm</span></small></div>
+              <div><b>107</b><small><span lang="en">same type</span><span lang="es">mismo tipo</span></small></div>
+              <div><b>107</b><small><span lang="en">same wall</span><span lang="es">mismo muro</span></small></div>
+              <div><b>110</b><small><span lang="en">MCP calls</span><span lang="es">llamadas MCP</span></small></div>
+            </div>
+          </div>
+        </div>
+        <p class="stepline__below" data-build="3"><span lang="en">The route is exact: <em>it adds no error of its own, so what E3 · AI misses comes from the prediction.</em></span><span lang="es">La ruta es exacta: <em>no agrega error propio, así que lo que E3 · IA falla viene de la predicción.</em></span></p>
+        <p class="footnote" data-build="3"><span lang="en">Not watched live: one click on a pyRevit button applies the MCP queue in the background (it opens rebuilt.rvt unseen, places, saves and closes), and the result is read from what Revit reports and from extract.py. Our own minimal MCP server; the open-source one closed Revit 2027 twice.</span><span lang="es">No se ve modelar en vivo: un clic en un botón de pyRevit aplica la cola de MCP en segundo plano (abre rebuilt.rvt sin mostrarlo, coloca, guarda y cierra), y el resultado se lee de lo que reporta Revit y de extract.py. Servidor MCP propio y mínimo; el de código abierto cerró Revit 2027 dos veces.</span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/experiments/e3-mcp-place/summary.json, Nov 2026</span><span lang="es">Autor, pipeline/out/experiments/e3-mcp-place/summary.json, nov 2026</span></li></ol>
+        <aside class="notes"><ul><li><span lang="en">The real doors and windows through MCP: <mark class="kw">107 / 107</mark> at 1 cm, as rebuild.py.</span><span lang="es">Las puertas y ventanas reales por MCP: <mark class="kw">107 / 107</mark> a 1 cm, como rebuild.py.</span></li><li><span lang="en">The route adds <mark class="kw">no error</mark>: what the AI misses comes from the prediction.</span><span lang="es">La ruta no agrega <mark class="kw">error propio</mark>: lo que falla la IA viene de la predicción.</span></li><li><span lang="en">It runs in the <mark class="kw">background</mark>: one click applies the MCP queue; the result is read from Revit's report.</span><span lang="es">Corre en <mark class="kw">segundo plano</mark>: un clic aplica la cola de MCP; el resultado se lee del reporte de Revit.</span></li></ul></aside>
+      </section>
+      <!-- 4 · Tests · E3 · AI: E2's 107 predictions placed through MCP -->
+      <section data-chapter="3 · Experiments" data-chapter-es="3 · Experimentos" style="--refs-h: 1.8cqw" class="slide has-refs slide--set" data-map="mcp-assembles-in-revit new-not-replicated placement-order-experiments">
+        <p class="eyebrow"><span><span lang="en">Chapter 3 · Experiments · E3 · AI</span><span lang="es">Capítulo 3 · Experimentos · E3 · IA</span></span><b>07</b></p>
+        <h2><span lang="en">The AI’s go in too: <em>on the right wall 6 times in 10, none at 1 cm.</em></span><span lang="es">Las de la IA también entran: <em>en el muro correcto 6 de cada 10, ninguna a 1 cm.</em></span></h2>
+        <div class="setstage">
+          <div class="model3d" data-mode="set" data-set="e3_transformer" data-side="e3-transformer" data-frame="building" data-label="The rebuilt model with the AI's 101 doors and windows, coloured by how right each one is"></div>
+          <div class="setside">
+            <ol class="setsteps">
+              <li data-build="1" style="--c: var(--diff-3)"><i></i><b><small>50</small><span lang="en">Wall and type right</span><span lang="es">Muro y tipo bien</span></b></li>
+              <li data-build="2" style="--c: var(--diff-4)"><i></i><b><small>12</small><span lang="en">Wall right, type wrong</span><span lang="es">Muro bien, tipo mal</span></b></li>
+              <li data-build="3" style="--c: var(--diff-2)"><i></i><b><small>39</small><span lang="en">Wrong wall</span><span lang="es">Muro equivocado</span></b></li>
+              <li data-build="4" style="--c: var(--cls-door)"><i class="is-dash is-tinted"></i><b><small>6</small><span lang="en">Not kept by Revit</span><span lang="es">Revit no las conservó</span></b><span><span lang="en">Revit rolled back 5; 1 was not in the saved model</span><span lang="es">Revit revirtió 5; 1 no apareció al guardar</span></span></li>
+              <li data-build="5"><i></i><b><small>→</small><span lang="en">The gap</span><span lang="es">La distancia</span></b><span><span lang="en">each line runs from where the AI placed a door (its colour) to where the real one is (the dot)</span><span lang="es">cada línea va de donde la IA colocó una puerta (su color) a donde está la real (el punto)</span></span></li>
+              <li data-build="6" style="--c: var(--near)"><i></i><b><small>◉</small><span lang="en">How near it landed</span><span lang="es">Qué tan cerca quedó</span></b><span class="nearkey"><span><i class="n0"></i>&lt; 0.5 m <b data-near="0"></b></span><span><i class="n1"></i>0.5–1 m <b data-near="1"></b></span><span><i class="n2"></i>1–3 m <b data-near="2"></b></span><span><i class="n3"></i>&gt; 3 m <b data-near="3"></b></span></span></li>
+            </ol>
+            <div class="minikpis" data-build="5">
+              <div><b>102/107</b><small><span lang="en">accepted by Revit</span><span lang="es">aceptadas por Revit</span></small></div>
+              <div><b>0</b><small><span lang="en">at 1 cm</span><span lang="es">a 1 cm</span></small></div>
+              <div><b>15</b><small><span lang="en">within 1 m</span><span lang="es">a menos de 1 m</span></small></div>
+              <div><b>6.0 m</b><small><span lang="en">median</span><span lang="es">mediana</span></small></div>
+            </div>
+          </div>
+        </div>
+        <p class="stepline__below" data-build="5"><span lang="en">Revit accepts the AI’s proposals: <em>it rolls back 5, and 1 placed one is not in the saved model.</em> The yardstick is the same as for the real ones.</span><span lang="es">Revit acepta las propuestas de la IA: <em>revierte 5, y 1 colocada no aparece en el modelo guardado.</em> La vara es la misma que para las reales.</span></p>
+        <p class="footnote" data-build="5"><span lang="en">Counts over the 101 in the saved model; flips are not predicted. Run as the real ones: in the background, read from Revit’s report.</span><span lang="es">Cuentas sobre las 101 del modelo guardado; los giros no se predicen. Corre igual que las reales: en segundo plano, se lee del reporte de Revit.</span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/experiments/e3-mcp-place/summary.json and e2-mask-openings/predictions.json, Nov 2026</span><span lang="es">Autor, pipeline/out/experiments/e3-mcp-place/summary.json y e2-mask-openings/predictions.json, nov 2026</span></li></ol>
+        <aside class="notes"><ul><li><span lang="en">The AI's go in too: <mark class="kw">6 in 10</mark> on the right wall, none at 1 cm.</span><span lang="es">Las de la IA también entran: <mark class="kw">6 de cada 10</mark> en el muro correcto, ninguna a 1 cm.</span></li><li><span lang="en">Green 50, amber 12, orange 39; <mark class="kw">violet</mark>: the 6 Revit did not keep.</span><span lang="es">Verde 50, ámbar 12, naranja 39; <mark class="kw">morado</mark>: las 6 que Revit no conservó.</span></li><li><span lang="en">Each line: from the placed door to the <mark class="kw">dot</mark>, where that real door is. The median of those lines is <mark class="kw">6.0 m</mark>.</span><span lang="es">Cada línea: de la puerta colocada al <mark class="kw">punto</mark>, donde está esa puerta real. La mediana de esas líneas es <mark class="kw">6.0 m</mark>.</span></li><li><span lang="en">The cyan dots: the <mark class="kw">nearer</mark>, the larger and brighter; 15 within 1 m, 67 beyond 3 m.</span><span lang="es">Los puntos cian: entre más <mark class="kw">cerca</mark>, más grandes y brillantes; 15 a menos de 1 m, 67 a más de 3 m.</span></li></ul></aside>
+      </section>
+      <!-- Chapter 4 · cover -->
+      <section class="slide slide--chapter" data-chapter="4 · Results" data-chapter-es="4 · Resultados">
+        <p class="eyebrow"><span><span lang="en">Chapter 4</span><span lang="es">Capítulo 4</span></span><b>07</b></p>
+        <span class="chapter__n">04</span>
+        <h1><span lang="en">Results and next steps</span><span lang="es">Resultados y siguientes pasos</span></h1>
+        <p class="lede"><span lang="en">What the three tests show, and what comes next.</span><span lang="es">Lo que muestran las tres pruebas y lo que sigue.</span></p>
+        <aside class="notes"><ul><li><span lang="en">What the three tests <mark class="kw">show</mark>, and what comes next.</span><span lang="es">Lo que <mark class="kw">muestran</mark> las tres pruebas y lo que sigue.</span></li></ul></aside>
+      </section>
+      <!-- Chapter 4 · results of the three tests -->
+      <section data-chapter="4 · Results" data-chapter-es="4 · Resultados" style="--refs-h: 1.8cqw" class="slide has-refs slide--roomy" data-map="bfs-subgraphs masking-training mcp-assembles-in-revit new-not-replicated">
+        <p class="eyebrow"><span><span lang="en">Chapter 4 · Results</span><span lang="es">Capítulo 4 · Resultados</span></span><b>07</b></p>
+        <h2><span lang="en">The representation and the route work; <em>the exact place is not learned yet.</em></span><span lang="es">La representación y la ruta funcionan; <em>el lugar exacto todavía no se aprende.</em></span></h2>
+        <div class="points">
+          <article class="card" data-build="1">
+            <span class="tag tag--ink">E1</span>
+            <h3><span lang="en">Tokens and pieces</span><span lang="es">Tokens y piezas</span></h3>
+            <div class="minikpis minikpis--col">
+              <div><b>403</b><small><span lang="en">tokens in the vocabulary</span><span lang="es">tokens en el vocabulario</span></small></div>
+              <div><b>286</b><small><span lang="en">distinct pieces of up to 20</span><span lang="es">piezas distintas de hasta 20</span></small></div>
+              <div><b>0.22 m</b><small><span lang="en">mean error of the 0.5 m cells</span><span lang="es">error medio de las casillas de 0.5 m</span></small></div>
+            </div>
+          </article>
+          <article class="card" data-build="2">
+            <span class="tag tag--ink">E2</span>
+            <h3><span lang="en">Hide and predict</span><span lang="es">Ocultar y predecir</span></h3>
+            <div class="minikpis minikpis--col">
+              <div><b>79.4%</b><small><span lang="en">right type · most frequent: 58.9%</span><span lang="es">tipo correcto · la más frecuente: 58.9%</span></small></div>
+              <div><b>61.7%</b><small><span lang="en">right wall · most frequent: 29.9%</span><span lang="es">muro correcto · la más frecuente: 29.9%</span></small></div>
+              <div><b>3.36 m</b><small><span lang="en">median error on the right wall · its middle: 3.23 m</span><span lang="es">error mediano en el muro correcto · ponerla a la mitad: 3.23 m</span></small></div>
+            </div>
+          </article>
+          <article class="card" data-build="3">
+            <span class="tag tag--ink">E3</span>
+            <h3><span lang="en">Place through MCP</span><span lang="es">Colocar por MCP</span></h3>
+            <div class="minikpis minikpis--col">
+              <div><b>107/107</b><small><span lang="en">real ones at 1 cm, as rebuild.py</span><span lang="es">reales a 1 cm, como rebuild.py</span></small></div>
+              <div><b>102/107</b><small><span lang="en">of the AI’s accepted by Revit</span><span lang="es">de la IA aceptadas por Revit</span></small></div>
+              <div><b>0</b><small><span lang="en">of the AI’s at 1 cm</span><span lang="es">de la IA a 1 cm</span></small></div>
+            </div>
+          </article>
+        </div>
+        <p class="stepline__below" data-build="4"><span lang="en">It learns <mark class="kw">what</mark> goes and <mark class="kw">what it joins</mark>; <em>not yet <mark class="kw">where exactly</mark>. One model only: the pipeline runs end to end, generalising is still to show.</em></span><span lang="es">Aprende <mark class="kw">qué</mark> va y <mark class="kw">con qué se une</mark>; <em>todavía no <mark class="kw">dónde exactamente</mark>. Un solo modelo: el pipeline corre de punta a punta, que generalice falta mostrarlo.</em></span></p>
+        <ol class="refs"><li><span lang="en">Author, pipeline/out/experiments/{e1-tokens-bfs, e2-mask-openings, e3-mcp-place}/summary.json, Nov 2026</span><span lang="es">Autor, pipeline/out/experiments/{e1-tokens-bfs, e2-mask-openings, e3-mcp-place}/summary.json, nov 2026</span></li></ol>
+        <aside class="notes"><ul><li><span lang="en">The <mark class="kw">representation</mark> and the <mark class="kw">route</mark> work.</span><span lang="es">La <mark class="kw">representación</mark> y la <mark class="kw">ruta</mark> funcionan.</span></li><li><span lang="en">It learns <mark class="kw">what</mark> goes and what it joins; not yet <mark class="kw">where exactly</mark>.</span><span lang="es">Aprende <mark class="kw">qué</mark> va y con qué se une; todavía no <mark class="kw">dónde exactamente</mark>.</span></li><li><span lang="en">One model only: generalising is still to show.</span><span lang="es">Un solo modelo: falta mostrar que generaliza.</span></li></ul></aside>
+      </section>
+      <!-- 6 · Next steps -->
+      <section data-chapter="4 · Results" data-chapter-es="4 · Resultados" class="slide slide--roomy" data-map="masking-training placement-order-experiments new-not-replicated bfs-subgraphs">
+        <p class="eyebrow"><span><span lang="en">Chapter 4 · Next steps</span><span lang="es">Capítulo 4 · Siguientes pasos</span></span><b>07</b></p>
+        <h2><span lang="en">Next: the same model, <em>changing the parameters.</em></span><span lang="es">Siguiente: el mismo modelo, <em>cambiando los parámetros.</em></span></h2>
+        <div class="points points--chain">
+          <article class="card" data-build="1">
+            <span class="tag tag--ink">01</span>
+            <h3><span lang="en">How much and what to hide</span><span lang="es">Cuánto y qué ocultar</span></h3>
+            <p><span lang="en">Today one door or window at a time. Next: <mark class="kw">20%, 40%, 90%</mark>, chosen <mark class="kw">by class</mark>.</span><span lang="es">Hoy, una puerta o ventana a la vez. Siguiente: <mark class="kw">20%, 40%, 90%</mark>, elegidos <mark class="kw">por clase</mark>.</span></p>
+          </article>
+          <article class="card" data-build="2">
+            <span class="tag tag--ink">02</span>
+            <h3><span lang="en">A sample and a comparator</span><span lang="es">Un sample y un comparador</span></h3>
+            <p><span lang="en">How to split training and test <mark class="kw">without relying on storeys</mark>: storeys can differ, and that may be why the place fails.</span><span lang="es">Cómo separar entrenamiento y prueba <mark class="kw">sin depender de los pisos</mark>: los pisos pueden ser distintos, y quizá por eso falla la posición.</span></p>
+          </article>
+          <article class="card" data-build="3">
+            <span class="tag tag--ink">03</span>
+            <h3><span lang="en">A larger network</span><span lang="es">Una red más grande</span></h3>
+            <p><span lang="en"><mark class="kw">More numbers per token</mark> or <mark class="kw">more layers</mark> in the network.</span><span lang="es"><mark class="kw">Más números por token</mark> o <mark class="kw">más capas</mark> en la red.</span></p>
+          </article>
+          <article class="card" data-build="4">
+            <span class="tag tag--ink">04</span>
+            <h3><span lang="en">The order of placing</span><span lang="es">El orden de colocación</span></h3>
+            <p><span lang="en">All windows first, then the walls…; <mark class="kw">room by room</mark>; <mark class="kw">storey by storey</mark>: does the result change?</span><span lang="es">Primero todas las ventanas, luego los muros…; <mark class="kw">cuarto por cuarto</mark>; <mark class="kw">piso por piso</mark>: ¿cambia el resultado?</span></p>
+          </article>
+        </div>
+        <p class="netnote" data-build="5"><b><span lang="en">My hypothesis, to improve the results:</span><span lang="es">Mi hipótesis, para mejorar los resultados:</span></b> <span lang="en">more numbers per token (64 → 128, 256) or more layers in the network (3 → 6), always with more data (the 10 models).</span><span lang="es">más números por token (64 → 128, 256) o más capas en la red (3 → 6), siempre con más datos (los 10 modelos).</span></p>
+        <aside class="notes"><ul><li><span lang="en">The same model, <mark class="kw">changing the parameters</mark>.</span><span lang="es">El mismo modelo, <mark class="kw">cambiando los parámetros</mark>.</span></li><li><span lang="en">How much and what to hide: <mark class="kw">20%, 40%, 90%</mark>, by class.</span><span lang="es">Cuánto y qué ocultar: <mark class="kw">20%, 40%, 90%</mark>, por clase.</span></li><li><span lang="en">A <mark class="kw">sample and a comparator</mark>: split without relying on storeys, which can differ.</span><span lang="es">Un <mark class="kw">sample y un comparador</mark>: separar sin depender de los pisos, que pueden ser distintos.</span></li><li><span lang="en">A larger network, and the <mark class="kw">order of placing</mark>: windows first, room by room, storey by storey.</span><span lang="es">Una red más grande, y el <mark class="kw">orden de colocación</mark>: ventanas primero, cuarto por cuarto, piso por piso.</span></li><li><span lang="en">My hypothesis: <mark class="kw">more numbers or more layers</mark> improve the learning.</span><span lang="es">Mi hipótesis: <mark class="kw">más números o más capas</mark> mejoran el aprendizaje.</span></li></ul></aside>
+      </section>
+    </main>
+    <script type="module">
+      import { mountDeck } from '../../assets/deck.js'
+      import { mountSets } from '../../assets/model3d-sets.js'
+      import { mountGraph } from '../../assets/graph-view.js'
+      mountDeck(window)
+      mountSets(document)
+      mountGraph(document)
+    </script>
+  </body>
+</html>

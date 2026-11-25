@@ -29,9 +29,13 @@ function vocabularyOf(dir) {
   }
 }
 
-/** What papers/index.json must hold: the keywords on offer and one entry per prepared paper folder. */
+/** What papers/index.json must hold: the keywords on offer and one entry per prepared paper folder, with the date its node was added to the map. */
 export function indexPapers(dir) {
   const vocabulary = vocabularyOf(dir)
+  let nodes = []
+  try {
+    nodes = readJson(join(dir, 'map.json')).nodes ?? []
+  } catch {}
   const papers = []
   for (const id of paperDirs(dir)) {
     let paper
@@ -40,9 +44,11 @@ export function indexPapers(dir) {
     } catch {
       continue
     }
+    const added = nodes.find((n) => n.id === id)?.date
     papers.push({
       node: id,
       title: paper.title,
+      ...(added ? { added } : {}),
       figures: blocksOf(paper).filter((b) => b.image).length,
       es: untranslated(paper).length === 0,
       graph: existsSync(join(dir, 'papers', id, 'graph.json')),

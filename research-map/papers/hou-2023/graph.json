@@ -1,0 +1,558 @@
+{
+  "version": 1,
+  "node": "hou-2023",
+  "built": {
+    "date": "2026-11-15",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can masked feature reconstruction on graphs be made less dependent on how discriminative the input node features are? The paper's goal is to improve feature reconstruction for graph self-supervised learning.",
+      "es": "¿Se puede lograr que la reconstrucción de atributos enmascarados en grafos dependa menos de qué tan discriminativos sean los atributos de entrada de los nodos? El objetivo del artículo es mejorar la reconstrucción de atributos en el aprendizaje autosupervisado sobre grafos.",
+      "blocks": [
+        "s0-p1",
+        "s1-p5"
+      ],
+      "key": "masked-reconstruction-noisy-features",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Graph self-supervised learning (SSL) trains a graph model with labels built automatically from the input graph, which addresses label scarcity, especially on billion-scale graphs.",
+      "es": "El aprendizaje autosupervisado (SSL) en grafos entrena un modelo de grafos con etiquetas construidas automáticamente a partir del propio grafo, lo que atiende la escasez de etiquetas, sobre todo en grafos de miles de millones de elementos.",
+      "blocks": [
+        "s1-p1",
+        "s1-p2"
+      ],
+      "key": "graph-ssl",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Graph SSL has two families: contrastive methods, which depend on graph augmentation operators chosen mostly by empirical analysis, and generative methods, which directly reconstruct the input graph data.",
+      "es": "El SSL en grafos tiene dos familias: los métodos contrastivos, que dependen de operadores de aumentación de grafos elegidos sobre todo por análisis empírico, y los generativos, que reconstruyen directamente los datos del grafo de entrada.",
+      "blocks": [
+        "s4-p2",
+        "s4-p5",
+        "s4-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "Masked feature reconstruction removes a portion of the node features, encodes the corrupted graph with a GNN, and trains a decoder to predict the masked content, matching the original features with a scaled cosine error.",
+      "es": "La reconstrucción de atributos enmascarados quita una parte de los atributos de los nodos, codifica el grafo corrompido con una GNN y entrena un decodificador para predecir lo enmascarado, comparándolo con los atributos originales mediante un error coseno escalado.",
+      "blocks": [
+        "s2-p4",
+        "s2-p6"
+      ],
+      "key": "masked-feature-reconstruction",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "Nodes are sampled uniformly without replacement and their features replaced by a learnable [MASK] vector. A relatively large mask ratio (e.g., 50%) helps eliminate redundancy in graphs and benefits performance.",
+      "es": "Los nodos se muestrean de manera uniforme sin reemplazo y sus atributos se sustituyen por un vector [MASK] aprendible. Una proporción de máscara relativamente grande (p. ej., 50%) ayuda a eliminar la redundancia en los grafos y beneficia el desempeño.",
+      "blocks": [
+        "s2-p5"
+      ],
+      "key": "mask-token",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "concept",
+      "en": "GraphMAE is the earlier masked graph autoencoder that this paper builds on: masked feature reconstruction plus a fixed re-mask decoding, where the embeddings of masked nodes are masked again before the decoder. It outperformed various baselines on 21 datasets.",
+      "es": "GraphMAE es el autoencoder de grafos enmascarado previo sobre el que construye este artículo: reconstrucción de atributos enmascarados más una decodificación con re-máscara fija, donde los embeddings de los nodos enmascarados se vuelven a enmascarar antes del decodificador. Superó a varios métodos de referencia en 21 conjuntos de datos.",
+      "blocks": [
+        "s1-p3",
+        "fig-2"
+      ],
+      "key": "graphmae",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "claim",
+      "en": "Masked feature reconstruction relies on how distinguishable the input features are. Graph node features are processed products (bag-of-words, word2vec averages, pretrained language model outputs) that carry the noise of their generator, unlike pixels or words in vision and language.",
+      "es": "La reconstrucción de atributos enmascarados depende de qué tan distinguibles sean los atributos de entrada. Los atributos de los nodos son productos procesados (bolsas de palabras, promedios de word2vec, salidas de un modelo de lenguaje preentrenado) que heredan el ruido de su generador, a diferencia de los píxeles o las palabras en visión y lenguaje.",
+      "blocks": [
+        "s1-p4",
+        "s2-p7",
+        "s2-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "result",
+      "en": "In a pilot experiment that compresses the node features to 50 dimensions with PCA, GraphMAE degrades more than the supervised counterpart (GAT backbone in all cases). The paper reads this as GraphMAE being more vulnerable to disturbance in the features.",
+      "es": "En un experimento piloto que comprime los atributos de los nodos a 50 dimensiones con PCA, GraphMAE se degrada más que su contraparte supervisada (con GAT como base en todos los casos). El artículo lo interpreta como que GraphMAE es más vulnerable a perturbaciones en los atributos.",
+      "blocks": [
+        "tab-1",
+        "s2-p7",
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "Multi-view random re-mask decoding: the encoded representations are randomly re-masked with a shared [DMASK] token K times, and every view must reconstruct the input features. The randomness acts as regularization, and the decoder is a light single-layer GAT with negligible cost.",
+      "es": "Decodificación con re-máscara aleatoria multivista: las representaciones codificadas se re-enmascaran al azar con un token compartido [DMASK] K veces, y cada vista debe reconstruir los atributos de entrada. La aleatoriedad funciona como regularización, y el decodificador es una GAT ligera de una capa con costo despreciable.",
+      "blocks": [
+        "s2-p11",
+        "s2-p12",
+        "s2-p13",
+        "s2-p18"
+      ],
+      "key": "random-remask-decoding",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Latent representation prediction: a target generator with the same architecture as the encoder, fed the unmasked graph, produces target representations. The encoder and a projector learn to match them on masked nodes, and the generator's weights follow an exponential moving average of the encoder's.",
+      "es": "Predicción de representaciones latentes: un generador de objetivos con la misma arquitectura del codificador, alimentado con el grafo sin máscara, produce representaciones objetivo. El codificador y un proyector aprenden a igualarlas en los nodos enmascarados, y los pesos del generador siguen un promedio móvil exponencial de los del codificador.",
+      "blocks": [
+        "s2-p19",
+        "s2-p20",
+        "s2-p21",
+        "s2-p24",
+        "s2-p30"
+      ],
+      "key": "latent-representation-prediction",
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "GraphMAE2 trains with L = L_input + λ L_latent. Its time and space complexity are linear in the number of nodes. For downstream tasks the decoder and target generator are discarded and only the GNN encoder is used.",
+      "es": "GraphMAE2 se entrena con L = L_input + λ L_latent. Su complejidad en tiempo y espacio es lineal en el número de nodos. En las tareas posteriores se descartan el decodificador y el generador de objetivos, y solo se usa el codificador GNN.",
+      "blocks": [
+        "s2-p33",
+        "s2-e2",
+        "s2-p34",
+        "fig-2"
+      ],
+      "key": "graphmae2",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "claim",
+      "en": "The target generator resembles the teacher in self-knowledge distillation or contrastive methods, but GraphMAE2 uses the unmasked graph's output as the target for masked nodes. It does not rely on elaborate data augmentations, so it avoids the worry that augmentations alter a graph's semantics.",
+      "es": "El generador de objetivos se parece al maestro de la autodestilación o de los métodos contrastivos, pero GraphMAE2 usa la salida del grafo sin máscara como objetivo de los nodos enmascarados. No depende de aumentaciones de datos elaboradas, así que evita el riesgo de que alteren la semántica del grafo.",
+      "blocks": [
+        "s2-p31"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "For large graphs, local clustering with PPR-Nibble builds a dense local subgraph per node from the k largest elements of its personalized PageRank vector. Training and inference both run on these subgraphs, and the cost is linear in the number of nodes.",
+      "es": "Para grafos grandes, el agrupamiento local con PPR-Nibble construye un subgrafo local denso por nodo a partir de los k elementos mayores de su vector de PageRank personalizado. El entrenamiento y la inferencia usan estos subgrafos, y el costo es lineal en el número de nodos.",
+      "blocks": [
+        "s2-p37",
+        "s2-p38",
+        "fig-2"
+      ],
+      "key": "ppr-nibble",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "concept",
+      "en": "Dense local subgraphs are wanted because stacking GNN layers over-smooths and over-squashes, and masked feature prediction needs well-connected neighbours. Popular samplers give sparse, wide subgraphs or only support shallow GNNs in inference.",
+      "es": "Se buscan subgrafos locales densos porque apilar capas de GNN produce sobresuavizado y sobrecompresión, y la predicción de atributos enmascarados necesita vecinos bien conectados. Los muestreadores populares dan subgrafos dispersos y anchos, o solo admiten GNN poco profundas en la inferencia.",
+      "blocks": [
+        "s2-p36",
+        "s2-p37"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "dataset",
+      "en": "Four large datasets: ogbn-Arxiv, ogbn-Products, ogbn-Papers100M (111M nodes and 1.6B edges) and MAG-Scholar-F. They use the official OGB splits, except MAG-Scholar-F, split randomly 5%/5%/40% for training/validation/test.",
+      "es": "Cuatro conjuntos de datos grandes: ogbn-Arxiv, ogbn-Products, ogbn-Papers100M (111M de nodos y 1.6B de aristas) y MAG-Scholar-F. Usan las particiones oficiales de OGB, salvo MAG-Scholar-F, dividido al azar en 5%/5%/40% para entrenamiento/validación/prueba.",
+      "blocks": [
+        "s3-p3",
+        "s3-p4",
+        "tab-2",
+        "s1-p8"
+      ],
+      "key": "ogbn-papers100m",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "dataset",
+      "en": "Cora, Citeseer and PubMed are the small, widely used datasets, run with the public data splits to show the method's generality.",
+      "es": "Cora, Citeseer y PubMed son los conjuntos de datos pequeños y muy usados, evaluados con las particiones públicas para mostrar la generalidad del método.",
+      "blocks": [
+        "s3-p10",
+        "s3-p11"
+      ],
+      "key": "cora-citeseer-pubmed",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "Evaluation by linear probing (a linear classifier on frozen embeddings) and by fine-tuning with 1% and 5% of the labels, averaged over 10 trials with random seeds. Baselines are GRACE, BGRL, CCA-SSG, GGD and GraphMAE, plus a randomly initialized GNN and SGC, all with a GAT backbone.",
+      "es": "La evaluación se hace con sondeo lineal (un clasificador lineal sobre embeddings congelados) y con ajuste fino usando 1% y 5% de las etiquetas, promediando 10 corridas con semillas aleatorias. Los métodos de referencia son GRACE, BGRL, CCA-SSG, GGD y GraphMAE, más una GNN con inicialización aleatoria y SGC, todos con GAT como base.",
+      "blocks": [
+        "s3-p5",
+        "s3-p6"
+      ],
+      "key": "linear-probing",
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "In linear probing on the large datasets, GraphMAE2 beats all self-supervised baselines on every dataset. It improves upon GraphMAE by 1.91% and 2.35% (absolute difference) on MAG-Scholar-F and Papers100M, and also beats the random-init model and SGC.",
+      "es": "En el sondeo lineal sobre los conjuntos grandes, GraphMAE2 supera a todos los métodos autosupervisados de referencia en cada conjunto. Mejora a GraphMAE en 1.91% y 2.35% (diferencia absoluta) en MAG-Scholar-F y Papers100M, y también supera al modelo con inicialización aleatoria y a SGC.",
+      "blocks": [
+        "s3-p7",
+        "tab-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "On ogbn-Papers100M, with 111M nodes and 1.6B edges, GraphMAE2 gives at least 2.45% improvements over state-of-the-art baselines.",
+      "es": "En ogbn-Papers100M, con 111M de nodos y 1.6B de aristas, GraphMAE2 logra mejoras de al menos 2.45% sobre los métodos de referencia del estado del arte.",
+      "blocks": [
+        "s0-p1",
+        "fig-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "In fine-tuning with 1% and 5% labels, GraphMAE2 reaches state-of-the-art on all benchmarks except Products with 1% (second best, slightly under GRACE). On ogbn-Products pretraining improves by above 5.1%, and 5% of the labels gives 80.52%, comparable to supervised methods with 100% of the data, e.g., GraphSAINT: 80.27, Cluster-GAT: 79.23%.",
+      "es": "En el ajuste fino con 1% y 5% de etiquetas, GraphMAE2 alcanza el estado del arte en todos los benchmarks salvo Products con 1% (segundo mejor, un poco por debajo de GRACE). En ogbn-Products el preentrenamiento mejora por encima de 5.1%, y con 5% de las etiquetas llega a 80.52%, comparable con métodos supervisados con 100% de los datos, p. ej., GraphSAINT: 80.27, Cluster-GAT: 79.23%.",
+      "blocks": [
+        "s3-p8",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "On ogbn-Papers100M only GraphMAE2 and GraphMAE do better than the random-initialized model after pretraining, while all contrastive baselines fail to improve. The paper offers as one possible reason that the baselines' data augmentations fail on this dataset.",
+      "es": "En ogbn-Papers100M solo GraphMAE2 y GraphMAE superan al modelo con inicialización aleatoria tras el preentrenamiento, mientras que todos los métodos contrastivos de referencia no logran mejorar. El artículo ofrece como posible razón que las aumentaciones de datos de esos métodos fallan en este conjunto.",
+      "blocks": [
+        "s3-p8",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "On Cora, Citeseer and PubMed, GraphMAE2 generally outperforms all baselines (linear probing, 20 random initializations), but the gain over GraphMAE is smaller than on large graphs. The paper guesses that bag-of-words features are less noisy as reconstruction targets.",
+      "es": "En Cora, Citeseer y PubMed, GraphMAE2 en general supera a todos los métodos de referencia (sondeo lineal, 20 inicializaciones aleatorias), pero la mejora sobre GraphMAE es menor que en los grafos grandes. El artículo supone que las bolsas de palabras son un objetivo de reconstrucción menos ruidoso.",
+      "blocks": [
+        "s3-p11",
+        "s3-p12",
+        "tab-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "Ablation of the two decoding strategies: removing latent representation prediction drops accuracy by -1.58% on ogbn-Products and -1.91% on ogbn-Papers100M, and removing multi-view random re-masking by -0.45% and -0.73%. Both help, and latent prediction helps more.",
+      "es": "Ablación de las dos estrategias de decodificación: quitar la predicción de representaciones latentes baja la exactitud en -1.58% en ogbn-Products y -1.91% en ogbn-Papers100M, y quitar la re-máscara aleatoria multivista la baja en -0.45% y -0.73%. Ambas ayudan, y la predicción latente ayuda más.",
+      "blocks": [
+        "s3-p14",
+        "s3-p15",
+        "tab-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "Training with latent representation prediction alone, without input feature reconstruction, degrades to self-knowledge distillation and drops significantly. It can collapse, scoring worse than GraphMAE or even than the random-initialized model on MAG-Scholar-F and ogbn-Papers100M.",
+      "es": "Entrenar solo con predicción de representaciones latentes, sin reconstrucción de los atributos de entrada, degenera en autodestilación y cae de forma significativa. Puede colapsar y dar peores resultados que GraphMAE o incluso que el modelo con inicialización aleatoria en MAG-Scholar-F y ogbn-Papers100M.",
+      "blocks": [
+        "s3-p16"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "Sampling ablation: local clustering beats GraphSAINT and Cluster-GCN by 0.57% and 1.49% on average. Neighborhood sampling was left out as unfriendly to masked feature reconstruction. With the same sampling strategy, GraphMAE2 still has a 1.49% advantage in ogbn-Products over the strongest baselines.",
+      "es": "Ablación del muestreo: el agrupamiento local supera a GraphSAINT y a Cluster-GCN en 0.57% y 1.49% en promedio. El muestreo por vecindario se excluyó por no ser adecuado para la reconstrucción de atributos enmascarados. Con la misma estrategia de muestreo, GraphMAE2 aún tiene una ventaja de 1.49% en ogbn-Products frente a los mejores métodos de referencia.",
+      "blocks": [
+        "s3-p17",
+        "tab-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "Model capacity on ogbn-Products: doubling the hidden size improves accuracy by nearly 2% while it does not exceed 1024, and gains are marginal beyond. Going from 2 to 4 GNN layers raises accuracy by 0.65%, with diminishing benefits after. Width matters more than depth.",
+      "es": "Capacidad del modelo en ogbn-Products: duplicar el tamaño oculto mejora la exactitud en casi 2% mientras no pase de 1024, y más allá las ganancias son marginales. Pasar de 2 a 4 capas de GNN sube la exactitud 0.65%, con beneficios decrecientes después. El ancho importa más que la profundidad.",
+      "blocks": [
+        "s3-p18",
+        "s3-p19",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "Fine-tuning with all training labels still improves on the random-initialized model by 1.22%-3.17% on ogbn-Arxiv, Products and MAG-Scholar-F, but only by 0.2% on ogbn-Papers100M. The paper suggests its split (train:val:test = 78%:8%:14%) gave an overly well-labeled training set.",
+      "es": "El ajuste fino con todas las etiquetas de entrenamiento aún mejora al modelo con inicialización aleatoria en 1.22%-3.17% en ogbn-Arxiv, Products y MAG-Scholar-F, pero solo en 0.2% en ogbn-Papers100M. El artículo sugiere que su partición (train:val:test = 78%:8%:14%) dejó un conjunto de entrenamiento demasiado bien etiquetado.",
+      "blocks": [
+        "a-p7",
+        "tab-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "claim",
+      "en": "As an SSL method, GraphMAE2 offers performance advantages over classic supervised GNNs across all datasets, which the paper takes as support for self-supervised graph representation learning and pre-training.",
+      "es": "Como método de SSL, GraphMAE2 ofrece ventajas de desempeño sobre las GNN supervisadas clásicas en todos los conjuntos de datos, lo que el artículo toma como respaldo del aprendizaje autosupervisado de representaciones de grafos y del preentrenamiento.",
+      "blocks": [
+        "s1-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "limitation",
+      "en": "All experiments are on node classification. The paper says GraphMAE2 is a general SSL method that can be applied to various graph learning tasks, but it does not test them.",
+      "es": "Todos los experimentos son de clasificación de nodos. El artículo dice que GraphMAE2 es un método de SSL general que puede aplicarse a varias tareas de aprendizaje en grafos, pero no las prueba.",
+      "blocks": [
+        "s3-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "limitation",
+      "en": "GraphMAE2 prefers a well-connected local structure, because each node aggregates messages from its neighbours to produce its embedding and reconstruct features. This is why neighborhood sampling is excluded and dense local clusters are built.",
+      "es": "GraphMAE2 prefiere una estructura local bien conectada, porque cada nodo agrega mensajes de sus vecinos para generar su embedding y reconstruir atributos. Por eso se excluye el muestreo por vecindario y se construyen grupos locales densos.",
+      "blocks": [
+        "s2-p36",
+        "s3-p17"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "future",
+      "en": "The paper concludes that node-level signals can provide abundant supervision for masked graph self-supervised learning and deserve further exploration.",
+      "es": "El artículo concluye que las señales a nivel de nodo pueden aportar supervisión abundante al aprendizaje autosupervisado enmascarado en grafos y merecen una mayor exploración.",
+      "blocks": [
+        "s5-p1"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i4",
+      "to": "i3",
+      "type": "part-of",
+      "why": "Masked feature reconstruction is the generative family of graph SSL."
+    },
+    {
+      "from": "i6",
+      "to": "i4",
+      "type": "example-of",
+      "why": "GraphMAE is the masked feature reconstruction model this paper builds on."
+    },
+    {
+      "from": "i5",
+      "to": "i4",
+      "type": "part-of",
+      "why": "Choosing and replacing the masked nodes is the corruption step of masked reconstruction."
+    },
+    {
+      "from": "i7",
+      "to": "i1",
+      "type": "supports",
+      "why": "The dependence on feature discriminability is the problem that motivates the question."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "supports",
+      "why": "The PCA pilot shows GraphMAE degrading more than the supervised model."
+    },
+    {
+      "from": "i9",
+      "to": "i6",
+      "type": "uses",
+      "why": "It replaces GraphMAE's fixed re-mask decoding with random multi-view re-masking."
+    },
+    {
+      "from": "i10",
+      "to": "i5",
+      "type": "uses",
+      "why": "The encoder predicts the target representations on the masked nodes."
+    },
+    {
+      "from": "i9",
+      "to": "i11",
+      "type": "part-of",
+      "why": "It supplies L_input in the combined loss."
+    },
+    {
+      "from": "i10",
+      "to": "i11",
+      "type": "part-of",
+      "why": "It supplies L_latent in the combined loss."
+    },
+    {
+      "from": "i12",
+      "to": "i10",
+      "type": "supports",
+      "why": "It explains how latent prediction differs from distillation and contrastive teachers."
+    },
+    {
+      "from": "i14",
+      "to": "i13",
+      "type": "supports",
+      "why": "It gives the reasons for building dense local subgraphs."
+    },
+    {
+      "from": "i30",
+      "to": "i14",
+      "type": "supports",
+      "why": "The preference for well-connected structure is the same dependency seen as a limit."
+    },
+    {
+      "from": "i17",
+      "to": "i15",
+      "type": "uses",
+      "why": "The large-scale evaluation runs on these datasets."
+    },
+    {
+      "from": "i17",
+      "to": "i16",
+      "type": "uses",
+      "why": "The small-scale evaluation runs on these datasets."
+    },
+    {
+      "from": "i18",
+      "to": "i11",
+      "type": "measures",
+      "why": "Linear probing scores the embeddings of the full method."
+    },
+    {
+      "from": "i19",
+      "to": "i18",
+      "type": "supports",
+      "why": "The abstract's 2.45% is the headline gain on the largest dataset."
+    },
+    {
+      "from": "i20",
+      "to": "i28",
+      "type": "supports",
+      "why": "Pretrained with 5% of labels it matches supervised methods trained on all labels."
+    },
+    {
+      "from": "i27",
+      "to": "i28",
+      "type": "supports",
+      "why": "Pretraining still helps when all labels are used."
+    },
+    {
+      "from": "i21",
+      "to": "i20",
+      "type": "part-of",
+      "why": "It is a finding from the fine-tuning table on Papers100M."
+    },
+    {
+      "from": "i22",
+      "to": "i7",
+      "type": "supports",
+      "why": "The smaller gain with less noisy features partly supports the noise assumption."
+    },
+    {
+      "from": "i23",
+      "to": "i9",
+      "type": "measures",
+      "why": "Removing random re-masking costs -0.45% and -0.73%."
+    },
+    {
+      "from": "i23",
+      "to": "i10",
+      "type": "measures",
+      "why": "Removing latent prediction costs -1.58% and -1.91%."
+    },
+    {
+      "from": "i24",
+      "to": "i4",
+      "type": "supports",
+      "why": "Without input reconstruction training collapses, so reconstruction remains necessary."
+    },
+    {
+      "from": "i25",
+      "to": "i13",
+      "type": "measures",
+      "why": "It compares local clustering against GraphSAINT and Cluster-GCN."
+    },
+    {
+      "from": "i26",
+      "to": "i11",
+      "type": "measures",
+      "why": "It varies the width and depth of the GNN encoder."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i4",
+      "to": "masking-training",
+      "why": "The same hide-then-predict recipe on a graph, though used here to learn node representations, not to build new graphs."
+    },
+    {
+      "idea": "i7",
+      "to": "masking-training",
+      "why": "A caution to borrow: reconstruction is only as good as the features being hidden, so the attributes of BIM elements would need the same check."
+    },
+    {
+      "idea": "i10",
+      "to": "masking-training",
+      "why": "A method to borrow: predict the embedding of hidden nodes, not their raw features, when the raw features are a noisy description."
+    },
+    {
+      "idea": "i5",
+      "to": "graphmae-2022",
+      "why": "It repeats the argument that a large mask ratio (e.g., 50%) removes redundancy in the graph."
+    },
+    {
+      "idea": "i13",
+      "to": "deconstruct-for-training",
+      "why": "Shows one way to cut a very large graph into dense local pieces around each node and train on those pieces."
+    },
+    {
+      "idea": "i29",
+      "to": "question",
+      "why": "Gap: it only classifies nodes and discards the decoder afterwards, so it shows no generation of new valid graphs."
+    }
+  ]
+}

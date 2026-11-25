@@ -1,0 +1,749 @@
+{
+  "version": 1,
+  "node": "choi-2026",
+  "built": {
+    "date": "2026-11-16",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Can a masked non-autoregressive transformer generate 3D indoor scenes from natural-language instructions with better quality and instruction adherence than autoregressive, diffusion and LLM-agent methods, at lower computational cost?",
+      "es": "¿Puede un transformer enmascarado no autorregresivo generar escenas interiores 3D a partir de instrucciones en lenguaje natural con mejor calidad y mejor apego a la instrucción que los métodos autorregresivos, de difusión y basados en agentes LLM, con menor costo computacional?",
+      "blocks": [
+        "s0-p1",
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "The paper says earlier approaches each fall short. Autoregressive models decode slowly, accumulate errors and depend on a predefined order; diffusion models need hundreds of sampling steps; LLM/VLM agents query APIs sequentially and cannot be batched.",
+      "es": "El artículo dice que cada enfoque previo tiene límites. Los modelos autorregresivos decodifican lento, acumulan errores y dependen de un orden predefinido; los de difusión necesitan cientos de pasos de muestreo; los agentes LLM/VLM consultan APIs en secuencia y no se pueden procesar por lotes.",
+      "blocks": [
+        "s1-p2",
+        "s2-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "claim",
+      "en": "Masked non-autoregressive decoding fills all elements in parallel and in a few steps, with bidirectional context and no fixed order such as category, then attributes, then layout. The paper presents SceneNAT as the first non-autoregressive transformer for language-guided 3D indoor scene synthesis.",
+      "es": "La decodificación enmascarada no autorregresiva llena todos los elementos en paralelo y en pocos pasos, con contexto bidireccional y sin un orden fijo como categoría, luego atributos, luego disposición. El artículo presenta a SceneNAT como el primer transformer no autorregresivo para síntesis de escenas interiores 3D guiada por lenguaje.",
+      "blocks": [
+        "s1-p2",
+        "s1-p6",
+        "s2-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "A scene is a set of up to N objects, each described by a category, four vector-quantized appearance tokens, a 3D position, a 3D scale and a yaw rotation. Together these form a scene matrix with one row per object and one column per attribute.",
+      "es": "Una escena es un conjunto de hasta N objetos, cada uno descrito por una categoría, cuatro tokens de apariencia cuantizados vectorialmente, una posición 3D, una escala 3D y una rotación de guiñada. Juntos forman una matriz de escena con una fila por objeto y una columna por atributo.",
+      "blocks": [
+        "s3-p1",
+        "fig-3"
+      ],
+      "key": "scene-matrix",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "Everything is discretized. Appearance comes from OpenShape features turned into 4 tokens by a VQ-VAE with a codebook of size 64, positions and sizes go into 64 bins, and orientations into intervals of 10 degrees.",
+      "es": "Todo se discretiza. La apariencia viene de rasgos de OpenShape convertidos en 4 tokens por un VQ-VAE con un libro de códigos de tamaño 64, las posiciones y tamaños se reparten en 64 intervalos y las orientaciones en intervalos de 10 grados.",
+      "blocks": [
+        "app-a-p3",
+        "app-a-p4",
+        "s3-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Masked Indoor Scene Modeling (MISM): given a partially masked scene and the text instruction, the model learns to predict the masked tokens, and generation starts from a fully masked scene.",
+      "es": "Modelado enmascarado de escenas interiores (MISM): dada una escena parcialmente enmascarada y la instrucción de texto, el modelo aprende a predecir los tokens enmascarados, y la generación parte de una escena totalmente enmascarada.",
+      "blocks": [
+        "s3-p2",
+        "s1-p4"
+      ],
+      "key": "masked-modeling",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "Training masks with a cosine schedule and splits the masked amount at random between whole objects and individual tokens. A BERT-style policy replaces 10% of selected tokens with random ones, masks 88% of the rest and leaves the remainder unchanged.",
+      "es": "El entrenamiento enmascara con un calendario coseno y reparte al azar lo enmascarado entre objetos completos y tokens individuales. Una política estilo BERT sustituye 10% de los tokens elegidos por tokens aleatorios, enmascara 88% del resto y deja el remanente sin cambios.",
+      "blocks": [
+        "s3-p21",
+        "s3-p23",
+        "app-a-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "At inference the model starts fully masked and refines in parallel, MaskGIT-style. At each step it re-masks and re-predicts the tokens with lowest confidence (maximum softmax probability), with a cosine schedule for the re-masking ratio.",
+      "es": "En inferencia el modelo parte totalmente enmascarado y refina en paralelo, al estilo MaskGIT. En cada paso vuelve a enmascarar y predecir los tokens de menor confianza (probabilidad softmax máxima), con un calendario coseno para la proporción de re-enmascarado.",
+      "blocks": [
+        "s3-p24",
+        "fig-3"
+      ],
+      "key": "maskgit-sampling",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "method",
+      "en": "The Relational Reasoning Module (RRM) turns a set of learnable triplet queries into relation-aware features through a transformer decoder. These features are fused into the layout decoder by cross-attention, and the module is separate from the scene decoder.",
+      "es": "El Módulo de Razonamiento Relacional (RRM) convierte un conjunto de consultas de tripletas aprendibles en rasgos conscientes de relaciones mediante un decodificador transformer. Esos rasgos se fusionan en el decodificador de disposición por atención cruzada, y el módulo es independiente del decodificador de escena.",
+      "blocks": [
+        "s3-p4",
+        "s3-p6",
+        "fig-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "method",
+      "en": "Relations are treated as direct set prediction. The Hungarian algorithm matches predicted (subject, predicate, object) triplets to the ground-truth ones, unmatched queries get a null triplet, and the null class has a lower loss weight.",
+      "es": "Las relaciones se tratan como predicción directa de conjuntos. El algoritmo húngaro empareja las tripletas (sujeto, predicado, objeto) predichas con las verdaderas, las consultas sin pareja reciben una tripleta nula, y la clase nula tiene un peso de pérdida menor.",
+      "blocks": [
+        "s3-p6",
+        "s3-p7",
+        "s3-p9",
+        "s3-p15"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "claim",
+      "en": "The triplet heads only supervise training. At inference they are not used and only the learned relational features are injected into layout decoding, which the paper calls robust and interpretable guidance.",
+      "es": "Las cabezas de tripletas solo supervisan el entrenamiento. En inferencia no se usan y solo los rasgos relacionales aprendidos se inyectan en la decodificación de la disposición, lo que el artículo describe como una guía robusta e interpretable.",
+      "blocks": [
+        "s1-p4",
+        "s3-p24"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "The total loss is a token-level cross-entropy over masked attributes plus the triplet loss. All attribute weights are 1.0, and a triplet weight of 1.0 was chosen among 0.2, 0.5, 1.0 and 2.0. The instruction embedding is dropped with probability 0.1 so classifier-free guidance can be used.",
+      "es": "La pérdida total es una entropía cruzada a nivel de token sobre los atributos enmascarados más la pérdida de tripletas. Todos los pesos de atributos son 1.0, y se eligió un peso de tripletas de 1.0 entre 0.2, 0.5, 1.0 y 2.0. El embedding de la instrucción se omite con probabilidad 0.1 para poder usar guía libre de clasificador.",
+      "blocks": [
+        "s3-p16",
+        "s3-p20",
+        "app-a-p8",
+        "app-a-p9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "After sampling, a separate step retrieves the asset for each object. It filters 3D-FUTURE assets by the predicted class, decodes the appearance tokens to a feature, and takes the asset with the highest cosine similarity.",
+      "es": "Tras el muestreo, un paso aparte recupera el activo de cada objeto. Filtra los activos de 3D-FUTURE por la clase predicha, decodifica los tokens de apariencia a un rasgo y toma el activo con mayor similitud coseno.",
+      "blocks": [
+        "app-a-p5",
+        "fig-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "dataset",
+      "en": "Experiments use the extended 3D-FRONT dataset from InstructScene, with 4,041 bedrooms, 813 living rooms and 900 dining rooms, plus instruction annotations. Instructions here carry up to four relations, where InstructScene used one or two.",
+      "es": "Los experimentos usan el conjunto 3D-FRONT extendido de InstructScene, con 4,041 recámaras, 813 salas y 900 comedores, más anotaciones de instrucciones. Aquí las instrucciones llevan hasta cuatro relaciones, mientras que InstructScene usaba una o dos.",
+      "blocks": [
+        "s4-p1",
+        "app-a-p2"
+      ],
+      "key": "3d-front",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "Instructions are generated by sampling subject-predicate-object relations and filling templates, with up to four relations per prompt. The paper adds filtering of redundant symmetric pairs, discourse-aware ordering and regulated referring expressions. The four-relation limit comes from the CLIP text length.",
+      "es": "Las instrucciones se generan muestreando relaciones sujeto-predicado-objeto y llenando plantillas, con hasta cuatro relaciones por indicación. El artículo añade filtrado de pares simétricos redundantes, orden consciente del discurso y expresiones de referencia reguladas. El límite de cuatro relaciones viene de la longitud del texto de CLIP.",
+      "blocks": [
+        "app-b-p1",
+        "s4-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "concept",
+      "en": "Eleven spatial relations are defined geometrically from bounding boxes, using relative orientation, ground distance and an overlap test. Medium distance is 1 < d ≤ 3, the 'closely' variants apply at d ≤ 1, and no relation holds beyond 3 units.",
+      "es": "Once relaciones espaciales se definen geométricamente a partir de cajas delimitadoras, con orientación relativa, distancia en el suelo y una prueba de traslape. La distancia media es 1 < d ≤ 3, las variantes 'closely' aplican con d ≤ 1, y no hay relación más allá de 3 unidades.",
+      "blocks": [
+        "app-a-p12",
+        "app-a-p15",
+        "app-a-p17",
+        "app-a-p26"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "ATISS (autoregressive), DiffuScene (diffusion) and InstructScene (two-stage diffusion on a scene graph) were reimplemented and trained from scratch on the same instruction set. FreeScene is compared using numbers reported in its paper, and LayoutGPT serves as an LLM reference.",
+      "es": "ATISS (autorregresivo), DiffuScene (difusión) e InstructScene (difusión en dos etapas sobre un grafo de escena) se reimplementaron y entrenaron desde cero con el mismo conjunto de instrucciones. FreeScene se compara con las cifras de su artículo, y LayoutGPT sirve como referencia basada en LLM.",
+      "blocks": [
+        "s4-p2",
+        "s4-p7",
+        "app-a-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Instruction adherence is measured with iRecall, the recall of the specified spatial-relation triplets that are realized in the generated scene. Visual quality uses FID, FID-CLIP and KID, and physical plausibility uses NAV, COL, ACC and floor penetration; lower is better except iRecall, NAV and ACC.",
+      "es": "El apego a la instrucción se mide con iRecall, el recall de las tripletas de relaciones espaciales especificadas que se cumplen en la escena generada. La calidad visual usa FID, FID-CLIP y KID, y la plausibilidad física usa NAV, COL, ACC y penetración del piso; menor es mejor excepto iRecall, NAV y ACC.",
+      "blocks": [
+        "s4-p3",
+        "tab-1"
+      ],
+      "key": "irecall",
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "The model is small. SceneNAT-B has 8 scene decoder layers, 512 attention dimension and 8 heads, and SceneNAT-S has 4 decoder layers. Training runs 2000 epochs at batch size 256 on a single NVIDIA RTX A5000 GPU.",
+      "es": "El modelo es pequeño. SceneNAT-B tiene 8 capas de decodificador de escena, dimensión de atención de 512 y 8 cabezas, y SceneNAT-S tiene 4 capas. El entrenamiento corre 2000 épocas con tamaño de lote 256 en una sola GPU NVIDIA RTX A5000.",
+      "blocks": [
+        "app-a-p1",
+        "app-a-p7",
+        "app-a-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "SceneNAT gets the best iRecall and visual quality in all three room types, with competitive physical plausibility, and fewer object collisions than the other data-driven methods. It is also much stronger than LayoutGPT, which the paper reads as in-domain training still mattering.",
+      "es": "SceneNAT obtiene el mejor iRecall y la mejor calidad visual en los tres tipos de cuarto, con plausibilidad física competitiva y menos colisiones de objetos que los demás métodos basados en datos. También supera con claridad a LayoutGPT, lo que el artículo interpreta como que el entrenamiento en el dominio sigue importando.",
+      "blocks": [
+        "s4-p7",
+        "s4-p8",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "Against FreeScene, whose numbers come from its own paper, SceneNAT remains competitive when iRecall is evaluated with up to two relational constraints (Nrel ≤ 2).",
+      "es": "Frente a FreeScene, cuyas cifras provienen de su propio artículo, SceneNAT sigue siendo competitivo cuando el iRecall se evalúa con hasta dos restricciones relacionales (Nrel ≤ 2).",
+      "blocks": [
+        "s4-p7",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "With 5 and 6 relational constraints, beyond the maximum of 4 seen in training, SceneNAT keeps a high iRecall while InstructScene degrades more clearly. The paper credits the auxiliary relational supervision in the RRM.",
+      "es": "Con 5 y 6 restricciones relacionales, más allá del máximo de 4 vistas en entrenamiento, SceneNAT mantiene un iRecall alto mientras InstructScene se degrada con más claridad. El artículo lo atribuye a la supervisión relacional auxiliar del RRM.",
+      "blocks": [
+        "s4-p10",
+        "s4-p11",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "SceneNAT needs 30 steps, against 1,000 for DiffuScene and 110 (100+10) for InstructScene. It is approximately 5x faster than InstructScene and over 24.7x faster than DiffuScene, with over 20% fewer parameters than InstructScene and 4.3x lower TFLOPs than InstructScene and 6x lower than DiffuScene.",
+      "es": "SceneNAT necesita 30 pasos, frente a 1,000 de DiffuScene y 110 (100+10) de InstructScene. Es aproximadamente 5x más rápido que InstructScene y más de 24.7x más rápido que DiffuScene, con más de 20% menos parámetros que InstructScene y 4.3x menos TFLOPs que InstructScene y 6x menos que DiffuScene.",
+      "blocks": [
+        "s4-p12",
+        "tab-3",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "The smaller SceneNAT-S still surpasses InstructScene, with 6.6x faster inference and 5.6x lower TFLOPs. At batch size 1 it takes 0.49s against 2.46s, and at batch size 128 InstructScene takes 6.73s while SceneNAT-B takes only 1.35s.",
+      "es": "El SceneNAT-S, más pequeño, aun así supera a InstructScene, con inferencia 6.6x más rápida y 5.6x menos TFLOPs. Con lote de 1 tarda 0.49s contra 2.46s, y con lote de 128 InstructScene tarda 6.73s mientras SceneNAT-B tarda solo 1.35s.",
+      "blocks": [
+        "s4-p37",
+        "fig-6",
+        "fig-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "Although trained on templated instructions, SceneNAT handles unseen object and relation expressions. An LLM that rewrites raw prompts into structured relational instructions improves robustness on long, functional and abstract inputs while preserving layout consistency.",
+      "es": "Aunque se entrena con instrucciones de plantilla, SceneNAT maneja expresiones de objetos y relaciones no vistas. Un LLM que reescribe indicaciones libres como instrucciones relacionales estructuradas mejora la robustez con entradas largas, funcionales y abstractas, conservando la coherencia de la disposición.",
+      "blocks": [
+        "s4-p38",
+        "fig-7",
+        "fig-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "In Table 4, removing the RRM lowers iRecall to 62.77 (full model: FID 109.55, iRecall 70.45). Supervising the RRM on a full scene graph instead of only the relations given in the input also does worse (FID 110.76, iRecall 65.16).",
+      "es": "En la Tabla 4, quitar el RRM baja el iRecall a 62.77 (modelo completo: FID 109.55, iRecall 70.45). Supervisar el RRM con un grafo de escena completo en lugar de solo las relaciones dadas en la entrada también rinde peor (FID 110.76, iRecall 65.16).",
+      "blocks": [
+        "s4-p42",
+        "s4-p46",
+        "s4-p47"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "Without replace-and-remask the FID rises to 191.69. Both object-level and token-level masking help FID, but object-level masking matters more for iRecall (66.11 without it, 68.26 without token masking, 70.45 for the full model).",
+      "es": "Sin reemplazo y re-enmascarado el FID sube a 191.69. Tanto el enmascarado por objeto como por token ayudan al FID, pero el enmascarado por objeto importa más para el iRecall (66.11 sin él, 68.26 sin enmascarado por token, 70.45 con el modelo completo).",
+      "blocks": [
+        "s4-p42",
+        "s4-p48"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "result",
+      "en": "Varying layout bins from 32 to 256 shows SceneNAT is robust. Coarser bins slightly reduce iRecall and denser ones bring marginal gains, so 64 bins were used. Bedroom iRecall is 70.17, 70.45, 69.93 and 68.02 at 32, 64, 128 and 256 bins.",
+      "es": "Variar los intervalos de la disposición de 32 a 256 muestra que SceneNAT es robusto. Los intervalos más gruesos reducen ligeramente el iRecall y los más densos dan ganancias marginales, por lo que se usaron 64. El iRecall de recámaras es 70.17, 70.45, 69.93 y 68.02 con 32, 64, 128 y 256 intervalos.",
+      "blocks": [
+        "s4-p49",
+        "tab-5",
+        "s4-p41",
+        "s4-p43",
+        "s4-p44"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "result",
+      "en": "Two RRM layers give the best FID and iRecall, and every configuration with the module beats the one without it. Learning separate subject, predicate and object embeddings by bipartite matching beats relational attention with one combined triplet embedding on iRecall.",
+      "es": "Dos capas de RRM dan el mejor FID e iRecall, y toda configuración con el módulo supera a la que no lo tiene. Aprender embeddings separados de sujeto, predicado y objeto por emparejamiento bipartito supera en iRecall a la atención relacional con un solo embedding combinado de tripleta.",
+      "blocks": [
+        "app-a-p28",
+        "app-a-p41",
+        "tab-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "result",
+      "en": "Raising the classifier-free guidance scale up to 2.0 improves iRecall at a slight cost in visual quality, and going beyond 2.0 hurts both. The default is ρ = 1.0.",
+      "es": "Subir la escala de guía libre de clasificador hasta 2.0 mejora el iRecall a costa de una ligera pérdida de calidad visual, y pasar de 2.0 perjudica ambos. El valor por defecto es ρ = 1.0.",
+      "blocks": [
+        "app-a-p43",
+        "app-a-p42",
+        "tab-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "result",
+      "en": "SceneNAT has the lowest total intersection volume across all three room types, with no explicit collision supervision, whereas DiffuScene uses an IoU loss. The paper concludes that the model learns physical constraints from the data distribution.",
+      "es": "SceneNAT tiene el menor volumen total de intersección en los tres tipos de cuarto, sin supervisión explícita de colisiones, mientras que DiffuScene usa una pérdida de IoU. El artículo concluye que el modelo aprende restricciones físicas de la distribución de los datos.",
+      "blocks": [
+        "app-a-p50",
+        "app-a-p51",
+        "tab-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "result",
+      "en": "In a user study with 42 participants and 18 comparison sets, SceneNAT was chosen as the most preferred method in 54.8% of cases, against 38.1% for the strongest baseline, InstructScene.",
+      "es": "En un estudio con 42 participantes y 18 conjuntos de comparación, SceneNAT fue elegido como el método preferido en 54.8% de los casos, frente a 38.1% del mejor baseline, InstructScene.",
+      "blocks": [
+        "app-d-p1",
+        "app-d-p2",
+        "fig-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "result",
+      "en": "Zero-shot, SceneNAT does stylization, re-arrangement, completion and unconditional generation, and also layout-to-object (predict object attributes for a given 3D box). It is competitive with or better than InstructScene, and in layout-to-object, where only DiffuScene applies, it has a much better FID.",
+      "es": "En zero-shot, SceneNAT hace estilización, reacomodo, completado y generación incondicional, y también disposición-a-objeto (predecir los atributos del objeto para una caja 3D dada). Es competitivo o mejor que InstructScene, y en disposición-a-objeto, donde solo aplica DiffuScene, tiene un FID mucho mejor.",
+      "blocks": [
+        "app-e-p1",
+        "app-e-p2",
+        "tab-9"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "limitation",
+      "en": "SceneNAT is trained and evaluated only on synthetic assets and relies on a closed retrieval library. The paper notes this is shared by most recent baselines and limits direct use in real-world environments.",
+      "es": "SceneNAT se entrena y evalúa solo con activos sintéticos y depende de una biblioteca de recuperación cerrada. El artículo señala que esto es común a la mayoría de los baselines recientes y limita su uso directo en entornos reales.",
+      "blocks": [
+        "app-c-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i35",
+      "kind": "limitation",
+      "en": "How the RRM scales to more simultaneous relational constraints has not been explored. Uniform discretization of the layout is not guaranteed to be optimal, and many hyperparameters, such as remasking ratios and guidance scale, need careful tuning.",
+      "es": "No se ha explorado cómo escala el RRM con más restricciones relacionales simultáneas. No se garantiza que la discretización uniforme de la disposición sea óptima, y muchos hiperparámetros, como las proporciones de re-enmascarado y la escala de guía, requieren ajuste cuidadoso.",
+      "blocks": [
+        "app-c-p1",
+        "app-c-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i36",
+      "kind": "limitation",
+      "en": "Failure cases show relation violations, missed color or style attributes, and implausible layouts with collisions or wrong scale and rotation. The model is also inconsistent with negative constraints and high-level spatial reasoning.",
+      "es": "Los casos de falla muestran violaciones de relaciones, atributos de color o estilo omitidos y disposiciones inverosímiles con colisiones o escala y rotación incorrectas. El modelo también es inconsistente con restricciones negativas y razonamiento espacial de alto nivel.",
+      "blocks": [
+        "app-g-p1",
+        "app-f-p2",
+        "fig-25",
+        "fig-26",
+        "fig-27"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i37",
+      "kind": "future",
+      "en": "Proposed next steps: tune remasking ratio and guidance scale automatically (as in AutoNAT), add a generative mesh decoder instead of retrieval, and condition on partial scans, images or coarse floorplans. The conclusion also points to multimodal inputs and larger, relation-rich environments.",
+      "es": "Pasos siguientes propuestos: ajustar automáticamente la proporción de re-enmascarado y la escala de guía (como en AutoNAT), añadir un decodificador generativo de mallas en lugar de la recuperación, y condicionar con escaneos parciales, imágenes o planos aproximados. La conclusión también apunta a entradas multimodales y entornos más grandes y ricos en relaciones.",
+      "blocks": [
+        "app-c-p3",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i38",
+      "kind": "claim",
+      "en": "The paper says its efficiency enables high-throughput uses: simulation-ready scenes, massive environment sampling, failure-case augmentation and interactive scene editing. It frames large synthetic environments for robot learning and embodied AI as a main application.",
+      "es": "El artículo dice que su eficiencia permite usos de alto rendimiento: escenas listas para simulación, muestreo masivo de entornos, aumento de casos de falla y edición interactiva de escenas. Presenta los entornos sintéticos grandes para aprendizaje de robots e IA corpórea como una aplicación principal.",
+      "blocks": [
+        "fig-1",
+        "s0-p11",
+        "s0-p12",
+        "s0-p13",
+        "s0-p14",
+        "s1-p1"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i2",
+      "to": "i3",
+      "type": "supports",
+      "why": "The limits of earlier paradigms motivate parallel masked decoding."
+    },
+    {
+      "from": "i3",
+      "to": "i1",
+      "type": "supports",
+      "why": "Parallel, order-free decoding is the paper's answer to the question."
+    },
+    {
+      "from": "i4",
+      "to": "i5",
+      "type": "uses",
+      "why": "The scene matrix is built from discretized tokens."
+    },
+    {
+      "from": "i6",
+      "to": "i4",
+      "type": "uses",
+      "why": "Masking operates on the object-by-attribute scene matrix."
+    },
+    {
+      "from": "i7",
+      "to": "i6",
+      "type": "part-of",
+      "why": "The masking strategy is how MISM is trained."
+    },
+    {
+      "from": "i8",
+      "to": "i6",
+      "type": "part-of",
+      "why": "Iterative unmasking is the inference side of MISM."
+    },
+    {
+      "from": "i9",
+      "to": "i6",
+      "type": "part-of",
+      "why": "The RRM is the second component of the SceneNAT framework."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Set prediction with bipartite matching is how the RRM is supervised."
+    },
+    {
+      "from": "i11",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Only the RRM's features, not its triplet outputs, are used at inference."
+    },
+    {
+      "from": "i12",
+      "to": "i10",
+      "type": "uses",
+      "why": "The total loss includes the triplet loss from the matching step."
+    },
+    {
+      "from": "i13",
+      "to": "i8",
+      "type": "uses",
+      "why": "Retrieval takes the attributes produced by iterative sampling."
+    },
+    {
+      "from": "i15",
+      "to": "i14",
+      "type": "part-of",
+      "why": "The refined instructions are the text side of the dataset."
+    },
+    {
+      "from": "i15",
+      "to": "i16",
+      "type": "uses",
+      "why": "Instructions are filled from the geometrically defined relations."
+    },
+    {
+      "from": "i17",
+      "to": "i14",
+      "type": "uses",
+      "why": "Baselines are retrained on the same refined instructions."
+    },
+    {
+      "from": "i19",
+      "to": "i14",
+      "type": "uses",
+      "why": "Training runs on the few thousand rooms of this dataset."
+    },
+    {
+      "from": "i18",
+      "to": "i20",
+      "type": "measures",
+      "why": "The metrics define what 'best' means in Table 1."
+    },
+    {
+      "from": "i18",
+      "to": "i22",
+      "type": "measures",
+      "why": "iRecall is the measure plotted against constraint count."
+    },
+    {
+      "from": "i20",
+      "to": "i1",
+      "type": "supports",
+      "why": "Best iRecall and quality answers the quality part of the question."
+    },
+    {
+      "from": "i21",
+      "to": "i20",
+      "type": "supports",
+      "why": "Competitive with a newer diffusion method on its own numbers."
+    },
+    {
+      "from": "i22",
+      "to": "i9",
+      "type": "supports",
+      "why": "The paper credits RRM supervision for generalizing beyond 4 relations."
+    },
+    {
+      "from": "i23",
+      "to": "i3",
+      "type": "supports",
+      "why": "Fewer steps and lower cost back the parallel-decoding claim."
+    },
+    {
+      "from": "i24",
+      "to": "i23",
+      "type": "supports",
+      "why": "Latency stays nearly flat with batch size, extending the efficiency result."
+    },
+    {
+      "from": "i25",
+      "to": "i1",
+      "type": "supports",
+      "why": "Unseen phrasing is still followed, helped by LLM rewriting."
+    },
+    {
+      "from": "i26",
+      "to": "i9",
+      "type": "supports",
+      "why": "Ablation shows iRecall drops without the RRM."
+    },
+    {
+      "from": "i27",
+      "to": "i7",
+      "type": "supports",
+      "why": "Ablation shows each masking component matters."
+    },
+    {
+      "from": "i28",
+      "to": "i5",
+      "type": "measures",
+      "why": "Bin count is the discretization choice being tested."
+    },
+    {
+      "from": "i29",
+      "to": "i10",
+      "type": "supports",
+      "why": "Separate embeddings by bipartite matching beat a combined triplet embedding."
+    },
+    {
+      "from": "i30",
+      "to": "i12",
+      "type": "measures",
+      "why": "The guidance scale tests the trade-off from conditioning dropout in training."
+    },
+    {
+      "from": "i31",
+      "to": "i6",
+      "type": "supports",
+      "why": "Plausibility emerges from masked modeling without a collision loss."
+    },
+    {
+      "from": "i32",
+      "to": "i20",
+      "type": "supports",
+      "why": "Human preference agrees with the metric results."
+    },
+    {
+      "from": "i33",
+      "to": "i3",
+      "type": "supports",
+      "why": "Completion and layout-to-object work because context is bidirectional."
+    },
+    {
+      "from": "i38",
+      "to": "i23",
+      "type": "uses",
+      "why": "The downstream uses depend on the low cost per scene."
+    },
+    {
+      "from": "i36",
+      "to": "i25",
+      "type": "contradicts",
+      "why": "Negation and high-level spatial reasoning stay inconsistent despite the generalization claim."
+    },
+    {
+      "from": "i37",
+      "to": "i34",
+      "type": "supports",
+      "why": "Mesh decoding and real-scan conditioning aim to remove the closed-library limit."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i20",
+      "to": "hypothesis",
+      "why": "A scene split into objects, attributes and relations was enough for a model to generate new scenes that follow instructions, though in interiors rather than BIM."
+    },
+    {
+      "idea": "i6",
+      "to": "masking-training",
+      "why": "Same recipe of hiding part of a structured scene and training the model to fill it, with cosine-scheduled ratios and no fixed order."
+    },
+    {
+      "idea": "i27",
+      "to": "masking-training",
+      "why": "Masking whole objects versus single tokens is a tested choice: object-level matters more for instruction adherence (iRecall 66.11 without it)."
+    },
+    {
+      "idea": "i33",
+      "to": "masking-training",
+      "why": "Completion from a partial scene works zero-shot with the masked model, the kind of fill-in a masked BIM model would need."
+    },
+    {
+      "idea": "i8",
+      "to": "assemble-node-by-node",
+      "why": "A contrast: instead of one element at a time, all slots are filled in parallel and the least confident are re-masked and redone."
+    },
+    {
+      "idea": "i8",
+      "to": "chang-2022",
+      "why": "The sampling loop follows MaskGIT: re-mask low-confidence tokens on a cosine schedule."
+    },
+    {
+      "idea": "i3",
+      "to": "placement-order-experiments",
+      "why": "Gives a case for avoiding a predefined order, since decoding order is replaced by confidence-based parallel decoding."
+    },
+    {
+      "idea": "i4",
+      "to": "ifc-to-graph-recipe",
+      "why": "A variant of elements-and-relations: objects are rows of attribute tokens, and relations live in a separate triplet set instead of graph edges."
+    },
+    {
+      "idea": "i11",
+      "to": "explicit-vs-learned",
+      "why": "Explicit symbolic relations supervise only training, and at inference learned features carry them."
+    },
+    {
+      "idea": "i36",
+      "to": "locks-beside-learned-part",
+      "why": "Even with a learned plausibility prior, collisions and wrong scale or rotation still appear in failure cases, so explicit checks beside the learned part stay relevant."
+    },
+    {
+      "idea": "i13",
+      "to": "mcp-assembles-in-revit",
+      "why": "The model outputs class and attributes, and a separate step picks a library asset and places it, similar to turning proposals into Revit family instances."
+    },
+    {
+      "idea": "i34",
+      "to": "real-or-synthetic-data",
+      "why": "Trained only on synthetic assets with a closed library, which the paper says limits real-world use."
+    },
+    {
+      "idea": "i22",
+      "to": "accuracy-on-own-models",
+      "why": "Tests with 5 and 6 constraints, beyond the maximum of 4 in training, probe generalization instead of only scoring on the training distribution."
+    },
+    {
+      "idea": "i38",
+      "to": "dataset-purposes",
+      "why": "Generated scenes are meant as simulation-ready environments, large-scale sampling and failure-case augmentation."
+    },
+    {
+      "idea": "i17",
+      "to": "tang-2024",
+      "why": "DiffuScene, the diffusion baseline, is compared directly: 1,000 steps against 30 and over 24.7x slower."
+    }
+  ]
+}

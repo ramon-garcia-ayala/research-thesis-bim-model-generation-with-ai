@@ -323,6 +323,32 @@ body[data-presentation] {
   cursor: pointer;
 }
 
+/* the play mode: a word, not a glyph (clicks · auto · still) */
+.deck__play {
+  min-width: 3.4rem;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  background: var(--fill);
+}
+
+/* still: nothing moves — no build transitions, no flowing lines */
+html[data-play='still'] .slide [data-build],
+html[data-play='still'] .slide [data-build-state],
+html[data-play='still'] .slide [data-build-state] * {
+  transition: none !important;
+}
+
+html[data-play='still'] .nv-att--hot {
+  animation: none;
+}
+
+/* going back to an earlier slide: it is there at once, complete (deck.js sets this for two frames) */
+html[data-going='back'] .slide,
+html[data-going='back'] .slide * {
+  transition: none !important;
+  animation-delay: 0s !important;
+}
+
 .deck__btn:hover {
   background: var(--hover);
 }
@@ -353,6 +379,42 @@ body[data-presentation] {
 .deck__dot[aria-current='step'] {
   width: 16px;
   background: var(--ink);
+}
+
+/* the dots of one chapter, after its name; a rule between chapters */
+.deck__dots:has(.deck__chapter) {
+  gap: 10px;
+}
+
+.deck__group {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.deck__group + .deck__group {
+  padding-left: 10px;
+  border-left: 1px solid var(--separator);
+}
+
+/* a chapter's name: a click goes to its cover */
+.deck__chapter {
+  margin-right: 2px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--ink-tertiary);
+  font: inherit;
+  font-size: var(--text-caption);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur) var(--ease);
+}
+
+.deck__chapter:hover,
+.deck__group.is-current .deck__chapter {
+  color: var(--ink);
 }
 
 .deck__count {
@@ -1951,6 +2013,20 @@ html[data-embed] .deck__bar {
   padding-block: 0.25rem;
 }
 
+/* a preview in the presenter view: the slide alone, filling the frame */
+html[data-preview] body[data-presentation] {
+  grid-template-rows: 1fr;
+  grid-template-areas: 'stage';
+}
+
+html[data-preview] .deck {
+  padding: 0;
+}
+
+html[data-preview] .deck__bar {
+  display: none;
+}
+
 /* -- jump: three steps over a closing line -- */
 .slide--jump .points .card h3 {
   font-size: 2cqw;
@@ -2172,6 +2248,26 @@ html[data-embed] .deck__bar {
 .refs a:hover {
   color: var(--ink);
   text-decoration-color: currentColor;
+}
+
+/* how much of a cited paper the author has read (from reading/<id>.json): ● started, with its share; ○ not yet */
+.refs .refs__read {
+  margin-left: 0.4cqw;
+  color: var(--ink);
+}
+
+.refs .refs__read::before {
+  content: '● ';
+  color: var(--accent);
+}
+
+.refs .refs__read.is-unread {
+  color: var(--ink-tertiary);
+}
+
+.refs .refs__read.is-unread::before {
+  content: '○ ';
+  color: var(--ink-tertiary);
 }
 
 /* a slide with references leaves room under its content, and lifts its footnote above them */
@@ -2492,6 +2588,90 @@ html[data-embed] .deck__bar {
   }
 }
 
+/* how near a placed door landed (E3 · AI): one cyan, apart from the --diff and --cls hues */
+:root { --near: #0891b2; }
+:root[data-theme='dark'] { --near: #22d3ee; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) { --near: #22d3ee; }
+}
+
+/* the near icons on the view: flat dots pinned over each placed door, the same size whatever the zoom */
+.model3d__near {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: 1.5px solid var(--panel);
+  border-radius: 50%;
+  background: var(--near);
+  pointer-events: none;
+}
+
+.model3d__near[hidden] {
+  display: none;
+}
+
+.model3d__near--0 { width: 0.95cqw; height: 0.95cqw; box-shadow: 0 0 0.6cqw 0.15cqw var(--near); }
+.model3d__near--1 { width: 0.75cqw; height: 0.75cqw; box-shadow: 0 0 0.35cqw var(--near); }
+.model3d__near--2 { width: 0.55cqw; height: 0.55cqw; opacity: 0.7; }
+.model3d__near--3 { width: 0.4cqw; height: 0.4cqw; opacity: 0.45; }
+
+/* the near key: four dots, larger and brighter the nearer */
+.nearkey {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2cqw 0.9cqw;
+  margin-top: 0.2cqw;
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+  color: var(--ink-secondary);
+}
+
+.nearkey i {
+  display: inline-block;
+  margin-right: 0.3cqw;
+  vertical-align: middle;
+  border-radius: 50%;
+  background: var(--near);
+}
+
+.nearkey i.n0 { width: 0.9cqw; height: 0.9cqw; box-shadow: 0 0 0.5cqw var(--near); }
+.nearkey i.n1 { width: 0.75cqw; height: 0.75cqw; opacity: 0.9; box-shadow: 0 0 0.3cqw var(--near); }
+.nearkey i.n2 { width: 0.6cqw; height: 0.6cqw; opacity: 0.6; }
+.nearkey i.n3 { width: 0.45cqw; height: 0.45cqw; opacity: 0.35; }
+
+.nearkey b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* the classes of element, for the graph's colours (deck 07): kept apart from the --diff hues, which mean right,
+   wrong and proposed on the experiment slides */
+:root {
+  --cls-wall: #4b5563;
+  --cls-floor: #a8875a;
+  --cls-door: #7c5cd6;
+  --cls-window: #1597a8;
+  --cls-room: #c2477f;
+}
+
+:root[data-theme='dark'] {
+  --cls-wall: #b4bcc8;
+  --cls-floor: #c2a379;
+  --cls-door: #9a82ea;
+  --cls-window: #2fb3c4;
+  --cls-room: #e07aa6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --cls-wall: #b4bcc8;
+    --cls-floor: #c2a379;
+    --cls-door: #9a82ea;
+    --cls-window: #2fb3c4;
+    --cls-room: #e07aa6;
+  }
+}
+
 .slide--models .models {
   flex: none;
   height: 27cqw;
@@ -2613,6 +2793,1400 @@ html[data-embed] .deck__bar {
 .diffs small {
   grid-column: 2;
   color: var(--ink-secondary);
+}
+
+/* -- kgraph: E1's whole graph, one panel per level, zoomable, a node clicked shows its tokens and relations
+   (deck 07, graph-view.js) -- */
+.kgraph {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: 1.2cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.6cqw;
+  overflow: hidden;
+}
+
+.kgraph__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+.kgraph__svg:active {
+  cursor: grabbing;
+}
+
+.kg-panel {
+  fill: none;
+  stroke: var(--separator);
+  vector-effect: non-scaling-stroke;
+}
+
+.kg-panel__label {
+  fill: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 2.6px;
+}
+
+.kg-edge {
+  stroke: var(--ink-tertiary);
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.55;
+}
+
+.kg-edge--hosted_by {
+  stroke: var(--ink);
+  stroke-width: 1.4;
+  opacity: 0.9;
+}
+
+.kg-edge--joins {
+  stroke: var(--ink-secondary);
+  stroke-dasharray: 4 3;
+}
+
+.kg-edge--meets_floor,
+.kg-edge--on_floor {
+  stroke-dasharray: 1 2.5;
+}
+
+.kg-node {
+  fill: var(--panel);
+  stroke: var(--ink);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+
+.kg-node--floor {
+  stroke: var(--ink-tertiary);
+  stroke-dasharray: 2 2;
+}
+
+.kg-node--door,
+.kg-node--window {
+  fill: var(--ink);
+}
+
+.kg-node--room {
+  stroke: var(--ink-secondary);
+}
+
+/* colours on (the default): each class its own hue, the same in the key */
+.kgraph.is-colour .kg-node--wall { fill: var(--cls-wall); stroke: var(--cls-wall); }
+.kgraph.is-colour .kg-node--floor { fill: color-mix(in srgb, var(--cls-floor) 35%, transparent); stroke: var(--cls-floor); }
+.kgraph.is-colour .kg-node--door { fill: var(--cls-door); stroke: var(--cls-door); }
+.kgraph.is-colour .kg-node--window { fill: var(--cls-window); stroke: var(--cls-window); }
+.kgraph.is-colour .kg-node--room { fill: color-mix(in srgb, var(--cls-room) 35%, transparent); stroke: var(--cls-room); }
+
+/* the graph slide: the view takes the height, the key sits low, just over the references */
+.slide--graph h2 {
+  max-width: none;
+  font-size: 2.8cqw;
+}
+
+.slide--graph.has-refs {
+  padding-bottom: calc(var(--frame) + var(--refs-h) + 4.2cqw);
+}
+
+.slide--graph .kgraph {
+  margin-top: 0.8cqw;
+}
+
+.slide--graph .kgkey {
+  position: absolute;
+  left: var(--frame);
+  right: var(--frame);
+  bottom: calc(var(--frame) + var(--refs-h) + 0.4cqw);
+  align-items: center;
+}
+
+.kgkey .kgkey__cls i {
+  width: 0.8cqw;
+  height: 0.8cqw;
+  border: none;
+  border-radius: 50%;
+  background: var(--ink-tertiary);
+}
+
+.kgkey.is-colour .kgkey__cls i {
+  background: var(--c);
+}
+
+/* the view reaches the frame on both sides, as the key and the references do */
+.slide--graph .kgraph {
+  margin-inline: calc(var(--frame) - var(--pad));
+}
+
+/* a class or a relation in the key isolates itself in the graph */
+.kgkey [data-iso] {
+  padding: 0.1cqw 0.3cqw;
+  border-radius: 0.25cqw;
+  cursor: pointer;
+}
+
+.kgkey [data-iso]:hover {
+  background: var(--fill);
+}
+
+.kgkey [data-iso].is-on {
+  outline: 1px solid var(--diff-1);
+}
+
+.kgkey.is-iso [data-iso]:not(.is-on) {
+  opacity: 0.4;
+}
+
+/* back to the first view, right of the colours switch */
+.kgkey__fit button {
+  padding: 0.15cqw 0.5cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.3cqw;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+  cursor: pointer;
+}
+
+/* the key's second row starts here */
+.kgkey__break {
+  flex-basis: 100%;
+  height: 0;
+}
+
+/* the switch for the colours, tucked at the right end of the key, outside the view */
+.kgkey__switch {
+  margin-left: auto;
+}
+
+.kgkey__switch button {
+  padding: 0.15cqw 0.5cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.3cqw;
+  background: var(--panel);
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+  cursor: pointer;
+}
+
+.kgkey__switch button[aria-pressed='true'] {
+  color: var(--ink);
+}
+
+/* a node in focus: the rest steps back */
+.kgraph__svg.is-focus .kg-edge {
+  opacity: 0.08;
+}
+
+.kgraph__svg.is-focus .kg-node {
+  opacity: 0.25;
+}
+
+.kgraph__svg .kg-edge.is-lit {
+  stroke: var(--diff-1);
+  stroke-width: 1.8;
+  opacity: 1;
+}
+
+.kgraph__svg .kg-node:is(.is-near, .is-piece) {
+  opacity: 1;
+  stroke-width: 1.8;
+}
+
+.kgraph__svg .kg-node:is(.is-sel, .is-seed) {
+  opacity: 1;
+  fill: var(--diff-1);
+  stroke: var(--diff-1);
+}
+
+.kgraph__tools {
+  position: absolute;
+  top: 0.8cqw;
+  left: 0.8cqw;
+  display: flex;
+  gap: 0.4cqw;
+}
+
+.kgraph__tools button {
+  padding: 0.25cqw 0.6cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.3cqw;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.8cqw;
+  cursor: pointer;
+}
+
+.kgraph__tools button.is-on {
+  border-color: var(--diff-1);
+  color: var(--diff-1);
+}
+
+.kgraph__hint {
+  position: absolute;
+  left: 0.8cqw;
+  bottom: 0.6cqw;
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+  pointer-events: none;
+}
+
+.kgraph__info {
+  position: absolute;
+  top: 0.8cqw;
+  right: 0.8cqw;
+  bottom: 0.8cqw;
+  width: 30%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5cqw;
+  padding: 0.8cqw 1cqw;
+  border: 1px solid var(--diff-1);
+  border-radius: 0.4cqw;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  font-size: 0.85cqw;
+}
+
+.kgraph__info[hidden] {
+  display: none;
+}
+
+.kgraph__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6cqw;
+  font-size: 1.1cqw;
+  font-weight: 500;
+}
+
+.kgraph__head small {
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+  font-weight: 400;
+}
+
+.kgraph__tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25cqw;
+}
+
+.kgraph__tokens code {
+  padding: 0.1cqw 0.35cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.2cqw;
+  font-family: var(--font-mono);
+  font-size: 0.72cqw;
+}
+
+.kgraph__count {
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+}
+
+.slide .kgraph__rels {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.5cqw;
+}
+
+.kgraph__rels li {
+  display: grid;
+  gap: 0.1cqw;
+}
+
+.kgraph__rels b {
+  font-weight: 500;
+}
+
+.kgraph__rel {
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.kgraph__rel:hover {
+  color: var(--diff-1);
+}
+
+.kgraph__rels small {
+  color: var(--ink-tertiary);
+}
+
+/* -- puzzle: the transformer told as one hidden door and its neighbours (deck 07, model3d-sets.js drawPuzzle) -- */
+.pzstage {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 2.4cqw;
+  margin-top: 1cqw;
+}
+
+.puzzle {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.pz-arrow {
+  stroke: var(--ink-tertiary);
+  stroke-width: 1.4;
+}
+
+#pz-head path {
+  fill: var(--ink-tertiary);
+}
+
+.pz-node circle {
+  stroke: var(--panel);
+  stroke-width: 2;
+}
+
+.pz-node--wall circle { fill: var(--cls-wall); }
+.pz-node--floor circle { fill: var(--cls-floor); }
+.pz-node--door circle { fill: var(--cls-door); }
+.pz-node--window circle { fill: var(--cls-window); }
+.pz-node--room circle { fill: var(--cls-room); }
+
+.pz-node text,
+.pz-hole__q {
+  fill: var(--panel);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.pz-hole {
+  fill: var(--panel);
+  stroke: var(--cls-door);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.pz-hole__q {
+  fill: var(--cls-door);
+  font-family: var(--font-serif);
+  font-size: 34px;
+}
+
+.pz-times {
+  fill: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-anchor: middle;
+}
+
+.pz-hostring {
+  fill: none;
+  stroke: var(--diff-1);
+  stroke-width: 3;
+}
+
+.pzside {
+  display: flex;
+  flex-direction: column;
+  gap: 1cqw;
+  min-height: 0;
+}
+
+.pzside__step {
+  padding-top: 0.5cqw;
+  border-top: 1px solid var(--separator);
+  color: var(--ink-secondary);
+  font-size: 1.15cqw;
+}
+
+.slide .pzanswers {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.7cqw;
+}
+
+.pzanswers > li {
+  display: grid;
+  grid-template-columns: 1.6cqw minmax(0, 1fr);
+  column-gap: 0.4cqw;
+  padding: 0.55cqw 0.7cqw;
+  border-left: 3px solid var(--diff-1);
+  background: color-mix(in srgb, var(--diff-1) 7%, transparent);
+  font-size: 0.95cqw;
+}
+
+.pzanswers small {
+  grid-row: span 2;
+  color: var(--diff-1);
+  font-size: 1.2cqw;
+}
+
+.pzanswers > li > span {
+  color: var(--ink-secondary);
+}
+
+.pzanswers b {
+  color: var(--ink);
+  font-size: 1.15cqw;
+  font-weight: 500;
+}
+
+.pzanswers > li.is-ok b::after {
+  content: '  ✓';
+  color: var(--diff-3);
+}
+
+.pzanswers > li.is-no {
+  border-left-color: var(--diff-2);
+}
+
+.pzanswers > li.is-no b::after {
+  content: '  ✕';
+  color: var(--diff-2);
+}
+
+/* the masking, step by step, in general; the AI's step in its blue, what comes next dashed */
+.slide .pzsteps {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.7cqw;
+}
+
+.pzsteps > li {
+  display: grid;
+  grid-template-columns: 1.6cqw minmax(0, 1fr);
+  column-gap: 0.4cqw;
+  padding: 0.5cqw 0.7cqw;
+  border-left: 3px solid var(--separator);
+  color: var(--ink-secondary);
+  font-size: 0.95cqw;
+  line-height: 1.3;
+}
+
+.pzsteps small {
+  grid-row: span 2;
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 1.1cqw;
+}
+
+.pzsteps b {
+  color: var(--ink);
+  font-size: 1.2cqw;
+  font-weight: 500;
+}
+
+.pzsteps > li.is-ai {
+  border-left-color: var(--diff-1);
+  background: color-mix(in srgb, var(--diff-1) 7%, transparent);
+}
+
+.pzsteps > li.is-ai small {
+  color: var(--diff-1);
+}
+
+.pzsteps > li.is-next {
+  border-left-style: dashed;
+  border-left-color: var(--ink-tertiary);
+}
+
+.slide .pzkey {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3cqw 1cqw;
+  margin-top: auto;
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+}
+
+.pzkey li::before {
+  content: '● ';
+  color: var(--c);
+}
+
+/* -- netview: E2's network layer by layer (deck 07, model3d-sets.js drawNet) -- */
+.netview {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  margin-top: 0.6cqw;
+}
+
+.nv-label {
+  fill: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-anchor: middle;
+}
+
+.nv-tok { stroke: var(--panel); stroke-width: 1; }
+.nv-tok--wall { fill: var(--cls-wall); }
+.nv-tok--floor { fill: var(--cls-floor); }
+.nv-tok--door { fill: var(--cls-door); }
+.nv-tok--window { fill: var(--cls-window); }
+.nv-tok--room { fill: var(--cls-room); }
+
+.nv-tok--hidden {
+  fill: var(--panel);
+  stroke: var(--diff-1);
+  stroke-width: 1.6;
+  stroke-dasharray: 3 2;
+}
+
+/* every drawn number shows, ruled; its tone is its value */
+.nv-cell {
+  fill: var(--ink);
+  fill-opacity: var(--v);
+  stroke: var(--ink-tertiary);
+  stroke-width: 0.6;
+}
+
+.nv-cell--hidden {
+  fill: var(--diff-1);
+  stroke: var(--diff-1);
+}
+
+.nv-note {
+  fill: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-anchor: middle;
+}
+
+.nv-note--hot {
+  fill: var(--diff-1);
+}
+
+.nv-note--wall {
+  fill: var(--cls-wall);
+}
+
+/* the walls of the piece, read for the wall answer */
+.nv-att--wall {
+  stroke: var(--cls-wall);
+  stroke-width: 0.9;
+  stroke-opacity: 0.6;
+}
+
+/* a hypothesis, dashed as what comes next */
+.netnote {
+  margin-top: 0.7cqw;
+  padding: 0.4cqw 0.7cqw;
+  border-left: 3px dashed var(--ink-tertiary);
+  color: var(--ink-secondary);
+  font-size: 0.95cqw;
+}
+
+.netnote b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* on a roomy slide (next steps), a size up and some air above */
+.slide--roomy .netnote {
+  margin-top: 2.4cqw;
+  font-size: 1.3cqw;
+}
+
+.nv-att {
+  fill: none;
+  stroke: var(--ink-tertiary);
+  stroke-width: 0.5;
+  stroke-opacity: 0.18;
+}
+
+/* what flows into the hidden token, in the AI's blue, moving */
+.nv-att--hot {
+  stroke: var(--diff-1);
+  stroke-width: 1.1;
+  stroke-opacity: 0.85;
+  stroke-dasharray: 4 5;
+  animation: nv-flow 1.4s linear infinite;
+}
+
+@keyframes nv-flow {
+  to { stroke-dashoffset: -18; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nv-att--hot { animation: none; }
+}
+
+.nv-unit {
+  fill: var(--panel);
+  stroke: var(--ink-secondary);
+  stroke-width: 1.2;
+}
+
+.nv-unit--hidden {
+  fill: var(--diff-1);
+  stroke: var(--diff-1);
+}
+
+.nv-box {
+  fill: color-mix(in srgb, var(--diff-1) 10%, var(--panel));
+  stroke: var(--diff-1);
+}
+
+.nv-box__t {
+  fill: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* the network slide: the drawing takes the height, down to just over the references */
+.slide--net.has-refs {
+  padding-bottom: calc(var(--frame) + var(--refs-h) + 1.4cqw);
+}
+
+.slide--net .netview {
+  margin-top: 0.2cqw;
+}
+
+/* the network's size, in one row under it */
+.slide .netfacts {
+  margin-top: 0.4cqw;
+}
+
+.netfacts b {
+  font-size: 1.25cqw;
+}
+
+.netfacts small {
+  font-size: 0.75cqw;
+}
+
+/* the graph's key, under the graph */
+.slide .kgkey {
+  margin-top: 0.8cqw;
+}
+
+.kgkey b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* -- tokens: half the slide says what a token is, half draws the real graph (deck 07) -- */
+.tokstage {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3cqw;
+  margin-top: 1.4cqw;
+}
+
+/* -- repo: the project's two folders as file trees, the data bridge between them (deck 07) -- */
+.repo {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 2cqw;
+  align-items: start;
+  margin-top: 1.6cqw;
+}
+
+.repo__tree {
+  padding: 1.6cqw 1.8cqw;
+  border: 1px solid var(--separator);
+  border-top: 3px solid var(--c);
+  border-radius: 0.5cqw;
+}
+
+.repo__tree--py { --c: var(--cls-floor); }
+.repo__tree--js { --c: var(--cls-window); }
+
+.slide .repo__root {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1cqw;
+  margin-bottom: 1.4cqw;
+}
+
+.repo__root code {
+  color: var(--c);
+  font-family: var(--font-mono);
+  font-size: 1.9cqw;
+  font-weight: 500;
+}
+
+.repo__root small {
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.95cqw;
+}
+
+.slide .repo ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.85cqw;
+}
+
+.slide .repo ul ul {
+  margin: 0.4cqw 0 0.2cqw 1.2cqw;
+  padding-left: 0.9cqw;
+  border-left: 1px solid var(--separator);
+}
+
+.repo li {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  column-gap: 0.8cqw;
+  align-items: baseline;
+}
+
+.repo li.repo__dir {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.repo code {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 1.2cqw;
+  white-space: nowrap;
+}
+
+.repo small {
+  color: var(--ink-secondary);
+  font-size: 1.05cqw;
+}
+
+/* the bridge: results flow from the pipeline into the slides */
+.repo__bridge {
+  display: grid;
+  justify-items: center;
+  align-self: center;
+  gap: 0.4cqw;
+  color: var(--ink-tertiary);
+  font-size: 1.3cqw;
+}
+
+.repo__bridge code {
+  padding: 0.3cqw 0.6cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.3cqw;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 1.05cqw;
+}
+
+.repo__bridge b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* the token slide: the two sentences centred and large, the rules in one small row at the foot */
+.tokstage--stack {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  margin-top: 1cqw;
+}
+
+.tokstage--stack .tokside {
+  justify-content: center;
+  align-items: center;
+  gap: 3cqw;
+  text-align: center;
+}
+
+.tokstage--stack .tokside h3 {
+  font-size: 1.6cqw;
+}
+
+.tokstage--stack .tokrow {
+  justify-content: center;
+  gap: 0.7cqw 0.6cqw;
+  margin-top: 0.8cqw;
+}
+
+.tokstage--stack .tokrow > li {
+  justify-items: center;
+}
+
+.tokstage--stack .tokrow code {
+  padding: 0.35cqw 0.7cqw;
+  font-size: 1.3cqw;
+}
+
+.tokstage--stack .tokrow small {
+  font-size: 0.85cqw;
+}
+
+.slide .tokstage--stack .tokrules {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.4cqw;
+  margin-top: 0;
+  font-size: 0.85cqw;
+}
+
+/* the token slide on its own: the sentences take 60%, the rules the rest, chips a size up */
+.tokstage--wide {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  margin-top: 2cqw;
+}
+
+.tokstage--wide .tokside {
+  gap: 2cqw;
+}
+
+.tokstage--wide .tokside h3 {
+  font-size: 1.4cqw;
+}
+
+.tokstage--wide .tokrow code {
+  font-size: 1cqw;
+}
+
+.tokstage--wide .tokrow small {
+  font-size: 0.85cqw;
+}
+
+.slide .tokstage--wide .tokrules {
+  margin-top: 0;
+  align-content: start;
+  font-size: 1.15cqw;
+}
+
+.tokside {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1cqw;
+  min-height: 0;
+}
+
+.tokside h3 {
+  font-size: 1.15cqw;
+  font-weight: 500;
+}
+
+.tokside h3 small {
+  margin-left: 0.5cqw;
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.85cqw;
+  font-weight: 400;
+}
+
+.slide .tokrow {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5cqw 0.4cqw;
+  margin-top: 0.4cqw;
+}
+
+.tokrow > li {
+  display: grid;
+  gap: 0.15cqw;
+}
+
+.tokrow code {
+  padding: 0.2cqw 0.45cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.25cqw;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.8cqw;
+  white-space: nowrap;
+}
+
+.tokrow.is-seed code {
+  border-color: var(--diff-1);
+}
+
+.tokrow small {
+  color: var(--ink-tertiary);
+  font-size: 0.72cqw;
+}
+
+.slide .tokrules {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.45cqw;
+  margin-top: auto;
+  color: var(--ink-secondary);
+  font-size: 0.95cqw;
+  line-height: 1.35;
+}
+
+.tokrules > li {
+  padding-top: 0.4cqw;
+  border-top: 1px solid var(--separator);
+}
+
+.tokrules b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.tokgraph {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6cqw;
+  min-height: 0;
+}
+
+.piecegraph {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.pg-ring {
+  fill: none;
+  stroke: var(--separator);
+  stroke-dasharray: 2 4;
+}
+
+.pg-edge {
+  stroke: var(--ink-secondary);
+  stroke-width: 1.2;
+}
+
+.pg-edge--hosted_by {
+  stroke: var(--ink);
+  stroke-width: 2.6;
+}
+
+.pg-edge--joins {
+  stroke-dasharray: 6 4;
+}
+
+.pg-edge--meets_floor,
+.pg-edge--on_floor {
+  stroke: var(--ink-tertiary);
+  stroke-dasharray: 1.5 3;
+}
+
+.pg-node circle {
+  fill: var(--panel);
+  stroke: var(--ink);
+  stroke-width: 1.4;
+}
+
+.pg-node--floor circle {
+  stroke: var(--ink-tertiary);
+  stroke-dasharray: 3 2;
+}
+
+.pg-node--door circle,
+.pg-node--window circle {
+  fill: var(--ink);
+}
+
+.pg-node--door text,
+.pg-node--window text {
+  fill: var(--panel);
+}
+
+.pg-node.is-seed circle {
+  fill: var(--diff-1);
+  stroke: var(--diff-1);
+}
+
+.pg-node text {
+  fill: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.slide .tokkey {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2cqw 1.1cqw;
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.78cqw;
+}
+
+.tokkey i {
+  display: inline-block;
+  width: 1.6cqw;
+  margin-right: 0.35cqw;
+  vertical-align: middle;
+  border-top: 2px solid var(--ink);
+}
+
+.tokkey i.is-joins {
+  border-top: 1px dashed var(--ink-secondary);
+}
+
+.tokkey i.is-floor {
+  border-top: 1.5px dotted var(--ink-tertiary);
+}
+
+/* the expected result under a card's process (deck 07, Tests) */
+.points .card .card__expect {
+  margin-top: auto;
+  padding-top: 0.5cqw;
+  border-top: 1px dashed var(--separator);
+  color: var(--ink-secondary);
+  font-size: 1.05cqw;
+}
+
+.points .card .card__expect::before {
+  content: '→ ';
+  color: var(--ink-tertiary);
+}
+
+/* -- set: an experiment's 3D view beside its numbered steps (deck 07, model3d-sets.js). The same layout on every
+   experiment slide: the view on the left, the steps on the right with a row of numbers under them. Each step's
+   swatch is the colour it lights in the view (--c). -- */
+.setstage {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 2.4cqw;
+  margin-top: 1.2cqw;
+  margin-bottom: 1.2cqw;
+}
+
+/* the view takes the height: a one-line title and a bottom line no taller than its text */
+.slide--set h2 {
+  max-width: none;
+  font-size: 3cqw;
+}
+
+.slide--set .stepline__below {
+  height: auto;
+}
+
+.setside {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2cqw;
+  min-height: 0;
+}
+
+.slide .setsteps {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.8cqw;
+}
+
+.setsteps > li {
+  display: grid;
+  grid-template-columns: 1cqw minmax(0, 1fr);
+  column-gap: 0.7cqw;
+  padding-top: 0.55cqw;
+  border-top: 1px solid var(--separator);
+  color: var(--ink-secondary);
+  font-size: 1cqw;
+  line-height: 1.3;
+}
+
+.setsteps > li > i {
+  grid-row: span 2;
+  width: 1cqw;
+  height: 1cqw;
+  margin-top: 0.25cqw;
+  border-radius: 0.2cqw;
+  background: var(--c, var(--ink));
+}
+
+.setsteps > li > i.is-dash {
+  background: none;
+  border: 1px dashed var(--ink-tertiary);
+}
+
+/* a dashed swatch in its own colour: something missing that the view marks (E3 · AI, violet) */
+.setsteps > li > i.is-dash.is-tinted {
+  border-color: var(--c);
+  background: color-mix(in srgb, var(--c) 30%, transparent);
+}
+
+.setsteps b {
+  color: var(--ink);
+  font-size: 1.2cqw;
+  font-weight: 500;
+}
+
+.setsteps b small {
+  margin-right: 0.5cqw;
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.85cqw;
+  font-weight: 400;
+}
+
+.minikpis {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 1cqw;
+  margin-top: auto;
+}
+
+/* in a results card, the numbers go one under the other, larger */
+.minikpis--col {
+  grid-auto-flow: row;
+  grid-auto-columns: auto;
+  gap: 1cqw;
+  margin-top: 0.6cqw;
+}
+
+.minikpis--col b {
+  font-size: 2.6cqw;
+}
+
+.minikpis--col small {
+  font-size: 0.95cqw;
+}
+
+/* in the narrow column beside a view, the numbers go two by two */
+.setside .minikpis {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.minikpis > div {
+  display: grid;
+  align-content: start;
+  gap: 0.3cqw;
+  padding-top: 0.5cqw;
+  border-top: 1px solid var(--separator);
+}
+
+.minikpis b {
+  font-family: var(--font-serif);
+  font-size: 1.9cqw;
+  font-weight: 400;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.minikpis small {
+  color: var(--ink-secondary);
+  font-size: 0.8cqw;
+  line-height: 1.25;
+}
+
+/* tokens, or the AI's answers, pinned over an element of the view */
+.model3d__chips {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 0.6cqw));
+  display: grid;
+  gap: 0.15cqw;
+  padding: 0.45cqw 0.6cqw;
+  border: 1px solid var(--diff-1);
+  border-radius: 0.3cqw;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.78cqw;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* a thin bar along the bottom of the view, so the drawing keeps the space */
+.model3d__chips--bar {
+  top: auto;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2cqw 1.2cqw;
+  padding: 0.4cqw 1cqw;
+  border: none;
+  border-top: 1px solid var(--diff-1);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--panel) 90%, transparent);
+  font-size: 0.75cqw;
+  white-space: normal;
+}
+
+/* the AI's answers on E2, in the amber of its prediction */
+.model3d__chips--amber {
+  border-top-color: var(--diff-4);
+}
+
+.model3d__chips[hidden],
+.model3d__badge[hidden],
+.model3d__callout[hidden] {
+  display: none;
+}
+
+/* the "?" over a hidden element's storey */
+.model3d__badge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 3cqw;
+  height: 3cqw;
+  border: 1px dashed var(--ink-tertiary);
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 1.9cqw;
+  pointer-events: none;
+}
+
+.model3d__callout--ink {
+  border-color: var(--ink);
+}
+
+/* a verdict printed on a view's corner */
+.setbadge {
+  position: absolute;
+  left: 1cqw;
+  bottom: 1cqw;
+  display: grid;
+  gap: 0.2cqw;
+  padding: 0.5cqw 0.8cqw;
+  border: 1px solid var(--diff-3);
+  border-radius: 0.4cqw;
+  background: var(--panel);
+  pointer-events: none;
+}
+
+.setbadge b {
+  font-family: var(--font-serif);
+  font-size: 2cqw;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.setbadge small {
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.8cqw;
+}
+
+/* the AI against two baselines, one row per thing it predicts */
+.bars {
+  display: grid;
+  gap: 0.55cqw;
+  margin-top: auto;
+  font-size: 0.8cqw;
+}
+
+.bars__row {
+  display: grid;
+  grid-template-columns: 3.4cqw minmax(0, 1fr);
+  column-gap: 0.6cqw;
+  align-items: center;
+}
+
+.bars__row > span {
+  color: var(--ink-secondary);
+}
+
+.bars__set {
+  display: grid;
+  gap: 0.15cqw;
+}
+
+.bars__set > i {
+  display: flex;
+  align-items: center;
+  width: calc(var(--v) * 0.82%);
+  height: 0.75cqw;
+  border-radius: 0.15cqw;
+  background: color-mix(in srgb, var(--ink-tertiary) 45%, transparent);
+}
+
+.bars__set > i.is-ai {
+  background: var(--diff-1);
+}
+
+/* the second baseline, copying another floor, a shade lighter than the first */
+.bars__set > i:nth-child(3) {
+  background: color-mix(in srgb, var(--ink-tertiary) 22%, transparent);
+}
+
+.bars__set > i > b {
+  margin-left: calc(100% + 0.4cqw);
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.bars__set > i.is-ai > b {
+  color: var(--ink);
+}
+
+.bars__key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1cqw;
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.75cqw;
+}
+
+.bars__key > span::before {
+  content: '■ ';
+  color: color-mix(in srgb, var(--ink-tertiary) 45%, transparent);
+}
+
+.bars__key > span.is-ai::before {
+  color: var(--diff-1);
+}
+
+.bars__key > span.is-copy::before {
+  color: color-mix(in srgb, var(--ink-tertiary) 22%, transparent);
+}
+
+/* the MCP route, as a line of small boxes */
+.slide .setflow {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4cqw 1.4cqw;
+  font-family: var(--font-mono);
+  font-size: 0.8cqw;
+}
+
+.setflow > li {
+  position: relative;
+  padding: 0.25cqw 0.5cqw;
+  border: 1px solid var(--separator);
+  border-radius: 0.3cqw;
+  color: var(--ink);
+}
+
+.setflow > li + li::before {
+  content: '→';
+  position: absolute;
+  left: -1.1cqw;
+  color: var(--ink-tertiary);
 }
 
 /* -- chapter: the divider before each chapter, and the index -- */
@@ -2800,6 +4374,45 @@ html[data-embed] .deck__bar {
 .stepline__below em {
   color: var(--ink);
   font-style: normal;
+}
+
+/* seven steps (deck 07: tokens and decoding join the pipeline); narrower gap, same box height */
+.slide .stepline--7 {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1.8cqw;
+}
+
+.stepline--7 > li + li::before {
+  left: -1.45cqw;
+}
+
+.stepline--7 h3 {
+  font-size: 1.3cqw;
+}
+
+/* a card whose result has not arrived yet: dashed rule, the status in mono */
+.card.is-pending {
+  border-top-style: dashed;
+  border-top-color: var(--ink-tertiary);
+}
+
+.card__status {
+  margin-top: auto;
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.95cqw;
+}
+
+.card__status::before {
+  content: '◐ ';
+}
+
+.card__status.is-done {
+  color: var(--ink);
+}
+
+.card__status.is-done::before {
+  content: '● ';
 }
 
 .stepline__bands {
@@ -4734,4 +6347,932 @@ html[data-embed] .slide--pitch *::after {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--p-ink-3);
+}
+
+/* ==== Deck 08 (midterm pitch, written as a paper): its own marks, on the pitch's tokens ==== */
+
+/* ---- the pyramid of what is predicted: element at the base, building at the top; the room is the target ---- */
+
+.pyramid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5cqw;
+  width: 54cqw;
+  margin-top: 2cqw !important;
+  padding: 0;
+  list-style: none;
+}
+
+.pyramid > li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  width: calc(22cqw + var(--k) * 8cqw);
+  padding: 0.8cqw 1.4cqw;
+  border: 1px solid var(--p-line-2);
+  border-radius: 0.4cqw;
+}
+
+.pyramid b {
+  font-family: var(--font-serif);
+  font-size: 1.8cqw;
+  font-weight: 400;
+}
+
+.pyramid small {
+  font-family: var(--font-mono);
+  font-size: 0.8cqw;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--p-ink-3);
+}
+
+.pyramid .is-done small {
+  color: var(--p-ink);
+}
+
+.pyramid .is-target {
+  border-color: var(--p-ember);
+  background: var(--p-ember-soft);
+}
+
+.pyramid .is-target b,
+.pyramid .is-target small {
+  color: var(--p-ember);
+}
+
+.pyramid .is-out {
+  border-style: dashed;
+  color: var(--p-ink-3);
+}
+
+/* ---- a parameter swept along an axis, one value marked: Tang's masking ratio ---- */
+
+.sweep {
+  position: relative;
+  width: 40cqw;
+  height: 4.4cqw;
+  margin-top: 2.4cqw;
+  border-bottom: 1px solid var(--p-line-2);
+}
+
+.sweep > span {
+  position: absolute;
+  bottom: -2.2cqw;
+  left: calc(var(--x) * 100%);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.85cqw;
+  color: var(--p-ink-3);
+}
+
+.sweep > span::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 1.8cqw;
+  width: 1px;
+  height: 0.8cqw;
+  background: var(--p-line-2);
+}
+
+.sweep > .is-best {
+  color: var(--p-ember);
+}
+
+.sweep > .is-best::before {
+  bottom: 1.55cqw;
+  width: 1.3cqw;
+  height: 1.3cqw;
+  margin-left: -0.65cqw;
+  border-radius: 50%;
+  background: var(--p-ember);
+  box-shadow: 0 0 0 0.45cqw var(--p-ember-soft);
+}
+
+.sweep + figcaption {
+  margin-top: 3.6cqw;
+}
+
+/* ---- a chain of steps with arrows: Revit → graph → mask → Revit ---- */
+
+.chain {
+  display: flex;
+  align-items: center;
+  gap: 0.6cqw;
+  margin-top: 2cqw !important;
+  padding: 0;
+  list-style: none;
+}
+
+.chain > li {
+  padding: 0.8cqw 1.2cqw;
+  border: 1px solid var(--p-line-2);
+  border-radius: 0.4cqw;
+  font-family: var(--font-mono);
+  font-size: 0.95cqw;
+}
+
+.chain > li + li::before {
+  content: '→';
+  margin: 0 1.2cqw 0 -1.9cqw;
+  color: var(--p-ink-3);
+}
+
+.chain > .is-hidden {
+  border-style: dashed;
+  border-color: var(--p-ember);
+  color: var(--p-ember);
+}
+
+/* ---- where the work sits: two axes, a point per work, this thesis in the accent ---- */
+
+.quad {
+  position: relative;
+  width: 44cqw;
+  height: 22cqw;
+  margin: 2.4cqw 0 0 3cqw;
+  border-left: 1px solid var(--p-line-2);
+  border-bottom: 1px solid var(--p-line-2);
+}
+
+.quad__axis {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.8cqw;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--p-ink-3);
+}
+
+.quad__axis--x {
+  right: 0;
+  top: calc(100% + 0.8cqw);
+}
+
+.quad__axis--y {
+  left: -1.2cqw;
+  top: 0;
+  transform: rotate(-90deg) translateX(-100%);
+  transform-origin: 0 0;
+  white-space: nowrap;
+}
+
+.quad__pt {
+  position: absolute;
+  left: calc(var(--x) * 100%);
+  bottom: calc(var(--y) * 100%);
+  display: flex;
+  align-items: center;
+  gap: 0.8cqw;
+  transform: translate(-0.6cqw, 50%);
+  white-space: nowrap;
+  font-family: var(--font-serif);
+  font-size: 1.6cqw;
+  font-weight: 400;
+}
+
+.quad__pt::before {
+  content: '';
+  flex: none;
+  width: 1.2cqw;
+  height: 1.2cqw;
+  border-radius: 50%;
+  background: var(--p-ink);
+}
+
+.quad__pt--me {
+  color: var(--p-ember);
+}
+
+.quad__pt--me::before {
+  background: var(--p-ember-soft);
+  box-shadow: inset 0 0 0 1.5px var(--p-ember);
+}
+
+/* ---- the method's six steps, done in ink, to come dashed in the accent ---- */
+
+.steps6 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.2cqw;
+  margin-top: 1.6cqw !important;
+  padding: 0;
+  list-style: none;
+}
+
+.steps6 > li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3cqw;
+  padding: 0.9cqw 1cqw;
+  border-top: 2px solid var(--p-ink);
+}
+
+.steps6 small {
+  font-family: var(--font-mono);
+  font-size: 0.8cqw;
+  color: var(--p-ink-3);
+}
+
+.steps6 b {
+  font-family: var(--font-serif);
+  font-size: 1.8cqw;
+  font-weight: 400;
+}
+
+.steps6 span {
+  font-family: var(--font-mono);
+  font-size: 0.82cqw;
+  color: var(--p-ink-2);
+}
+
+.steps6 > .is-next {
+  border-top: 2px dashed var(--p-ember);
+}
+
+.steps6 > .is-next small,
+.steps6 > .is-next b {
+  color: var(--p-ember);
+}
+
+/* ---- the room graph, drawn on a plan: access through a door solid, adjacency through a wall dashed ---- */
+
+.roomgraph {
+  display: flex;
+  align-items: center;
+  gap: 4cqw;
+  margin-top: 1.6cqw;
+}
+
+.roomgraph svg {
+  display: block;
+  width: 30cqw;
+  height: auto;
+  overflow: visible;
+}
+
+.roomgraph__room {
+  fill: var(--p-bg);
+  fill-opacity: 0.55;
+  stroke: var(--p-ink);
+  stroke-width: 1.4;
+}
+
+.roomgraph__door {
+  stroke: var(--p-bg-2);
+  stroke-width: 4;
+}
+
+.roomgraph__adj {
+  stroke: var(--p-ink-2);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 4;
+}
+
+.roomgraph__acc {
+  stroke: var(--p-ember);
+  stroke-width: 2.2;
+}
+
+.roomgraph__node {
+  fill: var(--p-ember);
+}
+
+.roomgraph text {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: var(--p-ink-2);
+}
+
+.rels {
+  display: flex;
+  flex-direction: column;
+  gap: 1cqw;
+  margin: 0;
+}
+
+.rels > div {
+  padding-top: 0.8cqw;
+  border-top: 1px solid var(--p-line-2);
+}
+
+.rels dt {
+  display: flex;
+  align-items: center;
+  gap: 0.8cqw;
+  font-family: var(--font-serif);
+  font-size: 1.7cqw;
+}
+
+.rels dt::before {
+  content: '';
+  width: 2.4cqw;
+  border-top: 2px solid var(--p-ink-3);
+}
+
+.rels .rels--acc dt::before {
+  border-top-color: var(--p-ember);
+}
+
+.rels .rels--adj dt::before {
+  border-top: 2px dashed var(--p-ink-2);
+}
+
+.rels dd {
+  margin: 0.3cqw 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.82cqw;
+  color: var(--p-ink-2);
+}
+
+/* ---- masking that climbs the pyramid: each step hides a larger chunk ---- */
+
+.climb {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7cqw;
+  margin-top: 1.6cqw !important;
+  padding: 0;
+  list-style: none;
+}
+
+.climb > li {
+  display: grid;
+  grid-template-columns: 6cqw 1fr;
+  align-items: center;
+  gap: 1.2cqw;
+  font-size: 1.35cqw;
+  color: var(--p-ink-2);
+}
+
+.climb > li > i {
+  height: 0.5cqw;
+  border-radius: 1cqw;
+  background: var(--p-ember);
+  width: calc(var(--k) * 1.5cqw);
+}
+
+.climb > li > span b {
+  font-weight: 500;
+  color: var(--p-ink);
+}
+
+/* the percentages of deck 08's results: a wider value column */
+.pitch-compare--pct .pitch-compare__row {
+  grid-template-columns: 9cqw 1fr 5.4cqw;
+}
+
+/* next steps numbered 01, 02 … instead of Q1, Q2 */
+.asks--next > li {
+  font-size: 2.3cqw;
+}
+
+.asks--next > li::before {
+  content: counter(ask, decimal-leading-zero);
+}
+
+/* ==== A pitch in the weekly decks' look (<body data-pitch data-look="deck">, deck 09): deck 07's slides, eyebrow and
+   hairlines, timed as a Pecha Kucha. The pitch's tokens are mapped onto the editorial ones (the focus in --diff-1, the
+   blue the experiments already use), the field and its grain go, and the foot of every slide makes room for the bar
+   of chapters. `:root` keeps these rules above the pitch's dark-theme tokens. ==== */
+
+:root body[data-pitch][data-look='deck'] {
+  --p-bg: var(--panel);
+  --p-bg-2: var(--panel-sunken);
+  --p-ink: var(--ink);
+  --p-ink-2: var(--ink-secondary);
+  --p-ink-3: var(--ink-tertiary);
+  --p-line: var(--separator);
+  --p-line-2: color-mix(in srgb, var(--ink) 22%, transparent);
+  --p-ember: var(--diff-1);
+  --p-ember-soft: color-mix(in srgb, var(--diff-1) 16%, transparent);
+}
+
+:root body[data-pitch][data-look='deck'] .stage {
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  color: var(--ink);
+}
+
+:root body[data-pitch][data-look='deck'] .stage::before,
+:root body[data-pitch][data-look='deck'] .stage::after {
+  content: none;
+}
+
+body[data-look='deck'] .pitch__bar {
+  left: 2.6cqw;
+  right: 2.6cqw;
+  bottom: 1.2cqw;
+}
+
+/* the foot: the bar's top sits 4.6cqw over the edge; the content stops just above it (or above the references) */
+body[data-look='deck'] .slide {
+  padding-bottom: calc(var(--frame) + var(--pitch-bar-h, 0cqw) + 0.6cqw);
+}
+
+body[data-look='deck'] .slide.has-refs {
+  padding-bottom: calc(var(--frame) + var(--pitch-bar-h, 0cqw) + var(--refs-h) + 1.2cqw);
+}
+
+/* the closing line under a diagram is as tall as its text, so the diagram above takes the rest */
+body[data-look='deck'] .stepline__below {
+  height: auto;
+}
+
+body[data-look='deck'] .slide .refs,
+body[data-look='deck'] .slide .footnote {
+  bottom: calc(var(--frame) + var(--pitch-bar-h, 0cqw));
+}
+
+body[data-look='deck'] .slide.has-refs .footnote {
+  bottom: calc(var(--frame) + var(--refs-h) + var(--pitch-bar-h, 0cqw));
+}
+
+/* the level a result stands on, under the title of each results slide: element ● · relation ◐ · room ○ (the target) */
+.ladder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6cqw 1.2cqw;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.95cqw;
+  color: var(--ink-tertiary);
+}
+
+.ladder > li + li::before {
+  content: '→';
+  margin-right: 1.2cqw;
+  color: var(--ink-tertiary);
+}
+
+.ladder [data-state]::after {
+  margin-left: 0.5em;
+  font-size: 0.85cqw;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ladder [data-state='here'] {
+  padding: 0.2cqw 0.7cqw;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  color: var(--ink);
+}
+
+.ladder [data-state='here']::after {
+  content: '· these results';
+}
+
+.ladder [data-state='partly'] {
+  color: var(--ink-secondary);
+}
+
+.ladder [data-state='target'] {
+  padding: 0.2cqw 0.7cqw;
+  border: 1px dashed var(--diff-1);
+  border-radius: 999px;
+  color: var(--diff-1);
+}
+
+.ladder [data-state='target']::after {
+  content: '· the target';
+}
+
+/* a results column that also carries the ladder: a little tighter, so it keeps to the view's height */
+.setside:has(> .ladder) {
+  gap: 0.8cqw;
+}
+
+.setside:has(> .ladder) .setsteps {
+  gap: 0.6cqw;
+}
+
+/* a key reference: what it shows on the left, what this thesis takes and where it falls short on the right */
+.refcase {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 5cqw;
+}
+
+.refcase__side {
+  display: grid;
+  gap: 2cqw;
+}
+
+.refcase .card p {
+  font-size: 1.3cqw;
+  color: var(--ink-secondary);
+}
+
+/* the middle of a diagram slide: it takes the height between the title and the foot and centres its figure there */
+.figmid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+
+.figmid .pyramid {
+  gap: 0.5cqw;
+  width: 70cqw;
+  margin-top: 0 !important;
+}
+
+.figmid .pyramid > li {
+  width: calc(28cqw + var(--k) * 10cqw);
+  padding: 0.7cqw 1.8cqw;
+}
+
+.figmid .pyramid b {
+  font-size: 2.1cqw;
+}
+
+.figmid .pyramid small {
+  font-size: 1cqw;
+}
+
+/* blocks one under the other, spread over the height: the numbers a size up, the cards under them */
+.figmid--stack {
+  place-items: stretch;
+  align-content: space-evenly;
+}
+
+.figmid--stack .minikpis {
+  margin-top: 0;
+}
+
+.figmid--stack .minikpis b {
+  font-size: 3.4cqw;
+}
+
+.figmid--stack .minikpis small {
+  font-size: 1.1cqw;
+}
+
+/* two ideas side by side, a size up, each with its own small diagram */
+.figmid .points {
+  width: 100%;
+  margin-top: 0;
+  gap: 5cqw;
+}
+
+.figmid .points .card {
+  gap: 1.2cqw;
+}
+
+.figmid .points .card h3 {
+  font-size: 2.4cqw;
+}
+
+.figmid .points .card p {
+  font-size: 1.5cqw;
+  color: var(--ink-secondary);
+}
+
+/* the auto margins the weekly decks use to sit a block at the foot would beat the centring */
+.figmid > .stepline,
+.figmid > .points,
+.figmid > .minikpis {
+  margin-top: 0;
+}
+
+.figmid .chain {
+  flex-wrap: wrap;
+  row-gap: 0.8cqw;
+  margin-top: 0.4cqw !important;
+}
+
+/* near → far: how far a test case stands from what the model trained on */
+.dist {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 1.2cqw 0 0;
+  padding: 2cqw 0 0;
+  list-style: none;
+  border-top: 2px solid var(--ink-tertiary);
+}
+
+.dist::after {
+  content: '';
+  position: absolute;
+  top: -0.55cqw;
+  right: -0.2cqw;
+  border-left: 1cqw solid var(--ink-tertiary);
+  border-top: 0.55cqw solid transparent;
+  border-bottom: 0.55cqw solid transparent;
+}
+
+.dist > li {
+  position: relative;
+  font-family: var(--font-mono);
+  font-size: 1cqw;
+  line-height: 1.35;
+  color: var(--ink-secondary);
+}
+
+.dist > li::before {
+  content: '';
+  position: absolute;
+  top: calc(-2cqw - 0.6cqw);
+  left: 0;
+  width: 1.1cqw;
+  height: 1.1cqw;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.dist > li:nth-child(2)::before { background: var(--ink-secondary); }
+.dist > li:nth-child(3)::before { background: var(--panel); box-shadow: inset 0 0 0 1.5px var(--ink); }
+
+.dist > li b {
+  display: block;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* where the thesis sits: the plot large on the left, how to read it on the right */
+.refcase .quad {
+  width: auto;
+  height: 28cqw;
+  margin: 0 0 2cqw 3cqw;
+}
+
+.refcase .quad .quad__pt {
+  font-size: 2cqw;
+}
+
+/* the pipeline told by kind of step: Revit in and out plain, the representation in ink, the AI in blue, next dashed */
+.stepline > li.is-ai {
+  border-color: var(--diff-1);
+  box-shadow: inset 0 0 0 1px var(--diff-1);
+}
+
+.stepline > li.is-ai h3,
+.stepline > li.is-ai > small {
+  color: var(--diff-1);
+}
+
+.stepkey {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6cqw 2.4cqw;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 1cqw;
+  color: var(--ink-secondary);
+}
+
+.stepkey > li::before {
+  content: '';
+  display: inline-block;
+  width: 1.6cqw;
+  height: 1cqw;
+  margin-right: 0.6cqw;
+  vertical-align: -0.1cqw;
+  border-radius: 0.2cqw;
+  border: 1px solid var(--separator);
+}
+
+.stepkey .is-key::before { border: 2px solid var(--ink); }
+.stepkey .is-ai::before { border: 2px solid var(--diff-1); }
+.stepkey .is-off::before { border: 1px dashed var(--ink-tertiary); }
+
+/* a token that does not exist yet: the relations a room will carry */
+.tokrow > li.is-next code {
+  border-style: dashed;
+  border-color: var(--diff-1);
+  color: var(--diff-1);
+}
+
+/* the last slide: thanks, the question once more, and the way to reach the author */
+.slide--thanks .title__text {
+  gap: 2.4cqw;
+}
+
+.slide--thanks h1 {
+  font-size: 8cqw;
+}
+
+/* ---- Presenter view (presenter.js): the deck page opened with ?presenter, in its own window ---- */
+/* the speaker's notes ride inside each slide and never show on it */
+.slide > aside.notes {
+  display: none;
+}
+
+html[data-presenter] nav.rail,
+html[data-presenter] main.deck,
+html[data-presenter] .deck__bar {
+  display: none;
+}
+
+.pv {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+.pv__head,
+.pv__foot {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.pv__title {
+  font-size: 1rem;
+}
+
+.pv__timer {
+  margin-left: auto;
+  padding: 4px 10px;
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.pv__clock,
+.pv__where {
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
+.pv__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  gap: 16px;
+  min-height: 0;
+}
+
+/* the slide now: as large as the window allows, at 16:9 */
+.pv__nowbox {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  container-type: size;
+}
+
+.pv__now,
+.pv__next {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  background: var(--panel);
+  pointer-events: none;
+}
+
+.pv__now {
+  width: min(100cqw, 100cqh * 16 / 9);
+  border: 2px solid var(--diff-1);
+}
+
+.pv__side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.pv__label {
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pv__end {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  border: 1px dashed var(--separator);
+  border-radius: 10px;
+  color: var(--ink-tertiary);
+}
+
+.pv__end[hidden],
+.pv__next[hidden] {
+  display: none;
+}
+
+.pv__noteshead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.pv__noteshead .pv__label {
+  margin-right: auto;
+}
+
+.pv__size {
+  padding: 2px 8px;
+  border: 1px solid var(--separator);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* the notes: large, readable at a glance; the key words stand out */
+.pv__notes {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 14px;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  background: var(--panel);
+  line-height: 1.5;
+}
+
+.pv__notes ul,
+.pv__notes ol {
+  margin: 0;
+  padding-left: 1.2em;
+  display: grid;
+  gap: 0.5em;
+}
+
+.pv__notes p + p {
+  margin-top: 0.6em;
+}
+
+.pv__notes mark.kw {
+  padding: 0 0.15em;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--diff-4) 35%, transparent);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.pv__notes .say {
+  display: block;
+  margin-top: 0.8em;
+  color: var(--ink-secondary);
+  font-style: italic;
+}
+
+.pv__btn {
+  padding: 10px 18px;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.pv__btn--go {
+  margin-left: auto;
+  border-color: var(--diff-1);
+  background: var(--diff-1);
+  color: #fff;
+}
+
+.pv__chapter {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.pv__foot small {
+  color: var(--ink-tertiary);
+}
+
+/* the presenter view of a pitch: the play button beside back, lit while the clock runs */
+.pv__play {
+  min-width: 8.5rem;
+  font-family: var(--font-mono);
+}
+
+.pv__play.is-live {
+  border-color: var(--diff-1);
+  color: var(--diff-1);
 }

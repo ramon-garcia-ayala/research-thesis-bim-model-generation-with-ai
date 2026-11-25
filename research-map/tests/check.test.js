@@ -65,7 +65,7 @@ describe('checkFolder', () => {
       version: 1, node: 'procthor', built: { date: '2026-10-22', model: 'claude-sonnet-5-5', effort: 'xhigh' },
       ideas: [{ id: 'i1', kind: 'claim', en: 'Houses.', es: 'Casas.', blocks: ['s1-p1'], origin: 'read' }], edges: [], thesis: [],
     }
-    const index = { keywords: [], papers: [{ node: 'procthor', title: 'ProcTHOR', figures: 1, es: false, graph: true, keywords: [] }] }
+    const index = { keywords: [], papers: [{ node: 'procthor', title: 'ProcTHOR', added: '2026-10-18', figures: 1, es: false, graph: true, keywords: [] }] }
     /** A complete folder with ProcTHOR prepared, changed by `files`. */
     const prepared = (files = {}) => {
       const dir = folder({

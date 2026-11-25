@@ -7,7 +7,7 @@
 import { mountChat } from './chat-ui.js'
 import { citedNumbers, referencesOf } from './citations.js'
 import { blocksOf, paraLabel, textOf } from './paper.js'
-import { addUnderline, emptyReading, removeUnderline, segments } from './reading.js'
+import { addUnderline, emptyReading, furthestBlock, progressOf, removeUnderline, resetProgress, segments } from './reading.js'
 import { buildQueue, createSpeaker } from './speech.js'
 
 export const MODE_KEY = 'research-map-reader-mode'
@@ -121,6 +121,7 @@ export const LABELS = {
     notSaved: 'Could not save your reading:',
     voiceHint: 'This browser offers no natural voice: open the map in Microsoft Edge to listen with its natural voices.',
     backToReading: '↩ Back to the reading',
+    resetProgress: 'Reset the progress to 0% (also unmarks it as read)',
     openReference: 'Open the link ↗',
     searchReference: 'Search on Google Scholar ↗',
     closeReference: 'Close the reference',
@@ -188,6 +189,7 @@ export const LABELS = {
     notSaved: 'No se pudo guardar tu lectura:',
     voiceHint: 'Este navegador no ofrece voces naturales: abre el mapa en Microsoft Edge para escucharlo con sus voces naturales.',
     backToReading: '↩ Regresar a la lectura',
+    resetProgress: 'Restablecer el progreso a 0% (también quita la marca de leído)',
     openReference: 'Abrir el enlace ↗',
     searchReference: 'Buscar en Google Scholar ↗',
     closeReference: 'Cerrar la referencia',
@@ -233,6 +235,7 @@ export function mountReader(
   let picked = null // the selection the menu acts on: where it starts and all it says, and its span in each block
   const redrawLater = new Set() // the blocks to re-draw once the author's selection has left them
   let following = true // the text moves with the voice, until the author scrolls away by hand
+  let resetting = false // the progress was just taken back to 0 and the text is on its way to the top
   // The local server, once it answers (null without it); the reading of the open paper (underlines, place, voice).
   let live = null
   let reading = null
@@ -250,7 +253,12 @@ export function mountReader(
   /** Keeps the reading on the server (the client waits for a pause before writing). */
   const persist = (change = {}) => {
     if (!live || !now || !reading) return
+    // The furthest block reached only moves forward, so going back to re-read does not take progress away.
+    const before = progressOf(now.paper, reading)
+    if (change.position) change = { ...change, reached: furthestBlock(now.paper, reading.reached ?? reading.position?.block ?? null, change.position.block) }
     reading = { ...reading, ...change }
+    const pct = progressOf(now.paper, reading)
+    if (pct !== before) el.dispatchEvent(new CustomEvent('reader-progress', { bubbles: true, detail: { node: now.nodeId, pct } }))
     // Only what the page owns: the chats are the server's to write.
     const { chats, ...own } = reading
     live.save(now.nodeId, own)
@@ -266,6 +274,10 @@ export function mountReader(
     <header class="reader__bar">
       <button type="button" class="reader__contents">☰</button>
       <span class="reader__title"></span>
+      <span class="reader__progress progress" data-progress role="progressbar" aria-label="Reading progress" hidden>
+        <span class="progress__track"><span></span></span><em data-pct></em>
+      </span>
+      <button type="button" class="reader__reset" hidden>↺</button>
       <span class="reader__langs" role="group">
         <button type="button" class="reader__lang" data-lang="en">EN</button>
         <button type="button" class="reader__lang" data-lang="es">ES</button>
@@ -273,6 +285,7 @@ export function mountReader(
       <span class="reader__voice"></span>
       <button type="button" class="reader__mode"></button>
       <button type="button" class="reader__chat-open" hidden></button>
+      <button type="button" class="reader__queue" hidden></button>
       <button type="button" class="reader__mark" hidden></button>
       <button type="button" class="reader__close">×</button>
     </header>
@@ -546,6 +559,9 @@ export function mountReader(
     $('.reader__contents').setAttribute('aria-label', L().contents)
     $('.reader__chat-open').hidden = !narrow() || !live
     $('.reader__chat-open').textContent = L().chat
+    $('.reader__reset').hidden = !live || !now
+    $('.reader__reset').title = L().resetProgress
+    $('.reader__reset').setAttribute('aria-label', L().resetProgress)
     if (!narrow()) el.classList.remove('side-open', 'chat-open')
     $('.reader__close').setAttribute('aria-label', L().close)
     $('.reader__close').title = L().close
@@ -560,6 +576,21 @@ export function mountReader(
   function firstVisible() {
     const top = text.getBoundingClientRect().top
     return [...text.querySelectorAll('[data-block]')].find((b) => b.getBoundingClientRect().bottom > top + 1)?.dataset.block ?? null
+  }
+
+  /**
+   * Takes the progress back to 0: forgets the place and the furthest block, stops the voice, goes back to the top and tells
+   * the menu (which also unmarks the paper as read). The scrolls on the way up are not reading.
+   */
+  function resetReading() {
+    if (!live || !now || !reading) return
+    speaker?.stop()
+    renderVoice()
+    resetting = text.scrollTop > 0
+    const { position, reached } = resetProgress(reading)
+    persist({ position, reached })
+    text.scrollTop = 0
+    el.dispatchEvent(new CustomEvent('reader-reset', { bubbles: true, detail: { node: now.nodeId } }))
   }
 
   function goTo(id) {
@@ -587,6 +618,8 @@ export function mountReader(
       el.hidden = false
       onShow()
       $('.reader__mark').dataset.mark = nodeId
+      $('.reader__queue').dataset.queue = nodeId
+      $('.reader__progress').dataset.progress = paper ? nodeId : ''
       onPaper(nodeId)
       if (!paper) {
         now = null
@@ -829,6 +862,7 @@ export function mountReader(
     if (t.closest('.reader__close')) return close()
     if (t.closest('.reader__ref-close')) return void (refBox.hidden = true)
     if (t.closest('.reader__resume')) return backToReading()
+    if (t.closest('.reader__reset')) return resetReading()
     const cited = t.closest('.reader__text .cite')
     if (cited) return showReference(cited)
     const l = t.closest('.reader__lang')
@@ -928,6 +962,10 @@ export function mountReader(
 
   // The place: the first paragraph in view, kept a moment after scrolling stops (the client waits too).
   text.addEventListener('scroll', () => {
+    if (resetting) {
+      if (text.scrollTop <= 0) resetting = false
+      return
+    }
     const id = speaker?.state() === 'playing' ? null : firstVisible()
     if (id) persist({ position: { block: id, sentence: 0 } })
   })

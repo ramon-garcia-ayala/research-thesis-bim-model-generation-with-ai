@@ -13,8 +13,8 @@ const library = {
     { id: 'empty', label: 'Nothing yet' },
   ],
   papers: [
-    { node: 'sample-a', title: 'Sample paper A: procedural houses', figures: 1, es: false, graph: true, keywords: ['ifc', 'graph'] },
-    { node: 'sample-b', title: 'Sample paper B: real drawings', figures: 0, es: true, graph: false, keywords: ['ifc'] },
+    { node: 'sample-a', title: 'Sample paper A: procedural houses', added: '2026-11-08', figures: 1, es: false, graph: true, keywords: ['ifc', 'graph'] },
+    { node: 'sample-b', title: 'Sample paper B: real drawings', added: '2026-11-15', figures: 0, es: true, graph: false, keywords: ['ifc'] },
   ],
 }
 const words = { words: { 'sample-a': 'houses procedural validator', 'sample-b': 'drawings real' } }
@@ -148,6 +148,198 @@ describe('the papers menu', () => {
     })
   })
 
+  describe('date added', () => {
+    const date = (d) => $(`.papers-menu__keyword[data-added="${d}"]`)
+    const order = (o) => $(`.papers-menu__keyword[data-order="${o}"]`)
+    const listed = () => $$('.papers-menu__row').map((r) => r.dataset.paper)
+
+    it('shows each paper the day it was added', async () => {
+      await open(client())
+      expect($('.papers-menu__row[data-paper="sample-b"]').textContent).toContain('2026-11-15')
+    })
+
+    it('offers each date, the newest first, with how many papers were added on it', async () => {
+      await open(client())
+      expect($$('[data-added]').map((b) => b.dataset.added)).toEqual(['2026-11-15', '2026-11-08'])
+      expect(date('2026-11-15').textContent).toContain('1')
+    })
+
+    it('narrows the list to a date, and widens it when taken off', async () => {
+      await open(client())
+      date('2026-11-15').click()
+      expect(shown()).toEqual(['sample-b'])
+      expect(date('2026-11-15').getAttribute('aria-pressed')).toBe('true')
+      date('2026-11-08').click()
+      expect(shown()).toEqual(['sample-a', 'sample-b'])
+      date('2026-11-15').click()
+      date('2026-11-08').click()
+      expect(shown()).toEqual(['sample-a', 'sample-b'])
+    })
+
+    it('puts the newest first or the oldest first, and goes back to the usual order', async () => {
+      await open(client())
+      expect(listed()).toEqual(['sample-a', 'sample-b'])
+      order('new').click()
+      expect(listed()).toEqual(['sample-b', 'sample-a'])
+      expect(order('new').getAttribute('aria-pressed')).toBe('true')
+      order('old').click()
+      expect(listed()).toEqual(['sample-a', 'sample-b'])
+      order('old').click()
+      expect(order('old').getAttribute('aria-pressed')).toBe('false')
+      expect(listed()).toEqual(['sample-a', 'sample-b'])
+    })
+
+    it('works together with a word and clears with the rest', async () => {
+      const view = await open(client())
+      date('2026-11-08').click()
+      await type(view, 'drawings')
+      expect(shown()).toEqual([])
+      $('.papers-menu__clear').click()
+      expect(date('2026-11-08').getAttribute('aria-pressed')).toBe('false')
+      expect(shown()).toEqual(['sample-a', 'sample-b'])
+    })
+  })
+
+  describe('reading progress', () => {
+    const progress = (id) => $(`.papers-menu__row[data-paper="${id}"] [data-progress]`)
+    const order = (o) => $(`.papers-menu__keyword[data-order="${o}"]`)
+    const listed = () => $$('.papers-menu__row').map((r) => r.dataset.paper)
+    const withProgress = (read, progress) => ({ ...client(read), library: vi.fn(async () => ({ version: 1, read, progress })) })
+
+    it('draws a line and the percentage for each paper once the server is there', async () => {
+      await open(withProgress({}, { 'sample-a': 42 }))
+      expect(progress('sample-a').hidden).toBe(false)
+      expect(progress('sample-a').textContent).toContain('42%')
+      expect(progress('sample-a').style.getPropertyValue('--pct')).toBe('42%')
+      expect(progress('sample-b').textContent).toContain('0%')
+    })
+
+    it('hides the lines when there is no server to remember them', async () => {
+      await open(null)
+      expect(progress('sample-a').hidden).toBe(true)
+    })
+
+    it('counts a paper marked as read as 100%, and goes back to what was read when unmarked', async () => {
+      await open(withProgress({}, { 'sample-a': 42 }))
+      $('.papers-menu__row[data-paper="sample-a"] [data-mark]').click()
+      expect(progress('sample-a').textContent).toContain('100%')
+      $('.papers-menu__row[data-paper="sample-a"] [data-mark]').click()
+      expect(progress('sample-a').textContent).toContain('42%')
+    })
+
+    it('puts the papers being read first, then the ones not started, then the finished ones', async () => {
+      await open(withProgress({ 'sample-a': '2026-11-08' }, { 'sample-b': 30 }))
+      expect(listed()).toEqual(['sample-b', 'sample-a'])
+      expect(order('progress').getAttribute('aria-pressed')).toBe('false')
+    })
+
+    it('puts the most read first, from 100% down, when asked', async () => {
+      await open(withProgress({ 'sample-b': '2026-11-15' }, { 'sample-a': 60 }))
+      expect(listed()).toEqual(['sample-a', 'sample-b']) // being read first, finished last
+      order('progress').click()
+      expect(listed()).toEqual(['sample-b', 'sample-a']) // 100% first, then 60%
+      expect(order('progress').getAttribute('aria-pressed')).toBe('true')
+    })
+
+    it('follows the reader as the author reads', async () => {
+      await open(withProgress({}, {}))
+      $('.reader').dispatchEvent(new CustomEvent('reader-progress', { bubbles: true, detail: { node: 'sample-b', pct: 55 } }))
+      expect(progress('sample-b').textContent).toContain('55%')
+      expect(listed()).toEqual(['sample-b', 'sample-a'])
+    })
+
+    it('goes back to 0% and unmarks the paper when the reader resets it, even from 100% as read', async () => {
+      const server = withProgress({ 'sample-a': '2026-11-08' }, { 'sample-a': 80 })
+      const view = await open(server)
+      await view.reader.open('sample-a')
+      expect(progress('sample-a').textContent).toContain('100%')
+      $('.reader__reset').click()
+      expect(progress('sample-a').textContent).toContain('0%')
+      expect(progress('sample-a').textContent).not.toContain('100%')
+      expect(server.setRead).toHaveBeenCalledWith('sample-a', false)
+    })
+
+    it('shows the same line in the reader, for the paper that is open', async () => {
+      const view = await open(withProgress({}, { 'sample-a': 42 }))
+      await view.reader.open('sample-a')
+      const bar = $('.reader__progress')
+      expect(bar.dataset.progress).toBe('sample-a')
+      expect(bar.hidden).toBe(false)
+      expect(bar.textContent).toContain('42%')
+    })
+  })
+
+  describe('the reading queue', () => {
+    const queue = (id) => $(`.papers-menu__row[data-paper="${id}"] [data-queue]`)
+    const level = (l) => $(`.papers-menu__levels [data-level="${l}"]`)
+    const listed = () => $$('.papers-menu__row').map((r) => r.dataset.paper)
+    const withQueue = (marks, server = client()) => ({ ...server, library: vi.fn(async () => ({ version: 1, read: {}, queue: marks, progress: {} })) })
+
+    it('shows each paper its marker once the server is there, and nothing without it', async () => {
+      await open(withQueue({ 'sample-b': 'first' }))
+      expect(queue('sample-b').hidden).toBe(false)
+      expect(queue('sample-b').dataset.state).toBe('first')
+      expect(queue('sample-a').dataset.state).toBe('none')
+      await open(null)
+      expect(queue('sample-a').hidden).toBe(true)
+      expect($('.papers-menu__levels').hidden).toBe(true)
+    })
+
+    it('goes from nothing to later, to first and back to nothing, saving each on the server', async () => {
+      const server = { ...client(), setQueue: vi.fn(async () => {}) }
+      await open(withQueue({}, server))
+      queue('sample-a').click()
+      expect(queue('sample-a').dataset.state).toBe('later')
+      expect(server.setQueue).toHaveBeenLastCalledWith('sample-a', 'later')
+      queue('sample-a').click()
+      expect(queue('sample-a').dataset.state).toBe('first')
+      expect(server.setQueue).toHaveBeenLastCalledWith('sample-a', 'first')
+      queue('sample-a').click()
+      expect(queue('sample-a').dataset.state).toBe('none')
+      expect(server.setQueue).toHaveBeenLastCalledWith('sample-a', null)
+    })
+
+    it('goes back when the server does not take it', async () => {
+      const server = { ...client(), setQueue: vi.fn(async () => { throw new Error('no') }) }
+      await open(withQueue({}, server))
+      queue('sample-a').click()
+      await new Promise((r) => setTimeout(r))
+      expect(queue('sample-a').dataset.state).toBe('none')
+    })
+
+    it('puts the ones marked first above the ones marked later, and both above the rest', async () => {
+      await open(withQueue({ 'sample-b': 'first' }))
+      expect(listed()).toEqual(['sample-b', 'sample-a'])
+    })
+
+    it('filters by marker, counting each, and clears with the rest', async () => {
+      await open(withQueue({ 'sample-a': 'later', 'sample-b': 'first' }))
+      expect(level('first').textContent).toContain('1')
+      expect(level('later').textContent).toContain('1')
+      level('later').click()
+      expect(shown()).toEqual(['sample-a'])
+      expect(level('later').getAttribute('aria-pressed')).toBe('true')
+      level('first').click()
+      expect(shown()).toEqual(['sample-b', 'sample-a'])
+      $('.papers-menu__clear').click()
+      expect(level('later').getAttribute('aria-pressed')).toBe('false')
+      expect(shown()).toEqual(['sample-b', 'sample-a'])
+    })
+
+    it('shows the same marker in the reader, for the paper that is open, and changes it from there', async () => {
+      const server = { ...client(), setQueue: vi.fn(async () => {}) }
+      const view = await open(withQueue({ 'sample-a': 'later' }, server))
+      await view.reader.open('sample-a')
+      const marker = $('.reader__queue')
+      expect(marker.dataset.queue).toBe('sample-a')
+      expect(marker.hidden).toBe(false)
+      expect(marker.dataset.state).toBe('later')
+      marker.click()
+      expect(server.setQueue).toHaveBeenLastCalledWith('sample-a', 'first')
+      expect(queue('sample-a').dataset.state).toBe('first')
+    })
+  })
+
   describe('read and unread', () => {
     const mark = (id) => $(`.papers-menu__row[data-paper="${id}"] [data-mark]`)
     const status = (s) => $(`.papers-menu__status [data-status="${s}"]`)
@@ -192,7 +384,7 @@ describe('the papers menu', () => {
       status('unread').click()
       expect(shown()).toEqual(['sample-b'])
       status('all').click()
-      expect(shown()).toEqual(['sample-a', 'sample-b'])
+      expect(shown()).toEqual(['sample-b', 'sample-a']) // a finished paper goes to the bottom
     })
 
     it('takes a paper out of the Unread list as soon as it is marked', async () => {

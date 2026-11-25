@@ -1,0 +1,652 @@
+{
+  "version": 1,
+  "node": "chang-2022",
+  "built": {
+    "date": "2026-11-15",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Is decoding an image token by token in raster-scan order (line by line) the best way to generate it? The paper finds this neither optimal nor efficient, because images are not sequential.",
+      "es": "¿Decodificar una imagen token por token en orden de barrido (línea por línea) es la mejor forma de generarla? El artículo concluye que no es ni óptimo ni eficiente, porque las imágenes no son secuenciales.",
+      "blocks": [
+        "s0-p1",
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Image generation is split in two stages: a tokenizer (encoder, codebook, decoder) compresses an image into discrete visual tokens, then a second model learns to generate those tokens. MaskGIT changes only the second stage.",
+      "es": "La generación de imágenes se divide en dos etapas: un tokenizador (codificador, libro de códigos y decodificador) comprime la imagen en tokens visuales discretos, y un segundo modelo aprende a generar esos tokens. MaskGIT cambia solo la segunda etapa.",
+      "blocks": [
+        "s1-p3",
+        "s2-p1",
+        "s2-p2",
+        "s3-p2",
+        "fig-3"
+      ],
+      "key": "vq-two-stage",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "claim",
+      "en": "Flattening an image into a 1D sequence of tokens makes it longer than any natural language sentence, which makes long-term correlation hard to model and decoding intractable. Generating one image with 32x32 tokens autoregressively takes 30 seconds on a GPU.",
+      "es": "Aplanar una imagen en una secuencia 1D de tokens la vuelve más larga que cualquier oración en lenguaje natural, lo que dificulta modelar correlaciones de largo alcance y hace intratable la decodificación. Generar una imagen de 32x32 tokens de forma autorregresiva toma 30 segundos en una GPU.",
+      "blocks": [
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "GANs make high-fidelity images fast but suffer from training instability and mode collapse, which lowers sample diversity. Generative transformers are trained by maximum likelihood and offer stabler training and better coverage and diversity.",
+      "es": "Las GAN producen imágenes de alta fidelidad con rapidez, pero sufren inestabilidad en el entrenamiento y colapso de modos, lo que reduce la diversidad de las muestras. Los transformers generativos se entrenan por máxima verosimilitud y ofrecen un entrenamiento más estable y mejor cobertura y diversidad.",
+      "blocks": [
+        "s1-p2",
+        "s1-p3",
+        "s2-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "Masked Visual Token Modeling (MVTM): in training, a random subset of tokens is replaced by a [MASK] token and a bidirectional transformer is trained to predict them. The loss is the negative log-likelihood (cross-entropy) of the masked tokens only.",
+      "es": "Modelado de tokens visuales enmascarados (MVTM): en el entrenamiento se reemplaza un subconjunto aleatorio de tokens por un token [MASK] y un transformer bidireccional aprende a predecirlos. La pérdida es la log-verosimilitud negativa (entropía cruzada) solo de los tokens enmascarados.",
+      "blocks": [
+        "s3-p3",
+        "s3-p4",
+        "s3-p6",
+        "s3-p12",
+        "fig-3"
+      ],
+      "key": "masked-token-modeling",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "concept",
+      "en": "Bidirectional self-attention lets each masked token be predicted from context in all directions, not only from earlier tokens in raster order. The idea comes from BERT's masked language modeling.",
+      "es": "La autoatención bidireccional permite predecir cada token enmascarado con contexto de todas las direcciones, no solo de los tokens anteriores en el orden de barrido. La idea viene del modelado de lenguaje enmascarado de BERT.",
+      "blocks": [
+        "s3-p12",
+        "s2-p5",
+        "s1-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "Iterative decoding starts from a blank canvas with every token masked. At each iteration the model predicts all masked tokens in parallel, samples them, keeps the most confident ones and masks the rest to be re-predicted next time, until all tokens are generated in T steps.",
+      "es": "La decodificación iterativa parte de un lienzo en blanco con todos los tokens enmascarados. En cada iteración el modelo predice en paralelo todos los tokens enmascarados, los muestrea, conserva los más confiables y vuelve a enmascarar el resto para predecirlo en la siguiente, hasta generar todos los tokens en T pasos.",
+      "blocks": [
+        "s3-p13",
+        "s3-p14",
+        "s3-p16",
+        "s3-p17",
+        "s3-p24",
+        "fig-2",
+        "s1-p5"
+      ],
+      "key": "iterative-parallel-decoding",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "claim",
+      "en": "In theory the model could infer every token and produce the whole image in a single pass, but the paper finds this hard because it is inconsistent with the training task. This is why decoding is iterative.",
+      "es": "En teoría el modelo podría inferir todos los tokens y generar la imagen completa en una sola pasada, pero el artículo lo considera difícil por ser inconsistente con la tarea de entrenamiento. Por eso la decodificación es iterativa.",
+      "blocks": [
+        "s3-p14"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "concept",
+      "en": "A mask scheduling function γ gives the fraction of tokens to mask. It must be continuous and decreasing, with γ(0) tending to 1 and γ(1) to 0. In training a ratio is sampled at random from 0 to 1; at inference γ sets how many tokens stay masked after each iteration. BERT's fixed 15% is unsuitable because this model must generate from scratch.",
+      "es": "Una función de calendario de máscara γ da la fracción de tokens que se enmascaran. Debe ser continua y decreciente, con γ(0) tendiendo a 1 y γ(1) a 0. En el entrenamiento se muestrea un cociente al azar entre 0 y 1; en la inferencia γ define cuántos tokens siguen enmascarados tras cada iteración. El 15% fijo de BERT no sirve porque este modelo debe generar desde cero.",
+      "blocks": [
+        "s3-p5",
+        "s3-p25",
+        "s3-p26",
+        "s3-p19",
+        "s3-p20"
+      ],
+      "key": "mask-schedule",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "concept",
+      "en": "The paper compares three families of schedules: linear (masks an equal amount each time), concave (cosine, square, cubic, exponential; a less-to-more information flow) and convex (square root, logarithmic; a more-to-less process).",
+      "es": "El artículo compara tres familias de calendarios: lineal (enmascara la misma cantidad cada vez), cóncava (coseno, cuadrado, cúbica, exponencial; flujo de información de menos a más) y convexa (raíz cuadrada, logarítmica; proceso de más a menos).",
+      "blocks": [
+        "s3-p27",
+        "s3-p28",
+        "s3-p29",
+        "fig-8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "The first stage is the same as VQGAN: one autoencoder per dataset with a codebook of 1024 tokens, compressing images by a fixed factor of 16. All transformers have 24 layers, 8 attention heads, 768 embedding dimensions and 3072 hidden dimensions, trained on 4x4 TPU devices with batch size 256, for 300 epochs on ImageNet and 200 on Places2.",
+      "es": "La primera etapa es la misma que en VQGAN: un autoencoder por conjunto de datos con un libro de códigos de 1024 tokens, que comprime las imágenes por un factor fijo de 16. Todos los transformers tienen 24 capas, 8 cabezas de atención, 768 dimensiones de embedding y 3072 dimensiones ocultas, y se entrenan en dispositivos TPU 4x4 con tamaño de lote 256, durante 300 épocas en ImageNet y 200 en Places2.",
+      "blocks": [
+        "s4-p2",
+        "s4-p3",
+        "s3-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "dataset",
+      "en": "ImageNet at 256x256 and 512x512 is used for class-conditional generation. Places2 (512x512 center-cropped images) is used to train and evaluate inpainting and outpainting.",
+      "es": "ImageNet a 256x256 y 512x512 se usa para la generación condicionada por clase. Places2 (imágenes recortadas al centro a 512x512) se usa para entrenar y evaluar inpainting y outpainting.",
+      "blocks": [
+        "s4-p1",
+        "s4-p16"
+      ],
+      "key": "imagenet",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "method",
+      "en": "To isolate bidirectional from unidirectional transformers, the authors also train a VQGAN baseline with the same tokenizer and hyperparameters as MaskGIT. MaskGIT still outperforms it by a significant margin on both resolutions.",
+      "es": "Para aislar el efecto de un transformer bidireccional frente a uno unidireccional, los autores también entrenan una línea base VQGAN con el mismo tokenizador e hiperparámetros que MaskGIT. MaskGIT sigue superándola por un margen significativo en ambas resoluciones.",
+      "blocks": [
+        "s4-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "Quality is measured with FID and Inception Score. Speed is measured by the number of steps (forward passes) and by wall-clock runtime. Diversity is measured with the Classification Accuracy Score (a ResNet-50 trained only on generated samples, tested on the ImageNet validation set) and Precision/Recall.",
+      "es": "La calidad se mide con FID e Inception Score. La velocidad se mide por el número de pasos (pasadas hacia adelante) y por el tiempo real de ejecución. La diversidad se mide con el Classification Accuracy Score (un ResNet-50 entrenado solo con muestras generadas y probado en el conjunto de validación de ImageNet) y con Precision/Recall.",
+      "blocks": [
+        "s4-p7",
+        "s4-p8",
+        "s4-p9"
+      ],
+      "key": "fid",
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "result",
+      "en": "On ImageNet 256x256, without beam search, top-k, nucleus sampling or classifier guidance, MaskGIT significantly outperforms VQGAN: FID 6.18 vs 15.78 and Inception Score 182.1 vs 78.3.",
+      "es": "En ImageNet 256x256, sin búsqueda en haz, top-k, muestreo nucleus ni guía por clasificador, MaskGIT supera significativamente a VQGAN: FID 6.18 vs 15.78 e Inception Score 182.1 vs 78.3.",
+      "blocks": [
+        "s4-p4",
+        "s4-p5",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "MaskGIT improves BigGAN's FIDs on both resolutions and reaches a new state of the art on 512x512 with an FID of 7.32. It needs the fewest steps among all non-GAN-based models on both resolutions.",
+      "es": "MaskGIT mejora los FID de BigGAN en ambas resoluciones y logra un nuevo estado del arte en 512x512 con un FID de 7.32. Requiere la menor cantidad de pasos entre todos los modelos no basados en GAN en ambas resoluciones.",
+      "blocks": [
+        "s4-p7",
+        "tab-1",
+        "s1-p6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "MaskGIT decodes an image in 8 steps instead of the 256 the sequential method takes. In wall-clock runtime it accelerates VQGAN by 30-64x, and the speedup grows as image resolution and token length grow.",
+      "es": "MaskGIT decodifica una imagen en 8 pasos en lugar de los 256 que necesita el método secuencial. En tiempo real acelera a VQGAN entre 30-64x, y la aceleración crece al aumentar la resolución y la longitud de los tokens.",
+      "blocks": [
+        "s1-p5",
+        "fig-2",
+        "s4-p8",
+        "fig-4",
+        "s0-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "MaskGIT sets a new state of the art in CAS on both resolutions (a classifier trained on real ImageNet reaches 76.6% top-1 and 93.1% top-5 for reference). It has better recall than BigGAN and better precision than likelihood-based models like VQVAE-2 and diffusion; against VQGAN it raises recall and slightly raises precision.",
+      "es": "MaskGIT establece un nuevo estado del arte en CAS en ambas resoluciones (un clasificador entrenado con ImageNet real alcanza 76.6% top-1 y 93.1% top-5 como referencia). Tiene mejor recall que BigGAN y mejor precisión que los modelos basados en verosimilitud como VQVAE-2 y los de difusión; frente a VQGAN sube el recall y mejora ligeramente la precisión.",
+      "blocks": [
+        "s4-p9",
+        "s4-p10",
+        "s4-p11",
+        "fig-5",
+        "tab-1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "concept",
+      "en": "Class-conditional editing, inpainting and outpainting are all treated as a constraint on the initial binary mask of iterative decoding, with no change to the architecture and no task-specific training. This is infeasible for autoregressive models because it violates their prediction order.",
+      "es": "La edición condicionada por clase, el inpainting y el outpainting se tratan como una restricción sobre la máscara binaria inicial de la decodificación iterativa, sin cambiar la arquitectura ni entrenar para cada tarea. Esto es inviable para los modelos autorregresivos porque viola su orden de predicción.",
+      "blocks": [
+        "s4-p12",
+        "s4-p13",
+        "s1-p7",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "On Places2, with a central 50% x 50% mask MaskGIT beats DeepFillv2 and HiFill in FID and IS by a significant margin and scores close to CoModGAN. Extrapolating rightward with a 50% ratio, it beats all baselines and achieves state-of-the-art FID and IS, though it was not designed for these tasks.",
+      "es": "En Places2, con una máscara central de 50% x 50%, MaskGIT supera a DeepFillv2 y HiFill en FID e IS por un margen significativo y queda cerca de CoModGAN. Al extrapolar hacia la derecha con una razón de 50%, supera a todas las líneas base y logra FID e IS de estado del arte, aunque no fue diseñado para estas tareas.",
+      "blocks": [
+        "s4-p17",
+        "s4-p19",
+        "s4-p20",
+        "tab-2",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "In class-conditional editing MaskGIT synthesizes unnatural yet plausible combinations unseen in the ImageNet training set, such as a flying cat, a cat in a soup bowl and a cat in a flower. The paper suggests it has incidentally learned useful representations for composition.",
+      "es": "En la edición condicionada por clase, MaskGIT sintetiza combinaciones poco naturales pero plausibles que no aparecen en el conjunto de entrenamiento de ImageNet, como un gato volando, un gato en un tazón de sopa y un gato en una flor. El artículo sugiere que aprendió de manera incidental representaciones útiles para la composición.",
+      "blocks": [
+        "s4-p14",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "MaskGIT can outpaint in arbitrary directions (for example both upward and downward) and repeat it to build panoramas from 512x256 to 512x2304. ImageGPT and VQGAN handle only one direction per model because they are autoregressive, and ImageGPT runs at a maximum of 192 x 192.",
+      "es": "MaskGIT puede hacer outpainting en direcciones arbitrarias (por ejemplo hacia arriba y hacia abajo) y repetirlo para construir panoramas de 512x256 a 512x2304. ImageGPT y VQGAN solo manejan una dirección por modelo por ser autorregresivos, e ImageGPT funciona como máximo a 192 x 192.",
+      "blocks": [
+        "app-c-p3",
+        "app-c-p4",
+        "fig-15",
+        "fig-16",
+        "fig-17"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "result",
+      "en": "Schedule ablation (Table 3): cosine gets FID 6.06, IS 181.5, NLL 4.22 at T 10; square 6.35, 179.9, 4.38 at T 10; cubic FID 7.26; exponential FID 7.89; linear FID 7.51 and IS 113.2 at T 16; square root FID 12.33 at T 32; logarithmic FID 29.17 at T 60. Concave beats linear, which beats convex, and cosine is the default. NLL runs the other way, from 3.08 for logarithmic to 4.22 for cosine.",
+      "es": "Ablación del calendario (Tabla 3): coseno obtiene FID 6.06, IS 181.5, NLL 4.22 con T 10; cuadrado 6.35, 179.9, 4.38 con T 10; cúbica FID 7.26; exponencial FID 7.89; lineal FID 7.51 e IS 113.2 con T 16; raíz cuadrada FID 12.33 con T 32; logarítmica FID 29.17 con T 60. Las cóncavas superan a la lineal, que supera a las convexas, y coseno es la opción por defecto. El NLL va en sentido contrario, de 3.08 en la logarítmica a 4.22 en coseno.",
+      "blocks": [
+        "s4-p21",
+        "s4-p22",
+        "s4-p23",
+        "tab-3",
+        "fig-8",
+        "s4-p24"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "The paper hypothesizes that concave schedules work because they challenge training with harder cases (larger mask ratios) and prioritize a less-to-more prediction in decoding. Over-prioritizing is costly: cubic is worse than square, and exponential is much worse than all other concave functions.",
+      "es": "El artículo plantea la hipótesis de que los calendarios cóncavos funcionan porque ponen a prueba el entrenamiento con casos más difíciles (razones de máscara mayores) y priorizan una predicción de menos a más en la decodificación. Priorizar de más tiene costo: la cúbica es peor que la cuadrada, y la exponencial es mucho peor que todas las demás cóncavas.",
+      "blocks": [
+        "s4-p25",
+        "s3-p28"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "More decoding iterations are not necessarily better: except for the logarithmic function, every schedule hits a sweet spot where performance peaks before it worsens again. Cosine has the earliest sweet spot, at a total of 8 to 12 iterations. The paper hypothesizes that too many iterations discourage keeping less confident predictions, which worsens token diversity.",
+      "es": "Más iteraciones de decodificación no son necesariamente mejores: salvo la función logarítmica, todos los calendarios llegan a un punto óptimo donde el rendimiento alcanza su máximo antes de empeorar de nuevo. Coseno tiene el punto óptimo más temprano, con un total de 8 a 12 iteraciones. El artículo supone que demasiadas iteraciones desalientan conservar predicciones menos confiables, lo que empeora la diversidad de tokens.",
+      "blocks": [
+        "s4-p25",
+        "fig-8",
+        "s4-p24"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "In reconstruction tests MaskGIT recovers holistic information (pose and shape of foreground objects) even with 95% of tokens masked. Quality improves drastically as the mask ratio falls to 90%, then more slowly. The paper concludes visual tokens are highly redundant: about 10% are essential for a holistic reconstruction and the rest refine details.",
+      "es": "En las pruebas de reconstrucción, MaskGIT recupera la información global (pose y forma de los objetos en primer plano) incluso con 95% de los tokens enmascarados. La calidad mejora drásticamente al bajar la razón de máscara hasta 90% y después más despacio. El artículo concluye que los tokens visuales son muy redundantes: cerca de 10% son esenciales para una reconstrucción global y el resto afina los detalles.",
+      "blocks": [
+        "app-a-p1",
+        "app-a-p2",
+        "fig-10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "With classifier-based rejection sampling (acceptance rate 0.05), MaskGIT improves consistently over VQGAN, is comparable with ADM with classifier guidance, and reaches state-of-the-art Inception Scores of 355.6 on 256x256 and 342.0 on 512x512.",
+      "es": "Con muestreo por rechazo basado en clasificador (tasa de aceptación 0.05), MaskGIT mejora de forma consistente sobre VQGAN, es comparable con ADM con guía por clasificador y alcanza Inception Scores de estado del arte de 355.6 en 256x256 y 342.0 en 512x512.",
+      "blocks": [
+        "app-b-p2",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "claim",
+      "en": "The paper says it gives the first evidence that masked modeling works for image generation on ImageNet, and that its novelty lies in the new masking strategy and decoding algorithm, inspired by bidirectional machine translation. It reports quality comparable to BigGAN and ADM with more favourable diversity.",
+      "es": "El artículo afirma dar la primera evidencia de que el modelado enmascarado funciona para generar imágenes en ImageNet, y que su novedad está en la nueva estrategia de enmascaramiento y el nuevo algoritmo de decodificación, inspirados en la traducción automática bidireccional. Reporta calidad comparable a BigGAN y ADM con una diversidad más favorable.",
+      "blocks": [
+        "s1-p6",
+        "s2-p6",
+        "s5-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "limitation",
+      "en": "Failure cases: because of its limited attention size MaskGIT may forget the semantics or color of one end when outpainting the other, may ignore or modify objects on the boundary, and may oversmooth or create artifacts on complex structures such as human faces, text and symmetric objects.",
+      "es": "Casos de falla: por su tamaño de atención limitado, MaskGIT puede olvidar la semántica o el color de un extremo al hacer outpainting del otro, puede ignorar o modificar objetos en el borde, y puede suavizar de más o crear artefactos en estructuras complejas como rostros humanos, texto y objetos simétricos.",
+      "blocks": [
+        "app-f-p1",
+        "fig-21"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "limitation",
+      "en": "The tokenizer is not improved: MaskGIT reuses the first stage of VQGAN and leaves potential improvements to tokenization for future work, since existing works mostly focus on that stage.",
+      "es": "El tokenizador no se mejora: MaskGIT reutiliza la primera etapa de VQGAN y deja para trabajo futuro las posibles mejoras de la tokenización, ya que los trabajos existentes se concentran sobre todo en esa etapa.",
+      "blocks": [
+        "s3-p2",
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "future",
+      "en": "Future work named in the paper: further study of masking design, applying the approach to other synthesis tasks, exploiting the composition representations it seems to have learned, and fixing the failure cases on faces, text and symmetric objects.",
+      "es": "Trabajo futuro que menciona el artículo: estudiar más a fondo el diseño del enmascaramiento, aplicar el enfoque a otras tareas de síntesis, aprovechar las representaciones de composición que parece haber aprendido y corregir los casos de falla en rostros, texto y objetos simétricos.",
+      "blocks": [
+        "s4-p25",
+        "s5-p1",
+        "s4-p14",
+        "app-f-p1"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i3",
+      "to": "i1",
+      "type": "supports",
+      "why": "Sequence length and 30-second decoding are the reasons given for doubting raster-scan decoding."
+    },
+    {
+      "from": "i4",
+      "to": "i2",
+      "type": "supports",
+      "why": "Stable training and better diversity are why the paper works with generative transformers rather than GANs."
+    },
+    {
+      "from": "i5",
+      "to": "i2",
+      "type": "part-of",
+      "why": "MVTM is the second stage of the two-stage design."
+    },
+    {
+      "from": "i6",
+      "to": "i5",
+      "type": "part-of",
+      "why": "The masked tokens are predicted with bidirectional attention."
+    },
+    {
+      "from": "i5",
+      "to": "i9",
+      "type": "uses",
+      "why": "Training samples a mask ratio through the scheduling function."
+    },
+    {
+      "from": "i7",
+      "to": "i6",
+      "type": "uses",
+      "why": "Parallel prediction of all tokens is feasible because of bidirectional self-attention."
+    },
+    {
+      "from": "i7",
+      "to": "i9",
+      "type": "uses",
+      "why": "The schedule sets how many tokens stay masked after each iteration."
+    },
+    {
+      "from": "i8",
+      "to": "i7",
+      "type": "supports",
+      "why": "The mismatch with training is the reason decoding is iterative rather than one pass."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "part-of",
+      "why": "Linear, concave and convex are the candidate forms of the scheduling function."
+    },
+    {
+      "from": "i11",
+      "to": "i2",
+      "type": "uses",
+      "why": "The setup reuses VQGAN's first stage."
+    },
+    {
+      "from": "i11",
+      "to": "i12",
+      "type": "uses",
+      "why": "The training setup is applied to ImageNet and Places2."
+    },
+    {
+      "from": "i30",
+      "to": "i2",
+      "type": "uses",
+      "why": "The tokenizer stage is kept unchanged from VQGAN."
+    },
+    {
+      "from": "i15",
+      "to": "i14",
+      "type": "uses",
+      "why": "Quality is reported as FID and IS."
+    },
+    {
+      "from": "i18",
+      "to": "i14",
+      "type": "uses",
+      "why": "Diversity is reported with CAS and Precision/Recall."
+    },
+    {
+      "from": "i13",
+      "to": "i15",
+      "type": "supports",
+      "why": "A control with the same tokenizer and hyperparameters shows the gain comes from the bidirectional design."
+    },
+    {
+      "from": "i15",
+      "to": "i28",
+      "type": "supports",
+      "why": "Beating VQGAN on ImageNet is the core evidence for masked modeling in generation."
+    },
+    {
+      "from": "i16",
+      "to": "i28",
+      "type": "supports",
+      "why": "Reaching a new state of the art at 512x512 backs the claim of competitiveness with GANs."
+    },
+    {
+      "from": "i27",
+      "to": "i15",
+      "type": "supports",
+      "why": "Rejection sampling further raises Inception Scores beyond the main table."
+    },
+    {
+      "from": "i17",
+      "to": "i7",
+      "type": "measures",
+      "why": "Steps and wall-clock runtime measure the cost of iterative parallel decoding against sequential decoding."
+    },
+    {
+      "from": "i17",
+      "to": "i1",
+      "type": "supports",
+      "why": "8 steps against 256 backs the claim that raster-scan decoding is inefficient."
+    },
+    {
+      "from": "i19",
+      "to": "i7",
+      "type": "uses",
+      "why": "Editing sets the initial mask of the iterative decoding algorithm."
+    },
+    {
+      "from": "i20",
+      "to": "i19",
+      "type": "example-of",
+      "why": "Inpainting and outpainting are tasks solved by constraining the initial mask."
+    },
+    {
+      "from": "i21",
+      "to": "i19",
+      "type": "example-of",
+      "why": "Class-conditional editing regenerates the content of a bounding box while keeping the context."
+    },
+    {
+      "from": "i22",
+      "to": "i19",
+      "type": "example-of",
+      "why": "Outpainting in any direction is another way of setting the initial mask."
+    },
+    {
+      "from": "i22",
+      "to": "i6",
+      "type": "supports",
+      "why": "Arbitrary-direction outpainting is possible because attention is bidirectional, unlike autoregressive models."
+    },
+    {
+      "from": "i20",
+      "to": "i12",
+      "type": "uses",
+      "why": "Evaluated on Places2."
+    },
+    {
+      "from": "i29",
+      "to": "i20",
+      "type": "contradicts",
+      "why": "Outpainting and inpainting can drift in semantics or color or alter boundary objects."
+    },
+    {
+      "from": "i23",
+      "to": "i10",
+      "type": "measures",
+      "why": "The ablation compares the seven functions of the three families."
+    },
+    {
+      "from": "i24",
+      "to": "i23",
+      "type": "supports",
+      "why": "Offers an explanation for why concave schedules score best."
+    },
+    {
+      "from": "i25",
+      "to": "i7",
+      "type": "measures",
+      "why": "Varies the number of decoding iterations T and reports the sweet spot."
+    },
+    {
+      "from": "i26",
+      "to": "i24",
+      "type": "supports",
+      "why": "High redundancy of tokens echoes the intuition that the first few predictions are key."
+    },
+    {
+      "from": "i31",
+      "to": "i24",
+      "type": "supports",
+      "why": "Further study of masking design is the open question left by the hypotheses about the schedule."
+    },
+    {
+      "from": "i31",
+      "to": "i21",
+      "type": "supports",
+      "why": "Composition representations are named as something to exploit in related tasks."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i5",
+      "to": "masking-training",
+      "why": "A method to borrow: hide a random subset of the parts, give the model the rest with attention in all directions, and compute the loss only on the hidden parts."
+    },
+    {
+      "idea": "i9",
+      "to": "masking-training",
+      "why": "Shows the masked share can be drawn per example between 0 and 1 and tied to a schedule instead of fixed like BERT's 15%; the thesis must choose its own masking rate."
+    },
+    {
+      "idea": "i23",
+      "to": "masking-training",
+      "why": "The shape of the masking schedule moved FID from 6.06 (cosine) to 29.17 (logarithmic), so the rate and schedule are something to test, not a default; evidence is on images only."
+    },
+    {
+      "idea": "i26",
+      "to": "masking-training",
+      "why": "On images, hiding up to 90% of tokens still allows recovering the overall structure, which bears on how much of a model can be masked."
+    },
+    {
+      "idea": "i7",
+      "to": "placement-order-experiments",
+      "why": "Supplies the 'all at once, then refine the most confident first' option to compare with placing one element at a time."
+    },
+    {
+      "idea": "i17",
+      "to": "placement-order-experiments",
+      "why": "8 steps against 256, with the gain growing with token count, is the cost side of parallel versus sequential placement, measured only on image tokens."
+    },
+    {
+      "idea": "i6",
+      "to": "assemble-node-by-node",
+      "why": "Next-element prediction follows a fixed order like the raster scan; this paper argues against fixed order for images and shows what bidirectional context adds."
+    },
+    {
+      "idea": "i19",
+      "to": "assemble-node-by-node",
+      "why": "Setting the initial mask lets generation start from any partial state and fill only the missing part, not only from an empty canvas."
+    },
+    {
+      "idea": "i21",
+      "to": "new-not-replicated",
+      "why": "Qualitative examples of plausible combinations absent from the training set, but there is no test for copying."
+    },
+    {
+      "idea": "i18",
+      "to": "meehan-2020",
+      "why": "Diversity is judged with recall and CAS only; a data-copying test is the gap that would check whether samples replay training images."
+    }
+  ]
+}

@@ -1,0 +1,1741 @@
+{
+  "version": 1,
+  "node": "sun-2024",
+  "title": "Forest2Seq: Revitalizing Order Prior for Sequential Indoor Scene Synthesis",
+  "source": "files/Forest2Seq Revitalizing Order Prior for Sequential Indoor Scene Synthesis.pdf",
+  "sections": [
+    {
+      "id": "s0",
+      "title": {
+        "en": "Front matter",
+        "es": "Portada"
+      },
+      "blocks": [
+        {
+          "id": "fig-1",
+          "type": "figure",
+          "page": 1,
+          "image": "fig/fig-1.png",
+          "text": {
+            "en": "Fig. 1: We present Forest2Seq that mines the implicit hierarchy from the scene (bottom left), employing the tree-derived ordering as significant prior to direct the sequential indoor scene synthesis (top). The presence of placing-adaptable furniture items (bottom right), exemplified by the cabinets, necessitate the evolution from a single tree to scene forest representation.",
+            "es": "Fig. 1: Presentamos Forest2Seq, que extrae la jerarquía implícita de la escena (abajo a la izquierda) y emplea el orden derivado del árbol como un prior significativo para dirigir la síntesis secuencial de escenas de interiores (arriba). La presencia de elementos de mobiliario con colocación adaptable (abajo a la derecha), ejemplificados por los gabinetes, hace necesaria la evolución de un solo árbol a una representación de bosque de escena."
+          }
+        },
+        {
+          "id": "s0-p1",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "Abstract. Synthesizing realistic 3D indoor scenes is a challenging task that traditionally relies on manual arrangement and annotation by expert designers. Recent advances in autoregressive models have automated this process, but they often lack semantic understanding of the relationships and hierarchies present in real-world scenes, yielding limited performance. In this paper, we propose Forest2Seq, a framework that formulates indoor scene synthesis as an order-aware sequential learning problem. Forest2Seq organizes the inherently unordered collection of scene objects into structured, ordered hierarchical scene trees and forests. By employing a clustering-based algorithm and a breadth-first traversal, Forest2Seq derives meaningful orderings and utilizes a transformer to generate realistic 3D scenes autoregressively. Experimental results on standard benchmarks demonstrate Forest2Seq’s superiority in synthesizing more realistic scenes compared to top-performing baselines, with significant improvements in FID and KL scores. Our additional experiments for downstream tasks and ablation studies also confirm the importance of incorporating order as a prior in 3D scene generation.",
+            "es": "Resumen. Sintetizar escenas 3D de interiores realistas es una tarea desafiante que tradicionalmente depende de la disposición y la anotación manuales realizadas por diseñadores expertos. Los avances recientes en los modelos autorregresivos (autoregressive models) han automatizado este proceso, pero con frecuencia carecen de comprensión semántica de las relaciones y las jerarquías presentes en las escenas del mundo real, lo que produce un desempeño limitado. En este artículo proponemos Forest2Seq, un marco de trabajo que formula la síntesis de escenas de interiores como un problema de aprendizaje secuencial consciente del orden (order-aware sequential learning). Forest2Seq organiza la colección inherentemente desordenada de objetos de la escena en árboles y bosques jerárquicos de escena, estructurados y ordenados. Mediante un algoritmo basado en agrupamiento (clustering) y un recorrido en anchura (breadth-first traversal), Forest2Seq deriva órdenes significativos y utiliza un transformador (transformer) para generar escenas 3D realistas de manera autorregresiva. Los resultados experimentales en benchmarks estándar demuestran la superioridad de Forest2Seq para sintetizar escenas más realistas en comparación con los baselines de mejor desempeño, con mejoras significativas en las puntuaciones FID y KL. Nuestros experimentos adicionales en tareas posteriores y los estudios de ablación también confirman la importancia de incorporar el orden como prior en la generación de escenas 3D."
+          }
+        },
+        {
+          "id": "s0-p2",
+          "type": "paragraph",
+          "page": 1,
+          "text": {
+            "en": "⋆Equal contributions; Work carried out at SFU by Hang.",
+            "es": "⋆Contribuciones iguales; trabajo realizado en SFU por Hang."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": {
+        "en": "1 Introduction",
+        "es": "1 Introducción"
+      },
+      "blocks": [
+        {
+          "id": "s1-p1",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "Creating realistic virtual 3D indoor scenes has long been an expensive, laborintensive process [7,44,72], requiring expert designers to manually arrange and annotate every piece to populate these rich environments [10, 32, 52]. Recent advances in indoor scene synthesis, however, enable automating this process by generating plausible room layouts simply by taking high-level room type and layout [49,56,62,66] as inputs. This has immense potential, enabling virtual product showcasing for retailers [1,36], automating environment creation for movies [34], games [77] and complex visualization [50], and providing rich training data for 3D scene understanding AI models [4,9,61]. Early indoor synthesis approaches were formulated as a prior constraint optimization task [17,31,44,58], achieving promising results. They encoded rules and priors about functional relationships between objects [71,72] (like couches facing TVs) as well as human use-case constraints [43, 76], which are time-consuming and skill-dependent. As a result, this hand-crafted prior approach lacks flexibility and generality as the 3D indoor scene becomes more complex [49,56].",
+            "es": "Crear escenas 3D virtuales de interiores realistas ha sido durante mucho tiempo un proceso costoso y de uso intensivo de mano de obra [7,44,72], que requiere que diseñadores expertos dispongan y anoten manualmente cada pieza para poblar estos entornos ricos [10, 32, 52]. Sin embargo, los avances recientes en la síntesis de interiores permiten automatizar este proceso al generar distribuciones de habitaciones plausibles simplemente tomando como entradas el tipo de habitación y su distribución (layout) de alto nivel [49,56,62,66]. Esto tiene un potencial inmenso, pues permite la exhibición virtual de productos para minoristas [1,36], la automatización de la creación de entornos para películas [34], videojuegos [77] y visualizaciones complejas [50], y el suministro de datos de entrenamiento ricos para modelos de IA de comprensión de escenas 3D [4,9,61]. Los primeros enfoques de síntesis de interiores se formularon como una tarea de optimización con restricciones a priori [17,31,44,58], con resultados prometedores. Codificaban reglas y priors sobre las relaciones funcionales entre objetos [71,72] (como sofás orientados hacia televisores), así como restricciones de uso humano [43, 76], lo cual consume mucho tiempo y depende de la habilidad. Como resultado, este enfoque de priors elaborados a mano carece de flexibilidad y generalidad a medida que la escena 3D de interiores se vuelve más compleja [49,56]."
+          }
+        },
+        {
+          "id": "s1-p2",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "As an alternative to hand-crafted priors, deep generative models have been employed to learn scene priors directly from data, without the need for manually specified rules or constraints. Such approaches include autoregressive transformer models [48,49,67] and CNN-based methods [66,69]. While autoregressive models generate objects in sequential order, a key limitation is that this order is arbitrary [13,65,70] and lacks semantic understanding of the relationships and hierarchies that exist in real 3D indoor scenes [62].",
+            "es": "Como alternativa a los priors elaborados a mano, se han empleado modelos generativos profundos (deep generative models) para aprender priors de escena directamente de los datos, sin necesidad de reglas o restricciones especificadas manualmente. Dichos enfoques incluyen modelos transformadores autorregresivos [48,49,67] y métodos basados en CNN [66,69]. Si bien los modelos autorregresivos generan los objetos en orden secuencial, una limitación clave es que este orden es arbitrario [13,65,70] y carece de comprensión semántica de las relaciones y las jerarquías que existen en las escenas 3D de interiores reales [62]."
+          }
+        },
+        {
+          "id": "s1-p3",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "To address these limitations, we propose Forest2Seq, a framework that formulates indoor scene synthesis as an order-aware sequential learning problem. Forest2Seq organizes the inherently unordered collection of scene objects into structured, ordered hierarchical scene trees and forests. Specifically, For-est2Seq first establishes orderings that prioritize the placement of dominant furniture pieces before the associated secondary objects, aligning with intuitive spatial reasoning principles for scene composition.",
+            "es": "Para abordar estas limitaciones, proponemos Forest2Seq, un marco de trabajo que formula la síntesis de escenas de interiores como un problema de aprendizaje secuencial consciente del orden. Forest2Seq organiza la colección inherentemente desordenada de objetos de la escena en árboles y bosques jerárquicos de escena, estructurados y ordenados. Específicamente, Forest2Seq establece primero órdenes que priorizan la colocación de las piezas de mobiliario dominantes antes que los objetos secundarios asociados, en línea con principios intuitivos de razonamiento espacial para la composición de escenas."
+          }
+        },
+        {
+          "id": "s1-p4",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "As illustrated in Figure 1 (bottom left), Forest2Seq used a clustering-based algorithm to parse the scene into a tree, which is then linearized into an ordered sequence via breadth-first traversal. To handle flexible objects like cabinets that can belong to multiple functional zones, as depicted in Figure 1 (bottom right), we extend this to an ensemble of trees forming a scene forest representation. With these derived ordering, Forest2Seq employs a transformer coupled with a denoising strategy. At inference time, Forest2Seq generates plausible 3D scenes auto-regressively by sequentially placing furniture instances guided by the predicted order as shown in Figure 1 (top).",
+            "es": "Como se ilustra en la Figura 1 (abajo a la izquierda), Forest2Seq utilizó un algoritmo basado en agrupamiento para analizar la escena y convertirla en un árbol, que luego se linealiza en una secuencia ordenada mediante un recorrido en anchura. Para manejar objetos flexibles como los gabinetes, que pueden pertenecer a múltiples zonas funcionales, como se muestra en la Figura 1 (abajo a la derecha), extendemos esto a un conjunto de árboles que forman una representación de bosque de escena. Con estos órdenes derivados, Forest2Seq emplea un transformador acoplado con una estrategia de eliminación de ruido (denoising). En el momento de la inferencia, Forest2Seq genera escenas 3D plausibles de manera autorregresiva colocando secuencialmente instancias de mobiliario guiadas por el orden predicho, como se muestra en la Figura 1 (arriba)."
+          }
+        },
+        {
+          "id": "s1-p5",
+          "type": "paragraph",
+          "page": 2,
+          "text": {
+            "en": "We demonstrate the capability of Forest2Seq to synthesize more realistic scenes using the 3D-FRONT dataset, outperforming the top-performing baseline with an average margin of FID score of 2.58 and a KL score of 1.78. Additionally, we illustrate how Forest2Seq enhances scene rearrangement and completion tasks. Our extensive ablation studies further confirm that order-awareness as a prior significantly improves the generation of 3D indoor scenes.",
+            "es": "Demostramos la capacidad de Forest2Seq para sintetizar escenas más realistas usando el conjunto de datos 3D-FRONT, superando al baseline de mejor desempeño con un margen promedio de 2.58 en la puntuación FID y de 1.78 en la puntuación KL. Además, ilustramos cómo Forest2Seq mejora las tareas de reorganización y completado de escenas. Nuestros extensos estudios de ablación confirman además que la conciencia del orden como prior mejora significativamente la generación de escenas 3D de interiores."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": {
+        "en": "2 Related Works",
+        "es": "2 Trabajos relacionados"
+      },
+      "blocks": [
+        {
+          "id": "s2-p1",
+          "type": "paragraph",
+          "page": 3,
+          "text": {
+            "en": "Scene synthesis with handcrafted priors. Early works reasoned scene synthesis with various probabilistic models over scene exemplars in the view of object functionality criteria [17,43,76] and human activities [18,42,58]. For example, Fisher et al. [17] investigated Bayesian network and Gaussian mixture model to model object co-occurrence. Make-it-Home [71] that pioneered in progressive synthesis, offered an interactive layout modeling tool by optimizing cost function that encoding spatial relation between furniture objects. Ma et al. [42] formulated an action graph with nodes represented as human actions, guiding interior sythesis from human activity. In contrast, our approach is an end-to-end differentiable pipeline and free of externally introduced elements previously proposed for scene synthesis. Scene synthesis via graph representation. Modeling scenes as graphs [23, 27,38,62,66,68,78] has been an intuitive approach for scene synthesis and been extensively studied recently. GRAINS [38] proposed a recursive auto-encoder network for scene synthesis, where novel scenes are generated hierarchically. SceneGraphNet [78] utilized message-passing graph networks to model longrange relationships among objects. SceneHGN [23] defined a fine-grained hierarchy in room-object-part order, allowing multi-level scene editing. LEGO-Net [68] and DiffuScene [62] represented scene as a fully-connected graph with denoising diffusion probabilistic models (DDPMs). CommonScenes [75] modeled scene jointly with layout and shape via latent diffusion models. Our work represents scene as directed rooted forest and learns scene synthesis with transformers. Scene synthesis using language modeling. Recently, great success have been made in language modeling [54, 64] for content generation [5, 6, 14, 39, 46, 57]. SceneFormer [67] modeled each scene object property with individual transformer network, where object order is predefined by class frequency. ATISS [49] represented object properties as span using a single transformer network and removed positional encoding for order permutation-invariance. CLIP-Layout [40] learned to synthesize style-consistent indoor scenes with multi-modal CLIP [53] encoder. LayoutGPT [16] leveraged rich visual concepts and notable zero-shot capabilities of large language models (LLMs), i.e. ChatGPT [47]. COFS [48] adapted masked language models and modeled scenes with a standard BART [37]-like generative model, formed by a bidirectional encoder over corrupted input and an auto-regressive decoder. In our method, we leverage the decoder-only casual transformer and denoising strategy to enhance the generation ability. Input as sequence or set. A significant limitation of language modeling is it can only be applied to problems whose inputs are represented as sequences. Hence, many research efforts [13, 30, 65, 70] have been made to perform mappings from different data structure, like set, to sequences. Set2Seq [65] proposed read, process, write block to process the input set and find the optimal orderings while training, the results of which show that order matters in various tasks. Tree2Seq [8] added unsupervised hierarchical structure on the source sentence to Seq2Seq model for improving low-resource machine translation. CODE-NN [30] showcased the effectiveness of transforming structured code into sequence coupled with LSTM [29] for summarization. Another line of research initiatives have been focusing on processing the set-input data. DeepSets [73] handled set data by ensuring permutation-invariance and enabling pooling over sets. Set Transformer [35] featured as induced set attention block and attentional pooling module to aggregate set input attributes. Since the indoor scenes do not provide explicit ordering, following Set2Seq, our method ventures to search the optimal priori choice of the indoor scene ordering for sequential modeling.",
+            "es": "Síntesis de escenas con priors elaborados a mano. Los primeros trabajos razonaron la síntesis de escenas con diversos modelos probabilísticos sobre ejemplares de escenas, desde la perspectiva de criterios de funcionalidad de los objetos [17,43,76] y de actividades humanas [18,42,58]. Por ejemplo, Fisher et al. [17] investigaron una red bayesiana (Bayesian network) y un modelo de mezcla gaussiana (Gaussian mixture model) para modelar la co-ocurrencia de objetos. Make-it-Home [71], pionero en la síntesis progresiva, ofreció una herramienta interactiva de modelado de distribuciones mediante la optimización de una función de costo que codifica la relación espacial entre los objetos de mobiliario. Ma et al. [42] formularon un grafo de acciones con nodos representados como acciones humanas, que guía la síntesis de interiores a partir de la actividad humana. En contraste, nuestro enfoque es un pipeline diferenciable de extremo a extremo y libre de elementos introducidos externamente que se habían propuesto previamente para la síntesis de escenas. Síntesis de escenas mediante representación de grafos. Modelar las escenas como grafos [23, 27,38,62,66,68,78] ha sido un enfoque intuitivo para la síntesis de escenas y se ha estudiado extensamente en fechas recientes. GRAINS [38] propuso una red de autocodificador recursivo (recursive auto-encoder) para la síntesis de escenas, donde las escenas nuevas se generan de forma jerárquica. SceneGraphNet [78] utilizó redes de grafos de paso de mensajes (message-passing graph networks) para modelar relaciones de largo alcance entre objetos. SceneHGN [23] definió una jerarquía de grano fino en el orden habitación-objeto-parte, lo que permite la edición de escenas en múltiples niveles. LEGO-Net [68] y DiffuScene [62] representaron la escena como un grafo completamente conectado con modelos probabilísticos de difusión con eliminación de ruido (denoising diffusion probabilistic models, DDPMs). CommonScenes [75] modeló la escena conjuntamente con la distribución y la forma mediante modelos de difusión latente (latent diffusion models). Nuestro trabajo representa la escena como un bosque dirigido con raíz y aprende la síntesis de escenas con transformadores. Síntesis de escenas mediante modelado del lenguaje. Recientemente se han logrado grandes éxitos en el modelado del lenguaje (language modeling) [54, 64] para la generación de contenido [5, 6, 14, 39, 46, 57]. SceneFormer [67] modeló cada propiedad de los objetos de la escena con una red transformadora individual, donde el orden de los objetos se predefine por la frecuencia de clase. ATISS [49] representó las propiedades de los objetos como un tramo (span) usando una sola red transformadora y eliminó la codificación posicional para lograr invarianza a la permutación del orden. CLIP-Layout [40] aprendió a sintetizar escenas de interiores de estilo consistente con el codificador multimodal CLIP [53]. LayoutGPT [16] aprovechó los ricos conceptos visuales y las notables capacidades de cero disparos (zero-shot) de los modelos de lenguaje de gran tamaño (large language models, LLMs), es decir, ChatGPT [47]. COFS [48] adaptó modelos de lenguaje enmascarado (masked language models) y modeló las escenas con un modelo generativo estándar al estilo de BART [37], formado por un codificador bidireccional sobre una entrada corrompida y un decodificador autorregresivo. En nuestro método, aprovechamos el transformador causal de solo decodificador y la estrategia de eliminación de ruido para mejorar la capacidad de generación. Entrada como secuencia o conjunto. Una limitación significativa del modelado del lenguaje es que solo puede aplicarse a problemas cuyas entradas se representan como secuencias. Por ello, se han realizado muchos esfuerzos de investigación [13, 30, 65, 70] para llevar a cabo mapeos desde distintas estructuras de datos, como los conjuntos, hacia secuencias. Set2Seq [65] propuso un bloque de leer, procesar y escribir (read, process, write) para procesar el conjunto de entrada y encontrar los órdenes óptimos durante el entrenamiento, cuyos resultados muestran que el orden importa en diversas tareas. Tree2Seq [8] añadió una estructura jerárquica no supervisada a la oración fuente en un modelo Seq2Seq para mejorar la traducción automática de bajos recursos. CODE-NN [30] mostró la efectividad de transformar código estructurado en una secuencia acoplada con LSTM [29] para la generación de resúmenes. Otra línea de iniciativas de investigación se ha centrado en el procesamiento de datos de entrada en forma de conjunto. DeepSets [73] manejó datos de conjuntos garantizando la invarianza a la permutación y permitiendo el pooling sobre conjuntos. Set Transformer [35] presentó un bloque de atención de conjunto inducida (induced set attention block) y un módulo de pooling atencional (attentional pooling) para agregar los atributos de entrada del conjunto. Dado que las escenas de interiores no proporcionan un orden explícito, siguiendo a Set2Seq, nuestro método se aventura a buscar la elección a priori óptima del orden de la escena de interiores para el modelado secuencial."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": {
+        "en": "3 Method",
+        "es": "3 Método"
+      },
+      "blocks": [
+        {
+          "id": "s3-p1",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Given a 2D floor/layout, we aim to develop a generative model to produce diverse and plausible object arrangements. Figure 2 shows the framework of our proposed method.",
+            "es": "Dado un plano o distribución 2D del piso, nuestro objetivo es desarrollar un modelo generativo que produzca disposiciones de objetos diversas y plausibles. La Figura 2 muestra el marco de trabajo de nuestro método propuesto."
+          }
+        },
+        {
+          "id": "fig-2",
+          "type": "figure",
+          "page": 4,
+          "image": "fig/fig-2.png",
+          "text": {
+            "en": "Fig. 2: Training framework of our Forest2Seq. On the left, we depict the construction of a tree/forest from parsing the scene and its subsequent flattening into a sequence through breadth-first search. The right panel illustrates our use of a causal transformer equipped with a denoising strategy for sequential data learning.",
+            "es": "Fig. 2: Marco de entrenamiento de nuestro Forest2Seq. A la izquierda, se muestra la construcción de un árbol/bosque a partir del análisis de la escena y su posterior aplanamiento en una secuencia mediante búsqueda en anchura. El panel derecho ilustra nuestro uso de un transformador causal equipado con una estrategia de eliminación de ruido para el aprendizaje de datos secuenciales."
+          }
+        },
+        {
+          "id": "s3-h1",
+          "type": "heading",
+          "page": 4,
+          "text": {
+            "en": "3.1 Ordering construction",
+            "es": "3.1 Construcción del orden"
+          }
+        },
+        {
+          "id": "s3-p2",
+          "type": "paragraph",
+          "page": 4,
+          "text": {
+            "en": "Scenes are represented as sets of oriented bounding boxes O = {o1, o2, . . . , on}, with each box oi = (ci, ti, bi, ri) containing a semantic class ci ∈RC, a 3D translation ti ∈R3, a bounding box size bi ∈R3, and a rotation angle ri ∈R. To enable transformer-based sequence-to-sequence learning, we seek a permutation π that transforms the set O into a sequence S = π(O). Scene tree. In Figure 2 (left), the implicit tree structure of the living room is evident: Each subtree corresponds to a distinct functional zone, such as relaxation zone or dining zone, with the primary object forming the parent node and the ancillary objects as children. This arrangement aligns well with intuitive spatial reasoning, where primary objects are positioned first, followed by their associated items. We posit this hierarchy, which we refer to as scene tree ordering πT , naturally suits indoor scene composition and aligns with practical spatial organization.",
+            "es": "Las escenas se representan como conjuntos de cajas delimitadoras orientadas (oriented bounding boxes) O = {o1, o2, . . . , on}, donde cada caja oi = (ci, ti, bi, ri) contiene una clase semántica ci ∈RC, una traslación 3D ti ∈R3, un tamaño de caja delimitadora bi ∈R3 y un ángulo de rotación ri ∈R. Para permitir el aprendizaje de secuencia a secuencia basado en transformadores, buscamos una permutación π que transforme el conjunto O en una secuencia S = π(O). Árbol de escena. En la Figura 2 (izquierda), la estructura de árbol implícita de la sala de estar es evidente: cada subárbol corresponde a una zona funcional distinta, como la zona de descanso o la zona de comedor, con el objeto principal formando el nodo padre y los objetos auxiliares como hijos. Esta disposición se alinea bien con el razonamiento espacial intuitivo, donde los objetos principales se colocan primero, seguidos de sus elementos asociados. Postulamos que esta jerarquía, a la que denominamos orden de árbol de escena πT, se ajusta de forma natural a la composición de escenas de interiores y se alinea con la organización espacial práctica."
+          }
+        },
+        {
+          "id": "s3-p3",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "To realize the goal, we build a tree with Modified Euclidean Distance Cluster-ing (MEDC), where on the top-down projected 2D bounding boxes oi = (ti, si), we can calculate the distance between each pair, formulating a distance matrix M = {mij}N i,j=1 defined as:",
+            "es": "Para lograr este objetivo, construimos un árbol con Agrupamiento por Distancia Euclidiana Modificada (Modified Euclidean Distance Clustering, MEDC), donde, sobre las cajas delimitadoras 2D proyectadas desde arriba oi = (ti, si), podemos calcular la distancia entre cada par, formulando una matriz de distancias M = {mij}N i,j=1 definida como:"
+          }
+        },
+        {
+          "id": "s3-e1",
+          "type": "equation",
+          "page": 5,
+          "text": {
+            "en": "m _ {ij } = d _ {ij} + \\ lambda \\cdot (1 - \\text {GIoU}(\\overline { o}_i, \\overline { o}_j) ), (1)"
+          }
+        },
+        {
+          "id": "s3-p4",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "where GIoU(·, ·) ∈[−1, 1] is proposed in [55] to evaluate of distance of two bounding boxes oi, oj ∈R4, and dij is the Euclidean distance between two bounding box centers. We employ the DBSCAN algorithm [15] on the distance matrix to segment the furniture into multiple clusters and identify outliers. Within each cluster, the largest object is designated as the root node, forming a subscene, with the remaining items as child nodes. To eliminate inherent ordering among siblings, we randomly shuffle nodes under the same parent. Then, utilizing breadth-first search (BFS) [3], we linearize the shuffled tree into a sequence ST = πT (O).",
+            "es": "donde GIoU(·, ·) ∈[−1, 1] se propone en [55] para evaluar la distancia entre dos cajas delimitadoras oi, oj ∈R4, y dij es la distancia euclidiana entre los centros de las dos cajas delimitadoras. Empleamos el algoritmo DBSCAN [15] sobre la matriz de distancias para segmentar el mobiliario en múltiples clústeres e identificar los valores atípicos. Dentro de cada clúster, el objeto más grande se designa como nodo raíz, formando una subescena, con los elementos restantes como nodos hijos. Para eliminar el orden inherente entre hermanos, mezclamos aleatoriamente los nodos bajo el mismo padre. Luego, utilizando la búsqueda en anchura (breadth-first search, BFS) [3], linealizamos el árbol mezclado en una secuencia ST = πT (O)."
+          }
+        },
+        {
+          "id": "fig-3",
+          "type": "figure",
+          "page": 5,
+          "image": "fig/fig-3.png",
+          "text": {
+            "en": "Fig. 3: An example to illustrate the motivation of scene forest. The whole room is clearly divided to 2 subscenes according to the human activity. However, “cabinet” is an exception as it can reasonably belong to any subscene or the entire scene. Note that some items in the base tree are ignored for simplification.",
+            "es": "Fig. 3: Un ejemplo para ilustrar la motivación del bosque de escena. La habitación completa se divide claramente en 2 subescenas de acuerdo con la actividad humana. Sin embargo, el “gabinete” es una excepción, ya que puede pertenecer razonablemente a cualquier subescena o a la escena completa. Nótese que algunos elementos del árbol base se omiten para simplificar."
+          }
+        },
+        {
+          "id": "s3-p5",
+          "type": "paragraph",
+          "page": 5,
+          "text": {
+            "en": "Scene forest. As depicted in in Figure 3, flexible furniture like cabinets capable of serving relaxation, dining, or the entire room, introduces ambiguity into the conventional scene tree representation. To resolve this, we propose an enriched tree structure that integrates these outliers by associating them with each potential parent node, resulting in san ensemble of trees, as the forest scene representation. During training, we randomly select a tree from the forest (see Figure 3) and employ BFS to convert it into a sequence, denoted as SF = πF (O). sNote that this forest ordering approach, which produces inherently non-unique orderings, broadens the permutation space beyond what is possible with a single scene tree. More details of the algorithm are provided in the supplementary.",
+            "es": "Bosque de escena. Como se muestra en la Figura 3, el mobiliario flexible, como los gabinetes, que pueden servir a la zona de descanso, a la de comedor o a toda la habitación, introduce ambigüedad en la representación convencional de árbol de escena. Para resolver esto, proponemos una estructura de árbol enriquecida que integra estos valores atípicos asociándolos con cada posible nodo padre, lo que resulta en un conjunto de árboles, como la representación de bosque de escena. Durante el entrenamiento, seleccionamos aleatoriamente un árbol del bosque (véase la Figura 3) y empleamos BFS para convertirlo en una secuencia, denotada como SF = πF (O). Nótese que este enfoque de orden por bosque, que produce órdenes inherentemente no únicos, amplía el espacio de permutaciones más allá de lo que es posible con un solo árbol de escena. En el material suplementario se proporcionan más detalles del algoritmo."
+          }
+        },
+        {
+          "id": "s3-h2",
+          "type": "heading",
+          "page": 6,
+          "text": {
+            "en": "3.2 Masked language modeling",
+            "es": "3.2 Modelado de lenguaje enmascarado"
+          }
+        },
+        {
+          "id": "s3-p6",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Upon establishing the scene priori ordering of the indoor scenes, see Figure 2 (right), our objective is to employ a transformer-based generative model to populate the ordered sequence S = {si}N i=1. The framework primarily comprises four components, including layout encoder, object encoder, transformer decoder, and attribute extractor.",
+            "es": "Una vez establecido el orden a priori de las escenas de interiores, véase la Figura 2 (derecha), nuestro objetivo es emplear un modelo generativo basado en transformadores para poblar la secuencia ordenada S = {si}N i=1. El marco de trabajo comprende principalmente cuatro componentes: codificador de distribución (layout encoder), codificador de objetos (object encoder), decodificador transformador (transformer decoder) y extractor de atributos (attribute extractor)."
+          }
+        },
+        {
+          "id": "s3-p7",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Two encoder networks including layout encoder and object encoder transform raw input into sequential embeddings. The layout encoder, a small vision transformer [12, 22], extracts the binary layout mask s0 ∈R64×64 into a start token x0 ∈R512, establishing spatial constraints for object placement. The object encoder handles attributes (ci, ti, bi, ri), coupled with sinusoidal positional encoding for extracting the discrete variable into a unified token xi = [λ(ci); ψ(ti); ψ(bi); ψ(ri)] ∈R512.",
+            "es": "Dos redes codificadoras, el codificador de distribución y el codificador de objetos, transforman la entrada en bruto en embeddings secuenciales. El codificador de distribución, un pequeño transformador de visión (vision transformer) [12, 22], extrae la máscara binaria de distribución s0 ∈R64×64 hacia un token inicial x0 ∈R512, estableciendo restricciones espaciales para la colocación de objetos. El codificador de objetos maneja los atributos (ci, ti, bi, ri), junto con una codificación posicional sinusoidal para extraer la variable discreta en un token unificado xi = [λ(ci); ψ(ti); ψ(bi); ψ(ri)] ∈R512."
+          }
+        },
+        {
+          "id": "s3-p8",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "The transformer decoder [54], denoted as fθ, is tasked with the prediction of subsequent object embeddings. It achieves this by accumulating context from both the start layout token and previous object tokens, sleverages masked selfattention mechanisms. To enhance this process, we integrate absolute positional encodings to the sequence of object embeddings, thereby enpowering the model with crucial sequence order information:",
+            "es": "El decodificador transformador [54], denotado como fθ, tiene la tarea de predecir los embeddings de los objetos subsiguientes. Lo logra acumulando contexto tanto del token inicial de distribución como de los tokens de objetos previos, y aprovecha mecanismos de autoatención enmascarada (masked self-attention). Para mejorar este proceso, integramos codificaciones posicionales absolutas en la secuencia de embeddings de objetos, dotando así al modelo de información crucial sobre el orden de la secuencia:"
+          }
+        },
+        {
+          "id": "s3-e2",
+          "type": "equation",
+          "page": 6,
+          "text": {
+            "en": "\\ h at {{x} }_i = f_\\theta ({x}_{<i}; {x}_0), (2)"
+          }
+        },
+        {
+          "id": "s3-p9",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "where ˆxi represents the predicted embedding of the next object, and x<i is the sequence of all previous object embeddings up to the i-th position.",
+            "es": "donde ˆxi representa el embedding predicho del siguiente objeto y x<i es la secuencia de todos los embeddings de objetos previos hasta la i-ésima posición."
+          }
+        },
+        {
+          "id": "s3-p10",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Following previous work [49], our feature extractor outputs a probability distribution for bounding box parameters, using K logistic distributions for continuous parameters including position, size, and orientation: p( h",
+            "es": "Siguiendo trabajos previos [49], nuestro extractor de características produce una distribución de probabilidad para los parámetros de la caja delimitadora, usando K distribuciones logísticas para los parámetros continuos, incluidos la posición, el tamaño y la orientación: p( h"
+          }
+        },
+        {
+          "id": "s3-e3",
+          "type": "equation",
+          "page": 6,
+          "text": {
+            "en": "sum _{j=1}^T\\a lpha _j \\text {Logistic}(\\mu _j, \\sigma _j), (3)"
+          }
+        },
+        {
+          "id": "s3-p11",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "where h is a component (ti, bi, ri), with αj, µj, σj being the logistic parameters. And discrete class probabilities are derived from logit vectors lc via the softmax function:",
+            "es": "donde h es un componente (ti, bi, ri), con αj, µj, σj siendo los parámetros logísticos. Y las probabilidades de clase discretas se derivan de los vectores de logits lc mediante la función softmax:"
+          }
+        },
+        {
+          "id": "s3-e4",
+          "type": "equation",
+          "page": 6,
+          "text": {
+            "en": "p(c _ i) = \\text {Softmax}(l_c). (4)"
+          }
+        },
+        {
+          "id": "s3-p12",
+          "type": "paragraph",
+          "page": 6,
+          "text": {
+            "en": "Probability distributions are represented by 3K-dim vectors for continuous, and C-dim for discrete class variables, where C is the class number. Training with denoising. We employ input corruption techniques [11,24,25] to mitigate overfitting in the transformer in both attribute- and object token-level. Specifically, a predefined percentage of the object embeddings are randomly substituted with a [MASK] token. In addition, in the auto-regressive attribute prediction process, a predefined percentage of the ground truth categories are replaced with random categories, rather than consistent teacher forcing. We use the same 5% mask/noise rate for simplification. Moreover, this design reduces the error propagation in sequential predictions.",
+            "es": "Las distribuciones de probabilidad se representan mediante vectores de 3K dimensiones para las variables continuas y de C dimensiones para las variables de clase discretas, donde C es el número de clases. Entrenamiento con eliminación de ruido. Empleamos técnicas de corrupción de la entrada [11,24,25] para mitigar el sobreajuste (overfitting) del transformador tanto a nivel de atributo como de token de objeto. Específicamente, un porcentaje predefinido de los embeddings de objetos se sustituye aleatoriamente con un token [MASK]. Además, en el proceso de predicción autorregresiva de atributos, un porcentaje predefinido de las categorías de la verdad de referencia (ground truth) se reemplaza con categorías aleatorias, en lugar de un teacher forcing consistente. Usamos la misma tasa de máscara/ruido de 5% por simplicidad. Además, este diseño reduce la propagación de errores en las predicciones secuenciales."
+          }
+        },
+        {
+          "id": "s3-p13",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Inference. During the inference phase, the process initiates with the layout embedding or start token. Subsequently, we employ an auto-regressive approach to iteratively sample attribute values from the distributions predicted for the subsequent object. Each newly generated object is concatenated with the preceding tokens, which then informs the subsequent generation step. This procedure is repeated until the end token is produced. Object retrieval. Once a labeled oriented bounding box is sampled, we identify the matching furniture instance from the 3D-FUTURE dataset [20] by selecting the closest size match within the predicted object category.",
+            "es": "Inferencia. Durante la fase de inferencia, el proceso se inicia con el embedding de distribución o token inicial. Posteriormente, empleamos un enfoque autorregresivo para muestrear iterativamente valores de atributos de las distribuciones predichas para el siguiente objeto. Cada objeto recién generado se concatena con los tokens precedentes, lo que a su vez informa el siguiente paso de generación. Este procedimiento se repite hasta que se produce el token final. Recuperación de objetos. Una vez que se muestrea una caja delimitadora orientada etiquetada, identificamos la instancia de mobiliario correspondiente del conjunto de datos 3D-FUTURE [20] seleccionando la coincidencia de tamaño más cercana dentro de la categoría de objeto predicha."
+          }
+        },
+        {
+          "id": "s3-h3",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "3.3 Objective loss functions",
+            "es": "3.3 Funciones de pérdida objetivo"
+          }
+        },
+        {
+          "id": "s3-p14",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "The language model is trained by minimizing the negative log-likelihood of the sequence joint distribution, factorized as the product of conditional probabilities across individual tokens [2]: l",
+            "es": "El modelo de lenguaje se entrena minimizando la log-verosimilitud negativa de la distribución conjunta de la secuencia, factorizada como el producto de probabilidades condicionales a través de los tokens individuales [2]: l"
+          }
+        },
+        {
+          "id": "s3-p15",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "{ L",
+            "es": "{ L"
+          }
+        },
+        {
+          "id": "s3-p16",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "\\ l abe",
+            "es": "\\ l abe"
+          }
+        },
+        {
+          "id": "s3-p17",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "1} \\mathca l",
+            "es": "1} \\mathca l"
+          }
+        },
+        {
+          "id": "s3-e5",
+          "type": "equation",
+          "page": 7,
+          "text": {
+            "en": "the ta = - \\log \\prod _{i=1}^N p_\\theta (s_i| s_{<i}) = - \\sum _{i=1}^N \\log p_\\theta (s_i| s_{<i}), (5)"
+          }
+        },
+        {
+          "id": "s3-p18",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "{eq where pθ(si|s<i) is the cross entropy between the probability of the next object attributes predicted by model and the ground truth, given the previous i tokens.",
+            "es": "{eq donde pθ(si|s<i) es la entropía cruzada (cross entropy) entre la probabilidad de los atributos del siguiente objeto predicha por el modelo y la verdad de referencia, dados los i tokens previos."
+          }
+        },
+        {
+          "id": "s3-h4",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "3.4 Implementation details",
+            "es": "3.4 Detalles de implementación"
+          }
+        },
+        {
+          "id": "s3-p19",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "All experiments run on an NVIDIA RTX3090 GPU, with the AdamW [41] optimizer at a 1e-4 learning rate, without warm-up or decay strategies. For DBSCAN parameters, the eps and min-samples are set to 0.15 and 2 respectively, with a GIoU weight of λ=0.02 applied to the distance matrix. The attribute modeling employs a 10-component logistic mixture to accurately represent object distributions. All models are trained using a batch size of 128 across 1000 epochs, incorporating random rotations from 0◦to 360◦for data augmentation. We adopt standard practice for early stopping, evaluating against the validation metric every 10 epochs and selecting the best-performing iteration as the final model. All layers are applied with a universal dropout rate of 0.1 to counter overfitting. Details of the network architecture are provided in the supplementary.",
+            "es": "Todos los experimentos se ejecutan en una GPU NVIDIA RTX3090, con el optimizador AdamW [41] a una tasa de aprendizaje de 1e-4, sin estrategias de calentamiento (warm-up) ni de decaimiento. Para los parámetros de DBSCAN, eps y min-samples se establecen en 0.15 y 2 respectivamente, con un peso de GIoU de λ=0.02 aplicado a la matriz de distancias. El modelado de atributos emplea una mezcla logística de 10 componentes para representar con precisión las distribuciones de los objetos. Todos los modelos se entrenan con un tamaño de lote de 128 a lo largo de 1000 épocas, incorporando rotaciones aleatorias de 0◦a 360◦para el aumento de datos. Adoptamos la práctica estándar de detención temprana (early stopping), evaluando contra la métrica de validación cada 10 épocas y seleccionando la iteración de mejor desempeño como el modelo final. A todas las capas se les aplica una tasa de dropout universal de 0.1 para contrarrestar el sobreajuste. Los detalles de la arquitectura de red se proporcionan en el material suplementario."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": {
+        "en": "4 Experiments",
+        "es": "4 Experimentos"
+      },
+      "blocks": [
+        {
+          "id": "s4-h1",
+          "type": "heading",
+          "page": 7,
+          "text": {
+            "en": "4.1 Experimental settings",
+            "es": "4.1 Configuración experimental"
+          }
+        },
+        {
+          "id": "s4-p1",
+          "type": "paragraph",
+          "page": 7,
+          "text": {
+            "en": "Datasets. In alignment with prior work [48,49,62], we utilize the 3D-FRONT dataset [19] for training and evaluation, which includes around 10k professional 3D indoor scenes spanning bedrooms, libraries, living rooms, and dining rooms. Following the preprocessing steps of ATISS [49], the dataset is split into subsets with 3879/162 bedrooms, 230/56 libraries, 621/270 living rooms, and 723/177 dining rooms for training/validation. Given the limited library/living room/din-ing room data, we employ a pretrained bedroom model for initial weights for each room type to improve performance. Metrics. In line with established works [48,49], we employ various metrics for performance assessment, including Fréchet Inception Distance (FID) [28], classification accuracy score (CAS), and categorical Kullback-Leibler (KL) divergence. The evaluation protocol involves rendering the indoor scenes into 256×256 orthographic maps and calculating the CAS/FID scores against the ground truth. Baselines. Our method is benchmarked against recent advancements, including FastSynth [56], SceneFormer [67], ATISS [49], COFS [48], LayoutGPT [16], and DiffuScene [62]. Notably, DiffuScene utilizes top-down semantic maps for rendering 3D scenes, while LayoutGPT computes FID using images rendered from four distinct camera viewpoints. To ensure fair comparisons, we reproduce the experiment of these two methods using their official implementations. We do not report the results of DiffuScene on the library type, since the original paper did not conduct this experiment.",
+            "es": "Conjuntos de datos (Datasets). En línea con trabajos previos [48,49,62], utilizamos el conjunto de datos 3D-FRONT [19] para el entrenamiento y la evaluación, que incluye alrededor de 10k escenas interiores 3D profesionales que abarcan dormitorios, bibliotecas, salas de estar y comedores. Siguiendo los pasos de preprocesamiento de ATISS [49], el conjunto de datos se divide en subconjuntos con 3879/162 dormitorios, 230/56 bibliotecas, 621/270 salas de estar y 723/177 comedores para entrenamiento/validación. Dada la limitada cantidad de datos de bibliotecas, salas de estar y comedores, empleamos un modelo preentrenado de dormitorios para obtener los pesos iniciales de cada tipo de habitación y así mejorar el rendimiento. Métricas (Metrics). En línea con trabajos establecidos [48,49], empleamos diversas métricas para evaluar el desempeño, entre ellas la distancia de Fréchet Inception (Fréchet Inception Distance, FID) [28], la puntuación de exactitud de clasificación (classification accuracy score, CAS) y la divergencia de Kullback-Leibler (KL) categórica. El protocolo de evaluación consiste en renderizar las escenas interiores como mapas ortográficos de 256×256 y calcular las puntuaciones CAS/FID respecto a la verdad de referencia. Líneas base (Baselines). Nuestro método se compara con avances recientes, entre ellos FastSynth [56], SceneFormer [67], ATISS [49], COFS [48], LayoutGPT [16] y DiffuScene [62]. Cabe destacar que DiffuScene utiliza mapas semánticos cenitales para renderizar escenas 3D, mientras que LayoutGPT calcula el FID usando imágenes renderizadas desde cuatro puntos de vista de cámara distintos. Para asegurar comparaciones justas, reproducimos el experimento de estos dos métodos usando sus implementaciones oficiales. No reportamos los resultados de DiffuScene para el tipo biblioteca, ya que el artículo original no realizó este experimento."
+          }
+        },
+        {
+          "id": "s4-h2",
+          "type": "heading",
+          "page": 8,
+          "text": {
+            "en": "4.2 Scene synthesis",
+            "es": "4.2 Síntesis de escenas"
+          }
+        },
+        {
+          "id": "s4-p2",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "Quantitative comparison. Our experiments on scene synthesis, when measured against baseline models, demonstrate the robustness of our approach.",
+            "es": "Comparación cuantitativa. Nuestros experimentos de síntesis de escenas, al medirse frente a los modelos base, demuestran la robustez de nuestro enfoque."
+          }
+        },
+        {
+          "id": "s4-p3",
+          "type": "paragraph",
+          "page": 8,
+          "text": {
+            "en": "As described in Table 2, Forest2Seq surpasses all baselines with superior KL divergence scores, implying a closer match to the ground truth. Fur-thermore, Forest2Seq achieves the most favorable scores in both the FID and CAS, indicating its ability to render more realistic scenes. Ta-ble 1 shows the basic statistics of the scene forest: living room and dining room contains the most nodes and trees, which explains performance improvement more substantial in the two room types. In terms of computational efficiency, as illustrated in Ta-ble 3b, our model demonstrates competitive inference times and requires the fewest parameters (48% fewer than the model with the second fewest parameters) among all methods compared. It is noteworthy that we employ a compact transformer decoder and a small ViT-based layout encoder (2.58M) to mitigate overfitting and improve efficiency. Qualitative comparison. In Figure 4, we illustrate the visual results of scene synthesis. To ensure a balanced evaluation, the same randomly sampled room layout serves as the conditional input for DiffuScene, ATISS, COFS, and our Forest2Seq across various room types. The comparison reveals that scenes synthesized by Forest2Seq exhibit greater alignment with the given floor plans and demonstrate a reduced tendency to place furniture beyond room boundaries. Perceptual study. In Table 3a, we conduct user study by 37 participants who assessed the realism of scenes generated by DiffuScene, ATISS, and COFS across 51 randomly selected rooms of each type for evaluation. The perceptual analysis reveals that more than 50% of our generated scenes for living rooms and dining rooms are considered realistic than others. Furthermore, our results gain a predominant preference in bedrooms and libraries.",
+            "es": "Como se describe en la Tabla 2, Forest2Seq supera a todas las líneas base con puntuaciones de divergencia KL superiores, lo que implica una mayor cercanía con la verdad de referencia. Además, Forest2Seq logra las puntuaciones más favorables tanto en FID como en CAS, lo que indica su capacidad para renderizar escenas más realistas. La Tabla 1 muestra las estadísticas básicas del bosque de escena: la sala de estar y el comedor contienen la mayor cantidad de nodos y árboles, lo que explica que la mejora de rendimiento sea más sustancial en estos dos tipos de habitación. En cuanto a la eficiencia computacional, como se ilustra en la Tabla 3b, nuestro modelo demuestra tiempos de inferencia competitivos y requiere el menor número de parámetros (48% menos que el modelo con el segundo menor número de parámetros) entre todos los métodos comparados. Cabe señalar que empleamos un decodificador transformer compacto y un codificador de distribución espacial pequeño basado en ViT (2.58M) para mitigar el sobreajuste y mejorar la eficiencia. Comparación cualitativa. En la Figura 4, ilustramos los resultados visuales de la síntesis de escenas. Para garantizar una evaluación equilibrada, la misma distribución de habitación muestreada al azar sirve como entrada condicional para DiffuScene, ATISS, COFS y nuestro Forest2Seq en los distintos tipos de habitación. La comparación revela que las escenas sintetizadas por Forest2Seq exhiben una mayor alineación con los planos de planta dados y muestran una menor tendencia a colocar muebles fuera de los límites de la habitación. Estudio perceptual. En la Tabla 3a, realizamos un estudio con usuarios con 37 participantes que evaluaron el realismo de las escenas generadas por DiffuScene, ATISS y COFS en 51 habitaciones seleccionadas al azar de cada tipo para la evaluación. El análisis perceptual revela que más del 50% de nuestras escenas generadas de salas de estar y comedores se consideran más realistas que las de los demás. Además, nuestros resultados obtienen una preferencia predominante en dormitorios y bibliotecas."
+          }
+        },
+        {
+          "id": "tab-1",
+          "type": "table",
+          "page": 8,
+          "image": "fig/tab-1.png",
+          "text": {
+            "en": "Table 1: Forest statistics.",
+            "es": "Tabla 1: Estadísticas del bosque."
+          }
+        },
+        {
+          "id": "fig-4",
+          "type": "figure",
+          "page": 9,
+          "image": "fig/fig-4.png",
+          "text": {
+            "en": "Fig. 4: Qualitative comparison with the-state-of-the-art methods [48, 49, 62] on scene synthesis for three type of scenes: bedrooms (1st row), living room (2nd and 3rd rows) and dining room (4th row). Note that reference is the scene from dataset with the same floor plan.",
+            "es": "Figura 4: Comparación cualitativa con los métodos del estado del arte [48, 49, 62] en síntesis de escenas para tres tipos de escenas: dormitorios (1.ª fila), sala de estar (2.ª y 3.ª filas) y comedor (4.ª fila). Nótese que la referencia es la escena del conjunto de datos con el mismo plano de planta."
+          }
+        },
+        {
+          "id": "tab-3",
+          "type": "table",
+          "page": 10,
+          "image": "fig/tab-3.png",
+          "text": {
+            "en": "Table 3: Additional quantitative comparison with the state-of-the-arts. (a) User study (b) Efficiency comparisons",
+            "es": "Tabla 3: Comparación cuantitativa adicional con los métodos del estado del arte. (a) Estudio con usuarios (b) Comparaciones de eficiencia"
+          }
+        },
+        {
+          "id": "s4-p4",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Analysis. ATISS utilizes a transformer encoder without positional encoding and randomizes object order while training to achieve approximate permutation invariance. Similarly, COFS posits that the layout is inherently unordered, leveraging BART, a masked language model, to underpin this assumption. Dif-fuScene represents scenes as fully-connected graphs and learns to denoise over Gaussian noise. However, these baselines do not account for the inherent ordering among objects. This oversight often results in predictions that place objects too close to one another, leading to frequent intersections and thereby affecting scene realism. On the other hand, our method introduces multiple strategies to mitigate overfitting: 1) our scene forest offers a priori ordering that guides the generative process; 2) we adopt a decoder-only architecture, which not only reduces the network capacity but also exhibits enhanced generative performance over encoder-decoder frameworks [21] such as BART; 3) the denoising training strategy improves the generalization ability of the model.",
+            "es": "Análisis. ATISS utiliza un codificador transformer sin codificación posicional y aleatoriza el orden de los objetos durante el entrenamiento para lograr una invariancia a la permutación aproximada. De manera similar, COFS postula que la distribución espacial es inherentemente desordenada, y se apoya en BART, un modelo de lenguaje enmascarado, para sustentar esta suposición. DiffuScene representa las escenas como grafos completamente conectados y aprende a eliminar el ruido a partir de ruido gaussiano. Sin embargo, estas líneas base no tienen en cuenta el orden inherente entre los objetos. Este descuido suele dar lugar a predicciones que colocan los objetos demasiado cerca unos de otros, lo que provoca intersecciones frecuentes y afecta así el realismo de la escena. Por otro lado, nuestro método introduce múltiples estrategias para mitigar el sobreajuste: 1) nuestro bosque de escena ofrece un orden a priori que guía el proceso generativo; 2) adoptamos una arquitectura solo con decodificador, que no solo reduce la capacidad de la red, sino que también exhibe un mejor desempeño generativo que los marcos de codificador-decodificador [21] como BART; 3) la estrategia de entrenamiento con eliminación de ruido mejora la capacidad de generalización del modelo."
+          }
+        },
+        {
+          "id": "s4-h3",
+          "type": "heading",
+          "page": 10,
+          "text": {
+            "en": "4.3 Discussion on the order prior",
+            "es": "4.3 Discusión sobre el orden a priori"
+          }
+        },
+        {
+          "id": "s4-p5",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "In Table 4, we incorporate different orderings scheme with the auto-regressive generating network, in which each scene can be represented either with a single (the first three columns) or multiple (the last three columns) ordered sequences. We also report two statistics for the set of sequences: diversity means that the average number of ordered sequences; inconsistency is evaluated by the average hamming distance between two sequence pair within the set.",
+            "es": "En la Tabla 4, incorporamos diferentes esquemas de ordenamiento con la red generativa autorregresiva, en la cual cada escena puede representarse ya sea con una única secuencia ordenada (las primeras tres columnas) o con múltiples secuencias ordenadas (las últimas tres columnas). También reportamos dos estadísticas para el conjunto de secuencias: la diversidad (diversity) significa el número promedio de secuencias ordenadas; la inconsistencia (inconsistency) se evalúa mediante la distancia de Hamming promedio entre dos pares de secuencias dentro del conjunto."
+          }
+        },
+        {
+          "id": "s4-p6",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Order (set) Random(single) Fixed Tree+BFS Random(multiple) Forest+DFS Forest+BFS Diversity 1 1 1 ∞ 2.83 2.83 Inconsistency 0 0 0 9.54 4.01 1.87 KL ↓ 20.0 17.9 7.90 13.1 9.40 5.90 FID ↓ 49.4 49.8 36.1 43.3 40.5 35.2 CAS (%) 83.7 80.1 68.1 76.4 71.7 68.0 Table 4: Ablation study: comparison of KL, FID and CAS of different order settings in living room scenario. The second-best score is underscored.",
+            "es": "Orden (conjunto) Aleatorio (única) Fijo Árbol+BFS Aleatorio (múltiples) Bosque+DFS Bosque+BFS Diversidad 1 1 1 ∞ 2.83 2.83 Inconsistencia 0 0 0 9.54 4.01 1.87 KL ↓ 20.0 17.9 7.90 13.1 9.40 5.90 FID ↓ 49.4 49.8 36.1 43.3 40.5 35.2 CAS (%) 83.7 80.1 68.1 76.4 71.7 68.0 Tabla 4: Estudio de ablación: comparación de KL, FID y CAS de diferentes configuraciones de orden en el escenario de sala de estar. La segunda mejor puntuación está subrayada."
+          }
+        },
+        {
+          "id": "s4-p7",
+          "type": "paragraph",
+          "page": 10,
+          "text": {
+            "en": "Superiority of forest ordering. We observe that random permutation and fixed order [67] using frequency-based arrangement perform worse than treeguided order. This indicates that an optimal ordering could be beneficial for scene modeling. The further improvement in KL from the tree to forest demonstrates the benefit of our introducing scene forest, which explicitly model the flexible objects. When comparing breadth-first (BFS) and depth-first (DFS) traversal methods for scene tree sequences, we find that BFS yields superior results due to the greater consistency within sets of BFS-derived sequences. Ad-ditionally, we examine the ordering strategy that is utilized in ATISS [49] that shuffles the sequence before fed into the network. This approach, representing a scene as multiple random sequences, shows improvement over the single random case, attributed to data augmentation and the resulting high diversity. However, its performance is constrained by sequence inconsistency (9.54) within the set. Supported by qualitative evidence in Figure 5, these findings underscore the effectiveness of our proposed forest ordering in generating more realistic and diverse object arrangements. Notably, the placement of primary furniture is less accurate in the DFS scenario compared to the BFS scenario.",
+            "es": "Superioridad del ordenamiento por bosque. Observamos que la permutación aleatoria y el orden fijo [67] que usa una disposición basada en frecuencia tienen peor desempeño que el orden guiado por árbol. Esto indica que un ordenamiento óptimo podría ser beneficioso para el modelado de escenas. La mejora adicional en KL del árbol al bosque demuestra el beneficio de introducir el bosque de escena, que modela explícitamente los objetos flexibles. Al comparar los métodos de recorrido en anchura (breadth-first, BFS) y en profundidad (depth-first, DFS) para las secuencias del árbol de escena, encontramos que BFS produce resultados superiores debido a la mayor consistencia dentro de los conjuntos de secuencias derivadas de BFS. Además, examinamos la estrategia de ordenamiento utilizada en ATISS [49], que baraja la secuencia antes de alimentarla a la red. Este enfoque, que representa una escena como múltiples secuencias aleatorias, muestra una mejora respecto al caso aleatorio único, atribuida al aumento de datos y a la alta diversidad resultante. Sin embargo, su desempeño está limitado por la inconsistencia de las secuencias (9.54) dentro del conjunto. Respaldados por la evidencia cualitativa de la Figura 5, estos hallazgos subrayan la efectividad de nuestro ordenamiento por bosque propuesto para generar disposiciones de objetos más realistas y diversas. Cabe destacar que la colocación del mobiliario principal es menos precisa en el escenario DFS en comparación con el escenario BFS."
+          }
+        },
+        {
+          "id": "fig-5",
+          "type": "figure",
+          "page": 11,
+          "image": "fig/fig-5.png",
+          "text": {
+            "en": "Fig. 5: Ablation study: visual comparison of different orderings. While random order and fixed order can not provide appropriate prior, our tree-guided order benefits the scene synthesis, generating plausible scenes. The forest representation further enhances the scene diversity and realism.",
+            "es": "Figura 5: Estudio de ablación: comparación visual de diferentes ordenamientos. Mientras que el orden aleatorio y el orden fijo no pueden proporcionar un a priori adecuado, nuestro orden guiado por árbol beneficia la síntesis de escenas, generando escenas plausibles. La representación en bosque mejora aún más la diversidad y el realismo de las escenas."
+          }
+        },
+        {
+          "id": "s4-p8",
+          "type": "paragraph",
+          "page": 11,
+          "text": {
+            "en": "On the methods for forest formation/order construction. The goal of forest formation is to reconstruct the scene hierarchy from the given object representations. Several studies [60, 63, 74] have explored learning tree structures or scene graphs from natural images. Consequently, we evaluate the scene parsing efficacy of pure Euclidean Distance Clustering (EDC), Modified Euclidean Distance Clustering (MEDC), and a learning-based baseline, VCTree [63] that was originally designed for parsing natural images. We assess reconstruction accuracy using Average Hierarchical Distance (AHD), which calculates similarity by comparing sets formed at each tree depth between the reconstructed and human-annotated trees. AHD averages these set-based similarity scores across all depths for a concise measure of accuracy. As indicated in Table 5a, while the proposed MEDC method is straightforward, it effectively captures underlying semantic relationships and offers computational efficiency advantages.",
+            "es": "Sobre los métodos para la formación del bosque y la construcción del orden. El objetivo de la formación del bosque es reconstruir la jerarquía de la escena a partir de las representaciones de objetos dadas. Varios estudios [60, 63, 74] han explorado el aprendizaje de estructuras de árbol o grafos de escena a partir de imágenes naturales. En consecuencia, evaluamos la eficacia del análisis de escenas del agrupamiento por distancia euclidiana pura (Euclidean Distance Clustering, EDC), el agrupamiento por distancia euclidiana modificado (Modified Euclidean Distance Clustering, MEDC) y una línea base basada en aprendizaje, VCTree [63], que fue diseñada originalmente para analizar imágenes naturales. Evaluamos la exactitud de la reconstrucción mediante la distancia jerárquica promedio (Average Hierarchical Distance, AHD), que calcula la similitud comparando los conjuntos formados en cada profundidad del árbol entre los árboles reconstruidos y los anotados por humanos. AHD promedia estas puntuaciones de similitud basadas en conjuntos a lo largo de todas las profundidades para obtener una medida concisa de exactitud. Como se indica en la Tabla 5a, aunque el método MEDC propuesto es sencillo, captura eficazmente las relaciones semánticas subyacentes y ofrece ventajas de eficiencia computacional."
+          }
+        },
+        {
+          "id": "tab-5",
+          "type": "table",
+          "page": 12,
+          "image": "fig/tab-5.png",
+          "text": {
+            "en": "Table 5: Ablation study. (a) On different scene parsing methods. (b) On the type of positional encoding. (c) On the mask/noise rate in denoising training scheme.",
+            "es": "Tabla 5: Estudio de ablación. (a) Sobre diferentes métodos de análisis de escenas. (b) Sobre el tipo de codificación posicional. (c) Sobre la tasa de enmascaramiento/ruido en el esquema de entrenamiento con eliminación de ruido."
+          }
+        },
+        {
+          "id": "fig-6",
+          "type": "figure",
+          "page": 12,
+          "image": "fig/fig-6.png",
+          "text": {
+            "en": "Fig. 6: Attention map for different ordering. The dash line boxes indicates the previous objects that are used to predict the next objects that are annotated with red solid boxes.",
+            "es": "Figura 6: Mapa de atención para diferentes ordenamientos. Los recuadros de línea discontinua indican los objetos previos que se usan para predecir los siguientes objetos, anotados con recuadros rojos de línea continua."
+          }
+        },
+        {
+          "id": "s4-h4",
+          "type": "heading",
+          "page": 12,
+          "text": {
+            "en": "4.4 More ablation study",
+            "es": "4.4 Más estudios de ablación"
+          }
+        },
+        {
+          "id": "s4-p9",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "On the positional encoding. A core component of Transformers is the positional encoding mechanism that represents the order of input sequence [33]. We compare the results of transformer decoder variant without positional encoding and those incorporating relative [59] and absolute [64] positional encoding. In Table 5b, the results clearly demonstrate that incorporating positional encoding facilitates learning of order, with the model variant employing absolute positional encoding achieving marginally better generation outcomes. On denoising strategy. Table 5c shows the effectiveness of our denoising strategy. By introducing a small rate (0.05 or 0.1) of masked and random tokens, we effectively prevent overfitting and enhance model generalization. Conversely, at a higher mask/noise rate (0.2), we find that achieving convergence of training loss becomes challenging.",
+            "es": "Sobre la codificación posicional. Un componente central de los Transformers es el mecanismo de codificación posicional (positional encoding), que representa el orden de la secuencia de entrada [33]. Comparamos los resultados de la variante del decodificador transformer sin codificación posicional con los de aquellas que incorporan codificación posicional relativa [59] y absoluta [64]. En la Tabla 5b, los resultados demuestran claramente que incorporar la codificación posicional facilita el aprendizaje del orden, y que la variante del modelo que emplea codificación posicional absoluta logra resultados de generación marginalmente mejores. Sobre la estrategia de eliminación de ruido. La Tabla 5c muestra la efectividad de nuestra estrategia de eliminación de ruido. Al introducir una tasa pequeña (0.05 o 0.1) de tokens enmascarados y aleatorios, prevenimos eficazmente el sobreajuste y mejoramos la generalización del modelo. Por el contrario, con una tasa de enmascaramiento/ruido mayor (0.2), encontramos que lograr la convergencia de la pérdida de entrenamiento se vuelve difícil."
+          }
+        },
+        {
+          "id": "s4-h5",
+          "type": "heading",
+          "page": 12,
+          "text": {
+            "en": "4.5 Application in downstream tasks",
+            "es": "4.5 Aplicación en tareas posteriores"
+          }
+        },
+        {
+          "id": "s4-p10",
+          "type": "paragraph",
+          "page": 12,
+          "text": {
+            "en": "With the sequential generation framework, our method is easily applicable to various downstream tasks, such as scene completion and rearrangement. Scene completion. We retain the ground truth of the first N objects, predicting subsequent tokens auto-regressively util the sequence concludes. In Figure 7, we compare against the state-of-the-art method, DiffuScene [62] and COFS [48], on the task. Unlike DiffuScene and COFS, which omits essential items like lights (1st row) and introduces misplaced elements such as dining tables and cabinets",
+            "es": "Con el marco de generación secuencial, nuestro método es fácilmente aplicable a diversas tareas posteriores (downstream tasks), como la compleción y el reacomodo de escenas. Compleción de escenas. Conservamos la verdad de referencia de los primeros N objetos y predecimos los tokens subsiguientes de forma autorregresiva hasta que concluye la secuencia. En la Figura 7, comparamos con los métodos del estado del arte DiffuScene [62] y COFS [48] en esta tarea. A diferencia de DiffuScene y COFS, que omiten elementos esenciales como las luces (1.ª fila) e introducen elementos mal colocados como mesas de comedor y gabinetes"
+          }
+        },
+        {
+          "id": "s4-p11",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "Ours Partial scene DiffuScene Layout",
+            "es": "Nuestro Escena parcial DiffuScene Distribución"
+          }
+        },
+        {
+          "id": "s4-p12",
+          "type": "paragraph",
+          "page": 13,
+          "text": {
+            "en": "COFS",
+            "es": "COFS"
+          }
+        },
+        {
+          "id": "fig-7",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-7.png",
+          "text": {
+            "en": "Fig. 7: Scene completion – Comparison with COFS and DiffuScene for bedroom (1st row) and living room (the bottom three rows).",
+            "es": "Figura 7: Compleción de escenas – Comparación con COFS y DiffuScene para dormitorio (1.ª fila) y sala de estar (las tres filas inferiores)."
+          }
+        },
+        {
+          "id": "fig-8",
+          "type": "figure",
+          "page": 13,
+          "image": "fig/fig-8.png",
+          "text": {
+            "en": "Fig. 8: Scene rearrangement – Comparison with COFS and DiffuScene for living room (the top two rows) and dining room (the bottom two rows).",
+            "es": "Figura 8: Reacomodo de escenas – Comparación con COFS y DiffuScene para sala de estar (las dos filas superiores) y comedor (las dos filas inferiores)."
+          }
+        },
+        {
+          "id": "s4-p13",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "(2nd row), our approach (3nd column) yields clean and coherent scenes due to the awareness of the key furniture placement. Rearangement. Our method corrects one or multiple failure cases by resampling the position of an object considering prior inputs. Figure 8 illustrates our success in adjusting the location of a night stand (2nd row) and optimally placing the bookshelf and chairs (the last row), an improvement over the inability of DiffuScene to correct these placements.",
+            "es": "(2.ª fila), nuestro enfoque (3.ª columna) produce escenas limpias y coherentes gracias al reconocimiento de la colocación de los muebles clave. Reacomodo. Nuestro método corrige uno o varios casos de fallo volviendo a muestrear la posición de un objeto considerando las entradas previas. La Figura 8 ilustra nuestro éxito al ajustar la ubicación de un buró (2.ª fila) y al colocar de manera óptima el librero y las sillas (la última fila), una mejora frente a la incapacidad de DiffuScene para corregir estas colocaciones."
+          }
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": {
+        "en": "5 Conclusion, Limitations and Future Work",
+        "es": "5 Conclusión, limitaciones y trabajo futuro"
+      },
+      "blocks": [
+        {
+          "id": "fig-9",
+          "type": "figure",
+          "page": 14,
+          "image": "fig/fig-9.png",
+          "text": {
+            "en": "Fig. 9: Failure cases – Neglecting window placement (left); overlapping furniture arrangements (mid); objects placed out of boundary in non-standard layouts (right).",
+            "es": "Figura 9: Casos de fallo – Omisión de la colocación de ventanas (izquierda); disposiciones de muebles superpuestos (centro); objetos colocados fuera del límite en distribuciones no estándar (derecha)."
+          }
+        },
+        {
+          "id": "s5-p1",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "We have introduced Forest2Seq, a novel framework to synthesize indoor scenes via sequential modeling. In contrast with previous works that neglect ordering, we leverage a parsing tree/forest and breadth-first search (BFS) to explore the implicit scene ordering, train the underlying network in an order-aware manner, and validate that order matters in scene modeling through extensive experiments including scene synthesis, completion and rearrangement.",
+            "es": "Hemos presentado Forest2Seq, un marco novedoso para sintetizar escenas interiores mediante modelado secuencial. A diferencia de trabajos previos que descuidan el orden, aprovechamos un árbol/bosque de análisis y la búsqueda en anchura (breadth-first search, BFS) para explorar el orden implícito de la escena, entrenamos la red subyacente de manera consciente del orden y validamos que el orden importa en el modelado de escenas mediante extensos experimentos que incluyen síntesis, compleción y reacomodo de escenas."
+          }
+        },
+        {
+          "id": "s5-p2",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "Figure 9 highlights three primary limitations of our method. The left column indicates that the cabinet is blocking the window, creating undesirable scenes. This occurs since our model currently not factoring doors and windows as additional condition. In the mid column, we observe occasional instance of object overlaps due to a lack of spatial constraints on relative positioning. As demonstrated by the right, the model struggles with generating plausible results for highly complex layouts, partially due to the limited diversity of training data.",
+            "es": "La Figura 9 destaca tres limitaciones principales de nuestro método. La columna izquierda indica que el gabinete bloquea la ventana, creando escenas indeseables. Esto ocurre porque nuestro modelo actualmente no considera las puertas y ventanas como condición adicional. En la columna central, observamos casos ocasionales de superposición de objetos debido a la falta de restricciones espaciales sobre el posicionamiento relativo. Como se muestra a la derecha, el modelo tiene dificultades para generar resultados plausibles en distribuciones muy complejas, en parte debido a la diversidad limitada de los datos de entrenamiento."
+          }
+        },
+        {
+          "id": "s5-p3",
+          "type": "paragraph",
+          "page": 14,
+          "text": {
+            "en": "In addition to addressing the difficulties suggested by the failure cases, the future work should explore towards the optimal order for sequential generation. For example, this could involve integrating learning-to-ordering module into an end-to-end network by joint optimizing the ordering and the likelihood objective.",
+            "es": "Además de abordar las dificultades sugeridas por los casos de fallo, el trabajo futuro debería explorar el orden óptimo para la generación secuencial. Por ejemplo, esto podría implicar integrar un módulo de aprendizaje del orden en una red de extremo a extremo mediante la optimización conjunta del ordenamiento y el objetivo de verosimilitud."
+          }
+        },
+        {
+          "id": "s5-p4",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "Acknowledgements: We thank all anonymous reviewers and area chairs for their valuable comments, Jing Nathan Yan and Prof. Jing Liao for insightful discussions.",
+            "es": "Agradecimientos: Agradecemos a todos los revisores anónimos y a los presidentes de área por sus valiosos comentarios, y a Jing Nathan Yan y a la Prof. Jing Liao por sus discusiones perspicaces."
+          }
+        }
+      ]
+    },
+    {
+      "id": "refs",
+      "title": {
+        "en": "References"
+      },
+      "blocks": [
+        {
+          "id": "refs-1",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "1. https : / / www . ikea . com / pt / en / customer - service / services / planning -consultation"
+          }
+        },
+        {
+          "id": "refs-2",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "2. Bengio, Y., Ducharme, R., Vincent, P.: A neural probabilistic language model. In: NeurIPS (2000)"
+          }
+        },
+        {
+          "id": "refs-3",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "3. Bundy, A., Wallen, L.: Breadth-first search. Catalogue of Artificial Intelligence Tools (1984)"
+          }
+        },
+        {
+          "id": "refs-4",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "4. Chang, A., Dai, A., Funkhouser, T., Halber, M., Niessner, M., Savva, M., Song, S., Zeng, A., Zhang, Y.: Matterport3D: Learning from RGB-D data in indoor environments. 3DV (2017)"
+          }
+        },
+        {
+          "id": "refs-5",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "5. Chang, H., Zhang, H., Barber, J., Maschinot, A., Lezama, J., Jiang, L., Yang, M.H., Murphy, K., Freeman, W.T., Rubinstein, M., et al.: Muse: Text-to-image generation via masked generative transformers. arXiv preprint arXiv:2301.00704 (2023)"
+          }
+        },
+        {
+          "id": "refs-6",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "6. Chang, H., Zhang, H., Jiang, L., Liu, C., Freeman, W.T.: MaskGiT: Masked generative image transformer. In: CVPR (2022)"
+          }
+        },
+        {
+          "id": "refs-7",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "7. Chaudhuri, S., Kalogerakis, E., Giguere, S., Funkhouser, T.: Attribit: content creation with semantic attributes. In: UIST (2013)"
+          }
+        },
+        {
+          "id": "refs-8",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "8. Currey, A., Heafield, K.: Unsupervised source hierarchies for low-resource neural machine translation. In: ACL (2018)"
+          }
+        },
+        {
+          "id": "refs-9",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "9. Deitke, M., VanderBilt, E., Herrasti, A., Weihs, L., Salvador, J., Ehsani, K., Han, W., Kolve, E., Farhadi, A., Kembhavi, A., Mottaghi, R.: ProcTHOR: Large-Scale Embodied AI Using Procedural Generation. In: NeurIPS (2022)"
+          }
+        },
+        {
+          "id": "refs-10",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "10. Devaranjan, J., Kar, A., Fidler, S.: Meta-sim2: Unsupervised learning of scene structure for synthetic data generation. In: ECCV (2020)"
+          }
+        },
+        {
+          "id": "refs-11",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "11. Devlin, J., Chang, M.W., Lee, K., Toutanova, K.: BERT: Pre-training of deep bidirectional transformers for language understanding. In: NAACL (2019)"
+          }
+        },
+        {
+          "id": "refs-12",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "12. Dosovitskiy, A., Beyer, L., Kolesnikov, A., Weissenborn, D., Zhai, X., Unterthiner, T., Dehghani, M., Minderer, M., Heigold, G., Gelly, S., et al.: An image is worth 16x16 words: Transformers for image recognition at scale. In: ICLR (2021)"
+          }
+        },
+        {
+          "id": "refs-13",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "13. Eriguchi, A., Hashimoto, K., Tsuruoka, Y.: Tree-to-sequence attentional neural machine translation. In: ACL (2016)"
+          }
+        },
+        {
+          "id": "refs-14",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "14. Esser, P., Rombach, R., Ommer, B.: Taming transformers for high-resolution image synthesis. In: CVPR (2021)"
+          }
+        },
+        {
+          "id": "refs-15",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "15. Ester, M., Kriegel, H.P., Sander, J., Xu, X., et al.: A density-based algorithm for discovering clusters in large spatial databases with noise. In: KDD (1996)"
+          }
+        },
+        {
+          "id": "refs-16",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "16. Feng, W., Zhu, W., Fu, T.j., Jampani, V., Akula, A., He, X., Basu, S., Wang, X.E., Wang, W.Y.: LayoutGPT: Compositional visual planning and generation with large language models. arXiv preprint arXiv:2305.15393 (2023)"
+          }
+        },
+        {
+          "id": "refs-17",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "17. Fisher, M., Ritchie, D., Savva, M., Funkhouser, T., Hanrahan, P.: Example-based synthesis of 3D object arrangements. ACM TOG (2012)"
+          }
+        },
+        {
+          "id": "refs-18",
+          "type": "paragraph",
+          "page": 15,
+          "text": {
+            "en": "18. Fisher, M., Savva, M., Li, Y., Hanrahan, P., Nießner, M.: Activity-centric scene synthesis for functional 3D scene modeling. ACM TOG (2015)"
+          }
+        },
+        {
+          "id": "refs-19",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "19. Fu, H., Cai, B., Gao, L., Zhang, L.X., Wang, J., Li, C., Zeng, Q., Sun, C., Jia, R., Zhao, B., et al.: 3D-FRONT: 3D furnished rooms with layouts and semantics. In: CVPR (2021)"
+          }
+        },
+        {
+          "id": "refs-20",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "20. Fu, H., Jia, R., Gao, L., Gong, M., Zhao, B., Maybank, S., Tao, D.: 3D-FUTURE: 3D furniture shape with texture. IJCV (2021)"
+          }
+        },
+        {
+          "id": "refs-21",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "21. Fu, Z., Lam, W., Yu, Q., So, A.M.C., Hu, S., Liu, Z., Collier, N.: Decoder-only or encoder-decoder? Interpreting language model as a regularized encoder-decoder. arXiv preprint arXiv:2304.04052 (2023)"
+          }
+        },
+        {
+          "id": "refs-22",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "22. Gani, H., Naseer, M., Yaqub, M.: How to train vision transformer on small-scale datasets? In: BMVC (2022)"
+          }
+        },
+        {
+          "id": "refs-23",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "23. Gao, L., Sun, J.M., Mo, K., Lai, Y.K., Guibas, L.J., Yang, J.: SceneHGN: Hierar-chical graph networks for 3D indoor scene generation with fine-grained geometry. IEEE TPAMI (2023)"
+          }
+        },
+        {
+          "id": "refs-24",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "24. Gu, S., Chen, D., Bao, J., Wen, F., Zhang, B., Chen, D., Yuan, L., Guo, B.: Vector quantized diffusion model for text-to-image synthesis. In: CVPR (2022)"
+          }
+        },
+        {
+          "id": "refs-25",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "25. He, K., Chen, X., Xie, S., Li, Y., Dollár, P., Girshick, R.: Masked autoencoders are scalable vision learners. In: CVPR (2022)"
+          }
+        },
+        {
+          "id": "refs-26",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "26. He, K., Zhang, X., Ren, S., Sun, J.: Deep residual learning for image recognition. In: CVPR (2016)"
+          }
+        },
+        {
+          "id": "refs-27",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "27. Henderson, P., Subr, K., Ferrari, V.: Automatic generation of constrained furniture layouts. arXiv preprint arXiv:1711.10939 (2017)"
+          }
+        },
+        {
+          "id": "refs-28",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "28. Heusel, M., Ramsauer, H., Unterthiner, T., Nessler, B., Hochreiter, S.: GANs trained by a two time-scale update rule converge to a local nash equilibrium. NeurIPS (2017)"
+          }
+        },
+        {
+          "id": "refs-29",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "29. Hochreiter, S., Schmidhuber, J.: Long short-term memory. Neural Computation (1997)"
+          }
+        },
+        {
+          "id": "refs-30",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "30. Iyer, S., Konstas, I., Cheung, A., Zettlemoyer, L.: Summarizing source code using a neural attention model. In: ACL (2016)"
+          }
+        },
+        {
+          "id": "refs-31",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "31. Jiang, Y., Lim, M., Saxena, A.: Learning object arrangements in 3D scenes using human context. arXiv preprint arXiv:1206.6462 (2012)"
+          }
+        },
+        {
+          "id": "refs-32",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "32. Kar, A., Prakash, A., Liu, M.Y., Cameracci, E., Yuan, J., Rusiniak, M., Acuna, D., Torralba, A., Fidler, S.: Meta-sim: Learning to generate synthetic datasets. In: ICCV (2019)"
+          }
+        },
+        {
+          "id": "refs-33",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "33. Ke, G., He, D., Liu, T.Y.: Rethinking positional encoding in language pre-training. arXiv preprint arXiv:2006.15595 (2020)"
+          }
+        },
+        {
+          "id": "refs-34",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "34. Koh, J.Y., Agrawal, H., Batra, D., Tucker, R., Waters, A., Lee, H., Yang, Y., Baldridge, J., Anderson, P.: Simple and effective synthesis of indoor 3d scenes. In: AAAI (2023)"
+          }
+        },
+        {
+          "id": "refs-35",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "35. Lee, J., Lee, Y., Kim, J., Kosiorek, A., Choi, S., Teh, Y.W.: Set transformer: A framework for attention-based permutation-invariant neural networks. In: ICML (2019)"
+          }
+        },
+        {
+          "id": "refs-36",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "36. Leimer, K., Guerrero, P., Weiss, T., Musialski, P.: Layoutenhancer: Generating good indoor layouts from imperfect data. In: SIGGRAPH Asia (2022)"
+          }
+        },
+        {
+          "id": "refs-37",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "37. Lewis, M., Liu, Y., Goyal, N., Ghazvininejad, M., Mohamed, A., Levy, O., Stoy-anov, V., Zettlemoyer, L.: BART: Denoising sequence-to-sequence pre-training for natural language generation, translation, and comprehension. In: ACL (2020)"
+          }
+        },
+        {
+          "id": "refs-38",
+          "type": "paragraph",
+          "page": 16,
+          "text": {
+            "en": "38. Li, M., Patil, A.G., Xu, K., Chaudhuri, S., Khan, O., Shamir, A., Tu, C., Chen, B., Cohen-Or, D., Zhang, H.: GRAINS: Generative recursive autoencoders for indoor scenes. ACM TOG (2019)"
+          }
+        },
+        {
+          "id": "refs-39",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "39. Li, R., Allal, L.B., Zi, Y., Muennighoff, N., Kocetkov, D., Mou, C., Marone, M., Akiki, C., Li, J., Chim, J., et al.: StarCoder: May the source be with you! arXiv preprint arXiv:2305.06161 (2023)"
+          }
+        },
+        {
+          "id": "refs-40",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "40. Liu, J., et al.: CLIP-Layout: Style-consistent indoor scene synthesis with semantic furniture embedding. arXiv preprint arXiv:2303.03565 (2023)"
+          }
+        },
+        {
+          "id": "refs-41",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "41. Loshchilov, I., Hutter, F.: Decoupled weight decay regularization. In: ICLR (2019)"
+          }
+        },
+        {
+          "id": "refs-42",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "42. Ma, R., Li, H., Zou, C., Liao, Z., Tong, X., Zhang, H.: Action-driven 3D indoor scene evolution. ACM TOG (2016)"
+          }
+        },
+        {
+          "id": "refs-43",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "43. Ma, R., Patil, A.G., Fisher, M., Li, M., Pirk, S., Hua, B.S., Yeung, S.K., Tong, X., Guibas, L., Zhang, H.: Language-driven synthesis of 3D scenes from scene databases. ACM TOG (2018)"
+          }
+        },
+        {
+          "id": "refs-44",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "44. Merrell, P., Schkufza, E., Li, Z., Agrawala, M., Koltun, V.: Interactive furniture layout using interior design guidelines. ACM TOG (2011)"
+          }
+        },
+        {
+          "id": "refs-45",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "45. Mildenhall, B., Srinivasan, P.P., Tancik, M., Barron, J.T., Ramamoorthi, R., Ng, R.: NeRF: Representing scenes as neural radiance fields for view synthesis. In: ECCV (2020)"
+          }
+        },
+        {
+          "id": "refs-46",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "46. OpenAI: GPT-4 technical report. arXiv preprint arXiv:2303.08774 (2023)"
+          }
+        },
+        {
+          "id": "refs-47",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "47. Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., et al.: Training language models to follow instructions with human feedback. In: NeurIPS (2022)"
+          }
+        },
+        {
+          "id": "refs-48",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "48. Para, W.R., Guerrero, P., Mitra, N., Wonka, P.: COFS: Controllable furniture layout synthesis. In: SIGGRAPH (2023)"
+          }
+        },
+        {
+          "id": "refs-49",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "49. Paschalidou, D., Kar, A., Shugrina, M., Kreis, K., Geiger, A., Fidler, S.: ATISS: Autoregressive transformers for indoor scene synthesis. NeurIPS (2021)"
+          }
+        },
+        {
+          "id": "refs-50",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "50. Patil, A.G., Patil, S.G., Li, M., Fisher, M., Savva, M., Zhang, H.: Advances in data-driven analysis and synthesis of 3D indoor scenes. Comput. Graph. Forum (2023)"
+          }
+        },
+        {
+          "id": "refs-51",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "51. Qi, C.R., Su, H., Mo, K., Guibas, L.J.: PointNet: Deep learning on point sets for 3D classification and segmentation. In: CVPR (2017)"
+          }
+        },
+        {
+          "id": "refs-52",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "52. Qi, S., Zhu, Y., Huang, S., Jiang, C., Zhu, S.C.: Human-centric indoor scene synthesis using stochastic grammar. In: CVPR (2018)"
+          }
+        },
+        {
+          "id": "refs-53",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "53. Radford, A., Kim, J.W., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry, G., Askell, A., Mishkin, P., Clark, J., et al.: Learning transferable visual models from natural language supervision. In: ICML (2021)"
+          }
+        },
+        {
+          "id": "refs-54",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "54. Radford, A., Wu, J., Child, R., Luan, D., Amodei, D., Sutskever, I.: Language models are unsupervised multitask learners. In: ICML (2019)"
+          }
+        },
+        {
+          "id": "refs-55",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "55. Rezatofighi, H., Tsoi, N., Gwak, J., Sadeghian, A., Reid, I., Savarese, S.: General-ized intersection over union: A metric and a loss for bounding box regression. In: CVPR (2019)"
+          }
+        },
+        {
+          "id": "refs-56",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "56. Ritchie, D., Wang, K., Lin, Y.a.: Fast and flexible indoor scene synthesis via deep convolutional generative models. In: CVPR (2019)"
+          }
+        },
+        {
+          "id": "refs-57",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "57. Rubenstein, P.K., Asawaroengchai, C., Nguyen, D.D., Bapna, A., Borsos, Z., Quitry, F.d.C., Chen, P., Badawy, D.E., Han, W., Kharitonov, E., et al.: Au-dioPaLM: A large language model that can speak and listen. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-58",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "58. Savva, M., Chang, A.X., Hanrahan, P., Fisher, M., Nießner, M.: PiGraphs: learning interaction snapshots from observations. ACM TOG (2016)"
+          }
+        },
+        {
+          "id": "refs-59",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "59. Shaw, P., Uszkoreit, J., Vaswani, A.: Self-attention with relative position representations. arXiv preprint arXiv:1803.02155 (2018)"
+          }
+        },
+        {
+          "id": "refs-60",
+          "type": "paragraph",
+          "page": 17,
+          "text": {
+            "en": "60. Socher, R., Lin, C.C.Y., Ng, A.Y., Manning, C.D.: Parsing natural scenes and natural language with recursive neural networks. In: ICML (2011)"
+          }
+        },
+        {
+          "id": "refs-61",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "61. Straub, J., Whelan, T., Ma, L., Chen, Y., Wijmans, E., Green, S., Engel, J.J., Mur-Artal, R., Ren, C., Verma, S., et al.: The replica dataset: A digital replica of indoor spaces. arXiv preprint arXiv:1906.05797 (2019)"
+          }
+        },
+        {
+          "id": "refs-62",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "62. Tang, J., Nie, Y., Markhasin, L., Dai, A., Thies, J., Nießner, M.: DiffuScene: Scene graph denoising diffusion probabilistic model for generative indoor scene synthesis. arXiv preprint arXiv:2303.14207 (2023)"
+          }
+        },
+        {
+          "id": "refs-63",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "63. Tang, K., Zhang, H., Wu, B., Luo, W., Liu, W.: Learning to compose dynamic tree structures for visual contexts. In: CVPR (2019)"
+          }
+        },
+        {
+          "id": "refs-64",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "64. Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.N., Kaiser, Ł., Polosukhin, I.: Attention is all you need. NeurIPS (2017)"
+          }
+        },
+        {
+          "id": "refs-65",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "65. Vinyals, O., Bengio, S., Kudlur, M.: Order matters: Sequence to sequence for sets. In: ICLR (2016)"
+          }
+        },
+        {
+          "id": "refs-66",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "66. Wang, K., Lin, Y.A., Weissmann, B., Savva, M., Chang, A.X., Ritchie, D.: PlanIT: Planning and instantiating indoor scenes with relation graph and spatial prior networks. ACM TOG (2019)"
+          }
+        },
+        {
+          "id": "refs-67",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "67. Wang, X., Yeshwanth, C., Nießner, M.: SceneFormer: Indoor scene generation with transformers. In: 3DV (2021)"
+          }
+        },
+        {
+          "id": "refs-68",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "68. Wei, Q.A., Ding, S., Park, J.J., Sajnani, R., Poulenard, A., Sridhar, S., Guibas, L.: LEGO-Net: Learning regular rearrangements of objects in rooms. In: CVPR (2023)"
+          }
+        },
+        {
+          "id": "refs-69",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "69. Weiss, T., Litteneker, A., Duncan, N., Nakada, M., Jiang, C., Yu, L.F., Terzopou-los, D.: Fast and scalable position-based layout synthesis. IEEE TVCG (2018)"
+          }
+        },
+        {
+          "id": "refs-70",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "70. Xu, K., Wu, L., Wang, Z., Feng, Y., Witbrock, M., Sheinin, V.: Graph2seq: Graph to sequence learning with attention-based neural networks. arXiv preprint"
+          }
+        },
+        {
+          "id": "refs-71",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "71. Yu, L.F., Yeung, S.K., Tang, C.K., Terzopoulos, D., Chan, T.F., Osher, S.J.: Make It Home: automatic optimization of furniture arrangement. ACM TOG (2011)"
+          }
+        },
+        {
+          "id": "refs-72",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "72. Yu, L.F., Yeung, S.K., Terzopoulos, D.: The ClutterPalette: An interactive tool for detailing indoor scenes. IEEE TVCG (2015)"
+          }
+        },
+        {
+          "id": "refs-73",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "73. Zaheer, M., Kottur, S., Ravanbhakhsh, S., Póczos, B., Salakhutdinov, R., Smola, A.J.: Deep sets. In: NeurIPS (2017)"
+          }
+        },
+        {
+          "id": "refs-74",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "74. Zellers, R., Yatskar, M., Thomson, S., Choi, Y.: Neural motifs: Scene graph parsing with global context. In: CVPR (2018)"
+          }
+        },
+        {
+          "id": "refs-75",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "75. Zhai, G., Örnek, E.P., Wu, S.C., Di, Y., Tombari, F., Navab, N., Busam, B.: Com-monScenes: Generating commonsense 3D indoor scenes with scene graphs. arXiv preprint arXiv:2305.16283 (2023)"
+          }
+        },
+        {
+          "id": "refs-76",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "76. Zhao, X., Hu, R., Guerrero, P., Mitra, N., Komura, T.: Relationship templates for creating scene variations. ACM TOG (2016)"
+          }
+        },
+        {
+          "id": "refs-77",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "77. Zhao, Y., Lin, K., Jia, Z., Gao, Q.Q., Thattai, G., Thomason, J., Sukhatme, G.: Lu-minous: Indoor scene generation for embodied ai challenges. In: NeurIPSW (2021)"
+          }
+        },
+        {
+          "id": "refs-78",
+          "type": "paragraph",
+          "page": 18,
+          "text": {
+            "en": "78. Zhou, Y., While, Z., Kalogerakis, E.: SceneGraphNet: Neural message passing for 3D indoor scene augmentation. In: CVPR (2019)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "forest2seq-revitalizing-order-prior-for",
+      "title": {
+        "en": "Forest2Seq: Revitalizing Order Prior for",
+        "es": "Forest2Seq: Revitalizando el orden previo (Order Prior) para"
+      },
+      "blocks": [
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-h1",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "Sequential Indoor Scene Synthesis",
+            "es": "la síntesis secuencial de escenas interiores (Sequential Indoor Scene Synthesis)"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-h2",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "(Supplementary Material)",
+            "es": "(Material suplementario)"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p1",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "This supplementary material contains four sections: section 6 details the algorithm of ordering construction; section 7 is the architecture details of masked language modeling; section 8 provides evaluation details, including the user study and tree reconstruction accuracy; section 9 offers a comprehensive visual comparison with the-state-of-art methods in various tasks, including scene synthesis, scene completion and rearrangement. The source code and pretrained models will also be released upon publication.",
+            "es": "Este material suplementario contiene cuatro secciones: la sección 6 detalla el algoritmo de construcción del orden; la sección 7 describe la arquitectura del modelado de lenguaje enmascarado (masked language modeling); la sección 8 presenta detalles de la evaluación, incluidos el estudio con usuarios y la precisión de la reconstrucción del árbol; la sección 9 ofrece una comparación visual exhaustiva con los métodos de vanguardia en diversas tareas, entre ellas la síntesis de escenas (scene synthesis), la compleción de escenas (scene completion) y el reacomodo (rearrangement). El código fuente y los modelos preentrenados también se publicarán cuando se publique el artículo."
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-h3",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "6 Algorithms",
+            "es": "6 Algoritmos"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p2",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Our core algorithms can be simply implemented by tens of lines. In training stage, we first use Set2Tree (algorithm 1, see Page 26) to organize the set of objects into a scene tree, followed by Tree2Forest (algorithm 2, see Page 27) to expand the single tree to forest representation. Then we use Forest2Seq (algorithm 3, see Page 27) to obtain the object sequence from the constructed forest.",
+            "es": "Nuestros algoritmos centrales pueden implementarse de forma sencilla con decenas de líneas. En la etapa de entrenamiento, primero usamos Set2Tree (algoritmo 1, véase la página 26) para organizar el conjunto de objetos en un árbol de escena (scene tree), seguido de Tree2Forest (algoritmo 2, véase la página 27) para expandir el árbol único a una representación de bosque (forest). Después usamos Forest2Seq (algoritmo 3, véase la página 27) para obtener la secuencia de objetos a partir del bosque construido."
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-h4",
+          "type": "heading",
+          "page": 19,
+          "text": {
+            "en": "7 Architecture details",
+            "es": "7 Detalles de la arquitectura"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p3",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "Layout encoder. We employ a ViT [12]-based layout encoder. Shown in Ta-ble 6b, we further conduct ablation study to understand which type of layout encoder is better. We compare our results of the ResNet18 [26] introduced in ATISS [49], PointNet [51] employed in LEGO-Net [68]. We find that with the second-fewest number of parameters, our vit-based layout encoder achieves the best performance. Additionally, we note that while the PointNet-based layout features primarily concentrate on the shape of the floor plan, they tend to omit scale details. ResNet18 model tends to disregard low-level features, such as edges, due to its pooling module. However, our vision transformer adapts at capturing these low-level features as evidenced by Figure 6a. Object encoder. Following ATISS [49], we first apply positional encoding [45, 64] to each continuous object attribute h, including (r, t, b):",
+            "es": "Codificador de distribución (Layout encoder). Empleamos un codificador de distribución basado en ViT [12]. Como se muestra en la Tabla 6b, realizamos además un estudio de ablación (ablation study) para entender qué tipo de codificador de distribución es mejor. Comparamos nuestros resultados con los de ResNet18 [26], introducido en ATISS [49], y PointNet [51], empleado en LEGO-Net [68]. Encontramos que, con el segundo menor número de parámetros, nuestro codificador de distribución basado en ViT logra el mejor desempeño. Además, observamos que, si bien las características de distribución basadas en PointNet se concentran principalmente en la forma del plano de planta, tienden a omitir los detalles de escala. El modelo ResNet18 tiende a ignorar las características de bajo nivel, como los bordes, debido a su módulo de agrupamiento (pooling). En cambio, nuestro transformador de visión (vision transformer) se adapta a la captura de estas características de bajo nivel, como lo evidencia la Figura 6a. Codificador de objetos (Object encoder). Siguiendo a ATISS [49], primero aplicamos codificación posicional (positional encoding) [45, 64] a cada atributo continuo h del objeto, incluidos (r, t, b):"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p4",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "\\ begi n {alig ned } h' = ( \\ s i",
+            "es": "\\ begi n {alig ned } h' = ( \\ s i"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p5",
+          "type": "paragraph",
+          "page": 19,
+          "text": {
+            "en": "(6) n { (2^0\\pi h )}, \\cos {(2^0\\pi h)}, \\cdots , \\\\ \\sin {(2^{L-1}\\pi h)}, \\cos {(2^{L-1}\\pi h)}), \\end {aligned} where L=32, h′ ∈R64 is the encoded scalar and we use a linear projection for c to c′ ∈R64. The final object embedding s ∈R512 is the concatenation of all attributes. The model is illustrated in Figure 7a.",
+            "es": "(6) n { (2^0\\pi h )}, \\cos {(2^0\\pi h)}, \\cdots , \\\\ \\sin {(2^{L-1}\\pi h)}, \\cos {(2^{L-1}\\pi h)}), \\end {aligned} donde L=32, h′ ∈R64 es el escalar codificado y usamos una proyección lineal de c a c′ ∈R64. El embedding final del objeto s ∈R512 es la concatenación de todos los atributos. El modelo se ilustra en la Figura 7a."
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p6",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "Layout mask Attention map Layout (rendered)",
+            "es": "Máscara de distribución Mapa de atención Distribución (renderizada)"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p7",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "Model Parameters (M) KL FID CAS (%) PointNet [51] 1.13 8.3 40.5 77.4 ResNet18 [26] 11.1 6.2 36.7 70.1 ViT-S [12] 2.56 5.9 35.2 68.0",
+            "es": "Modelo Parámetros (M) KL FID CAS (%) PointNet [51] 1.13 8.3 40.5 77.4 ResNet18 [26] 11.1 6.2 36.7 70.1 ViT-S [12] 2.56 5.9 35.2 68.0"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p8",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "(b) Ablation study on different type of layout encoder.",
+            "es": "(b) Estudio de ablación sobre distintos tipos de codificador de distribución."
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p9",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "(a) Attention map visualization in the ViT-based layout encoder.",
+            "es": "(a) Visualización del mapa de atención en el codificador de distribución basado en ViT."
+          }
+        },
+        {
+          "id": "tab-6",
+          "type": "table",
+          "page": 20,
+          "image": "fig/tab-6.png",
+          "text": {
+            "en": "Table 6: Ablation study and visualization on the layout encoder. (a) Object encoder. (b) Transformer decoder.",
+            "es": "Tabla 6: Estudio de ablación y visualización del codificador de distribución. (a) Codificador de objetos. (b) Decodificador transformador."
+          }
+        },
+        {
+          "id": "tab-7",
+          "type": "table",
+          "page": 20,
+          "image": "fig/tab-7.png",
+          "text": {
+            "en": "Table 7: Architecture details on the model components.",
+            "es": "Tabla 7: Detalles de la arquitectura de los componentes del modelo."
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p10",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "Transformer decoder. As illustrated in Figure 7b, we take GPT2 [54]-like structure to implement the transformer decoder. Different from the vanilla transformer [64], it uses layer normalization before self-attention block, adds one additional layer normalization after the final self-attention block, and utilizes GeLU as the activation function. Our model configuration employs a smaller variant of GPT-23, consisting of 6 layers and a 6-head self-attention mechanism, with a hidden dimension size of 192.",
+            "es": "Decodificador transformador (Transformer decoder). Como se ilustra en la Figura 7b, tomamos una estructura similar a GPT2 [54] para implementar el decodificador transformador. A diferencia del transformador estándar (vanilla transformer) [64], usa normalización de capa (layer normalization) antes del bloque de autoatención (self-attention), añade una normalización de capa adicional después del último bloque de autoatención y utiliza GeLU como función de activación. La configuración de nuestro modelo emplea una variante más pequeña de GPT-23, compuesta por 6 capas y un mecanismo de autoatención de 6 cabezas, con una dimensión oculta de tamaño 192."
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p11",
+          "type": "paragraph",
+          "page": 20,
+          "text": {
+            "en": "3 https://github.com/karpathy/nanoGPT",
+            "es": "3 https://github.com/karpathy/nanoGPT"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-h5",
+          "type": "heading",
+          "page": 21,
+          "text": {
+            "en": "8 Details on evaluation",
+            "es": "8 Detalles de la evaluación"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p12",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "User study. In our user study, each participant evaluates 204 pairs of images (51 samples × 4 room types). They are asked to score the quality of the generated indoor scenes based on two criteria: “Which scene fits better within the layout boundary?” and “Which of these indoor scenes appears more realistic?”, then select the best. Tree reconstruction accuracy. We use Average Hierarchical Distance(AHD) to measure the accuracy of reconstructed tree. A scene tree T can be decomposed into set of node sets {Si}N i=1, where N is the total depth of the tree and Si represents all nodes at the i-th depth. Further, we compare set similarity in average, formally: t",
+            "es": "Estudio con usuarios (User study). En nuestro estudio con usuarios, cada participante evalúa 204 pares de imágenes (51 muestras × 4 tipos de habitación). Se les pide calificar la calidad de las escenas interiores generadas con base en dos criterios: “¿Cuál escena encaja mejor dentro del límite de la distribución?” y “¿Cuál de estas escenas interiores parece más realista?”, y luego seleccionar la mejor. Precisión de la reconstrucción del árbol (Tree reconstruction accuracy). Usamos la Distancia Jerárquica Promedio (Average Hierarchical Distance, AHD) para medir la precisión del árbol reconstruido. Un árbol de escena T puede descomponerse en un conjunto de conjuntos de nodos {Si}N i=1, donde N es la profundidad total del árbol y Si representa todos los nodos de la i-ésima profundidad. Además, comparamos la similitud entre conjuntos en promedio; formalmente: t"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p13",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "D} = \\fr",
+            "es": "D} = \\fr"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p14",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "\\ t e",
+            "es": "\\ t e"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-e1",
+          "type": "equation",
+          "page": 21,
+          "text": {
+            "en": "} \\sum _{i=1}^N \\frac {|S_i \\cap \\hat S_i|}{|S_i \\cup \\hat S_i|}, (7)"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p15",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "ac { 1}{N x",
+            "es": "ac { 1}{N x"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p16",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "{AH where ˆSi is the set at the i-th depth from the ground truth tree. For fair comparison of the different tree reconstruction methods, we select 60 scenes in the experiment and calculate the AHD in average. Sequence set inconsistency. The score is defined as the Hamming distance of two different sequences in average, which can be formulated as:",
+            "es": "{AH donde ˆSi es el conjunto en la i-ésima profundidad del árbol de referencia (ground truth). Para una comparación justa de los distintos métodos de reconstrucción de árboles, seleccionamos 60 escenas en el experimento y calculamos la AHD en promedio. Inconsistencia del conjunto de secuencias (Sequence set inconsistency). La puntuación se define como la distancia de Hamming promedio entre dos secuencias distintas, lo cual puede formularse como:"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p17",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "\\text {Inco n s isten cy} c {1}{|N(i, j)|}\\sum _{i}\\sum _{j\\neq i}{d_{\\text {Hamming}}(s_i, s_j)}, (8)",
+            "es": "\\text {Inco n s isten cy} c {1}{|N(i, j)|}\\sum _{i}\\sum _{j\\neq i}{d_{\\text {Hamming}}(s_i, s_j)}, (8)"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p18",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "\\fra where si is randomly selected sequence and N(i, j) is the number of (i, j) pairs. The score is higher when the the sequences within the set are more inconsistent. Specifically, when the set contains only one sequence, the inconsistency score is zero, as there are no pairs of sequences to compare.",
+            "es": "\\fra donde si es una secuencia seleccionada al azar y N(i, j) es el número de pares (i, j). La puntuación es mayor cuanto más inconsistentes son las secuencias dentro del conjunto. En particular, cuando el conjunto contiene una sola secuencia, la puntuación de inconsistencia es cero, ya que no hay pares de secuencias que comparar."
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-h6",
+          "type": "heading",
+          "page": 21,
+          "text": {
+            "en": "9 Visual results",
+            "es": "9 Resultados visuales"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p19",
+          "type": "paragraph",
+          "page": 21,
+          "text": {
+            "en": "More visual comparisons. As shown in Figure 10 11 12 13, we compare our results with the-state-of-the-art methods [48, 62] in bedroom and living/dining rooms. Our approach yields more realistic scenes with fewer occurrences of objects extending beyond the layout boundaries.",
+            "es": "Más comparaciones visuales. Como se muestra en las Figuras 10 11 12 13, comparamos nuestros resultados con los métodos de vanguardia [48, 62] en recámaras y en salas/comedores. Nuestro enfoque produce escenas más realistas, con menos casos de objetos que sobresalen de los límites de la distribución."
+          }
+        },
+        {
+          "id": "fig-10",
+          "type": "figure",
+          "page": 22,
+          "image": "fig/fig-10.png",
+          "text": {
+            "en": "Fig. 10: Scene synthesis. Visual comparison with the-state-of-the-art methods [48, 62] on the bedroom type.",
+            "es": "Figura 10: Síntesis de escenas. Comparación visual con los métodos de vanguardia [48, 62] en el tipo recámara."
+          }
+        },
+        {
+          "id": "fig-11",
+          "type": "figure",
+          "page": 23,
+          "image": "fig/fig-11.png",
+          "text": {
+            "en": "Fig. 11: Scene synthesis. More visual comparison with the-state-of-the-art methods [48,62] on the bedroom type.",
+            "es": "Figura 11: Síntesis de escenas. Más comparaciones visuales con los métodos de vanguardia [48,62] en el tipo recámara."
+          }
+        },
+        {
+          "id": "fig-12",
+          "type": "figure",
+          "page": 24,
+          "image": "fig/fig-12.png",
+          "text": {
+            "en": "Fig. 12: Scene synthesis. Visual comparison with the-state-of-the-art methods [48, 62] on the living room / dining room type.",
+            "es": "Figura 12: Síntesis de escenas. Comparación visual con los métodos de vanguardia [48, 62] en el tipo sala / comedor."
+          }
+        },
+        {
+          "id": "fig-13",
+          "type": "figure",
+          "page": 25,
+          "image": "fig/fig-13.png",
+          "text": {
+            "en": "Fig. 13: Scene synthesis. More visual comparison with the-state-of-the-art methods [48,62] on the living room / dining room type.",
+            "es": "Figura 13: Síntesis de escenas. Más comparaciones visuales con los métodos de vanguardia [48,62] en el tipo sala / comedor."
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p20",
+          "type": "paragraph",
+          "page": 26,
+          "text": {
+            "en": "Algorithm 1 Pseudocode of Set2Tree algorithm in a PyTorch-like style. def giou(boxes1, boxes2):",
+            "es": "Algoritmo 1 Pseudocódigo del algoritmo Set2Tree en estilo PyTorch. def giou(boxes1, boxes2):"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p21",
+          "type": "paragraph",
+          "page": 26,
+          "text": {
+            "en": "# giou between 2 bboxes pass def find_biggest(subscene):",
+            "es": "# giou entre 2 bboxes pass def find_biggest(subscene):"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p22",
+          "type": "paragraph",
+          "page": 26,
+          "text": {
+            "en": "# find the biggest furniture in a subscene pass def fn_dist(self, bbox2d_set, xy_set): dist_giou = 1 - giou(bbox2d_set) # [N, N] dist_enc = sqrt(sum((xy_set[:, newaxis] - xy_set) ** 2, axis=2)) # [N, N] # weighted distance matrix return dist_euc + k * dist_giou",
+            "es": "# encuentra el mueble más grande en una subescena pass def fn_dist(self, bbox2d_set, xy_set): dist_giou = 1 - giou(bbox2d_set) # [N, N] dist_enc = sqrt(sum((xy_set[:, newaxis] - xy_set) ** 2, axis=2)) # [N, N] # matriz de distancias ponderada return dist_euc + k * dist_giou"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p23",
+          "type": "paragraph",
+          "page": 26,
+          "text": {
+            "en": "\"\"\" Definition of Furniture: node of Tree \"\"\" class Furniture: def __init__(self, x1y1x2y2=None, xy=None, feature=None): self.bbox2d = x1y1x2y2 self.xy = xy self.feature = feature self.children = [] def add_node(self, furniture): self.children.append(furniture)",
+            "es": "\"\"\" Definición de Furniture: nodo del árbol \"\"\" class Furniture: def __init__(self, x1y1x2y2=None, xy=None, feature=None): self.bbox2d = x1y1x2y2 self.xy = xy self.feature = feature self.children = [] def add_node(self, furniture): self.children.append(furniture)"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p24",
+          "type": "paragraph",
+          "page": 26,
+          "text": {
+            "en": "\"\"\" Definition of Tree \"\"\" class Tree: def __init__(self): self.root = Furniture() # empty def shuffle(self): pass # easy to implement def bfs(self): pass # easy to implement def set2tree(self, f_set, labels):",
+            "es": "\"\"\" Definición de Tree \"\"\" class Tree: def __init__(self): self.root = Furniture() # vacío def shuffle(self): pass # fácil de implementar def bfs(self): pass # fácil de implementar def set2tree(self, f_set, labels):"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p25",
+          "type": "paragraph",
+          "page": 26,
+          "text": {
+            "en": "# organize the furniture set into a scene tree for l in len(set(labels)): if l != -1: # not outlier subscene = [f_set[j] for i in labels if i == l] # find the largest furniture as parent node f_parent = find_biggest(subscene) # add the parent node under the root node self.root.add_node(f_parent) # add the remaining objects under the parent node for f in subscene: if f != f_parent: f_parent.add_node(f) iou: intersection-over-union of two bounding boxes; sqrt: square-root; sum: summarization; newaxis: new axis of an array.",
+            "es": "# organiza el conjunto de muebles en un árbol de escena for l in len(set(labels)): if l != -1: # no es un valor atípico subscene = [f_set[j] for i in labels if i == l] # encuentra el mueble más grande como nodo padre f_parent = find_biggest(subscene) # agrega el nodo padre bajo el nodo raíz self.root.add_node(f_parent) # agrega los objetos restantes bajo el nodo padre for f in subscene: if f != f_parent: f_parent.add_node(f) iou: intersección sobre unión (intersection-over-union) de dos cuadros delimitadores; sqrt: raíz cuadrada; sum: suma; newaxis: nuevo eje de un arreglo."
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p26",
+          "type": "paragraph",
+          "page": 27,
+          "text": {
+            "en": "Algorithm 2 Pseudocode of Tree2Forest algorithm in a PyTorch-like style. from sklearn.cluster import DBSCAN from numpy import array from copy import deepcopy def tree2forest(f_set, eps=0.15, min_samples=2):",
+            "es": "Algoritmo 2 Pseudocódigo del algoritmo Tree2Forest en estilo PyTorch. from sklearn.cluster import DBSCAN from numpy import array from copy import deepcopy def tree2forest(f_set, eps=0.15, min_samples=2):"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p27",
+          "type": "paragraph",
+          "page": 27,
+          "text": {
+            "en": "\"\"\" Prepare the distance matrix \"\"\" bbox2d_set = array([f.bbox2d for f in f_set]) # [N, 4] xy_set = array([f.xy for f in f_set]) # [N, 2] dist_mat = fn_dist(bbox2d_set, xy_set) \"\"\" DBSCAN clustering \"\"\" dbscan = DBSCAN(eps, min_samples, metric=’precomputed’) labels = dbscan.fit_predict(dist_mat) tree = Tree() # empty tree tree.set2tree(f_set, labels) # build tree forest = [] # create empty forest # find all outliner outliers = [f_set[j] for j, k in enumerate(labels) if k == -1] for f in outliers: # process each outlier",
+            "es": "\"\"\" Preparar la matriz de distancias \"\"\" bbox2d_set = array([f.bbox2d for f in f_set]) # [N, 4] xy_set = array([f.xy for f in f_set]) # [N, 2] dist_mat = fn_dist(bbox2d_set, xy_set) \"\"\" Agrupamiento DBSCAN \"\"\" dbscan = DBSCAN(eps, min_samples, metric=’precomputed’) labels = dbscan.fit_predict(dist_mat) tree = Tree() # árbol vacío tree.set2tree(f_set, labels) # construir árbol forest = [] # crear bosque vacío # encontrar todos los valores atípicos outliers = [f_set[j] for j, k in enumerate(labels) if k == -1] for f in outliers: # procesar cada valor atípico"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p28",
+          "type": "paragraph",
+          "page": 27,
+          "text": {
+            "en": "# add to the parent nodes for i in range(len(tree.root.children)): tmp_tree = deepcopy(tree) tmp_tree.children[i].add_node(f) forest.append(tmp_tree) # add to the root node tmp_tree = deepcopy(tree) tmp_tree.root.add_node(f) forest.append(tmp_tree) return forest",
+            "es": "# agregar a los nodos padre for i in range(len(tree.root.children)): tmp_tree = deepcopy(tree) tmp_tree.children[i].add_node(f) forest.append(tmp_tree) # agregar al nodo raíz tmp_tree = deepcopy(tree) tmp_tree.root.add_node(f) forest.append(tmp_tree) return forest"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p29",
+          "type": "paragraph",
+          "page": 27,
+          "text": {
+            "en": "Algorithm 3 Pseudocode of Forest2Seq algorithm in a PyTorch-like style.",
+            "es": "Algoritmo 3 Pseudocódigo del algoritmo Forest2Seq en estilo PyTorch."
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p30",
+          "type": "paragraph",
+          "page": 27,
+          "text": {
+            "en": "\"\"\" Flatten a forest (set of tree) to a sequence \"\"\" def forest2seq(forest):",
+            "es": "\"\"\" Aplanar un bosque (conjunto de árboles) en una secuencia \"\"\" def forest2seq(forest):"
+          }
+        },
+        {
+          "id": "forest2seq-revitalizing-order-prior-for-p31",
+          "type": "paragraph",
+          "page": 27,
+          "text": {
+            "en": "\"\"\" forest: list of Tree return: list of Furniture \"\"\" N = len(forest) # number of trees idx = randint(0, N) # randomly select one tree tree_selected = forest[idx] return tree_selected.shuffle().bfs() bfs: breadth-first traversal; shuffle: tree shuffle; randint: return random integers from low (inclusive) to high (exclusive).",
+            "es": "\"\"\" forest: lista de Tree return: lista de Furniture \"\"\" N = len(forest) # número de árboles idx = randint(0, N) # selecciona un árbol al azar tree_selected = forest[idx] return tree_selected.shuffle().bfs() bfs: recorrido en anchura (breadth-first traversal); shuffle: mezcla del árbol; randint: devuelve enteros aleatorios desde low (inclusive) hasta high (exclusive)."
+          }
+        }
+      ]
+    }
+  ]
+}

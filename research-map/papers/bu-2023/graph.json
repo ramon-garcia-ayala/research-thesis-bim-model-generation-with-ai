@@ -1,0 +1,704 @@
+{
+  "version": 1,
+  "node": "bu-2023",
+  "built": {
+    "date": "2026-11-15",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Does the order in which graph components are written into a sequence change how accurately an autoregressive model generates the graph? The paper says this has largely gone unexplored.",
+      "es": "¿El orden en que se escriben los componentes de un grafo en una secuencia cambia qué tan bien un modelo autorregresivo genera el grafo? El artículo dice que esto casi no se ha explorado.",
+      "blocks": [
+        "s0-p1",
+        "s1-p4"
+      ],
+      "key": "node-ordering",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "In paired graph generation every input condition has exactly one target graph, so the output is judged against that graph. Unpaired work generates distributions of graphs and is judged by statistical similarity.",
+      "es": "En la generación pareada de grafos cada condición de entrada tiene exactamente un grafo objetivo, y la salida se juzga contra ese grafo. El trabajo no pareado genera distribuciones de grafos y se juzga por similitud estadística.",
+      "blocks": [
+        "s1-p1",
+        "s2-p1"
+      ],
+      "key": "paired-graph-generation",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Graph components have no natural order, so n graph tokens can be arranged in n! sequences. An autoregressive model needs one of them as its training target.",
+      "es": "Los componentes de un grafo no tienen un orden natural, así que n tokens de grafo se pueden acomodar en n! secuencias. Un modelo autorregresivo necesita una de ellas como objetivo de entrenamiento.",
+      "blocks": [
+        "s1-p3",
+        "s1-p4",
+        "s3-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "claim",
+      "en": "Existing autoregressive graph generators order components by BFS or DFS traversal without justifying the choice empirically or theoretically. The authors know of no prior work that compares token orderings both ways.",
+      "es": "Los generadores autorregresivos de grafos existentes ordenan los componentes con recorridos BFS o DFS sin justificar la elección de forma empírica ni teórica. Los autores no conocen trabajo previo que compare órdenes de tokens de ambas maneras.",
+      "blocks": [
+        "s1-p4",
+        "s2-p3"
+      ],
+      "key": "bfs-dfs-ordering",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "concept",
+      "en": "Sorting is reframed as dimensionality reduction: a mapping f sends each token to a 1-D value, independent of the other tokens, and the order is the sort of those values. Differentiable dimensionality reduction is easier to build than a differentiable sort.",
+      "es": "El ordenamiento se replantea como reducción de dimensionalidad: una función f lleva cada token a un valor 1-D, independiente de los demás tokens, y el orden es el ordenamiento de esos valores. Es más fácil construir una reducción de dimensionalidad diferenciable que un ordenamiento diferenciable.",
+      "blocks": [
+        "s3-p3",
+        "s3-p4",
+        "s3-p5",
+        "fig-1"
+      ],
+      "key": "ordering-as-dimensionality-reduction",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Latent sort trains an autoencoder with an MLP encoder and an MLP decoder to reconstruct all tokens in the dataset. It then freezes the encoder and sorts tokens by their 1-D latent value.",
+      "es": "Latent sort entrena un autoencoder con un codificador MLP y un decodificador MLP para reconstruir todos los tokens del conjunto de datos. Luego congela el codificador y ordena los tokens por su valor latente 1-D.",
+      "blocks": [
+        "s3-p6",
+        "app-c-p87"
+      ],
+      "key": "latent-sort",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "Ordering ambiguity happens when different tokens get the same 1-D value, so their order is undefined. The paper argues this is almost inevitable for a local mapping, because going from many dimensions to one is mostly not one-to-one.",
+      "es": "La ambigüedad de orden ocurre cuando tokens distintos reciben el mismo valor 1-D, y su orden queda indefinido. El artículo sostiene que es casi inevitable con un mapeo local, porque pasar de muchas dimensiones a una casi nunca es uno a uno.",
+      "blocks": [
+        "s3-p16",
+        "s3-p17",
+        "fig-2",
+        "app-c-p41"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "concept",
+      "en": "Sorting error is modeled with a probability matrix P, a soft permutation that turns the optimal order Y* into the produced order Y, and measured with the Frobenius norm. Minimizing this error is equivalent to minimizing the distance between P and the identity matrix.",
+      "es": "El error de ordenamiento se modela con una matriz de probabilidad P, una permutación suave que convierte el orden óptimo Y* en el orden producido Y, y se mide con la norma de Frobenius. Minimizar este error equivale a minimizar la distancia entre P y la matriz identidad.",
+      "blocks": [
+        "s3-p7",
+        "s3-p13",
+        "s3-p14",
+        "app-d-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "concept",
+      "en": "Imperfect reconstruction gives the 1-D latent value a normally distributed error, which can swap two tokens in the sequence. Only neighboring tokens are likely to swap, so P becomes a tridiagonal matrix.",
+      "es": "Una reconstrucción imperfecta da al valor latente 1-D un error con distribución normal, que puede intercambiar dos tokens en la secuencia. Solo es probable que se intercambien tokens vecinos, así que P queda como una matriz tridiagonal.",
+      "blocks": [
+        "s3-p28",
+        "s3-p29",
+        "app-c-p340",
+        "app-c-p376"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "claim",
+      "en": "To minimize ordering errors, the ideal sorted sequence should keep neighboring tokens as close as possible, which connects to the shortest-path (traveling salesman) problem. Because TSP is NP-hard and hard for an autoregressive model to learn, the paper looks for an approximation.",
+      "es": "Para minimizar los errores de orden, la secuencia ideal debe mantener lo más cerca posible a los tokens vecinos, lo que conecta con el problema del camino más corto (agente viajero). Como TSP es NP-difícil y difícil de aprender para un modelo autorregresivo, el artículo busca una aproximación.",
+      "blocks": [
+        "s3-p47",
+        "app-c-p530",
+        "app-c-p531",
+        "app-c-p535"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "claim",
+      "en": "Theorems C.1 and C.2 link distance between tokens to distance between their latent values. If latent values differ by at most ε, the tokens are at most 2B + Kdε apart; if tokens are at least D apart (D ≥ 2B), the latent values differ by at least (D − 2B)/Kd.",
+      "es": "Los teoremas C.1 y C.2 relacionan la distancia entre tokens con la distancia entre sus valores latentes. Si los valores latentes difieren a lo sumo en ε, los tokens están a lo sumo a 2B + Kdε; si los tokens están al menos a D de distancia (D ≥ 2B), los valores latentes difieren al menos en (D − 2B)/Kd.",
+      "blocks": [
+        "s3-p48",
+        "app-c-p93",
+        "app-c-p115"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "The latent gradient penalty (LGP) loss makes the 1-D distance between neighboring tokens proportional to their distance in the original space, with the constant bounded by α (the paper uses α = 1). Latent sort is trained with LGP by default.",
+      "es": "La pérdida de penalización del gradiente latente (LGP) hace que la distancia 1-D entre tokens vecinos sea proporcional a su distancia en el espacio original, con la constante acotada por α (el artículo usa α = 1). Latent sort se entrena con LGP por defecto.",
+      "blocks": [
+        "s3-p48",
+        "s3-p53",
+        "s3-p54",
+        "fig-4"
+      ],
+      "key": "latent-gradient-penalty",
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "claim",
+      "en": "The paper chooses a local mapping, such as an MLP, because it computes each token's 1-D value from that token alone. Non-local choices (1D-CNNs, autoregressive Transformers, full-attention Transformers) assume a token structure or use right-hand context the autoregressive model cannot see.",
+      "es": "El artículo elige un mapeo local, como un MLP, porque calcula el valor 1-D de cada token solo a partir de ese token. Las opciones no locales (CNN 1D, Transformers autorregresivos, Transformers de atención completa) suponen una estructura entre tokens o usan contexto de la derecha que el modelo autorregresivo no puede ver.",
+      "blocks": [
+        "app-c-p22",
+        "app-c-p23",
+        "app-c-p24",
+        "app-c-p25"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "result",
+      "en": "The authors tried learning the ordering end-to-end together with the autoregressive model and saw that such systems often fail to converge, so they dropped the idea. They explain it as two models constantly adapting to each other.",
+      "es": "Los autores intentaron aprender el orden de extremo a extremo junto con el modelo autorregresivo y vieron que estos sistemas a menudo no convergen, así que descartaron la idea. Lo explican como dos modelos que se adaptan constantemente uno al otro.",
+      "blocks": [
+        "app-c-p14",
+        "app-c-p15"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "claim",
+      "en": "The best ordering depends on the model architecture and the application, so the goal is an ordering suited to the model and use case rather than one for all. An RNN may favor orders with continuity, while a Transformer may not require it.",
+      "es": "El mejor orden depende de la arquitectura del modelo y de la aplicación, así que la meta es un orden adecuado al modelo y al caso de uso, no uno para todos. Una RNN puede preferir órdenes con continuidad, mientras que un Transformer puede no requerirla.",
+      "blocks": [
+        "app-c-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "method",
+      "en": "GraphART is an autoregressive decoder based on a modified GPT-2 (pre-normalization and LayerScale) with an encoder for the input condition and no graph neural network. GraphLSTM replaces the transformer with an LSTM, and both can use any sorting algorithm.",
+      "es": "GraphART es un decodificador autorregresivo basado en un GPT-2 modificado (pre-normalización y LayerScale), con un codificador para la condición de entrada y sin red neuronal de grafos. GraphLSTM reemplaza el transformer por una LSTM, y ambos pueden usar cualquier algoritmo de ordenamiento.",
+      "blocks": [
+        "s1-p6",
+        "s4-p7",
+        "fig-3"
+      ],
+      "key": "graphart",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "Graphs are tokenized by edges: each edge token concatenates the edge's features with graph-level features and the features of its two connecting nodes. For example, in road networks an edge token holds the coordinates of its two nodes.",
+      "es": "Los grafos se tokenizan por aristas: cada token de arista concatena las características de la arista con características a nivel de grafo y las de sus dos nodos conectados. Por ejemplo, en redes de calles un token de arista contiene las coordenadas de sus dos nodos.",
+      "blocks": [
+        "s4-p10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Baseline orderings are mean squared sort (larger to smaller L2 norm), lexicographical sort, SVD low-rank sort (projection on the largest principal component) and BFS or DFS via NetworkX. Mean squared sort cannot be applied to one-hot tokens, and BFS/DFS hardly apply to mostly small, disconnected graphs.",
+      "es": "Los órdenes base son mean squared sort (de mayor a menor norma L2), orden lexicográfico, SVD low-rank (proyección sobre la componente principal mayor) y BFS o DFS con NetworkX. Mean squared sort no se puede aplicar a tokens one-hot, y BFS/DFS casi no aplican a grafos pequeños y desconectados.",
+      "blocks": [
+        "s4-p8",
+        "s4-p9",
+        "s5-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "Topological graphs are scored with Edge Mover distance (EMD), Edge Hausdorff distance (EHD) and StreetMover distance (SMD). Scene graphs use precision, recall and F-1 redefined for sets of different sizes, plus the difference in graph size.",
+      "es": "Los grafos topológicos se evalúan con la distancia Edge Mover (EMD), la distancia Edge Hausdorff (EHD) y la distancia StreetMover (SMD). Los grafos de escena usan precisión, recall y F-1 redefinidos para conjuntos de distinto tamaño, además de la diferencia de tamaño del grafo.",
+      "blocks": [
+        "s4-p12",
+        "app-b-p19",
+        "app-b-p27",
+        "app-b-p30",
+        "app-b-p31"
+      ],
+      "key": "emd-ehd-smd",
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "dataset",
+      "en": "OpenPSG has 49k annotated images, with about 45k for training and 4k for testing. The paper turns it into semantic-level scene graphs with 133 object classes and 56 predicate classes, without panoptic segmentation labels.",
+      "es": "OpenPSG tiene 49k imágenes anotadas, con unas 45k para entrenamiento y 4k para prueba. El artículo lo convierte en grafos de escena a nivel semántico con 133 clases de objetos y 56 clases de predicados, sin etiquetas de segmentación panóptica.",
+      "blocks": [
+        "s4-p3",
+        "app-b-p2",
+        "app-b-p3"
+      ],
+      "key": "openpsg",
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "dataset",
+      "en": "The Toulouse Road Network dataset has 99k pairs of 64 × 64 grayscale images and road graphs from OpenStreetMap, with about 80k for training and 19k for testing. Most graphs in it are simple.",
+      "es": "El conjunto Toulouse Road Network tiene 99k pares de imágenes en escala de grises de 64 × 64 y grafos de calles de OpenStreetMap, con unos 80k para entrenamiento y 19k para prueba. La mayoría de sus grafos son simples.",
+      "blocks": [
+        "s4-p4",
+        "app-b-p6"
+      ],
+      "key": "toulouse-road-network",
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "dataset",
+      "en": "The authors built a synthetic Planar Graph dataset from Delaunay triangulation, starting with 15 nodes and rendering 256 × 256 binary images with random line widths and artifacts. Batches are generated on the fly (40k samples per epoch), and testing uses 1000 samples with 10 random seeds.",
+      "es": "Los autores construyeron un conjunto sintético de grafos planares con triangulación de Delaunay, empezando con 15 nodos y renderizando imágenes binarias de 256 × 256 con grosores de línea y artefactos aleatorios. Los lotes se generan al vuelo (40k muestras por época) y la prueba usa 1000 muestras con 10 semillas aleatorias.",
+      "blocks": [
+        "s4-p4",
+        "app-b-p7"
+      ],
+      "key": "planar-graph-synthetic",
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "dataset",
+      "en": "The Terahertz channelizer dataset has 347k circuit graphs of 3 to 6 resonators, each resonator a 9-dimensional vector. The task is the inverse problem: predict the circuit graph from desired electromagnetic properties, with min-max normalization per dimension.",
+      "es": "El conjunto Terahertz channelizer tiene 347k grafos de circuitos de 3 a 6 resonadores, cada resonador un vector de 9 dimensiones. La tarea es el problema inverso: predecir el grafo del circuito a partir de propiedades electromagnéticas deseadas, con normalización min-max por dimensión.",
+      "blocks": [
+        "s4-p5",
+        "app-b-p8",
+        "app-b-p9"
+      ],
+      "key": "terahertz-channelizer",
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "On the Toulouse Road Network and Planar Graph tasks, mean squared sort stands out among the simple heuristics, while BFS and DFS sort are consistently inferior. This holds even though BFS/DFS are the usual convention for probabilistic graph generation.",
+      "es": "En las tareas de Toulouse Road Network y de grafos planares, mean squared sort destaca entre las heurísticas simples, mientras que BFS y DFS son consistentemente inferiores. Esto ocurre aunque BFS/DFS son la convención usual en generación probabilística de grafos.",
+      "blocks": [
+        "s5-p2",
+        "tab-1",
+        "tab-2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "claim",
+      "en": "The authors hypothesize that BFS/DFS work for distributions of graphs but fail when an exact match with a target is needed, since they ignore token values and use only arbitrary relative positions. They also say an ordering has to be easy to learn, and BFS/DFS force the model to understand global structure.",
+      "es": "Los autores plantean la hipótesis de que BFS/DFS sirven para distribuciones de grafos pero fallan cuando se requiere coincidir exactamente con un objetivo, porque ignoran los valores de los tokens y solo usan posiciones relativas arbitrarias. También dicen que un orden debe ser fácil de aprender, y BFS/DFS obligan al modelo a entender la estructura global.",
+      "blocks": [
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "GraphLSTM generally does not perform as well as GraphART. The authors suggest transformers attend to longer context and so understand the global information in graphs better than LSTMs.",
+      "es": "GraphLSTM en general no rinde tan bien como GraphART. Los autores sugieren que los transformers atienden contexto más largo y por eso entienden mejor la información global de los grafos que las LSTM.",
+      "blocks": [
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "On OpenPSG, GraphART has higher precision than PSGTR and PSGFormer with every sorting choice but lower recall than PSGTR, which also uses panoptic segmentation labels and the true graph size. Lexicographical sort performs best, followed closely by latent sort.",
+      "es": "En OpenPSG, GraphART tiene mayor precisión que PSGTR y PSGFormer con cualquier orden, pero menor recall que PSGTR, que además usa etiquetas de segmentación panóptica y el tamaño real del grafo. El orden lexicográfico rinde mejor, seguido de cerca por latent sort.",
+      "blocks": [
+        "s5-p3",
+        "tab-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "result",
+      "en": "On circuit graph prediction, both GraphART and GraphLSTM outperform Circuit-GNN. Among the orderings, latent sort shows a slight advantage.",
+      "es": "En la predicción de grafos de circuitos, tanto GraphART como GraphLSTM superan a Circuit-GNN. Entre los órdenes, latent sort muestra una ligera ventaja.",
+      "blocks": [
+        "s5-p3",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "claim",
+      "en": "Specific heuristics can excel on one application (mean squared sort on topological graphs, lexicographical sort on scene graphs). Latent sort is versatile and consistently competitive across all four datasets.",
+      "es": "Heurísticas específicas pueden destacar en una aplicación (mean squared sort en grafos topológicos, orden lexicográfico en grafos de escena). Latent sort es versátil y consistentemente competitivo en los cuatro conjuntos de datos.",
+      "blocks": [
+        "s5-p4",
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "result",
+      "en": "On random 2-D points, latent sort with LGP gives paths that reasonably approximate shortest-path solutions, and it does better than latent sort without LGP. Table 5 counts the share of all possible paths (by brute force) that are longer than the latent sort path, and the methods look better with more points.",
+      "es": "Con puntos 2-D aleatorios, latent sort con LGP produce caminos que aproximan razonablemente las soluciones de camino más corto, y lo hace mejor que latent sort sin LGP. La tabla 5 cuenta la proporción de todos los caminos posibles (por fuerza bruta) que son más largos que el de latent sort, y los métodos se ven mejor con más puntos.",
+      "blocks": [
+        "s5-p5",
+        "fig-5",
+        "app-a-p2",
+        "app-a-p3",
+        "tab-5",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "method",
+      "en": "For each experiment the authors trained 10 latent sort encoders and kept the one with the best validation performance. Random initialization changed results by less than 5%, larger encoders did not help, and the LGP coefficient (0.01 to 0.1) was the most important hyperparameter.",
+      "es": "En cada experimento los autores entrenaron 10 codificadores de latent sort y conservaron el de mejor desempeño en validación. La inicialización aleatoria cambió los resultados menos de 5%, los codificadores más grandes no ayudaron, y el coeficiente de LGP (0.01 a 0.1) fue el hiperparámetro más importante.",
+      "blocks": [
+        "app-b-p49",
+        "app-b-p51",
+        "app-b-p52",
+        "app-b-p53"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "limitation",
+      "en": "OpenPSG has label noise, and GraphART tends to predict slightly smaller scene graphs than the ground truth, stopping early after the most common objects and predicates. The authors call for scene graph datasets with cleaner labels.",
+      "es": "OpenPSG tiene ruido en las etiquetas, y GraphART tiende a predecir grafos de escena un poco más pequeños que la verdad de referencia, deteniéndose antes tras los objetos y predicados más comunes. Los autores piden conjuntos de datos de grafos de escena con etiquetas más limpias.",
+      "blocks": [
+        "app-a-p5",
+        "app-a-p6",
+        "fig-7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "limitation",
+      "en": "Latent sort performs competitively across many datasets but does not consistently outperform application-specific heuristics.",
+      "es": "Latent sort rinde de forma competitiva en muchos conjuntos de datos, pero no supera de manera consistente a las heurísticas específicas de cada aplicación.",
+      "blocks": [
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i34",
+      "kind": "limitation",
+      "en": "The experiments are limited to small graphs, so how the approach scales to larger graphs is untested.",
+      "es": "Los experimentos se limitan a grafos pequeños, así que no se ha probado cómo escala el enfoque a grafos más grandes.",
+      "blocks": [
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i35",
+      "kind": "future",
+      "en": "The authors encourage future work on more sophisticated learning-based ordering schemes for autoregressive graph generation, and on scaling them to larger graphs.",
+      "es": "Los autores alientan trabajo futuro sobre esquemas de ordenamiento aprendidos más sofisticados para la generación autorregresiva de grafos, y sobre su escalamiento a grafos más grandes.",
+      "blocks": [
+        "s0-p1",
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i36",
+      "kind": "concept",
+      "en": "Non-autoregressive methods generate whole graphs and match them to targets with bipartite matching, which is costly, can converge slowly and cannot handle varying output sizes without padding. This is the alternative line of work the paper sets against autoregressive models.",
+      "es": "Los métodos no autorregresivos generan grafos completos y los emparejan con los objetivos mediante emparejamiento bipartito, lo cual es costoso, puede converger lento y no maneja tamaños de salida variables sin relleno. Es la línea alternativa que el artículo contrasta con los modelos autorregresivos.",
+      "blocks": [
+        "s2-p2",
+        "app-b-p13"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i2",
+      "type": "uses",
+      "why": "The ordering question is studied in the paired setting, where each input has one target graph."
+    },
+    {
+      "from": "i3",
+      "to": "i1",
+      "type": "supports",
+      "why": "With n! possible sequences, choosing an order is a real decision."
+    },
+    {
+      "from": "i4",
+      "to": "i1",
+      "type": "supports",
+      "why": "BFS/DFS are used by habit, so the effect of ordering was never tested."
+    },
+    {
+      "from": "i15",
+      "to": "i1",
+      "type": "supports",
+      "why": "The best order depends on architecture and application, so it cannot be fixed by default."
+    },
+    {
+      "from": "i6",
+      "to": "i5",
+      "type": "example-of",
+      "why": "Latent sort is the paper's way of building the 1-D mapping f with an autoencoder."
+    },
+    {
+      "from": "i8",
+      "to": "i5",
+      "type": "measures",
+      "why": "The probability matrix P and Frobenius error score how good a DR-based sort is."
+    },
+    {
+      "from": "i12",
+      "to": "i6",
+      "type": "part-of",
+      "why": "LGP is the extra loss latent sort is trained with by default."
+    },
+    {
+      "from": "i31",
+      "to": "i6",
+      "type": "part-of",
+      "why": "These are the training choices for the latent sort encoders."
+    },
+    {
+      "from": "i7",
+      "to": "i8",
+      "type": "part-of",
+      "why": "Ordering ambiguity is the first of two error sources in the model."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "part-of",
+      "why": "Imperfect reconstruction is the second error source in the model."
+    },
+    {
+      "from": "i11",
+      "to": "i10",
+      "type": "supports",
+      "why": "Close tokens have close latent values, so neighboring tokens in the sorted sequence are expected to be close."
+    },
+    {
+      "from": "i10",
+      "to": "i12",
+      "type": "supports",
+      "why": "Reconstruction loss alone did not approximate shortest paths well enough, which motivated LGP."
+    },
+    {
+      "from": "i13",
+      "to": "i6",
+      "type": "supports",
+      "why": "Explains why the mapping is an MLP that sees one token at a time."
+    },
+    {
+      "from": "i14",
+      "to": "i6",
+      "type": "supports",
+      "why": "Failed end-to-end learning is why the encoder is trained first and then frozen."
+    },
+    {
+      "from": "i16",
+      "to": "i17",
+      "type": "uses",
+      "why": "GraphART and GraphLSTM read and write edge-based tokens."
+    },
+    {
+      "from": "i16",
+      "to": "i18",
+      "type": "uses",
+      "why": "Both backbones can be trained with any of the baseline sorting algorithms."
+    },
+    {
+      "from": "i16",
+      "to": "i6",
+      "type": "uses",
+      "why": "Latent sort supplies the token order used to train the backbones."
+    },
+    {
+      "from": "i36",
+      "to": "i16",
+      "type": "supports",
+      "why": "The costs of bipartite matching and padding are part of the case for autoregressive models."
+    },
+    {
+      "from": "i26",
+      "to": "i16",
+      "type": "supports",
+      "why": "GraphART is the stronger of the two backbones."
+    },
+    {
+      "from": "i19",
+      "to": "i24",
+      "type": "measures",
+      "why": "EMD, EHD and SMD score the road and planar graph results."
+    },
+    {
+      "from": "i19",
+      "to": "i27",
+      "type": "measures",
+      "why": "Set-based precision, recall and F-1 score the scene graph results."
+    },
+    {
+      "from": "i24",
+      "to": "i21",
+      "type": "uses",
+      "why": "One of the two topological graph datasets."
+    },
+    {
+      "from": "i24",
+      "to": "i22",
+      "type": "uses",
+      "why": "The harder synthetic topological graph dataset."
+    },
+    {
+      "from": "i27",
+      "to": "i20",
+      "type": "uses",
+      "why": "The scene graph results come from OpenPSG."
+    },
+    {
+      "from": "i28",
+      "to": "i23",
+      "type": "uses",
+      "why": "The circuit results come from the Terahertz channelizer dataset."
+    },
+    {
+      "from": "i24",
+      "to": "i1",
+      "type": "supports",
+      "why": "Different orderings give non-trivial performance gaps, with BFS/DFS behind."
+    },
+    {
+      "from": "i25",
+      "to": "i24",
+      "type": "supports",
+      "why": "Offers the authors' explanation for why BFS/DFS did worse."
+    },
+    {
+      "from": "i24",
+      "to": "i29",
+      "type": "supports",
+      "why": "Mean squared sort leads there while latent sort stays competitive."
+    },
+    {
+      "from": "i27",
+      "to": "i29",
+      "type": "supports",
+      "why": "Latent sort comes close to the best heuristic, lexicographical sort."
+    },
+    {
+      "from": "i28",
+      "to": "i29",
+      "type": "supports",
+      "why": "Latent sort shows a slight advantage on circuits."
+    },
+    {
+      "from": "i30",
+      "to": "i10",
+      "type": "supports",
+      "why": "Empirical check that latent sort approximates shortest paths."
+    },
+    {
+      "from": "i32",
+      "to": "i27",
+      "type": "supports",
+      "why": "Label noise is the authors' explanation for the smaller predicted scene graphs."
+    },
+    {
+      "from": "i24",
+      "to": "i33",
+      "type": "supports",
+      "why": "A simple heuristic leads on topological graphs."
+    },
+    {
+      "from": "i27",
+      "to": "i33",
+      "type": "supports",
+      "why": "Lexicographical sort beats latent sort on scene graphs."
+    },
+    {
+      "from": "i33",
+      "to": "i35",
+      "type": "supports",
+      "why": "The authors name it as the reason to explore more sophisticated learned ordering."
+    },
+    {
+      "from": "i34",
+      "to": "i35",
+      "type": "supports",
+      "why": "Scaling to larger graphs is listed as future work."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i1",
+      "to": "assemble-node-by-node",
+      "why": "Assembling a model one element at a time needs a sequence, and this paper shows the order given to an autoregressive model changes how accurate it is."
+    },
+    {
+      "idea": "i24",
+      "to": "placement-order-experiments",
+      "why": "BFS and DFS were consistently inferior to a simple magnitude sort when an exact match with the target was needed, which is evidence to check in the order experiments."
+    },
+    {
+      "idea": "i6",
+      "to": "assemble-node-by-node",
+      "why": "A method to borrow: give each element a learned 1-D value and sort by it, instead of fixing a traversal order."
+    },
+    {
+      "idea": "i4",
+      "to": "sun-2024",
+      "why": "Challenges the default of walking a structure breadth-first, since this paper says BFS/DFS are chosen without justification."
+    },
+    {
+      "idea": "i17",
+      "to": "ifc-to-graph-recipe",
+      "why": "Edge tokens that join edge features with the two connected nodes' features are one way to turn elements and relations into tokens for a sequence model."
+    },
+    {
+      "idea": "i2",
+      "to": "new-not-replicated",
+      "why": "A gap: this paper scores output against exactly one target graph, while the thesis wants new valid models."
+    },
+    {
+      "idea": "i34",
+      "to": "hypothesis",
+      "why": "A gap: experiments use only small graphs, so it is untested whether the ordering results hold for graphs as large as BIM models."
+    },
+    {
+      "idea": "i3",
+      "to": "chen-2021",
+      "why": "Both start from graph nodes having no natural order; Chen et al. treat order for unpaired generation, while this paper studies paired generation."
+    }
+  ]
+}

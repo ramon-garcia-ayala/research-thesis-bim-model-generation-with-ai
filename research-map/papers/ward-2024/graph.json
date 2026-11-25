@@ -1,0 +1,647 @@
+{
+  "version": 1,
+  "node": "ward-2024",
+  "built": {
+    "date": "2026-11-16",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "The paper asks to what extent a tabular generative model copies its training data, and how practically significant that problem is. It answers that the problem is substantial.",
+      "es": "El artículo pregunta hasta qué punto un modelo generativo tabular copia sus datos de entrenamiento y qué tan importante es en la práctica ese problema. Responde que el problema es sustancial.",
+      "blocks": [
+        "s1-p2",
+        "s1-p3",
+        "s1-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "Data-copying is when generated samples are excessively similar to training samples. It is a form of overfitting that threatens the confidentiality of the training data. Unrealistic samples can be praised as 'creative', but samples too close to the training set are a privacy risk.",
+      "es": "El copiado de datos ocurre cuando las muestras generadas son excesivamente parecidas a las de entrenamiento. Es una forma de sobreajuste que amenaza la confidencialidad de los datos de entrenamiento. Las muestras irreales pueden verse como 'creativas', pero las demasiado cercanas al entrenamiento son un riesgo de privacidad.",
+      "blocks": [
+        "s1-p1",
+        "s2-p2"
+      ],
+      "key": "data-copying",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Following Definition 2.1 of [28], a model copies a training point x if some neighborhood D(x) exists where the synthetic distribution is systematically closer to x than the reference distribution is. The reference data come from the same distribution as the training data.",
+      "es": "Siguiendo la Definición 2.1 de [28], un modelo copia un punto de entrenamiento x si existe un vecindario D(x) donde la distribución sintética está sistemáticamente más cerca de x que la distribución de referencia. Los datos de referencia vienen de la misma distribución que los de entrenamiento.",
+      "blocks": [
+        "s3-p1",
+        "s3-p2",
+        "s3-p3",
+        "s3-p4",
+        "s3-p5"
+      ],
+      "key": "data-copying-definition",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "concept",
+      "en": "Earlier data-copying tests compare whether synthetic or reference data lie closer to the training data. The test in [28] splits the instance space into cells, tests each cell, and combines the results. [6] detects copying that [28] misses. Both struggle with high-dimensional complex distributions and ignore privacy.",
+      "es": "Las pruebas anteriores de copiado comparan si los datos sintéticos o los de referencia están más cerca de los de entrenamiento. La prueba de [28] divide el espacio en celdas, prueba cada una y combina los resultados. [6] detecta copiado que [28] no ve. Ambas tienen problemas con distribuciones complejas de alta dimensión e ignoran la privacidad.",
+      "blocks": [
+        "s2-p2",
+        "s1-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "concept",
+      "en": "Ad-hoc similarity metrics look for generated data in a 'Goldilocks' zone, neither too similar nor too dissimilar to the training data. Distance to Closest Record (DCR) compares each training point's nearest synthetic neighbor with its nearest reference neighbor. Identical Matching Score compares the proportion of identical records.",
+      "es": "Las métricas de similitud ad hoc buscan que los datos generados queden en una zona 'Ricitos de Oro', ni demasiado parecidos ni demasiado distintos a los de entrenamiento. La Distancia al Registro Más Cercano (DCR) compara el vecino sintético más cercano de cada punto de entrenamiento con su vecino de referencia más cercano. El Identical Matching Score compara la proporción de registros idénticos.",
+      "blocks": [
+        "s2-p3",
+        "s2-p4"
+      ],
+      "key": "dcr",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "limitation",
+      "en": "Similarity metrics like DCR have no threat model, so passing or failing them says nothing about how well an attack would do. Framing 'the data are private' as the null hypothesis also means a pass only fails to find evidence against it. A DCR of zero marks an identical match, but a non-zero DCR does not show how much information is disclosed.",
+      "es": "Las métricas de similitud como DCR no tienen un modelo de amenaza, así que aprobarlas o reprobarlas no dice qué tan bien le iría a un ataque. Además, si 'los datos son privados' es la hipótesis nula, aprobar solo significa que no se encontró evidencia en contra. Un DCR de cero indica una coincidencia idéntica, pero un DCR distinto de cero no muestra cuánta información se revela.",
+      "blocks": [
+        "s2-p5",
+        "s3-p8"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "concept",
+      "en": "A Membership Inference Attack (MIA) tries to decide whether a given record was in a generator's training set. Its threat model says what the attacker knows: black box (only synthetic data), white box (model internals), or calibrated (synthetic data plus a reference set). This paper uses the case where the attacker also holds a reference dataset, a worst case that also happens in practice (leaked, historic, competitor or public data).",
+      "es": "Un ataque de inferencia de pertenencia (MIA) intenta decidir si un registro estuvo en el conjunto de entrenamiento de un generador. Su modelo de amenaza dice qué sabe el atacante: caja negra (solo datos sintéticos), caja blanca (el interior del modelo) o calibrado (datos sintéticos más un conjunto de referencia). Este artículo usa el caso en que el atacante además tiene un conjunto de referencia, un peor escenario que también ocurre en la práctica (datos filtrados, históricos, de un competidor o públicos).",
+      "blocks": [
+        "s2-p6",
+        "s3-p9",
+        "s3-p10",
+        "s3-p11"
+      ],
+      "key": "membership-inference-attack",
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "Data Plagiarism Index (DPI): for each data point x, build a K-nearest neighborhood among reference and synthetic points. DPI ρ(x) is the number of synthetic points divided by the number of reference points in that neighborhood.",
+      "es": "Índice de Plagio de Datos (DPI): para cada punto x se construye un vecindario de K vecinos más cercanos entre los puntos de referencia y los sintéticos. El DPI ρ(x) es el número de puntos sintéticos dividido entre el número de puntos de referencia en ese vecindario.",
+      "blocks": [
+        "s4-p1",
+        "s4-p2",
+        "fig-2"
+      ],
+      "key": "dpi",
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "concept",
+      "en": "DPI ranges from 0 to infinity. DPI = 0 means no synthetic points in the neighborhood, suggesting under-fitting. DPI = 1 means equal numbers of synthetic and reference points, so no plagiarism or under-fitting. DPI > 1 means more synthetic than reference points, and larger values point to more data plagiarism.",
+      "es": "El DPI va de 0 a infinito. DPI = 0 significa que no hay puntos sintéticos en el vecindario, lo que sugiere subajuste. DPI = 1 significa igual número de puntos sintéticos y de referencia, es decir, sin plagio ni subajuste. DPI > 1 significa más puntos sintéticos que de referencia, y los valores mayores indican más plagio de datos.",
+      "blocks": [
+        "s4-p3",
+        "s4-p4",
+        "s4-p5",
+        "s4-p6",
+        "s4-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "concept",
+      "en": "Three toy examples with K = 10 show how to read DPI. With 8 synthetic and 2 reference neighbors, ρ(x) = 8/2 = 4, which is serious data-copying. With 2 synthetic and 8 reference, ρ(x) = 2/8 = 1/4, which is little copying but possible under-fitting. With 5 and 5, ρ(x) = 5/5 = 1, which is neither copying nor under-fitting.",
+      "es": "Tres ejemplos de juguete con K = 10 muestran cómo leer el DPI. Con 8 vecinos sintéticos y 2 de referencia, ρ(x) = 8/2 = 4, lo que es copiado serio de datos. Con 2 sintéticos y 8 de referencia, ρ(x) = 2/8 = 1/4, poco copiado pero posible subajuste. Con 5 y 5, ρ(x) = 5/5 = 1, sin copiado ni subajuste.",
+      "blocks": [
+        "s4-p8",
+        "s4-p9",
+        "s4-p10",
+        "s4-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "method",
+      "en": "DPI MIA turns DPI into an attack in three steps. Step 1: split the original data into three equal sets (training, holdout, reference) and train the generator on the training set to make a synthetic set. Step 2: compute DPI for each point of the training and holdout sets. Step 3: run the attack. If the model copies, training points should score higher than holdout points.",
+      "es": "DPI MIA convierte el DPI en un ataque en tres pasos. Paso 1: dividir los datos originales en tres conjuntos iguales (entrenamiento, reserva y referencia) y entrenar el generador con el de entrenamiento para producir un conjunto sintético. Paso 2: calcular el DPI de cada punto de los conjuntos de entrenamiento y de reserva. Paso 3: ejecutar el ataque. Si el modelo copia, los puntos de entrenamiento deberían puntuar más alto que los de reserva.",
+      "blocks": [
+        "s4-p13",
+        "s4-p14",
+        "s4-p15",
+        "s4-p16",
+        "s4-p17",
+        "fig-3"
+      ],
+      "key": "dpi-mia",
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "method",
+      "en": "The attack is A(·) = I(ρ(·) > c): a point is called a training member if its DPI exceeds a threshold c. The implementation sets c to the median of ρ over all test data. Since MIAs are usually benchmarked with AUCROC, the choice of c is largely irrelevant.",
+      "es": "El ataque es A(·) = I(ρ(·) > c): un punto se considera miembro del entrenamiento si su DPI supera un umbral c. La implementación fija c como la mediana de ρ sobre todos los datos de prueba. Como los MIA suelen evaluarse con AUCROC, la elección de c es en gran parte irrelevante.",
+      "blocks": [
+        "s4-p18",
+        "s4-e1",
+        "s4-p19"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "claim",
+      "en": "DPI MIA is simple, fast and easy to interpret. It only needs a K-Nearest Neighbor search, so it runs in linear or logarithmic time. It works with various distance definitions and suits high-dimensional, mixed-type datasets.",
+      "es": "DPI MIA es simple, rápido y fácil de interpretar. Solo necesita una búsqueda de K vecinos más cercanos, por lo que corre en tiempo lineal o logarítmico. Funciona con varias definiciones de distancia y es adecuado para conjuntos de datos de alta dimensión y tipos mixtos.",
+      "blocks": [
+        "s4-p20"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "claim",
+      "en": "DCR and GAN Leaks Calibrated flag overfitting from extreme differences in the distances of the nearest synthetic and reference points. DPI flags it from extreme differences in proportions across the larger local neighborhood. So DPI evaluates data-copying in a fundamentally different way.",
+      "es": "DCR y GAN Leaks Calibrated señalan sobreajuste a partir de diferencias extremas en las distancias de los puntos sintéticos y de referencia más cercanos. El DPI lo señala a partir de diferencias extremas en proporciones dentro del vecindario local más amplio. Por eso el DPI evalúa el copiado de datos de una manera fundamentalmente distinta.",
+      "blocks": [
+        "s6-p4",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "limitation",
+      "en": "Density-based copying tests and attacks struggle with tabular data, which is high dimensional and mixed type. The method in [6] is shown not to work on non-smooth distributions. DOMIAS's density estimators are slow, and its largest benchmark dataset was 35 columns one-hot encoded, against 109 for Adult. This motivates analyzing local neighborhoods instead.",
+      "es": "Las pruebas y ataques de copiado basados en densidad tienen dificultades con datos tabulares, que son de alta dimensión y de tipos mixtos. Se demuestra que el método de [6] no funciona con distribuciones no suaves. Los estimadores de densidad de DOMIAS son lentos, y su conjunto más grande tenía 35 columnas con codificación one-hot, frente a 109 de Adult. Esto motiva analizar vecindarios locales.",
+      "blocks": [
+        "s6-p5",
+        "s1-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "dataset",
+      "en": "All experiments use the Adult Census dataset. Pre-processed with one-hot encoding it has 109 columns. It is a common benchmark in the algorithmic fairness literature.",
+      "es": "Todos los experimentos usan el conjunto de datos Adult Census. Con codificación one-hot tiene 109 columnas. Es un referente común en la literatura de equidad algorítmica.",
+      "blocks": [
+        "s5-p1",
+        "s6-p5",
+        "s5-p5"
+      ],
+      "key": "adult-census",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "method",
+      "en": "Adult is randomly split into 3 equal training, holdout and reference sets, and the synthetic set has the same size. Each experiment is repeated 5 times, reporting means and standard deviations. For plots, DPI uses the best-performing setting, L2 distance and K=20.",
+      "es": "Adult se divide al azar en 3 conjuntos iguales de entrenamiento, reserva y referencia, y el conjunto sintético tiene el mismo tamaño. Cada experimento se repite 5 veces y se reportan medias y desviaciones estándar. En las gráficas, el DPI usa el mejor ajuste, distancia L2 y K=20.",
+      "blocks": [
+        "s5-p1",
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "method",
+      "en": "Eight tabular generators are benchmarked: CTGAN, TVAE, NFlow, Bayesian Network (BN), Adversarial Random Forests (ARF), Tab-DDPM, PATEGAN and Ads-GAN. All come from the Python package Synthcity with default hyperparameters.",
+      "es": "Se evalúan ocho generadores tabulares: CTGAN, TVAE, NFlow, Red Bayesiana (BN), Bosques Aleatorios Adversarios (ARF), Tab-DDPM, PATEGAN y Ads-GAN. Todos vienen del paquete de Python Synthcity con hiperparámetros por defecto.",
+      "blocks": [
+        "s5-p3",
+        "app-b-p1"
+      ],
+      "key": "synthcity",
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "method",
+      "en": "Synthetic data quality is scored three ways: Maximum Mean Discrepancy between training and generated data (lower is better), Wasserstein distance between their marginals (lower is better), and AUCROC of an XGBoost classifier trained on the synthetic set and tested on a holdout set (higher is better).",
+      "es": "La calidad de los datos sintéticos se mide de tres formas: la Discrepancia Máxima Media entre los datos de entrenamiento y los generados (menor es mejor), la distancia de Wasserstein entre sus marginales (menor es mejor) y el AUCROC de un clasificador XGBoost entrenado con el conjunto sintético y probado en un conjunto de reserva (mayor es mejor).",
+      "blocks": [
+        "s5-p4",
+        "fig-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "method",
+      "en": "DPI MIA is compared with the black-box attacks MC and GAN Leaks, and with the calibrated attacks LOGAN, GAN Leaks Calibrated and DOMIAS, all on Tab-DDPM across several dataset sizes. Training, reference and synthetic sets are the same size in each run.",
+      "es": "El DPI MIA se compara con los ataques de caja negra MC y GAN Leaks, y con los ataques calibrados LOGAN, GAN Leaks Calibrated y DOMIAS, todos sobre Tab-DDPM con varios tamaños de datos. En cada corrida, los conjuntos de entrenamiento, referencia y sintético tienen el mismo tamaño.",
+      "blocks": [
+        "s5-p6",
+        "app-c-p1",
+        "app-c-p2",
+        "app-c-p3",
+        "app-c-p4",
+        "app-c-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "Bayesian Network, Adversarial Random Forest and Tab-DDPM outperform the other models on the utility metrics but have higher privacy risk by DPI MIA AUCROC. There is a clear trend between model performance and privacy risk, so models that generate high-utility data tend to copy training data more.",
+      "es": "La Red Bayesiana, los Bosques Aleatorios Adversarios y Tab-DDPM superan a los demás modelos en las métricas de utilidad, pero tienen mayor riesgo de privacidad según el AUCROC de DPI MIA. Hay una tendencia clara entre el desempeño del modelo y el riesgo de privacidad, así que los modelos que generan datos de alta utilidad tienden a copiar más los datos de entrenamiento.",
+      "blocks": [
+        "s5-p4",
+        "fig-4",
+        "s1-p9",
+        "s7-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "The top 1% of training points by DPI for Tab-DDPM on Adult fall in an outlier region of a t-SNE plot. Most of them are married, white, middle-aged respondents with high capital gains, in private industry, earning >50k.",
+      "es": "El 1% superior de puntos de entrenamiento según el DPI para Tab-DDPM en Adult cae en una región atípica de una gráfica t-SNE. La mayoría son personas casadas, blancas, de mediana edad, con altas ganancias de capital, en industria privada y con ingresos >50k.",
+      "blocks": [
+        "s5-p5",
+        "fig-1",
+        "s1-p10"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "claim",
+      "en": "Tab-DDPM copies training data of a minority but privileged class, which the paper says creates structural unfairness in the synthetic data. This could bias downstream machine learning tasks. The paper concludes that data-copying affects fairness as well as privacy.",
+      "es": "Tab-DDPM copia datos de entrenamiento de una clase minoritaria pero privilegiada, lo que según el artículo crea inequidad estructural en los datos sintéticos. Esto podría sesgar tareas posteriores de aprendizaje automático. El artículo concluye que el copiado de datos afecta la equidad además de la privacidad.",
+      "blocks": [
+        "s1-p6",
+        "s1-p10",
+        "s5-p5",
+        "s7-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "result",
+      "en": "On Tab-DDPM, DPI MIA is competitive with the other MIAs that work on these data and dominates at most testing sizes. GAN Leaks Calibrated performs similarly or better than DPI.",
+      "es": "En Tab-DDPM, DPI MIA es competitivo con los demás MIA que funcionan con estos datos y domina en la mayoría de los tamaños de prueba. GAN Leaks Calibrated rinde de forma similar o mejor que el DPI.",
+      "blocks": [
+        "s5-p7",
+        "fig-5",
+        "s1-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "result",
+      "en": "The Pearson correlation between the scores of DPI and GAN Leaks Calibrated is relatively low across models (Table 1). So DPI picks up a different kind of data-copying than the existing attack, one that is undetectable by existing MIAs.",
+      "es": "La correlación de Pearson entre los puntajes del DPI y de GAN Leaks Calibrated es relativamente baja entre modelos (Tabla 1). Así, el DPI detecta un tipo de copiado distinto al del ataque existente, uno que los MIA existentes no detectan.",
+      "blocks": [
+        "tab-1",
+        "s5-p7",
+        "s1-p11"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "result",
+      "en": "DOMIAS's density estimation failed to converge in all experiments on Adult, so its results were always equivalent to a random guess. The paper therefore does not formally report it.",
+      "es": "La estimación de densidad de DOMIAS no convergió en ninguno de los experimentos con Adult, así que sus resultados equivalieron siempre a una adivinanza al azar. Por eso el artículo no lo reporta formalmente.",
+      "blocks": [
+        "s5-p6",
+        "s6-p5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "result",
+      "en": "An ablation uses L1 and L2 distances and K of 5, 10, 20 and 30. DPI is fairly stable, with no extreme changes in behavior. Each attack follows a clear trend, with smaller deviations at the largest sample sizes.",
+      "es": "Una ablación usa las distancias L1 y L2 y valores de K de 5, 10, 20 y 30. El DPI es bastante estable, sin cambios extremos de comportamiento. Cada ataque sigue una tendencia clara, con menores desviaciones en los tamaños de muestra más grandes.",
+      "blocks": [
+        "app-a-p1",
+        "fig-7",
+        "s5-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "limitation",
+      "en": "DPI can show that synthetic data are not private, but it cannot prove that particular synthetic data are private. Different MIAs succeed on different attributes of the data, and DPI and GAN Leaks Calibrated scores were correlated but not perfectly aligned.",
+      "es": "El DPI puede mostrar que los datos sintéticos no son privados, pero no puede probar que unos datos sintéticos concretos sí lo sean. Distintos MIA tienen éxito con distintos atributos de los datos, y los puntajes del DPI y de GAN Leaks Calibrated estuvieron correlacionados pero no perfectamente alineados.",
+      "blocks": [
+        "s6-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "limitation",
+      "en": "The paper suggests data-copying could be why the high-utility models perform better. It says more research is needed to tell whether this relationship is causal or only correlative.",
+      "es": "El artículo sugiere que el copiado de datos podría ser la razón por la que los modelos de alta utilidad rinden mejor. Dice que se necesita más investigación para saber si la relación es causal o solo correlativa.",
+      "blocks": [
+        "s5-p4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "claim",
+      "en": "The goal is not a state-of-the-art attack for all architectures. It is to characterize the particular risk that DPI's definition of data-copying implies.",
+      "es": "El objetivo no es crear un ataque de vanguardia para todas las arquitecturas, sino caracterizar el riesgo particular que implica la definición de copiado de datos del DPI.",
+      "blocks": [
+        "s5-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i31",
+      "kind": "future",
+      "en": "DPI could be used in Differential Privacy auditing. Take two neighboring training sets, generate a synthetic set from each, and build a decision rule on DPI score distributions. If its true positive rate is α and its false negative rate is β, the privacy parameter satisfies ε ≥ log max{α/(1−β), β/(1−α)}.",
+      "es": "El DPI podría usarse en la auditoría de Privacidad Diferencial. Se toman dos conjuntos de entrenamiento vecinos, se genera un conjunto sintético de cada uno y se construye una regla de decisión con las distribuciones de puntajes DPI. Si su tasa de verdaderos positivos es α y su tasa de falsos negativos es β, el parámetro de privacidad cumple ε ≥ log max{α/(1−β), β/(1−α)}.",
+      "blocks": [
+        "s6-p2",
+        "s6-p3",
+        "s7-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i32",
+      "kind": "future",
+      "en": "Future work calls for a broader theoretical framework connecting data-copying to privacy. It also proposes exploring whether data-copying affects other parts of Trustworthy AI, such as robustness, interpretability and reliability.",
+      "es": "El trabajo futuro pide un marco teórico más amplio que conecte el copiado de datos con la privacidad. También propone explorar si el copiado de datos afecta otros aspectos de la IA confiable, como la robustez, la interpretabilidad y la confiabilidad.",
+      "blocks": [
+        "s7-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i33",
+      "kind": "claim",
+      "en": "The data-copying literature is disjoint: hypothesis tests, non-parametric statistics, MIAs and similarity metrics. The paper proposes DPI and DPI MIA to bridge these three areas in one principled, interpretable, privacy-oriented metric for tabular data.",
+      "es": "La literatura sobre copiado de datos está desarticulada: pruebas de hipótesis, estadística no paramétrica, MIA y métricas de similitud. El artículo propone el DPI y el DPI MIA para unir estas tres áreas en una métrica con principios, interpretable y orientada a la privacidad para datos tabulares.",
+      "blocks": [
+        "s1-p2",
+        "s1-p5",
+        "s1-p8"
+      ],
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "i2",
+      "type": "uses",
+      "why": "The question is about how much a model does data-copying."
+    },
+    {
+      "from": "i8",
+      "to": "i3",
+      "type": "uses",
+      "why": "The formal definition gives DPI its theoretical context."
+    },
+    {
+      "from": "i3",
+      "to": "i4",
+      "type": "uses",
+      "why": "The definition is motivated by Definition 2.1 of [28]."
+    },
+    {
+      "from": "i8",
+      "to": "i2",
+      "type": "measures",
+      "why": "DPI is a local measure of data-copying around each point."
+    },
+    {
+      "from": "i9",
+      "to": "i8",
+      "type": "part-of",
+      "why": "The 0, 1 and >1 readings explain how to interpret DPI."
+    },
+    {
+      "from": "i10",
+      "to": "i9",
+      "type": "example-of",
+      "why": "The toy examples with K = 10 illustrate the three regimes."
+    },
+    {
+      "from": "i11",
+      "to": "i8",
+      "type": "uses",
+      "why": "Step 2 computes DPI for training and holdout points."
+    },
+    {
+      "from": "i11",
+      "to": "i7",
+      "type": "uses",
+      "why": "DPI MIA is built as a calibrated attack with a reference set."
+    },
+    {
+      "from": "i12",
+      "to": "i11",
+      "type": "part-of",
+      "why": "Step 3 is the thresholded decision rule."
+    },
+    {
+      "from": "i13",
+      "to": "i11",
+      "type": "supports",
+      "why": "Only a nearest-neighbor search is needed, so the attack is fast."
+    },
+    {
+      "from": "i6",
+      "to": "i11",
+      "type": "supports",
+      "why": "These problems motivate the MIA paradigm over plain similarity metrics."
+    },
+    {
+      "from": "i5",
+      "to": "i6",
+      "type": "supports",
+      "why": "DCR and Identical Matching Score are the metrics criticized."
+    },
+    {
+      "from": "i14",
+      "to": "i8",
+      "type": "supports",
+      "why": "Shows DPI captures a different notion of copying than DCR-style distances."
+    },
+    {
+      "from": "i15",
+      "to": "i8",
+      "type": "supports",
+      "why": "Density estimation fails on tabular data, motivating local neighborhoods."
+    },
+    {
+      "from": "i17",
+      "to": "i16",
+      "type": "uses",
+      "why": "Every experiment is run on Adult."
+    },
+    {
+      "from": "i18",
+      "to": "i17",
+      "type": "part-of",
+      "why": "The generators are the models being audited in the setup."
+    },
+    {
+      "from": "i19",
+      "to": "i17",
+      "type": "part-of",
+      "why": "The utility metrics are part of the experimental setup."
+    },
+    {
+      "from": "i20",
+      "to": "i17",
+      "type": "part-of",
+      "why": "The competing MIAs are part of the benchmark."
+    },
+    {
+      "from": "i21",
+      "to": "i19",
+      "type": "uses",
+      "why": "Utility is plotted against DPI MIA AUCROC."
+    },
+    {
+      "from": "i21",
+      "to": "i12",
+      "type": "uses",
+      "why": "The privacy axis is the DPI MIA AUCROC."
+    },
+    {
+      "from": "i22",
+      "to": "i8",
+      "type": "uses",
+      "why": "The top 1% is chosen by DPI score."
+    },
+    {
+      "from": "i22",
+      "to": "i1",
+      "type": "supports",
+      "why": "It is evidence that the copying problem is substantial."
+    },
+    {
+      "from": "i22",
+      "to": "i23",
+      "type": "supports",
+      "why": "The copied region is a privileged outlier class."
+    },
+    {
+      "from": "i24",
+      "to": "i20",
+      "type": "uses",
+      "why": "The comparison runs against the listed MIAs."
+    },
+    {
+      "from": "i25",
+      "to": "i14",
+      "type": "supports",
+      "why": "Low correlation fits the claim that DPI and GAN Leaks Calibrated see different copying."
+    },
+    {
+      "from": "i26",
+      "to": "i15",
+      "type": "supports",
+      "why": "DOMIAS failing to converge on Adult illustrates the density-estimation problem."
+    },
+    {
+      "from": "i27",
+      "to": "i8",
+      "type": "supports",
+      "why": "DPI is fairly stable across distance and K choices."
+    },
+    {
+      "from": "i28",
+      "to": "i12",
+      "type": "part-of",
+      "why": "It is a limit on what the attack can conclude."
+    },
+    {
+      "from": "i29",
+      "to": "i21",
+      "type": "part-of",
+      "why": "It is the caveat on the utility-privacy trend."
+    },
+    {
+      "from": "i30",
+      "to": "i24",
+      "type": "supports",
+      "why": "It explains why GAN Leaks Calibrated doing equally well is not a problem."
+    },
+    {
+      "from": "i31",
+      "to": "i8",
+      "type": "uses",
+      "why": "The decision rule is built on DPI score distributions."
+    },
+    {
+      "from": "i32",
+      "to": "i23",
+      "type": "supports",
+      "why": "Fairness is one of the axes where copying already shows an effect."
+    },
+    {
+      "from": "i33",
+      "to": "i4",
+      "type": "uses",
+      "why": "It draws on the data-copying measures."
+    },
+    {
+      "from": "i33",
+      "to": "i7",
+      "type": "uses",
+      "why": "It draws on the MIA literature."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i2",
+      "to": "new-not-replicated",
+      "why": "It names the failure a BIM generator must avoid: output that is closer to training samples than a reference set would predict."
+    },
+    {
+      "idea": "i8",
+      "to": "new-not-replicated",
+      "why": "A method to borrow: hold out a reference split and compare synthetic and reference neighbors around each training item; it would need a distance between BIM elements or models, which the paper does not give."
+    },
+    {
+      "idea": "i21",
+      "to": "hypothesis",
+      "why": "In tabular models the best performers also copy most, so a generator that seems to find patterns may only be copying, and the hypothesis would have to rule that out."
+    },
+    {
+      "idea": "i4",
+      "to": "meehan-2020",
+      "why": "DPI's definition follows [28], the cell-wise test with a reference set, and turns it into a per-point ratio and an attack."
+    },
+    {
+      "idea": "i6",
+      "to": "polykovskiy-2020",
+      "why": "It cautions that novelty measured only as distance to the training set has no threat model and no reference set."
+    },
+    {
+      "idea": "i28",
+      "to": "majhi-2026",
+      "why": "Both stress that failing to detect copying does not show a model is private, so the null hypothesis needs care."
+    }
+  ]
+}

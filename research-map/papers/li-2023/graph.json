@@ -1,0 +1,607 @@
+{
+  "version": 1,
+  "node": "li-2023",
+  "built": {
+    "date": "2026-11-15",
+    "model": "claude-sonnet-5-5",
+    "effort": "xhigh"
+  },
+  "ideas": [
+    {
+      "id": "i1",
+      "kind": "question",
+      "en": "Would masked autoencoding, which advanced language (BERT) and vision (MAE), also improve graph autoencoders in self-supervised learning? The paper also asks why masking would help, and wants a theoretical answer, not only trial and error.",
+      "es": "¿La codificación automática con máscara, que hizo avanzar al lenguaje (BERT) y a la visión (MAE), también mejoraría a los autocodificadores de grafos en el aprendizaje autosupervisado? El artículo además pregunta por qué ayudaría el enmascarado y busca una respuesta teórica, no solo ensayo y error.",
+      "blocks": [
+        "s0-p1",
+        "s1-p4"
+      ],
+      "key": "masked-autoencoding-for-graphs",
+      "origin": "read"
+    },
+    {
+      "id": "i2",
+      "kind": "concept",
+      "en": "A graph autoencoder (GAE) encodes nodes into low-dimensional vectors and decodes them to reconstruct the graph's edges, with no augmentations needed. The paper says plain GAEs overemphasize proximity information, so they do poorly on tasks beyond link prediction.",
+      "es": "Un autocodificador de grafos (GAE) codifica los nodos en vectores de baja dimensión y los decodifica para reconstruir las aristas del grafo, sin necesitar aumentos de datos. El artículo dice que los GAE simples sobreenfatizan la información de proximidad, por lo que rinden mal en tareas distintas de la predicción de enlaces.",
+      "blocks": [
+        "s1-p3",
+        "s2-p2",
+        "s4-p1"
+      ],
+      "key": "graph-autoencoder",
+      "origin": "read"
+    },
+    {
+      "id": "i3",
+      "kind": "concept",
+      "en": "Masked graph modeling (MGM) removes a portion of the input graph, here edges, and trains the model to predict the removed part from the remaining visible structure. It is the graph counterpart of masked language modeling and masked image modeling.",
+      "es": "El modelado de grafos con máscara (MGM) quita una parte del grafo de entrada, aquí aristas, y entrena al modelo para predecir lo quitado a partir de la estructura visible que queda. Es el equivalente en grafos del modelado de lenguaje y de imágenes con máscara.",
+      "blocks": [
+        "s3-p1",
+        "s1-p4",
+        "fig-1"
+      ],
+      "key": "masked-graph-modeling",
+      "origin": "read"
+    },
+    {
+      "id": "i4",
+      "kind": "method",
+      "en": "MaskGAE is an asymmetric encoder-decoder framework: the encoder sees only the visible graph, and two decoders rebuild the masked edges and the node degrees. It has four parts: masking strategy, encoder, decoder and learning objective.",
+      "es": "MaskGAE es un marco asimétrico de codificador y decodificadores: el codificador ve solo el grafo visible, y dos decodificadores reconstruyen las aristas enmascaradas y los grados de los nodos. Tiene cuatro partes: estrategia de enmascarado, codificador, decodificador y objetivo de aprendizaje.",
+      "blocks": [
+        "s5-p1",
+        "fig-2"
+      ],
+      "key": "maskgae",
+      "origin": "read"
+    },
+    {
+      "id": "i5",
+      "kind": "method",
+      "en": "Edge-wise random masking samples a subset of edges to hide following a Bernoulli distribution with masking ratio p < 1. The hidden edges form the graph to be predicted, and the rest stays visible.",
+      "es": "El enmascarado aleatorio por aristas toma un subconjunto de aristas para ocultar siguiendo una distribución de Bernoulli con razón de enmascarado p < 1. Las aristas ocultas forman lo que se debe predecir y el resto queda visible.",
+      "blocks": [
+        "s5-p3",
+        "s5-p4",
+        "s5-p5"
+      ],
+      "key": "edge-masking",
+      "origin": "read"
+    },
+    {
+      "id": "i6",
+      "kind": "method",
+      "en": "Path-wise random masking hides edges along random walks started from root nodes sampled with ratio q, so edges in a contiguous region are masked together. This breaks short-range connections, and the authors say they are the first to use it for graph self-supervised learning.",
+      "es": "El enmascarado aleatorio por caminos oculta las aristas a lo largo de caminatas aleatorias que parten de nodos raíz muestreados con razón q, de modo que se enmascaran juntas las aristas de una región contigua. Esto rompe las conexiones de corto alcance, y los autores dicen ser los primeros en usarlo en aprendizaje autosupervisado de grafos.",
+      "blocks": [
+        "s5-p6",
+        "s5-p7"
+      ],
+      "key": "path-masking",
+      "origin": "read"
+    },
+    {
+      "id": "i7",
+      "kind": "method",
+      "en": "The structure decoder scores a pair of nodes with a sigmoid over an MLP of their element-wise product. An auxiliary degree decoder, an MLP on each node, predicts the node's degree in the masked graph to balance proximity and structure information.",
+      "es": "El decodificador de estructura puntúa un par de nodos con una sigmoide sobre un MLP del producto elemento a elemento de sus representaciones. Un decodificador auxiliar de grado, un MLP sobre cada nodo, predice el grado del nodo en el grafo enmascarado para equilibrar la información de proximidad y la de estructura.",
+      "blocks": [
+        "s5-p10",
+        "s5-e1",
+        "s5-p12",
+        "s5-e2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i8",
+      "kind": "method",
+      "en": "The loss adds the edge reconstruction loss, computed over the masked edges plus sampled negative edges, to a degree regression loss (mean squared error) weighted by a non-negative α. The degree term works as a regularizer for the encoder.",
+      "es": "La pérdida suma la pérdida de reconstrucción de aristas, calculada sobre las aristas enmascaradas más aristas negativas muestreadas, a una pérdida de regresión del grado (error cuadrático medio) ponderada por un α no negativo. El término de grado funciona como regularizador del codificador.",
+      "blocks": [
+        "s5-p14",
+        "s5-e3",
+        "s5-p18"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i9",
+      "kind": "claim",
+      "en": "Under a homophily assumption, minimizing the GAE objective is, in population, equivalent to maximizing the mutual information between the k-hop subgraphs of two adjacent nodes (Lemma 1). So a GAE is a contrastive learner whose two views are the paired subgraphs.",
+      "es": "Bajo un supuesto de homofilia, minimizar el objetivo del GAE equivale, en la población, a maximizar la información mutua entre los subgrafos de k saltos de dos nodos adyacentes (Lema 1). Así, un GAE es un aprendiz contrastivo cuyas dos vistas son los subgrafos emparejados.",
+      "blocks": [
+        "s4-p20",
+        "s4-p21",
+        "s4-p8"
+      ],
+      "key": "gae-is-contrastive",
+      "origin": "read"
+    },
+    {
+      "id": "i10",
+      "kind": "claim",
+      "en": "The task-irrelevant information, or redundancy, between the two views of a GAE has a lower bound that scales almost linearly with the size of the overlapping subgraph (Proposition 1). The authors conclude that good methods need to reduce redundancy while keeping task-relevant information almost intact.",
+      "es": "La información irrelevante para la tarea, o redundancia, entre las dos vistas de un GAE tiene una cota inferior que crece casi linealmente con el tamaño del subgrafo compartido (Proposición 1). Los autores concluyen que los buenos métodos deben reducir la redundancia sin perder casi nada de la información relevante para la tarea.",
+      "blocks": [
+        "s4-p32",
+        "s4-p33",
+        "s4-p41"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i11",
+      "kind": "claim",
+      "en": "Masking a positive edge avoids a large overlap between the two subgraph views, which reduces redundancy and benefits the contrastive scheme of the GAE. The paper adds that edge-level information is often redundant for tasks like node classification, so little task-relevant information is lost.",
+      "es": "Enmascarar una arista positiva evita un gran traslape entre las dos vistas de subgrafo, lo que reduce la redundancia y beneficia el esquema contrastivo del GAE. El artículo añade que la información a nivel de arista suele ser redundante para tareas como la clasificación de nodos, así que se pierde poca información relevante.",
+      "blocks": [
+        "s5-p2",
+        "s5-p20",
+        "fig-3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i12",
+      "kind": "result",
+      "en": "On two citation graphs, both the node-level and edge-level subgraph overlap (O_node, O_edge) drop significantly with masking, for several hop counts k. Path-wise masking gives consistently lower overlap than edge-wise masking on both datasets.",
+      "es": "En dos grafos de citas, el traslape de subgrafos tanto a nivel de nodos como de aristas (O_node, O_edge) baja de forma significativa con el enmascarado, para varios números de saltos k. El enmascarado por caminos da un traslape consistentemente menor que el enmascarado por aristas en ambos conjuntos de datos.",
+      "blocks": [
+        "s5-p33",
+        "tab-1",
+        "s5-p21"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i13",
+      "kind": "dataset",
+      "en": "Eight public benchmarks: the citation graphs Cora, CiteSeer and Pubmed, the co-purchase graphs Photo and Computer, and the Open Graph Benchmark datasets arXiv, MAG and Collab. For link prediction, edges are split randomly 85%/5%/10% for training/validation/testing, except Collab, which uses public splits.",
+      "es": "Ocho conjuntos de referencia públicos: los grafos de citas Cora, CiteSeer y Pubmed, los grafos de coompra Photo y Computer, y los conjuntos de Open Graph Benchmark arXiv, MAG y Collab. Para predicción de enlaces, las aristas se dividen al azar 85%/5%/10% para entrenamiento/validación/prueba, salvo Collab, que usa divisiones públicas.",
+      "blocks": [
+        "s6-p2",
+        "tab-2"
+      ],
+      "key": "cora-citeseer-pubmed",
+      "origin": "read"
+    },
+    {
+      "id": "i14",
+      "kind": "method",
+      "en": "The default setup uses a GCN encoder, with two layers (four for arXiv), mask ratio 0.7 for edge masking, and q = 0.7 with walk length k + 1 for path masking. Training uses Adam with learning rate 0.01 for 500 epochs (100 for arXiv and MAG), with early stopping at patience 30.",
+      "es": "La configuración por defecto usa un codificador GCN, con dos capas (cuatro para arXiv), razón de enmascarado 0.7 para el enmascarado por aristas, y q = 0.7 con longitud de caminata k + 1 para el enmascarado por caminos. El entrenamiento usa Adam con tasa de aprendizaje 0.01 durante 500 épocas (100 para arXiv y MAG), con parada temprana de paciencia 30.",
+      "blocks": [
+        "s6-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i15",
+      "kind": "method",
+      "en": "Link prediction is scored with AUC, average precision and Hits@k on 10% held-out edges plus the same number of non-edges. Node classification uses linear evaluation: a logistic regression is fitted on the frozen embeddings, with no gradients flowing back to the encoder.",
+      "es": "La predicción de enlaces se califica con AUC, precisión promedio y Hits@k sobre el 10% de aristas apartadas más el mismo número de pares sin arista. La clasificación de nodos usa evaluación lineal: se ajusta una regresión logística sobre los embeddings congelados, sin que fluyan gradientes de regreso al codificador.",
+      "blocks": [
+        "s6-p4",
+        "s6-p7"
+      ],
+      "key": "linear-evaluation",
+      "origin": "read"
+    },
+    {
+      "id": "i16",
+      "kind": "result",
+      "en": "Both MaskGAE variants lead all compared methods on every metric in link prediction on Cora, CiteSeer, Pubmed and Collab. They beat vanilla GAE by 5% on average in AUC and AP on the three citation datasets and set a new state of the art on Collab.",
+      "es": "Las dos variantes de MaskGAE lideran a todos los métodos comparados en cada métrica de predicción de enlaces en Cora, CiteSeer, Pubmed y Collab. Superan al GAE simple por 5% en promedio en AUC y AP en los tres conjuntos de citas y fijan un nuevo estado del arte en Collab.",
+      "blocks": [
+        "s6-p7",
+        "tab-3"
+      ],
+      "key": "link-prediction-auc-ap",
+      "origin": "read"
+    },
+    {
+      "id": "i17",
+      "kind": "result",
+      "en": "In node classification, both MaskGAE variants outperform or match the best contrastive methods on all datasets. They beat GraphMAE on six out of seven datasets and outperform the supervised baselines (MLP, GCN, GAT), while plain GAEs trail the contrastive methods.",
+      "es": "En clasificación de nodos, las dos variantes de MaskGAE superan o igualan a los mejores métodos contrastivos en todos los conjuntos de datos. Superan a GraphMAE en seis de siete conjuntos y a los modelos supervisados (MLP, GCN, GAT), mientras que los GAE simples quedan por debajo de los contrastivos.",
+      "blocks": [
+        "s6-p10",
+        "tab-4"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i18",
+      "kind": "result",
+      "en": "Path-wise masking performs relatively better than edge-wise masking in most cases. The authors' explanation is that predicting a set of locally correlated edges cannot be solved easily by extrapolating from the visible structure, so the learned representations are more robust.",
+      "es": "El enmascarado por caminos rinde relativamente mejor que el enmascarado por aristas en la mayoría de los casos. La explicación de los autores es que predecir un conjunto de aristas correlacionadas localmente no se resuelve fácilmente extrapolando desde la estructura visible, así que las representaciones aprendidas son más robustas.",
+      "blocks": [
+        "s6-p12"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i19",
+      "kind": "result",
+      "en": "Performance improves smoothly as the mask ratio grows, and the best result comes at a critical value such as 0.7 for p or q; values that are too large or too small give poor results. The authors read this as confirming information redundancy in graphs.",
+      "es": "El rendimiento mejora de forma suave al crecer la razón de enmascarado, y el mejor resultado llega en un valor crítico como 0.7 para p o q; valores demasiado grandes o demasiado pequeños dan malos resultados. Los autores lo leen como confirmación de la redundancia de información en los grafos.",
+      "blocks": [
+        "s6-p14",
+        "fig-4"
+      ],
+      "key": "mask-ratio",
+      "origin": "read"
+    },
+    {
+      "id": "i20",
+      "kind": "result",
+      "en": "Performance is boosted when the degree-loss weight α > 0, particularly for the path-wise variant, so the degree loss helps learn good representations. A large α makes results worse, which the authors attribute to overfitting the structure information.",
+      "es": "El rendimiento mejora cuando el peso de la pérdida de grado α > 0, en particular para la variante por caminos, así que la pérdida de grado ayuda a aprender buenas representaciones. Un α grande empeora los resultados, lo cual los autores atribuyen a un sobreajuste a la información de estructura.",
+      "blocks": [
+        "s6-p15",
+        "fig-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i21",
+      "kind": "result",
+      "en": "MaskGAE does not benefit much from larger embeddings: sizes from 64 to 512 perform about equally, and 64 is sufficient in most cases. The paper contrasts this with contrastive methods, which generally need larger dimensions such as 512.",
+      "es": "MaskGAE no se beneficia mucho de embeddings más grandes: los tamaños de 64 a 512 rinden casi igual, y 64 basta en la mayoría de los casos. El artículo lo contrasta con los métodos contrastivos, que generalmente necesitan dimensiones mayores, como 512.",
+      "blocks": [
+        "s6-p16",
+        "fig-6"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i22",
+      "kind": "result",
+      "en": "GCN is the best encoder for MaskGAE with both masking strategies, with significantly better performance than GAT and SAGE in all cases on three citation graphs. The authors conclude that a simple encoder aided by MGM is sufficient.",
+      "es": "GCN es el mejor codificador para MaskGAE con ambas estrategias de enmascarado, con un rendimiento significativamente mejor que GAT y SAGE en todos los casos en tres grafos de citas. Los autores concluyen que un codificador simple con ayuda del MGM es suficiente.",
+      "blocks": [
+        "s6-p17",
+        "tab-5"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i23",
+      "kind": "claim",
+      "en": "Because the encoder only processes the small portion of unmasked edges during training, MaskGAE scales well. The paper reports good computational scaling and downstream performance on the large datasets arXiv and MAG.",
+      "es": "Como el codificador solo procesa la pequeña porción de aristas sin enmascarar durante el entrenamiento, MaskGAE escala bien. El artículo reporta buen escalamiento computacional y buen rendimiento posterior en los conjuntos grandes arXiv y MAG.",
+      "blocks": [
+        "s6-p11",
+        "s5-p9",
+        "s3-p1"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i24",
+      "kind": "claim",
+      "en": "MGM removes the discrepancy between pre-training and the downstream link prediction task, since the model predicts edges that are invisible given the partial structure in both training and inference. The authors give this as one reason for the link prediction results.",
+      "es": "El MGM elimina la discrepancia entre el preentrenamiento y la tarea posterior de predicción de enlaces, pues el modelo predice aristas invisibles dadas la estructura parcial tanto en el entrenamiento como en la inferencia. Los autores dan esto como una razón de los resultados en predicción de enlaces.",
+      "blocks": [
+        "s6-p7"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i25",
+      "kind": "concept",
+      "en": "Homophily is the assumption that two nodes joined by an edge are more likely to have the same underlying semantics. The theoretical analysis of GAEs and contrastive learning is built on it.",
+      "es": "La homofilia es el supuesto de que dos nodos unidos por una arista tienen más probabilidad de tener la misma semántica de fondo. El análisis teórico de los GAE y el aprendizaje contrastivo se construye sobre ella.",
+      "blocks": [
+        "s4-p8",
+        "app-c-p2"
+      ],
+      "key": "homophily",
+      "origin": "read"
+    },
+    {
+      "id": "i26",
+      "kind": "limitation",
+      "en": "Masking the graph structure is a kind of augmentation and can hurt the semantic meaning of some graphs, such as biochemical molecules. MaskGAE also relies on homophily, which may not hold in heterophilic graphs where linked nodes tend to have different labels.",
+      "es": "Enmascarar la estructura del grafo es una forma de aumento de datos y puede dañar el significado semántico de algunos grafos, como las moléculas bioquímicas. MaskGAE además depende de la homofilia, que puede no cumplirse en grafos heterofílicos donde los nodos enlazados suelen tener etiquetas distintas.",
+      "blocks": [
+        "app-c-p2"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i27",
+      "kind": "limitation",
+      "en": "Proposition 1 assumes the downstream target is the topology and that node features are independent of it. With correlated features the bound becomes trivial in the worst case, so the redundancy analysis is only established under that independence.",
+      "es": "La Proposición 1 supone que el objetivo posterior es la topología y que las características de los nodos son independientes de ella. Con características correlacionadas la cota se vuelve trivial en el peor caso, así que el análisis de redundancia solo se establece bajo esa independencia.",
+      "blocks": [
+        "app-a-p41",
+        "app-a-p42",
+        "app-a-p43"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i28",
+      "kind": "future",
+      "en": "The authors leave open a closer study of the redundancy under specified dependence between nodes, and a target that mixes feature and topological information. They also say the societal risk of pretraining on crawled data needs to be addressed in future work.",
+      "es": "Los autores dejan abierto un estudio más cuidadoso de la redundancia bajo una dependencia especificada entre nodos, y de un objetivo que mezcle información de características y de topología. También dicen que el riesgo social de preentrenar con datos extraídos de la web debe abordarse en trabajo futuro.",
+      "blocks": [
+        "app-a-p41",
+        "app-a-p43",
+        "app-c-p3"
+      ],
+      "origin": "read"
+    },
+    {
+      "id": "i29",
+      "kind": "concept",
+      "en": "GraphMAE, a concurrent masked graph method, reconstructs node features, while MaskGAE reconstructs structure (edges and degrees). The paper says GraphMAE presents only empirical results, without theory on why masking helps.",
+      "es": "GraphMAE, un método concurrente de grafos con máscara, reconstruye características de nodos, mientras que MaskGAE reconstruye estructura (aristas y grados). El artículo dice que GraphMAE presenta solo resultados empíricos, sin teoría sobre por qué ayuda el enmascarado.",
+      "blocks": [
+        "app-c-p1",
+        "tab-6",
+        "s2-p3"
+      ],
+      "key": "graphmae",
+      "origin": "read"
+    },
+    {
+      "id": "i30",
+      "kind": "concept",
+      "en": "Graph contrastive methods learn representations that agree across augmented views of a graph. They are highly successful but rely on specialized pretext tasks and augmentations, usually found by trial and error.",
+      "es": "Los métodos contrastivos de grafos aprenden representaciones que concuerdan entre vistas aumentadas de un grafo. Tienen mucho éxito, pero dependen de tareas de pretexto y aumentos especializados, normalmente hallados por ensayo y error.",
+      "blocks": [
+        "s1-p2",
+        "s2-p1"
+      ],
+      "key": "graph-contrastive-learning",
+      "origin": "read"
+    }
+  ],
+  "edges": [
+    {
+      "from": "i4",
+      "to": "i3",
+      "type": "uses",
+      "why": "MaskGAE is the framework that carries out masked graph modeling with a graph autoencoder."
+    },
+    {
+      "from": "i5",
+      "to": "i4",
+      "type": "part-of",
+      "why": "Edge-wise masking is one of the two masking strategies of MaskGAE."
+    },
+    {
+      "from": "i6",
+      "to": "i4",
+      "type": "part-of",
+      "why": "Path-wise masking is the second, structured masking strategy of MaskGAE."
+    },
+    {
+      "from": "i7",
+      "to": "i4",
+      "type": "part-of",
+      "why": "The structure and degree decoders are the two decoders of the asymmetric design."
+    },
+    {
+      "from": "i8",
+      "to": "i4",
+      "type": "part-of",
+      "why": "The combined loss is the learning objective of MaskGAE."
+    },
+    {
+      "from": "i2",
+      "to": "i1",
+      "type": "supports",
+      "why": "The weaknesses of plain GAEs are what motivate looking for a better pretext task."
+    },
+    {
+      "from": "i9",
+      "to": "i2",
+      "type": "uses",
+      "why": "The lemma is a statement about the GAE objective."
+    },
+    {
+      "from": "i9",
+      "to": "i30",
+      "type": "uses",
+      "why": "It reads the GAE through the mutual-information view of contrastive learning."
+    },
+    {
+      "from": "i10",
+      "to": "i25",
+      "type": "uses",
+      "why": "The analysis rests on the homophily assumption."
+    },
+    {
+      "from": "i9",
+      "to": "i11",
+      "type": "supports",
+      "why": "If GAEs are contrastive, the overlap between the paired views matters."
+    },
+    {
+      "from": "i10",
+      "to": "i11",
+      "type": "supports",
+      "why": "Redundancy grows with overlap, so cutting overlap by masking should help."
+    },
+    {
+      "from": "i12",
+      "to": "i11",
+      "type": "measures",
+      "why": "Overlap statistics with and without masking check the claim."
+    },
+    {
+      "from": "i12",
+      "to": "i6",
+      "type": "supports",
+      "why": "Path-wise masking gives lower overlap than edge-wise masking."
+    },
+    {
+      "from": "i18",
+      "to": "i6",
+      "type": "supports",
+      "why": "Path-wise masking also scores better downstream in most cases."
+    },
+    {
+      "from": "i19",
+      "to": "i10",
+      "type": "supports",
+      "why": "Gains from a high mask ratio fit the idea that graphs contain redundant information."
+    },
+    {
+      "from": "i14",
+      "to": "i5",
+      "type": "uses",
+      "why": "The default setup sets the edge mask ratio to 0.7."
+    },
+    {
+      "from": "i14",
+      "to": "i6",
+      "type": "uses",
+      "why": "The default setup uses q = 0.7 and walk length k + 1."
+    },
+    {
+      "from": "i16",
+      "to": "i13",
+      "type": "uses",
+      "why": "Link prediction is run on Cora, CiteSeer, Pubmed and Collab."
+    },
+    {
+      "from": "i17",
+      "to": "i13",
+      "type": "uses",
+      "why": "Node classification is run on seven of the eight datasets."
+    },
+    {
+      "from": "i16",
+      "to": "i15",
+      "type": "uses",
+      "why": "Scores are AUC, AP and Hits@k."
+    },
+    {
+      "from": "i17",
+      "to": "i15",
+      "type": "uses",
+      "why": "Accuracy comes from a linear classifier on frozen embeddings."
+    },
+    {
+      "from": "i16",
+      "to": "i1",
+      "type": "supports",
+      "why": "Masking improves GAEs on link prediction."
+    },
+    {
+      "from": "i17",
+      "to": "i1",
+      "type": "supports",
+      "why": "Masked GAEs match or beat contrastive methods on node classification."
+    },
+    {
+      "from": "i24",
+      "to": "i16",
+      "type": "supports",
+      "why": "Predicting invisible edges in both training and inference is offered as a reason for the link prediction gains."
+    },
+    {
+      "from": "i20",
+      "to": "i7",
+      "type": "supports",
+      "why": "The degree decoder's loss helps when its weight is above zero."
+    },
+    {
+      "from": "i21",
+      "to": "i4",
+      "type": "supports",
+      "why": "Small embeddings suffice, which the authors read as informative representations."
+    },
+    {
+      "from": "i22",
+      "to": "i4",
+      "type": "supports",
+      "why": "A simple GCN encoder is enough once masking is in place."
+    },
+    {
+      "from": "i23",
+      "to": "i4",
+      "type": "supports",
+      "why": "Encoding only the visible edges is what makes training scale."
+    },
+    {
+      "from": "i29",
+      "to": "i3",
+      "type": "example-of",
+      "why": "GraphMAE is another masked graph method, masking node features."
+    },
+    {
+      "from": "i17",
+      "to": "i29",
+      "type": "measures",
+      "why": "MaskGAE is compared with GraphMAE on node classification."
+    },
+    {
+      "from": "i26",
+      "to": "i25",
+      "type": "uses",
+      "why": "The limitation says the method depends on homophily."
+    },
+    {
+      "from": "i27",
+      "to": "i10",
+      "type": "part-of",
+      "why": "It is a limitation of the redundancy proposition."
+    },
+    {
+      "from": "i28",
+      "to": "i27",
+      "type": "part-of",
+      "why": "Future work targets the dependent-features gap."
+    }
+  ],
+  "thesis": [
+    {
+      "idea": "i3",
+      "to": "masking-training",
+      "why": "Gives the pretext task in its general form: hide part of the structure and predict it from what stays visible."
+    },
+    {
+      "idea": "i19",
+      "to": "masking-training",
+      "why": "Shows the mask ratio matters, with the best result near 0.7 and poor results at both extremes, so the thesis will need to tune and report it."
+    },
+    {
+      "idea": "i6",
+      "to": "masking-training",
+      "why": "A method to borrow: hiding a connected region together, such as a chain of related elements, is harder than hiding scattered relations."
+    },
+    {
+      "idea": "i18",
+      "to": "placement-order-experiments",
+      "why": "Hiding a connected region beat scattered edges here, which bears on whether to hide one element alone or together with its neighbours."
+    },
+    {
+      "idea": "i16",
+      "to": "shoaip-2026",
+      "why": "Recovering masked edges is trained and scored as link prediction, the same task as finding missing host and correspondence links in BIM graphs."
+    },
+    {
+      "idea": "i29",
+      "to": "graphmae-2022",
+      "why": "Contrasts masking node features (GraphMAE) with masking structure (MaskGAE), a choice the thesis faces when deciding what to hide in a BIM graph."
+    },
+    {
+      "idea": "i26",
+      "to": "hypothesis",
+      "why": "Challenge: the method assumes homophily and warns masking can hurt the meaning of graphs like molecules, and BIM relations such as host or contain may not behave like citation links."
+    },
+    {
+      "idea": "i11",
+      "to": "hypothesis",
+      "why": "Gives a reason why hiding relations pushes a model to learn structural patterns instead of leaning on neighbours, though shown only on citation and co-purchase graphs."
+    }
+  ]
+}
