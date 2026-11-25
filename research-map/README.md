@@ -52,6 +52,8 @@ slides: **Space** starts, pauses and resumes the pitch (the slides move by thems
 transitions. The view shows a play button, the pitch's clock over its whole length (a click restarts) and the time left on
 the slide; the deck window reports its state over the same channel (`type: 'pitch'`).
 
+**Public site.** The latest deck is public at https://ramon-garcia-ayala.github.io/research-thesis-bim-model-generation-with-ai/ (GitHub Pages, branch `gh-pages`). `npm run pages` stages it (`scripts/build-pages.mjs`: the deck, the shared assets and a `site.js` cut down to that deck) and force-pushes it as the only commit of `gh-pages`; run it again after the deck changes, and change `DECK` in `build-pages.mjs` to publish a newer one. Nothing else of the repo is on the site.
+
 **Experiment slides (deck 07).** `model3d-sets.js` draws the experiments' 3D views and diagrams (E1 piece, E2 puzzle and
 network, E3 placements) from the deck's `views.json`; `graph-view.js` draws E1's whole graph from `graph.json` (zoom,
 pan, a click on a node, isolate a class or relation from the key, class colours `--cls-*`). Both files come from
